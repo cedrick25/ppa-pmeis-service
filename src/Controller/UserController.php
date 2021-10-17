@@ -16,6 +16,7 @@ class UserController extends AbstractController
     }
     public function index(): Response
     {
-        return $this->json($this->userService->getUserAccount());
+        // TODO: Convert class object to json response
+        return $this->json($this->userService->getUserAccount()->getContactNumber());
     }
 }
