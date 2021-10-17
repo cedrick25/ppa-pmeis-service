@@ -20,6 +20,9 @@
     "monolog/monolog": {
         "version": "2.3.5"
     },
+    "myclabs/php-enum": {
+        "version": "1.8.3"
+    },
     "nikic/php-parser": {
         "version": "v4.13.0"
     },
@@ -28,6 +31,9 @@
     },
     "phpstan/phpstan": {
         "version": "0.12.99"
+    },
+    "phpstan/phpstan-strict-rules": {
+        "version": "0.12.11"
     },
     "psr/cache": {
         "version": "2.0.0"
