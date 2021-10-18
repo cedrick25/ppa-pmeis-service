@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace App\Model;
@@ -63,9 +64,9 @@ class UserAccount
     }
 
     /**
-     * @return UserType
+     * @return int
      */
-    public function getStatus(): UserType
+    public function getStatus(): int
     {
         return $this->status;
     }

@@ -4,19 +4,27 @@ declare(strict_types=1);
 
 namespace App\Controller;
 
+use App\Common\ObjectToArray;
 use App\Service\UserServiceInterface;
+use ReflectionException;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Response;
 
 class UserController extends AbstractController
 {
-    public function __construct(private UserServiceInterface $userService)
-    {
-        
-    }
+    public function __construct(
+        private UserServiceInterface $userService,
+        private ObjectToArray $objectToArray
+    ){}
+
+    /**
+     * @throws ReflectionException
+     */
     public function index(): Response
     {
-        // TODO: Convert class object to json response
-        return $this->json($this->userService->getUserAccount()->getContactNumber());
+        return new JsonResponse(
+            $this->objectToArray->convert($this->userService->getUserAccount())
+        );
     }
 }
