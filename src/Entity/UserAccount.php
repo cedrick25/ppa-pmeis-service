@@ -70,11 +70,6 @@ class UserAccount
      */
     private ?DateTimeImmutable $deletedAt;
 
-    public function getId(): ?int
-    {
-        return $this->id;
-    }
-
     public function getUserAccountId(): ?int
     {
         return $this->userAccountId;

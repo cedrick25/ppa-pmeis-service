@@ -3,7 +3,10 @@
 namespace App\Repository;
 
 use App\Entity\UserAccount;
+use App\Entity\UserDetails;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
+use Doctrine\ORM\NonUniqueResultException;
+use Doctrine\ORM\Query\Expr\Join;
 use Doctrine\Persistence\ManagerRegistry;
 
 /**
@@ -36,15 +39,27 @@ class UserAccountRepository extends ServiceEntityRepository
     }
     */
 
-    /*
-    public function findOneBySomeField($value): ?UserAccount
+//    /**
+//     */
+//    public function findAccountWithDetailsByID(int $id): ?array
+//    {
+//        return $this->createQueryBuilder('ua')
+//            ->innerJoin(UserDetails::class, 'ud', Join::WITH, 'ud.userAccountId = ua.userAccountId')
+//            ->andWhere('ua.userAccountId = :id')
+//            ->setParameter('id', $id)
+//            ->getQuery()
+//            ->getResult();
+//    }
+
+    /**
+     * @throws NonUniqueResultException
+     */
+    public function findAccountByID(int $id): ?UserAccount
     {
-        return $this->createQueryBuilder('u')
-            ->andWhere('u.exampleField = :val')
-            ->setParameter('val', $value)
+        return $this->createQueryBuilder('ua')
+            ->andWhere('ua.userAccountId = :id')
+            ->setParameter('id', $id)
             ->getQuery()
-            ->getOneOrNullResult()
-        ;
+            ->getOneOrNullResult();
     }
-    */
 }
