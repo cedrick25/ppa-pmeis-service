@@ -21,7 +21,6 @@ class UserService implements UserServiceInterface
             1,
             "test.user@test.com",
             "09884522345",
-            "HashHash",
             UserType::FO(),
             $userIsActive,
             $region,

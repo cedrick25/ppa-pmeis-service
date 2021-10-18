@@ -13,7 +13,6 @@ class UserAccount
         private int $id,
         private string $emailAddress,
         private string $contactNumber,
-        private string $password,
         private UserType $type,
         private int $status,
         private ?Region $region,
@@ -45,14 +44,6 @@ class UserAccount
     public function getContactNumber(): string
     {
         return $this->contactNumber;
-    }
-
-    /**
-     * @return string
-     */
-    public function getPassword(): string
-    {
-        return $this->password;
     }
 
     /**
