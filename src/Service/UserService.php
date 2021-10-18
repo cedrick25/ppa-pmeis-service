@@ -26,19 +26,19 @@ class UserService implements UserServiceInterface
         $userAccount = $this->userAccountRepository->findAccountByID(1);
 
         // TODO: Create data migration for all regions and field offices
-        // Should fetch region or use the join entity to avoid these
-        $fieldOffice = new FieldOffice($userAccount->getFieldOfficeId(), "CSC Field Office");
+        // Should fetch region and field office or use the join entity to avoid these
         $region = new Region($userAccount->getRegionId(), "IV-A");
+        $fieldOffice = new FieldOffice($userAccount->getFieldOfficeId(), "CSC Field Office");
 
         // TODO: Use hydrator or create user account mapping
         return new UserAccount(
             $userAccount->getUserAccountId(),
             $userAccount->getEmailAddress(),
             $userAccount->getContactNumber(),
-            UserType::from($userAccount->getUserType()),
+            UserType::from($userAccount->getUserType())->getValue(),
             $userAccount->getStatus(),
-            $region,
-            $fieldOffice
+            $region->getName(),
+            $fieldOffice->getName()
         );
     }
 }

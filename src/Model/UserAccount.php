@@ -13,10 +13,10 @@ class UserAccount
         private int $id,
         private string $emailAddress,
         private string $contactNumber,
-        private UserType $type,
+        private string $type,
         private int $status,
-        private ?Region $region,
-        private ?FieldOffice $fieldOffice,
+        private ?string $region,
+        private ?string $fieldOffice,
         private ?DateTimeInterface $createdAt = null,
         private ?DateTimeInterface $updatedAt = null,
         private ?DateTimeInterface $deletedAt = null
@@ -47,9 +47,9 @@ class UserAccount
     }
 
     /**
-     * @return UserType
+     * @return string
      */
-    public function getType(): UserType
+    public function getType(): string
     {
         return $this->type;
     }
@@ -63,17 +63,17 @@ class UserAccount
     }
 
     /**
-     * @return Region|null
+     * @return string|null
      */
-    public function getRegion(): ?Region
+    public function getRegion(): ?string
     {
         return $this->region;
     }
 
     /**
-     * @return FieldOffice|null
+     * @return string|null
      */
-    public function getFieldOffice(): ?FieldOffice
+    public function getFieldOffice(): ?string
     {
         return $this->fieldOffice;
     }
