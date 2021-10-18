@@ -29,6 +29,7 @@ class ObjectToArray
                 $array[$property->getName()] = $value;
             }
         }
+
         return $array;
     }
 }

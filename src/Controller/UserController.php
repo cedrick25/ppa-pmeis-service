@@ -8,7 +8,6 @@ use App\Common\ObjectToArray;
 use App\Service\UserServiceInterface;
 use ReflectionException;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
-use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Response;
 
 class UserController extends AbstractController
@@ -23,8 +22,6 @@ class UserController extends AbstractController
      */
     public function index(): Response
     {
-        return new JsonResponse(
-            $this->objectToArray->convert($this->userService->getUserAccount())
-        );
+        return $this->json($this->objectToArray->convert($this->userService->getUserAccount()));
     }
 }
