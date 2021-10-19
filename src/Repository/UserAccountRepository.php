@@ -5,6 +5,7 @@ namespace App\Repository;
 use App\Entity\UserAccount;
 use App\Entity\UserDetails;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
+use Doctrine\DBAL\Exception;
 use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\ORM\Query\Expr\Join;
 use Doctrine\Persistence\ManagerRegistry;
@@ -39,23 +40,28 @@ class UserAccountRepository extends ServiceEntityRepository
     }
     */
 
-//    /**
-//     */
-//    public function findAccountWithDetailsByID(int $id): ?array
-//    {
-//        return $this->createQueryBuilder('ua')
-//            ->innerJoin(UserDetails::class, 'ud', Join::WITH, 'ud.userAccountId = ua.userAccountId')
-//            ->andWhere('ua.userAccountId = :id')
-//            ->setParameter('id', $id)
-//            ->getQuery()
-//            ->getResult();
-//    }
+    /**
+     * @param int $id
+     * @return array<string, mixed>|null
+     * @throws Exception
+     * @throws \Doctrine\DBAL\Driver\Exception
+     */
+    public function findAccountWithDetailsByID(int $id): ?array
+    {
+        $conn = $this->getEntityManager()->getConnection();
+        $sql = "SELECT * FROM user_account ua LEFT JOIN user_details ud ON ud.user_account_id = ua.user_account_id WHERE ua.user_account_id = {$id}";
+        $stmt = $conn->prepare($sql);
+        $result = $stmt->executeQuery();
+
+        return $result->fetchAllAssociative();
+    }
 
     /**
      * @throws NonUniqueResultException
      */
     public function findAccountByID(int $id): ?UserAccount
     {
+        // TODO: Implement data caching
         return $this->createQueryBuilder('ua')
             ->andWhere('ua.userAccountId = :id')
             ->setParameter('id', $id)
