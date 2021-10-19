@@ -49,7 +49,11 @@ class UserAccountRepository extends ServiceEntityRepository
     public function findAccountWithDetailsByID(int $id): ?array
     {
         $conn = $this->getEntityManager()->getConnection();
-        $sql = "SELECT * FROM user_account ua LEFT JOIN user_details ud ON ud.user_account_id = ua.user_account_id WHERE ua.user_account_id = {$id}";
+        $sql = "SELECT ua.*, ud.*, rg.name as region_name, fe.name as field_office_name FROM user_account ua 
+                    LEFT JOIN user_details ud ON ud.user_account_id = ua.user_account_id
+                    LEFT JOIN regions rg ON rg.region_id = ua.region_id
+                    LEFT JOIN field_offices fe ON fe.field_office_id = ua.field_office_id
+                    WHERE ua.user_account_id = {$id}";
         $stmt = $conn->prepare($sql);
         $result = $stmt->executeQuery();
 

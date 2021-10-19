@@ -16,7 +16,7 @@ class FieldOffices
      * @ORM\GeneratedValue
      * @ORM\Column(type="integer")
      */
-    private int $filedOfficeId;
+    private int $fieldOfficeId;
 
     /**
      * @ORM\Column(type="string", length=255)
@@ -40,7 +40,7 @@ class FieldOffices
 
     public function getFieldOfficeId(): ?int
     {
-        return $this->filedOfficeId;
+        return $this->fieldOfficeId;
     }
 
     public function getName(): ?string

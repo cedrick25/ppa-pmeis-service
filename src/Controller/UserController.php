@@ -22,6 +22,7 @@ class UserController extends AbstractController
      */
     public function index(): Response
     {
+        dd($this->userService->getUserByID(1));
         return $this->json($this->objectToArray->convert($this->userService->getUserAccount()));
     }
 }
