@@ -23,23 +23,6 @@ class UserAccountRepository extends ServiceEntityRepository
         parent::__construct($registry, UserAccount::class);
     }
 
-    // /**
-    //  * @return UserAccount[] Returns an array of UserAccount objects
-    //  */
-    /*
-    public function findByExampleField($value)
-    {
-        return $this->createQueryBuilder('u')
-            ->andWhere('u.exampleField = :val')
-            ->setParameter('val', $value)
-            ->orderBy('u.id', 'ASC')
-            ->setMaxResults(10)
-            ->getQuery()
-            ->getResult()
-        ;
-    }
-    */
-
     /**
      * @param int $id
      * @return array<string, mixed>|null
@@ -57,7 +40,7 @@ class UserAccountRepository extends ServiceEntityRepository
         $stmt = $conn->prepare($sql);
         $result = $stmt->executeQuery();
 
-        return $result->fetchAllAssociative();
+        return $result->fetchAssociative();
     }
 
     /**
