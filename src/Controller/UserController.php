@@ -14,15 +14,12 @@ class UserController extends AbstractController
 {
     public function __construct(
         private UserServiceInterface $userService,
-        private ObjectToArray $objectToArray
     ){}
 
     /**
-     * @throws ReflectionException
      */
     public function index(): Response
     {
-        dd($this->userService->getUserByID(1));
-        return $this->json($this->objectToArray->convert($this->userService->getUserAccount()));
+        return $this->json($this->userService->getUserByID(1));
     }
 }
