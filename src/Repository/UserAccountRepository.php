@@ -2,14 +2,14 @@
 
 namespace App\Repository;
 
+use App\Common\CacheHelper;
 use App\Entity\UserAccount;
-use App\Entity\UserDetails;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
-use Doctrine\DBAL\Exception;
 use Doctrine\ORM\NonUniqueResultException;
-use Doctrine\ORM\Query\Expr\Join;
-use Doctrine\ORM\Query\ResultSetMapping;
 use Doctrine\Persistence\ManagerRegistry;
+use Psr\Cache\InvalidArgumentException;
+use Symfony\Contracts\Cache\CacheInterface;
+use Symfony\Contracts\Cache\ItemInterface;;
 
 /**
  * @method UserAccount|null find($id, $lockMode = null, $lockVersion = null)
@@ -19,41 +19,58 @@ use Doctrine\Persistence\ManagerRegistry;
  */
 class UserAccountRepository extends ServiceEntityRepository
 {
-    public function __construct(ManagerRegistry $registry)
-    {
+    public function __construct(
+        ManagerRegistry $registry,
+        private CacheInterface $cache,
+        private CacheHelper $cacheHelper,
+    ) {
         parent::__construct($registry, UserAccount::class);
     }
 
     /**
      * @param int $id
      * @return array<string, mixed>|null
-     * @throws Exception
-     * @throws \Doctrine\DBAL\Driver\Exception
+     * @throws InvalidArgumentException
      */
     public function findAccountWithDetailsByID(int $id): ?array
     {
-        $conn = $this->getEntityManager()->getConnection();
-        $sql = "SELECT ua.*, ud.*, rg.name as region_name, fe.name as field_office_name FROM user_account ua 
+        $cacheKey = $this->cacheHelper->getAccountWithDetailsKey($id);
+        $expiration = $this->cacheHelper->getExpirationDateTime(1);
+
+        return $this->cache->get($cacheKey, function (ItemInterface $item) use ($cacheKey, $id, $expiration) {
+            $item->expiresAt($expiration);
+
+            $conn = $this->getEntityManager()->getConnection();
+            $sql = "SELECT ua.*, ud.*, rg.name as region_name, fe.name as field_office_name FROM user_account ua 
                     LEFT JOIN user_details ud ON ud.user_account_id = ua.user_account_id
                     LEFT JOIN regions rg ON rg.region_id = ua.region_id
                     LEFT JOIN field_offices fe ON fe.field_office_id = ua.field_office_id
                     WHERE ua.user_account_id = {$id}";
-        $stmt = $conn->prepare($sql);
-        $result = $stmt->executeQuery();
+            $stmt = $conn->prepare($sql);
+            $result = $stmt->executeQuery();
 
-        return $result->fetchAssociative();
+            return $result->fetchAssociative();
+        });
     }
 
     /**
-     * @throws NonUniqueResultException
+     * @param int $id
+     * @return UserAccount|null
+     * @throws InvalidArgumentException
      */
     public function findAccountByID(int $id): ?UserAccount
     {
-        // TODO: Implement data caching
-        return $this->createQueryBuilder('ua')
-            ->andWhere('ua.userAccountId = :id')
-            ->setParameter('id', $id)
-            ->getQuery()
-            ->getOneOrNullResult();
+        $cacheKey = $this->cacheHelper->getAccountKey($id);
+        $expiration = $this->cacheHelper->getExpirationDateTime(1);
+
+        return $this->cache->get($cacheKey, function (ItemInterface $item) use ($cacheKey, $id, $expiration) {
+            $item->expiresAt($expiration);
+
+            return $this->createQueryBuilder('ua')
+                ->andWhere('ua.userAccountId = :id')
+                ->setParameter('id', $id)
+                ->getQuery()
+                ->getOneOrNullResult();
+        });
     }
 }
