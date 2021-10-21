@@ -48,11 +48,9 @@ class UserService implements UserServiceInterface
             ];
         }
 
-        $id = $this->userAccountRepository->createUser($userAccount);
-
         return [
             'message' => 'User creation successful',
-            'id' => $id
+            'id' => $this->userAccountRepository->createUser($userAccount)
         ];
     }
 }
