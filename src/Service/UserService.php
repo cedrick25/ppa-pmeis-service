@@ -4,10 +4,12 @@ declare(strict_types=1);
 
 namespace App\Service;
 
+use App\Common\AppErrorFormatter;
 use App\Model\UserAccount as UserAccountModel;
 use App\Repository\UserAccountRepository;
 use Doctrine\ORM\ORMException;
 use Psr\Cache\InvalidArgumentException;
+use Symfony\Component\Validator\ConstraintViolationInterface;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 class UserService implements UserServiceInterface
@@ -15,6 +17,7 @@ class UserService implements UserServiceInterface
     public function __construct(
         private UserAccountRepository $userAccountRepository,
         private ValidatorInterface $validator,
+        private AppErrorFormatter $appErrorFormatter,
     ){}
 
     /**
@@ -37,14 +40,17 @@ class UserService implements UserServiceInterface
     }
 
     /**
+     * @return array<string, mixed>
      * @throws ORMException
      */
     public function register(UserAccountModel $userAccount): array
     {
         $errors = $this->validator->validate($userAccount);
+
         if (count($errors) > 0) {
             return [
-              'message' => (string) $errors
+              'message' => 'User validation failed',
+              'errors' => $this->appErrorFormatter->format($errors)
             ];
         }
 
