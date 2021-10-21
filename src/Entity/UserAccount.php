@@ -7,11 +7,14 @@ namespace App\Entity;
 use App\Repository\UserAccountRepository;
 use DateTimeImmutable;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Security\Core\User\UserInterface;
+use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
 
 /**
  * @ORM\Entity(repositoryClass=UserAccountRepository::class)
+ * @method string getUserIdentifier()
  */
-class UserAccount
+class UserAccount implements UserInterface, PasswordAuthenticatedUserInterface
 {
     /**
      * @ORM\Id
@@ -200,5 +203,33 @@ class UserAccount
         $this->deletedAt = $deletedAt;
 
         return $this;
+    }
+
+    /**
+     * @return string[]
+     */
+    public function getRoles(): array
+    {
+        $userRoles = ['ROLE_USER'];
+        if ($this->getUserType() == 3) {
+            $userRoles[] = 'ROLE_ADMIN';
+        }
+
+        return $userRoles;
+    }
+
+    public function getSalt()
+    {
+        return null;
+    }
+
+    public function eraseCredentials()
+    {
+        // TODO: Implement eraseCredentials() method.
+    }
+
+    public function getUsername(): string
+    {
+        return $this->getEmailAddress();
     }
 }

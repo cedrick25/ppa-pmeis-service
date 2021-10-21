@@ -4,19 +4,25 @@ declare(strict_types=1);
 
 namespace App\Service;
 
+use App\Entity\UserAccount;
 use App\Repository\UserAccountRepository;
-use Doctrine\DBAL\Driver\Exception;
+use Psr\Cache\InvalidArgumentException;
+use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
+use Symfony\Component\Security\Core\Security;
+use Symfony\Component\Serializer\SerializerInterface;
 
 class UserService implements UserServiceInterface
 {
     public function __construct(
-        private UserAccountRepository $userAccountRepository
+        private UserAccountRepository $userAccountRepository,
+        private Security $security,
+        private SerializerInterface $serializer,
+        private UserPasswordHasherInterface $userPasswordHasher,
     ){}
 
     /**
-     * @throws Exception
-     * @throws \Doctrine\DBAL\Exception
      * @return array<string, mixed>
+     * @throws InvalidArgumentException
      */
     public function getUserByID(int $id): array
     {
@@ -31,5 +37,14 @@ class UserService implements UserServiceInterface
         $userAccount["is_senior_citizen"] = (bool) $userAccount["is_senior_citizen"];
 
         return $userAccount;
+    }
+
+    public function register(string $emailAddress, string $password): string
+    {
+        // TODO: Implement this in user repository
+        $user = new UserAccount();
+        // Hash Password
+        $hashedPassword = $this->userPasswordHasher->hashPassword($user, $password);
+        return "OK";
     }
 }
