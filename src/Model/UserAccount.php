@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Model;
 
 use DateTimeInterface;
+use Symfony\Component\Validator\Constraints as Assert;
 
 class UserAccount
 {
@@ -22,6 +23,8 @@ class UserAccount
     ){}
 
     /**
+     * @Assert\NotBlank
+     * @Assert\Email
      * @return string
      */
     public function getEmailAddress(): string
@@ -30,6 +33,8 @@ class UserAccount
     }
 
     /**
+     * @Assert\NotBlank
+     * @Assert\Length(11)
      * @return string
      */
     public function getContactNumber(): string
@@ -38,6 +43,8 @@ class UserAccount
     }
 
     /**
+     * @Assert\NotBlank
+     * @Assert\Length(min=8)
      * @return string
      */
     public function getPassword(): string
@@ -46,6 +53,8 @@ class UserAccount
     }
 
     /**
+     * @Assert\NotBlank
+     * @Assert\Length(2)
      * @return string
      */
     public function getUserType(): string
@@ -54,6 +63,8 @@ class UserAccount
     }
 
     /**
+     * @Assert\NotBlank
+     * @Assert\Length(1)
      * @return int
      */
     public function getStatus(): int

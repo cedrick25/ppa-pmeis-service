@@ -8,5 +8,5 @@ interface UserServiceInterface
 {
     public function getUserByID(int $id): array;
 
-    public function register(UserAccountModel $userAccount): int;
+    public function register(UserAccountModel $userAccount): array;
 }

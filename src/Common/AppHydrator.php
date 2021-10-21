@@ -7,7 +7,6 @@ namespace App\Common;
 use ReflectionClass;
 use ReflectionException;
 
-
 class AppHydrator
 {
     /**
@@ -39,6 +38,12 @@ class AppHydrator
     public function convertArrayToObject(array $args, string $class): object
     {
         $reflectionClass = new ReflectionClass($class);
+
         return $reflectionClass->newInstanceArgs($args);
+    }
+
+    public function transferModelValuesToEntityObject(object $model, string $entityClass): object
+    {
+        return (object) [];
     }
 }

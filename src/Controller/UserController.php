@@ -9,6 +9,7 @@ use App\Model\UserAccount as UserAccountModel;
 use App\Service\UserServiceInterface;
 use ReflectionException;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 
 class UserController extends AbstractController
@@ -28,17 +29,12 @@ class UserController extends AbstractController
     /**
      * @throws ReflectionException
      */
-    public function register(): Response
+    public function register(Request $request): Response
     {
-        $data = [
-            "contactNumber" => "", "password" => "", "userType" => "", "status" => 1, "region" => 1, "fieldOffice" => 1, "emailAddress" => "testing!"
-        ];
-
+        $data = json_decode($request->getContent(), true);
         /** @var $user UserAccountModel */
         $user = $this->appHydrator->convertArrayToObject($data, UserAccountModel::class);
 
-        $this->userService->register($user);
-
-        return $this->json("Okayed");
+        return $this->json($this->userService->register($user));
     }
 }

@@ -6,12 +6,15 @@ namespace App\Service;
 
 use App\Model\UserAccount as UserAccountModel;
 use App\Repository\UserAccountRepository;
+use Doctrine\ORM\ORMException;
 use Psr\Cache\InvalidArgumentException;
+use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 class UserService implements UserServiceInterface
 {
     public function __construct(
         private UserAccountRepository $userAccountRepository,
+        private ValidatorInterface $validator,
     ){}
 
     /**
@@ -33,8 +36,23 @@ class UserService implements UserServiceInterface
         return $userAccount;
     }
 
-    public function register(UserAccountModel $userAccount): int
+    /**
+     * @throws ORMException
+     */
+    public function register(UserAccountModel $userAccount): array
     {
-        return $this->userAccountRepository->createUser($userAccount);
+        $errors = $this->validator->validate($userAccount);
+        if (count($errors) > 0) {
+            return [
+              'message' => (string) $errors
+            ];
+        }
+
+        $id = $this->userAccountRepository->createUser($userAccount);
+
+        return [
+            'message' => 'User creation successful',
+            'id' => $id
+        ];
     }
 }

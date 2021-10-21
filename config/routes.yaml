@@ -12,4 +12,4 @@ login:
 register:
     path: /api/register
     controller: App\Controller\UserController::register
-    methods: GET
+    methods: POST
