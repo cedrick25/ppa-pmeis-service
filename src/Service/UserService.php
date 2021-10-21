@@ -4,20 +4,14 @@ declare(strict_types=1);
 
 namespace App\Service;
 
-use App\Entity\UserAccount;
+use App\Model\UserAccount as UserAccountModel;
 use App\Repository\UserAccountRepository;
 use Psr\Cache\InvalidArgumentException;
-use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
-use Symfony\Component\Security\Core\Security;
-use Symfony\Component\Serializer\SerializerInterface;
 
 class UserService implements UserServiceInterface
 {
     public function __construct(
         private UserAccountRepository $userAccountRepository,
-        private Security $security,
-        private SerializerInterface $serializer,
-        private UserPasswordHasherInterface $userPasswordHasher,
     ){}
 
     /**
@@ -39,12 +33,8 @@ class UserService implements UserServiceInterface
         return $userAccount;
     }
 
-    public function register(string $emailAddress, string $password): string
+    public function register(UserAccountModel $userAccount): int
     {
-        // TODO: Implement this in user repository
-        $user = new UserAccount();
-        // Hash Password
-        $hashedPassword = $this->userPasswordHasher->hashPassword($user, $password);
-        return "OK";
+        return $this->userAccountRepository->createUser($userAccount);
     }
 }

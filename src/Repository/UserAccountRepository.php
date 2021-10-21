@@ -1,15 +1,20 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Repository;
 
 use App\Common\CacheHelper;
 use App\Entity\UserAccount;
+use DateTimeImmutable;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
-use Doctrine\ORM\NonUniqueResultException;
+use Doctrine\ORM\ORMException;
 use Doctrine\Persistence\ManagerRegistry;
 use Psr\Cache\InvalidArgumentException;
+use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Symfony\Contracts\Cache\CacheInterface;
 use Symfony\Contracts\Cache\ItemInterface;;
+use App\Model\UserAccount as UserAccountModel;
 
 /**
  * @method UserAccount|null find($id, $lockMode = null, $lockVersion = null)
@@ -23,6 +28,7 @@ class UserAccountRepository extends ServiceEntityRepository
         ManagerRegistry $registry,
         private CacheInterface $cache,
         private CacheHelper $cacheHelper,
+        private UserPasswordHasherInterface $userPasswordHasher,
     ) {
         parent::__construct($registry, UserAccount::class);
     }
@@ -72,5 +78,30 @@ class UserAccountRepository extends ServiceEntityRepository
                 ->getQuery()
                 ->getOneOrNullResult();
         });
+    }
+
+    /**
+     * @throws ORMException
+     */
+    public function createUser(UserAccountModel $userAccount): int
+    {
+        $currentDateTime = new DateTimeImmutable();
+        $currentDateTime->format("Y-m-d H:m:s");
+
+        $user = new UserAccount();
+        $hashedPassword = $this->userPasswordHasher->hashPassword($user, $userAccount->getPassword());
+        $user->setEmailAddress($userAccount->getEmailAddress());
+        $user->setContactNumber($userAccount->getContactNumber());
+        $user->setPassword($hashedPassword);
+        $user->setUserType($userAccount->getUserType());
+        $user->setFieldOfficeId($userAccount->getFieldOffice());
+        $user->setRegionId($userAccount->getRegion());
+        $user->setStatus($userAccount->getStatus());
+        $user->setCreatedAt($currentDateTime);
+
+        $this->getEntityManager()->persist($user);
+        $this->getEntityManager()->flush();
+
+        return $user->getUserAccountId();
     }
 }

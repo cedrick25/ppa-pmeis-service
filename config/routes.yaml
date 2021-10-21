@@ -5,7 +5,11 @@ user_index:
 
 login:
     path: /api/login
-#    controller: App\Controller\UserController::authenticate
     methods: POST
     defaults:
         _format: json
+
+register:
+    path: /api/register
+    controller: App\Controller\UserController::register
+    methods: GET

@@ -78,13 +78,6 @@ class UserAccount implements UserInterface, PasswordAuthenticatedUserInterface
         return $this->userAccountId;
     }
 
-    public function setUserAccountId(int $userAccountId): self
-    {
-        $this->userAccountId = $userAccountId;
-
-        return $this;
-    }
-
     public function getEmailAddress(): string
     {
         return $this->emailAddress;

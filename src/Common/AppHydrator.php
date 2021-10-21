@@ -8,12 +8,12 @@ use ReflectionClass;
 use ReflectionException;
 
 
-class ObjectToArray
+class AppHydrator
 {
     /**
      * @throws ReflectionException
      */
-    public function convert($object): array
+    public function convertObjectToArray($object): array
     {
         $reflectionClass = new ReflectionClass($object);
 
@@ -24,12 +24,21 @@ class ObjectToArray
             $property->setAccessible(true);
             $value = $property->getValue($object);
             if (is_object($value)) {
-                $array[$property->getName()] = self::convert($value);
+                $array[$property->getName()] = self::convertObjectToArray($value);
             } else {
                 $array[$property->getName()] = $value;
             }
         }
 
         return $array;
+    }
+
+    /**
+     * @throws ReflectionException
+     */
+    public function convertArrayToObject(array $args, string $class): object
+    {
+        $reflectionClass = new ReflectionClass($class);
+        return $reflectionClass->newInstanceArgs($args);
     }
 }

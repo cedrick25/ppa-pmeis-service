@@ -2,9 +2,11 @@
 
 namespace App\Service;
 
+use App\Model\UserAccount as UserAccountModel;
+
 interface UserServiceInterface
 {
     public function getUserByID(int $id): array;
 
-    public function register(string $emailAddress, string $password): string;
+    public function register(UserAccountModel $userAccount): int;
 }

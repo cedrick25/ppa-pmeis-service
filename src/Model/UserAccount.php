@@ -4,31 +4,22 @@ declare(strict_types=1);
 
 namespace App\Model;
 
-use App\Enum\UserType;
 use DateTimeInterface;
 
 class UserAccount
 {
     public function __construct(
-        private int $id,
         private string $emailAddress,
         private string $contactNumber,
-        private string $type,
+        private string $password,
+        private string $userType,
         private int $status,
-        private ?string $region,
-        private ?string $fieldOffice,
+        private ?int $region,
+        private ?int $fieldOffice,
         private ?DateTimeInterface $createdAt = null,
         private ?DateTimeInterface $updatedAt = null,
         private ?DateTimeInterface $deletedAt = null
     ){}
-
-    /**
-     * @return int
-     */
-    public function getId(): int
-    {
-        return $this->id;
-    }
 
     /**
      * @return string
@@ -49,9 +40,17 @@ class UserAccount
     /**
      * @return string
      */
-    public function getType(): string
+    public function getPassword(): string
     {
-        return $this->type;
+        return $this->password;
+    }
+
+    /**
+     * @return string
+     */
+    public function getUserType(): string
+    {
+        return $this->userType;
     }
 
     /**
@@ -63,17 +62,17 @@ class UserAccount
     }
 
     /**
-     * @return string|null
+     * @return int|null
      */
-    public function getRegion(): ?string
+    public function getRegion(): ?int
     {
         return $this->region;
     }
 
     /**
-     * @return string|null
+     * @return int|null
      */
-    public function getFieldOffice(): ?string
+    public function getFieldOffice(): ?int
     {
         return $this->fieldOffice;
     }
