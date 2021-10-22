@@ -45,10 +45,10 @@ final class Version20211019185954 extends AbstractMigration
     private function getRegions(): array
     {
         return [
-            'NCR', 'Region I', 'CAR', 'Region II', 'Region III', 'Region IV-A',
-            'Region IV-B', 'Region V', 'Region VI', 'NIR or Region XVIII', 'Region VII',
-            'Region VIII', 'Region IX', 'Region X', 'Region XIII', 'Region XI', 'Region XII',
-            'ARMM', '12', 'region', 'Region 69', 'Region 701', 'Region 70001'
+            'NCR', 'Regions I', 'CAR', 'Regions II', 'Regions III', 'Regions IV-A',
+            'Regions IV-B', 'Regions V', 'Regions VI', 'NIR or Regions XVIII', 'Regions VII',
+            'Regions VIII', 'Regions IX', 'Regions X', 'Regions XIII', 'Regions XI', 'Regions XII',
+            'ARMM', '12', 'region', 'Regions 69', 'Regions 701', 'Regions 70001'
         ];
     }
 

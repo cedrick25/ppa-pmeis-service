@@ -2,9 +2,17 @@
 
 namespace App\Repository;
 
+use App\Common\CacheHelper;
 use App\Entity\Quarters;
+use App\Model\Quarters as QuartersModel;
+use DateTimeImmutable;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
+use Doctrine\DBAL\Exception\InvalidArgumentException;
+use Doctrine\ORM\NonUniqueResultException;
+use Doctrine\ORM\ORMException;
 use Doctrine\Persistence\ManagerRegistry;
+use Symfony\Contracts\Cache\CacheInterface;
+use Symfony\Contracts\Cache\ItemInterface;
 
 /**
  * @method Quarters|null find($id, $lockMode = null, $lockVersion = null)
@@ -14,37 +22,61 @@ use Doctrine\Persistence\ManagerRegistry;
  */
 class QuartersRepository extends ServiceEntityRepository
 {
-    public function __construct(ManagerRegistry $registry)
-    {
+    public function __construct(
+        ManagerRegistry $registry,
+        private CacheInterface $cache,
+        private CacheHelper $cacheHelper,
+    ){
         parent::__construct($registry, Quarters::class);
     }
 
-    // /**
-    //  * @return Quarters[] Returns an array of Quarters objects
-    //  */
-    /*
-    public function findByExampleField($value)
+    /**
+     * @throws NonUniqueResultException
+     * @throws InvalidArgumentException
+     * @throws ORMException|\Psr\Cache\InvalidArgumentException
+     */
+    public function create(QuartersModel $quarters): int|null
     {
-        return $this->createQueryBuilder('q')
-            ->andWhere('q.exampleField = :val')
-            ->setParameter('val', $value)
-            ->orderBy('q.id', 'ASC')
-            ->setMaxResults(10)
-            ->getQuery()
-            ->getResult()
-        ;
-    }
-    */
+        $quarterByNameAndYear = $this->getQuarterByNameAndYear($quarters->getName(), $quarters->getYear());
 
-    /*
-    public function findOneBySomeField($value): ?Quarters
-    {
-        return $this->createQueryBuilder('q')
-            ->andWhere('q.exampleField = :val')
-            ->setParameter('val', $value)
-            ->getQuery()
-            ->getOneOrNullResult()
-        ;
+        if ($quarterByNameAndYear != null) {
+            return null;
+        }
+
+        $currentDateTime = new DateTimeImmutable();
+        $currentDateTime->format("Y-m-d H:m:s");
+
+        $quarter = new Quarters();
+        $quarter->setName($quarters->getName());
+        $quarter->setYear($quarters->getYear());
+        $quarter->setCreatedAt($currentDateTime);
+
+        $this->getEntityManager()->persist($quarter);
+        $this->getEntityManager()->flush();
+
+        return $quarter->getQuarterId();
     }
-    */
+
+    /**
+     * @param string $name
+     * @param string $year
+     * @return Quarters|null
+     * @throws \Psr\Cache\InvalidArgumentException
+     */
+    public function getQuarterByNameAndYear(string $name, string $year): ?Quarters
+    {
+        $cacheKey = $this->cacheHelper->getSingleQuarterKey($name, $year);
+        $expiration = $this->cacheHelper->getExpirationDateTime(24);
+
+        return $this->cache->get($cacheKey, function (ItemInterface $item) use ($cacheKey, $name, $year, $expiration) {
+            $item->expiresAt($expiration);
+
+            return $this->createQueryBuilder('qtr')
+                ->andWhere('qtr.name = :name AND qtr.year = :year')
+                ->setParameter('name', $name)
+                ->setParameter('year', $year)
+                ->getQuery()
+                ->getOneOrNullResult();
+        });
+    }
 }

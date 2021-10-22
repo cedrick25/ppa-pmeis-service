@@ -7,7 +7,7 @@ namespace App\Model;
 use DateTimeInterface;
 use Symfony\Component\Validator\Constraints as Assert;
 
-class UserAccount
+class UserAccounts
 {
     public function __construct(
         private string $emailAddress,

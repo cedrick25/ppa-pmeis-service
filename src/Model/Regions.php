@@ -6,7 +6,7 @@ namespace App\Model;
 
 use DateTimeInterface;
 
-class FieldOffice
+class Regions
 {
     public function __construct(
         private int $id,

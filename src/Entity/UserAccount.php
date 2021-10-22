@@ -126,7 +126,7 @@ class UserAccount implements UserInterface, PasswordAuthenticatedUserInterface
      */
     public function setUserType(string $userType): self
     {
-        if (UserType::isValid($userType)) {
+        if (! UserType::isValid($userType)) {
             throw new InvalidArgumentException("Invalid User Type");
         }
         $this->userType = $userType;

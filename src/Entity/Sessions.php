@@ -204,7 +204,7 @@ class Sessions
      */
     public function setPeriod(string $period): self
     {
-        if (SessionPeriod::isValid($period)) {
+        if (! SessionPeriod::isValid($period)) {
             throw new InvalidArgumentException("Invalid Session Period");
         }
         $this->period = $period;

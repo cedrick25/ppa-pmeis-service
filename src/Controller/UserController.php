@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Controller;
 
+use App\Common\AppFormatter;
 use App\Common\AppHydrator;
 use App\Model\UserAccountWithDetails;
 use App\Service\UserServiceInterface;
@@ -17,6 +18,7 @@ class UserController extends AbstractController
     public function __construct(
         private UserServiceInterface $userService,
         private AppHydrator $appHydrator,
+        private AppFormatter $appFormatter,
     ){}
 
     /**
@@ -35,12 +37,7 @@ class UserController extends AbstractController
 
             return $this->json($this->userService->register($user));
         } catch (ReflectionException $exception) {
-            return $this->json(
-                [
-                    'message' => 'User creation failed',
-                    'error' => $exception->getMessage()
-                ]
-            );
+            return $this->json($this->appFormatter->formatResponse('User creation failed', null, ['reflection' => $exception->getMessage()]));
         }
     }
 }

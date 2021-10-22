@@ -52,7 +52,7 @@ class Phases
      */
     public function setName(string $name): self
     {
-        if (PhasesEnum::isValid($name)) {
+        if (! PhasesEnum::isValid($name)) {
             throw new InvalidArgumentException("Invalid Phase");
         }
         $this->name = $name;

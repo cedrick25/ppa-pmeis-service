@@ -52,7 +52,7 @@ class Quarters
      */
     public function setName(string $name): self
     {
-        if (QuartersEnum::isValid($name)) {
+        if (! QuartersEnum::isValid($name)) {
             throw new InvalidArgumentException("Invalid Quarter");
         }
         $this->name = $name;
