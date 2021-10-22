@@ -24,6 +24,6 @@ class CacheHelper
 
     public function getSingleQuarterKey(string $name, string $year): string
     {
-        return 'quarter_' . $name . '_' . $year . '_';
+        return 'quarter_' . $name . '_' . $year;
     }
 }

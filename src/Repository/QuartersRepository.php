@@ -66,17 +66,27 @@ class QuartersRepository extends ServiceEntityRepository
     public function getQuarterByNameAndYear(string $name, string $year): ?Quarters
     {
         $cacheKey = $this->cacheHelper->getSingleQuarterKey($name, $year);
-        $expiration = $this->cacheHelper->getExpirationDateTime(24);
 
-        return $this->cache->get($cacheKey, function (ItemInterface $item) use ($cacheKey, $name, $year, $expiration) {
-            $item->expiresAt($expiration);
-
-            return $this->createQueryBuilder('qtr')
+        return $this->cache->get($cacheKey, function (ItemInterface $item) use ($cacheKey, $name, $year) {
+            $dateTimeExpiration = new \DateTime();
+            $result = $this->createQueryBuilder('qtr')
                 ->andWhere('qtr.name = :name AND qtr.year = :year')
                 ->setParameter('name', $name)
                 ->setParameter('year', $year)
                 ->getQuery()
                 ->getOneOrNullResult();
+
+            // Immediately expires the cache if there is no record found.
+            // This resolves the issue of checking the record if already exist before creating new one.
+            if ($result == null) {
+                $dateTimeExpiration->add(new \DateInterval("PT1S"));
+            } else {
+                $dateTimeExpiration->add(new \DateInterval("PT1H"));
+            }
+
+            $item->expiresAt($dateTimeExpiration);
+
+            return $result;
         });
     }
 }
