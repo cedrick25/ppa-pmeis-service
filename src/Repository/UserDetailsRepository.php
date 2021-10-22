@@ -3,8 +3,10 @@
 namespace App\Repository;
 
 use App\Entity\UserDetails;
+use App\Model\UserAccountWithDetails;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
+use Exception;
 
 /**
  * @method UserDetails|null find($id, $lockMode = null, $lockVersion = null)
@@ -19,32 +21,26 @@ class UserDetailsRepository extends ServiceEntityRepository
         parent::__construct($registry, UserDetails::class);
     }
 
-    // /**
-    //  * @return UserDetails[] Returns an array of UserDetails objects
-    //  */
-    /*
-    public function findByExampleField($value)
+    /**
+     * @throws Exception
+     */
+    public function createUserDetails(int $userAccountId, UserAccountWithDetails $userAccountWithDetails): void
     {
-        return $this->createQueryBuilder('u')
-            ->andWhere('u.exampleField = :val')
-            ->setParameter('val', $value)
-            ->orderBy('u.id', 'ASC')
-            ->setMaxResults(10)
-            ->getQuery()
-            ->getResult()
-        ;
-    }
-    */
+        $dateOfBirth = new \DateTimeImmutable($userAccountWithDetails->getDateOfBirth());
+        $dateOfBirth->format("Y-m-d");
 
-    /*
-    public function findOneBySomeField($value): ?UserDetails
-    {
-        return $this->createQueryBuilder('u')
-            ->andWhere('u.exampleField = :val')
-            ->setParameter('val', $value)
-            ->getQuery()
-            ->getOneOrNullResult()
-        ;
+        $userDetails = new UserDetails();
+        $userDetails->setUserAccountId($userAccountId);
+        $userDetails->setFirstName($userAccountWithDetails->getFirstName());
+        $userDetails->setMiddleName($userAccountWithDetails->getMiddleName());
+        $userDetails->setLastName($userAccountWithDetails->getLastName());
+        $userDetails->setSuffix($userAccountWithDetails->getSuffix());
+        $userDetails->setGender($userAccountWithDetails->getGender());
+        $userDetails->setDateOfBirth($dateOfBirth);
+        $userDetails->setIsSeniorCitizen($userAccountWithDetails->isSeniorCitizen());
+        $userDetails->setIsPwd($userAccountWithDetails->isPwd());
+
+        $this->getEntityManager()->persist($userDetails);
+        $this->getEntityManager()->flush();
     }
-    */
 }

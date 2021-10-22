@@ -6,15 +6,17 @@ namespace App\Repository;
 
 use App\Common\CacheHelper;
 use App\Entity\UserAccount;
+use App\Model\UserAccountWithDetails;
 use DateTimeImmutable;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
+use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\ORM\ORMException;
 use Doctrine\Persistence\ManagerRegistry;
+use Exception;
 use Psr\Cache\InvalidArgumentException;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Symfony\Contracts\Cache\CacheInterface;
 use Symfony\Contracts\Cache\ItemInterface;;
-use App\Model\UserAccount as UserAccountModel;
 
 /**
  * @method UserAccount|null find($id, $lockMode = null, $lockVersion = null)
@@ -29,6 +31,7 @@ class UserAccountRepository extends ServiceEntityRepository
         private CacheInterface $cache,
         private CacheHelper $cacheHelper,
         private UserPasswordHasherInterface $userPasswordHasher,
+        private UserDetailsRepository $userDetailsRepository,
     ) {
         parent::__construct($registry, UserAccount::class);
     }
@@ -82,26 +85,49 @@ class UserAccountRepository extends ServiceEntityRepository
 
     /**
      * @throws ORMException
+     * @throws Exception
      */
-    public function createUser(UserAccountModel $userAccount): int
+    public function createUser(UserAccountWithDetails $userAccountWithDetails): int
     {
+        $userByEmail = $this->getUserAccountByEmail($userAccountWithDetails->getEmailAddress());
+        if ($userByEmail != null) {
+            return 0;
+        }
+
         $currentDateTime = new DateTimeImmutable();
         $currentDateTime->format("Y-m-d H:m:s");
 
         $user = new UserAccount();
-        $hashedPassword = $this->userPasswordHasher->hashPassword($user, $userAccount->getPassword());
-        $user->setEmailAddress($userAccount->getEmailAddress());
-        $user->setContactNumber($userAccount->getContactNumber());
+        $hashedPassword = $this->userPasswordHasher->hashPassword($user, $userAccountWithDetails->getPassword());
+        $user->setEmailAddress($userAccountWithDetails->getEmailAddress());
+        $user->setContactNumber($userAccountWithDetails->getContactNumber());
         $user->setPassword($hashedPassword);
-        $user->setUserType($userAccount->getUserType());
-        $user->setFieldOfficeId($userAccount->getFieldOffice());
-        $user->setRegionId($userAccount->getRegion());
-        $user->setStatus($userAccount->getStatus());
+        $user->setUserType($userAccountWithDetails->getUserType());
+        $user->setFieldOfficeId($userAccountWithDetails->getFieldOffice());
+        $user->setRegionId($userAccountWithDetails->getRegion());
+        $user->setStatus($userAccountWithDetails->getStatus());
         $user->setCreatedAt($currentDateTime);
 
         $this->getEntityManager()->persist($user);
         $this->getEntityManager()->flush();
 
+        $this->userDetailsRepository->createUserDetails($user->getUserAccountId(), $userAccountWithDetails);
+
         return $user->getUserAccountId();
+    }
+
+
+    /**
+     * @param string $emailAddress
+     * @return UserAccount|null
+     * @throws NonUniqueResultException
+     */
+    public function getUserAccountByEmail(string $emailAddress): ?UserAccount
+    {
+        return $this->createQueryBuilder('ua')
+            ->andWhere('ua.emailAddress = :emailAddress')
+            ->setParameter('emailAddress', $emailAddress)
+            ->getQuery()
+            ->getOneOrNullResult();
     }
 }

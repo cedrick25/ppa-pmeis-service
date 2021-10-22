@@ -31,7 +31,7 @@ class  UserDetails
     /**
      * @ORM\Column(type="string", length=255, nullable=true)
      */
-    private string $middleName;
+    private ?string $middleName;
 
     /**
      * @ORM\Column(type="string", length=255)
@@ -41,7 +41,7 @@ class  UserDetails
     /**
      * @ORM\Column(type="string", length=5, nullable=true)
      */
-    private string $suffix;
+    private ?string $suffix;
 
     /**
      * @ORM\Column(type="string", length=1)
@@ -71,13 +71,6 @@ class  UserDetails
     public function getUserDetailId(): ?int
     {
         return $this->userDetailId;
-    }
-
-    public function setUserDetailId(int $userDetailId): self
-    {
-        $this->userDetailId = $userDetailId;
-
-        return $this;
     }
 
     public function getUserAccountId(): ?int

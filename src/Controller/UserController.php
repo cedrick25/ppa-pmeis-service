@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Controller;
 
 use App\Common\AppHydrator;
-use App\Model\UserAccount as UserAccountModel;
+use App\Model\UserAccountWithDetails;
 use App\Service\UserServiceInterface;
 use ReflectionException;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -26,15 +26,21 @@ class UserController extends AbstractController
         return $this->json($this->userService->getUserByID(1));
     }
 
-    /**
-     * @throws ReflectionException
-     */
     public function register(Request $request): Response
     {
-        $data = json_decode($request->getContent(), true);
-        /** @var $user UserAccountModel */
-        $user = $this->appHydrator->convertArrayToObject($data, UserAccountModel::class);
+        try {
+            $data = json_decode($request->getContent(), true);
+            /** @var $user UserAccountWithDetails */
+            $user = $this->appHydrator->convertArrayToObject($data, UserAccountWithDetails::class);
 
-        return $this->json($this->userService->register($user));
+            return $this->json($this->userService->register($user));
+        } catch (ReflectionException $exception) {
+            return $this->json(
+                [
+                    'message' => 'User creation failed',
+                    'error' => $exception->getMessage()
+                ]
+            );
+        }
     }
 }

@@ -5,11 +5,10 @@ declare(strict_types=1);
 namespace App\Service;
 
 use App\Common\AppErrorFormatter;
-use App\Model\UserAccount as UserAccountModel;
+use App\Model\UserAccountWithDetails;
 use App\Repository\UserAccountRepository;
 use Doctrine\ORM\ORMException;
 use Psr\Cache\InvalidArgumentException;
-use Symfony\Component\Validator\ConstraintViolationInterface;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 class UserService implements UserServiceInterface
@@ -41,22 +40,45 @@ class UserService implements UserServiceInterface
 
     /**
      * @return array<string, mixed>
-     * @throws ORMException
      */
-    public function register(UserAccountModel $userAccount): array
+    public function register(UserAccountWithDetails $userAccountWithDetails): array
     {
-        $errors = $this->validator->validate($userAccount);
+        try {
+            $errors = $this->validator->validate($userAccountWithDetails);
 
-        if (count($errors) > 0) {
-            return [
-              'message' => 'User validation failed',
-              'errors' => $this->appErrorFormatter->format($errors)
-            ];
+            if (count($errors) > 0) {
+                return $this->formatResponse('User validation failed', null, $this->appErrorFormatter->format($errors));
+            }
+            $userAccountId = $this->userAccountRepository->createUser($userAccountWithDetails);
+
+            if ($userAccountId == 0) {
+                return $this->formatResponse('User creation failed', null, ['app' => 'Email address already exist']);
+            }
+
+            return $this->formatResponse('User creation successful', ['id' => $userAccountId]);
+        } catch (ORMException $exception) {
+            return $this->formatResponse('User creation failed', null, ['orm' => $exception->getMessage()]);
+        } catch (\Exception $e) {
+            return $this->formatResponse('User creation failed', null, ['app' => $e->getMessage()]);
+        }
+    }
+
+    /**
+     * @param string $message
+     * @param array<string, string>|null $data
+     * @param array<string, string>|null $errors
+     * @return array<string, mixed>
+     */
+    private function formatResponse(string $message, ?array $data, ?array $errors = null): array
+    {
+        $response = ['message' => $message];
+        if ($errors != null) {
+            $response['data'] = $data;
+        }
+        if ($errors != null) {
+            $response['errors'] = $errors;
         }
 
-        return [
-            'message' => 'User creation successful',
-            'id' => $this->userAccountRepository->createUser($userAccount)
-        ];
+        return $response;
     }
 }
