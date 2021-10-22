@@ -72,7 +72,7 @@ class UserService implements UserServiceInterface
     private function formatResponse(string $message, ?array $data, ?array $errors = null): array
     {
         $response = ['message' => $message];
-        if ($errors != null) {
+        if ($data != null) {
             $response['data'] = $data;
         }
         if ($errors != null) {
