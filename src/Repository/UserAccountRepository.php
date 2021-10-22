@@ -87,11 +87,11 @@ class UserAccountRepository extends ServiceEntityRepository
      * @throws ORMException
      * @throws Exception
      */
-    public function createUser(UserAccountWithDetails $userAccountWithDetails): int
+    public function createUser(UserAccountWithDetails $userAccountWithDetails): int|null
     {
         $userByEmail = $this->getUserAccountByEmail($userAccountWithDetails->getEmailAddress());
         if ($userByEmail != null) {
-            return 0;
+            return null;
         }
 
         $currentDateTime = new DateTimeImmutable();

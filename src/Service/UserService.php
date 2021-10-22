@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Service;
 
 use App\Common\AppErrorFormatter;
+use App\Enum\Response as ResponseEnum;
 use App\Model\UserAccountWithDetails;
 use App\Repository\UserAccountRepository;
 use Doctrine\ORM\ORMException;
@@ -47,19 +48,19 @@ class UserService implements UserServiceInterface
             $errors = $this->validator->validate($userAccountWithDetails);
 
             if (count($errors) > 0) {
-                return $this->formatResponse('User validation failed', null, $this->appErrorFormatter->format($errors));
+                return $this->formatResponse(ResponseEnum::USER_VALIDATION_FAILED, null, $this->appErrorFormatter->format($errors));
             }
             $userAccountId = $this->userAccountRepository->createUser($userAccountWithDetails);
 
-            if ($userAccountId == 0) {
-                return $this->formatResponse('User creation failed', null, ['app' => 'Email address already exist']);
+            if ($userAccountId == null) {
+                return $this->formatResponse(ResponseEnum::USER_CREATE_FAILED, null, ['app' => 'Email address already exist']);
             }
 
-            return $this->formatResponse('User creation successful', ['id' => $userAccountId]);
+            return $this->formatResponse(ResponseEnum::USER_CREATE_SUCCESS, ['id' => $userAccountId]);
         } catch (ORMException $exception) {
-            return $this->formatResponse('User creation failed', null, ['orm' => $exception->getMessage()]);
+            return $this->formatResponse(ResponseEnum::USER_CREATE_FAILED, null, ['orm' => $exception->getMessage()]);
         } catch (\Exception $e) {
-            return $this->formatResponse('User creation failed', null, ['app' => $e->getMessage()]);
+            return $this->formatResponse(ResponseEnum::USER_CREATE_FAILED, null, ['app' => $e->getMessage()]);
         }
     }
 
