@@ -4,21 +4,21 @@ declare(strict_types=1);
 
 namespace App\Entity;
 
-use App\Repository\RegionsRepository;
+use App\Repository\SessionActivitiesRepository;
 use DateTimeImmutable;
 use Doctrine\ORM\Mapping as ORM;
 
 /**
- * @ORM\Entity(repositoryClass=RegionsRepository::class)
+ * @ORM\Entity(repositoryClass=SessionActivitiesRepository::class)
  */
-class Regions
+class SessionActivities
 {
     /**
      * @ORM\Id
      * @ORM\GeneratedValue
      * @ORM\Column(type="integer")
      */
-    private int $regionId;
+    private int $sessionActivityId;
 
     /**
      * @ORM\Column(type="string", length=255)
@@ -40,9 +40,9 @@ class Regions
      */
     private ?DateTimeImmutable $deletedAt;
 
-    public function getRegionId(): ?int
+    public function getSessionActivityId(): ?int
     {
-        return $this->regionId;
+        return $this->sessionActivityId;
     }
 
     public function getName(): ?string

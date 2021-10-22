@@ -4,21 +4,21 @@ declare(strict_types=1);
 
 namespace App\Entity;
 
-use App\Repository\RegionsRepository;
+use App\Repository\TreatmentCategoriesRepository;
 use DateTimeImmutable;
 use Doctrine\ORM\Mapping as ORM;
 
 /**
- * @ORM\Entity(repositoryClass=RegionsRepository::class)
+ * @ORM\Entity(repositoryClass=TreatmentCategoriesRepository::class)
  */
-class Regions
+class TreatmentCategories
 {
     /**
      * @ORM\Id
      * @ORM\GeneratedValue
      * @ORM\Column(type="integer")
      */
-    private int $regionId;
+    private int $treatmentCategoryId;
 
     /**
      * @ORM\Column(type="string", length=255)
@@ -26,9 +26,9 @@ class Regions
     private string $name;
 
     /**
-     * @ORM\Column(type="datetime_immutable", nullable=true)
+     * @ORM\Column(type="datetime_immutable")
      */
-    private ?DateTimeImmutable $createdAt;
+    private DateTimeImmutable $createdAt;
 
     /**
      * @ORM\Column(type="datetime_immutable", nullable=true)
@@ -40,9 +40,9 @@ class Regions
      */
     private ?DateTimeImmutable $deletedAt;
 
-    public function getRegionId(): ?int
+    public function getTreatmentCategoryId(): ?int
     {
-        return $this->regionId;
+        return $this->treatmentCategoryId;
     }
 
     public function getName(): ?string
@@ -62,7 +62,7 @@ class Regions
         return $this->createdAt;
     }
 
-    public function setCreatedAt(?DateTimeImmutable $createdAt): self
+    public function setCreatedAt(DateTimeImmutable $createdAt): self
     {
         $this->createdAt = $createdAt;
 

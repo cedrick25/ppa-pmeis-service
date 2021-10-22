@@ -6,9 +6,11 @@ namespace App\Entity;
 
 use App\Repository\UserAccountRepository;
 use DateTimeImmutable;
+use Doctrine\DBAL\Exception\InvalidArgumentException;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
+use App\Enum\UserType;
 
 /**
  * @ORM\Entity(repositoryClass=UserAccountRepository::class)
@@ -119,8 +121,14 @@ class UserAccount implements UserInterface, PasswordAuthenticatedUserInterface
         return $this->userType;
     }
 
+    /**
+     * @throws InvalidArgumentException
+     */
     public function setUserType(string $userType): self
     {
+        if (UserType::isValid($userType)) {
+            throw new InvalidArgumentException("Invalid User Type");
+        }
         $this->userType = $userType;
 
         return $this;
