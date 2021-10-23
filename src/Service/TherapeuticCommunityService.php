@@ -97,13 +97,13 @@ class TherapeuticCommunityService implements TherapeuticCommunityServiceInterfac
     public function getAllFieldOffices(): array
     {
         try {
-            $phases = $this->phasesRepository->list();
+            $fieldOffices = $this->fieldOfficesRepository->list();
 
-            if (sizeof($phases) == 0) {
+            if (sizeof($fieldOffices) == 0) {
                 return $this->appFormatter->formatResponse(TCEnum::NO_FIELD_OFFICE_DATA, null);
             }
 
-            return $this->appFormatter->formatResponse(TCEnum::FETCHING_FIELD_OFFICE_SUCCESS, $phases);
+            return $this->appFormatter->formatResponse(TCEnum::FETCHING_FIELD_OFFICE_SUCCESS, $fieldOffices);
         } catch (InvalidArgumentException $exception) {
             return $this->appFormatter->formatResponse(TCEnum::FETCHING_FIELD_OFFICE_FAILED, null, ['cache' => $exception->getMessage()]);
         }

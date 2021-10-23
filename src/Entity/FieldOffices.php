@@ -81,7 +81,7 @@ class FieldOffices
         return $this;
     }
 
-    public function getDeletedAt(): DateTimeImmutable
+    public function getDeletedAt(): ?DateTimeImmutable
     {
         return $this->deletedAt;
     }
