@@ -57,4 +57,12 @@ class TherapeuticCommunityController extends AbstractController
     {
         return $this->json($this->service->getAllQuarters());
     }
+
+    /**
+     * @Route("/quarter/delete/{id}", methods={"GET"})
+     */
+    public function deleteQuarterById(Request $request): Response
+    {
+        return $this->json($this->service->deleteQuarterById($request->get("id")));
+    }
 }

@@ -22,7 +22,7 @@ class CacheHelper
         return "account_id:" . $id;
     }
 
-    public function getSingleQuarterKey(string $name, string $year): string
+    public function getQuarterByNameAndYearKey(string $name, string $year): string
     {
         return 'quarter_' . $name . '_' . $year;
     }

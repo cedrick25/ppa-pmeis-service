@@ -65,7 +65,7 @@ class QuartersRepository extends ServiceEntityRepository
      */
     public function getQuarterByNameAndYear(string $name, string $year): ?Quarters
     {
-        $cacheKey = $this->cacheHelper->getSingleQuarterKey($name, $year);
+        $cacheKey = $this->cacheHelper->getQuarterByNameAndYearKey($name, $year);
 
         return $this->cache->get($cacheKey, function (ItemInterface $item) use ($cacheKey, $name, $year) {
             $dateTimeExpiration = new \DateTime();
@@ -81,7 +81,7 @@ class QuartersRepository extends ServiceEntityRepository
             if ($result == null) {
                 $dateTimeExpiration->add(new \DateInterval("PT1S"));
             } else {
-                $dateTimeExpiration->add(new \DateInterval("PT1H"));
+                $dateTimeExpiration->add(new \DateInterval("PT24H"));
             }
 
             $item->expiresAt($dateTimeExpiration);
@@ -107,5 +107,36 @@ class QuartersRepository extends ServiceEntityRepository
                 ->getQuery()
                 ->getResult();
         });
+    }
+
+    /**
+     * @param int $id
+     * @return Quarters|null
+     * @throws NonUniqueResultException
+     */
+    public function getQuarterById(int $id): ?Quarters
+    {
+        return $this->createQueryBuilder('qtr')
+            ->andWhere('qtr.quarterId = :id')
+            ->setParameter('id', $id)
+            ->getQuery()
+            ->getOneOrNullResult();
+    }
+
+    /**
+     * @throws ORMException
+     */
+    public function delete(int $id): bool
+    {
+        $quarterById = $this->getQuarterById($id);
+
+        if ($quarterById == null) {
+            return false;
+        }
+
+        $this->getEntityManager()->remove($quarterById);
+        $this->getEntityManager()->flush();
+
+        return true;
     }
 }
