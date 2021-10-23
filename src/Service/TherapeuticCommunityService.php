@@ -52,7 +52,7 @@ class TherapeuticCommunityService implements TherapeuticCommunityServiceInterfac
                 return $this->appFormatter->formatResponse(TCEnum::NO_QUARTER_DATA, null);
             }
 
-            return $this->appFormatter->formatResponse(TCEnum::FETCHING_QUARTER_SUCCESS, ['data' => $quarters]);
+            return $this->appFormatter->formatResponse(TCEnum::FETCHING_QUARTER_SUCCESS, $quarters);
         } catch (InvalidArgumentException $exception) {
             return $this->appFormatter->formatResponse(TCEnum::FETCHING_QUARTER_FAILED, null, ['cache' => $exception->getMessage()]);
         }
