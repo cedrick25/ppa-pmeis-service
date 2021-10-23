@@ -89,4 +89,23 @@ class QuartersRepository extends ServiceEntityRepository
             return $result;
         });
     }
+
+    /**
+     * @return Quarters[]
+     * @throws \Psr\Cache\InvalidArgumentException
+     */
+    public function list(): array
+    {
+        $cacheKey = $this->cacheHelper->getAllQuartersKey();
+        $expiration = $this->cacheHelper->getExpirationDateTime(24);
+
+        return $this->cache->get($cacheKey, function (ItemInterface $item) use ($cacheKey, $expiration) {
+            $item->expiresAt($expiration);
+
+            return $this->createQueryBuilder('qtr')
+                ->orderBy('qtr.quarterId', 'DESC')
+                ->getQuery()
+                ->getResult();
+        });
+    }
 }

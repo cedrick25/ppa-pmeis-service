@@ -49,4 +49,12 @@ class TherapeuticCommunityController extends AbstractController
             return $this->json($this->appFormatter->formatResponse('Quarter creation failed', null, ['reflection' => $exception->getMessage()]));
         }
     }
+
+    /**
+     * @Route("/quarter/list", methods={"GET"})
+     */
+    public function getAllQuarters(): Response
+    {
+        return $this->json($this->service->getAllQuarters());
+    }
 }

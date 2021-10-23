@@ -14,6 +14,8 @@ class TherapeuticCommunityService implements TherapeuticCommunityServiceInterfac
     public const QUARTER_VALIDATION_FAILED = "Quarters validation failed.";
     public const QUARTER_CREATION_FAILED = "Quarter creation failed.";
     public const QUARTER_CREATION_SUCCESS = "Quarter creation successful.";
+    public const FETCHING_QUARTER_FAILED = "Fetching quarter failed.";
+    public const NO_QUARTER_DATA = "No quarter found.";
 
     public function __construct(
         private QuartersRepository $quartersRepository,
@@ -38,9 +40,23 @@ class TherapeuticCommunityService implements TherapeuticCommunityServiceInterfac
 
             return $this->appFormatter->formatResponse(self::QUARTER_CREATION_SUCCESS, ['id' => $quarterId]);
         } catch (InvalidArgumentException $exception) {
-            return $this->appFormatter->formatResponse(self::QUARTER_CREATION_FAILED, null, ['cache' => $exception->getMessage()]);;
+            return $this->appFormatter->formatResponse(self::QUARTER_CREATION_FAILED, null, ['cache' => $exception->getMessage()]);
         } catch (ORMException | \Doctrine\DBAL\Exception\InvalidArgumentException $exception) {
             return $this->appFormatter->formatResponse(self::QUARTER_CREATION_FAILED, null, ['orm' => $exception->getMessage()]);
+        }
+    }
+
+    public function getAllQuarters(): array
+    {
+        try {
+            $quarters = $this->quartersRepository->list();
+
+            if (sizeof($quarters) == 0) {
+                return $this->appFormatter->formatResponse(self::NO_QUARTER_DATA, null);
+            }
+            return $this->appFormatter->formatResponse(self::QUARTER_CREATION_SUCCESS, ['data' => $quarters]);
+        } catch (InvalidArgumentException $exception) {
+            return $this->appFormatter->formatResponse(self::FETCHING_QUARTER_FAILED, null, ['cache' => $exception->getMessage()]);
         }
     }
 }

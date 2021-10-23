@@ -26,7 +26,7 @@ class AppFormatter
 
     /**
      * @param string $message
-     * @param array<string, string>|null $data
+     * @param array<string, mixed>|null $data
      * @param array<string, string>|null $errors
      * @return array<string, mixed>
      */

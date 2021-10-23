@@ -26,4 +26,9 @@ class CacheHelper
     {
         return 'quarter_' . $name . '_' . $year;
     }
+
+    public function getAllQuartersKey(): string
+    {
+        return 'quarter_all';
+    }
 }
