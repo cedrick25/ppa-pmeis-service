@@ -7,7 +7,7 @@ namespace App\Controller;
 use App\Common\AppFormatter;
 use App\Common\AppHydrator;
 use App\Model\Quarters as QuartersModel;
-use App\Service\TherapeuticCommunityService;
+use App\Service\TherapeuticCommunityServiceInterface;
 use ReflectionException;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -20,7 +20,7 @@ use Symfony\Component\Routing\Annotation\Route;
 class TherapeuticCommunityController extends AbstractController
 {
     public function __construct(
-        private TherapeuticCommunityService $service,
+        private TherapeuticCommunityServiceInterface $service,
         private AppHydrator $appHydrator,
         private AppFormatter $appFormatter,
     ){}
