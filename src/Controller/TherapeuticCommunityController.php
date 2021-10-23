@@ -83,4 +83,12 @@ class TherapeuticCommunityController extends AbstractController
     {
         return $this->json($this->service->getAllFieldOffices());
     }
+
+    /**
+     * @Route("/session-activity/list", methods={"GET"})
+     */
+    public function getAllSessionActivities(): Response
+    {
+        return $this->json($this->service->getAllSessionActivities());
+    }
 }

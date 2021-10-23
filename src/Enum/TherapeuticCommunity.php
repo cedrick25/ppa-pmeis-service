@@ -23,6 +23,9 @@ use MyCLabs\Enum\Enum;
  * @method static self NO_FIELD_OFFICE_DATA()
  * @method static self FETCHING_FIELD_OFFICE_SUCCESS()
  * @method static self FETCHING_FIELD_OFFICE_FAILED()
+ * @method static self NO_SESSION_ACTIVITIES_DATA()
+ * @method static self FETCHING_SESSION_ACTIVITIES_SUCCESS()
+ * @method static self FETCHING_SESSION_ACTIVITIES_FAILED()
  */
 class TherapeuticCommunity extends Enum implements Hashable
 {
@@ -42,6 +45,10 @@ class TherapeuticCommunity extends Enum implements Hashable
     public const NO_FIELD_OFFICE_DATA = "No field office found.";
     public const FETCHING_FIELD_OFFICE_SUCCESS = "Fetching field office success.";
     public const FETCHING_FIELD_OFFICE_FAILED = "Fetching field office failed.";
+
+    public const NO_SESSION_ACTIVITIES_DATA = "No session activity found.";
+    public const FETCHING_SESSION_ACTIVITIES_SUCCESS = "Fetching session activity success.";
+    public const FETCHING_SESSION_ACTIVITIES_FAILED = "Fetching session activity failed.";
 
     public function hash()
     {

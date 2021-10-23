@@ -41,4 +41,9 @@ class CacheHelper
     {
         return 'field_offices_all';
     }
+
+    public function getAllSessionActivitiesKey(): string
+    {
+        return 'session_activities_all';
+    }
 }

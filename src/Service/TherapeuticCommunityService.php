@@ -10,6 +10,7 @@ use App\Enum\TherapeuticCommunity as TCEnum;
 use App\Repository\FieldOfficesRepository;
 use App\Repository\PhasesRepository;
 use App\Repository\QuartersRepository;
+use App\Repository\SessionActivitiesRepository;
 use Doctrine\ORM\ORMException;
 use Psr\Cache\InvalidArgumentException;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
@@ -22,6 +23,7 @@ class TherapeuticCommunityService implements TherapeuticCommunityServiceInterfac
         private QuartersRepository $quartersRepository,
         private PhasesRepository $phasesRepository,
         private FieldOfficesRepository $fieldOfficesRepository,
+        private SessionActivitiesRepository $sessionActivitiesRepository,
     ){}
 
     public function createQuarters(QuartersModel $quarters): array
@@ -106,6 +108,21 @@ class TherapeuticCommunityService implements TherapeuticCommunityServiceInterfac
             return $this->appFormatter->formatResponse(TCEnum::FETCHING_FIELD_OFFICE_SUCCESS, $fieldOffices);
         } catch (InvalidArgumentException $exception) {
             return $this->appFormatter->formatResponse(TCEnum::FETCHING_FIELD_OFFICE_FAILED, null, ['cache' => $exception->getMessage()]);
+        }
+    }
+
+    public function getAllSessionActivities(): array
+    {
+        try {
+            $sessionActivities = $this->sessionActivitiesRepository->list();
+
+            if (sizeof($sessionActivities) == 0) {
+                return $this->appFormatter->formatResponse(TCEnum::NO_SESSION_ACTIVITIES_DATA, null);
+            }
+
+            return $this->appFormatter->formatResponse(TCEnum::FETCHING_SESSION_ACTIVITIES_SUCCESS, $sessionActivities);
+        } catch (InvalidArgumentException $exception) {
+            return $this->appFormatter->formatResponse(TCEnum::FETCHING_SESSION_ACTIVITIES_FAILED, null, ['cache' => $exception->getMessage()]);
         }
     }
 }
