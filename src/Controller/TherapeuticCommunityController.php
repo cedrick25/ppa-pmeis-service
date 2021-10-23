@@ -91,4 +91,12 @@ class TherapeuticCommunityController extends AbstractController
     {
         return $this->json($this->service->getAllSessionActivities());
     }
+
+    /**
+     * @Route("/session-activity/create/{name}", methods={"GET"})
+     */
+    public function createNewSessionActivity(Request $request): Response
+    {
+        return $this->json($this->service->createSessionActivity($request->get("name")));
+    }
 }

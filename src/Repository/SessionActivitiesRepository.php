@@ -5,7 +5,10 @@ namespace App\Repository;
 use App\Common\CacheHelper;
 use App\Entity\Phases;
 use App\Entity\SessionActivities;
+use DateTimeImmutable;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
+use Doctrine\ORM\NonUniqueResultException;
+use Doctrine\ORM\ORMException;
 use Doctrine\Persistence\ManagerRegistry;
 use Psr\Cache\InvalidArgumentException;
 use Symfony\Contracts\Cache\CacheInterface;
@@ -44,5 +47,46 @@ class SessionActivitiesRepository extends ServiceEntityRepository
                 ->getQuery()
                 ->getResult();
         });
+    }
+
+    /**
+     * @throws NonUniqueResultException|InvalidArgumentException
+     * @throws ORMException
+     */
+    public function create(string $name): int|null
+    {
+        $isSessionActivityExist = $this->isSessionActivityExistByName($name);
+
+        if ($isSessionActivityExist) {
+            return null;
+        }
+
+        $this->cache->delete($this->cacheHelper->getAllSessionActivitiesKey());
+
+        $currentDateTime = new DateTimeImmutable();
+        $currentDateTime->format("Y-m-d H:m:s");
+
+        $sessionActivity = new SessionActivities();
+        $sessionActivity->setName($name);
+        $sessionActivity->setCreatedAt($currentDateTime);
+
+        $this->getEntityManager()->persist($sessionActivity);
+        $this->getEntityManager()->flush();
+
+        return $sessionActivity->getSessionActivityId();
+    }
+
+    /**
+     * @throws NonUniqueResultException
+     */
+    private function isSessionActivityExistByName(string $name): bool
+    {
+        $sessionActivity = $this->createQueryBuilder('sa')
+            ->andWhere('sa.name = :name')
+            ->setParameter('name', $name)
+            ->getQuery()
+            ->getOneOrNullResult();
+
+        return $sessionActivity != null;
     }
 }

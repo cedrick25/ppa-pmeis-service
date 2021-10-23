@@ -29,7 +29,7 @@ use MyCLabs\Enum\Enum;
  */
 class TherapeuticCommunity extends Enum implements Hashable
 {
-    public const VALIDATING_QUARTER_FAILED = "Validation quarter failed.";
+    public const VALIDATING_QUARTER_FAILED = "Validating quarter failed.";
     public const CREATING_QUARTER_FAILED = "Creating quarter failed.";
     public const CREATING_QUARTER_SUCCESS = "Creating quarter successful.";
     public const FETCHING_QUARTER_FAILED = "Fetching quarter failed.";
@@ -49,6 +49,9 @@ class TherapeuticCommunity extends Enum implements Hashable
     public const NO_SESSION_ACTIVITIES_DATA = "No session activity found.";
     public const FETCHING_SESSION_ACTIVITIES_SUCCESS = "Fetching session activity success.";
     public const FETCHING_SESSION_ACTIVITIES_FAILED = "Fetching session activity failed.";
+    public const VALIDATING_SESSION_ACTIVITIES_FAILED = "Validating session activity failed.";
+    public const CREATING_SESSION_ACTIVITIES_FAILED = "Creating session activity failed.";
+    public const CREATING_SESSION_ACTIVITIES_SUCCESS = "Creating session activity successful.";
 
     public function hash()
     {

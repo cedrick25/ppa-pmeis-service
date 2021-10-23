@@ -125,4 +125,25 @@ class TherapeuticCommunityService implements TherapeuticCommunityServiceInterfac
             return $this->appFormatter->formatResponse(TCEnum::FETCHING_SESSION_ACTIVITIES_FAILED, null, ['cache' => $exception->getMessage()]);
         }
     }
+
+    public function createSessionActivity(string $name): array
+    {
+        try {
+            if ($name === "") {
+                return $this->appFormatter->formatResponse(TCEnum::VALIDATING_SESSION_ACTIVITIES_FAILED, null, ['app' => 'Session activity name cannot be empty.']);
+            }
+
+            $sessionActivityId = $this->sessionActivitiesRepository->create($name);
+
+            if ($sessionActivityId == null) {
+                return $this->appFormatter->formatResponse(TCEnum::CREATING_SESSION_ACTIVITIES_FAILED, null, ['app' => 'Session activity already exist.']);
+            }
+
+            return $this->appFormatter->formatResponse(TCEnum::CREATING_SESSION_ACTIVITIES_SUCCESS, ['id' => $sessionActivityId]);
+        } catch (InvalidArgumentException $exception) {
+            return $this->appFormatter->formatResponse(TCEnum::CREATING_SESSION_ACTIVITIES_FAILED, null, ['cache' => $exception->getMessage()]);
+        } catch (ORMException $exception) {
+            return $this->appFormatter->formatResponse(TCEnum::CREATING_SESSION_ACTIVITIES_FAILED, null, ['orm' => $exception->getMessage()]);
+        }
+    }
 }
