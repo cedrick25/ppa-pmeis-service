@@ -36,4 +36,9 @@ class CacheHelper
     {
         return 'phases_all';
     }
+
+    public function getAllFieldOfficesKey(): string
+    {
+        return 'field_offices_all';
+    }
 }

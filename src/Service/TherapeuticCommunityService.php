@@ -7,6 +7,7 @@ namespace App\Service;
 use App\Common\AppFormatter;
 use App\Model\Quarters as QuartersModel;
 use App\Enum\TherapeuticCommunity as TCEnum;
+use App\Repository\FieldOfficesRepository;
 use App\Repository\PhasesRepository;
 use App\Repository\QuartersRepository;
 use Doctrine\ORM\ORMException;
@@ -16,10 +17,11 @@ use Symfony\Component\Validator\Validator\ValidatorInterface;
 class TherapeuticCommunityService implements TherapeuticCommunityServiceInterface
 {
     public function __construct(
-        private QuartersRepository $quartersRepository,
-        private PhasesRepository $phasesRepository,
         private ValidatorInterface    $validator,
         private AppFormatter          $appFormatter,
+        private QuartersRepository $quartersRepository,
+        private PhasesRepository $phasesRepository,
+        private FieldOfficesRepository $fieldOfficesRepository,
     ){}
 
     public function createQuarters(QuartersModel $quarters): array
@@ -89,6 +91,21 @@ class TherapeuticCommunityService implements TherapeuticCommunityServiceInterfac
             return $this->appFormatter->formatResponse(TCEnum::FETCHING_PHASES_SUCCESS, $phases);
         } catch (InvalidArgumentException $exception) {
             return $this->appFormatter->formatResponse(TCEnum::FETCHING_PHASES_FAILED, null, ['cache' => $exception->getMessage()]);
+        }
+    }
+
+    public function getAllFieldOffices(): array
+    {
+        try {
+            $phases = $this->phasesRepository->list();
+
+            if (sizeof($phases) == 0) {
+                return $this->appFormatter->formatResponse(TCEnum::NO_FIELD_OFFICE_DATA, null);
+            }
+
+            return $this->appFormatter->formatResponse(TCEnum::FETCHING_FIELD_OFFICE_SUCCESS, $phases);
+        } catch (InvalidArgumentException $exception) {
+            return $this->appFormatter->formatResponse(TCEnum::FETCHING_FIELD_OFFICE_FAILED, null, ['cache' => $exception->getMessage()]);
         }
     }
 }

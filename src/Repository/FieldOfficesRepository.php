@@ -2,9 +2,13 @@
 
 namespace App\Repository;
 
+use App\Common\CacheHelper;
 use App\Entity\FieldOffices;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
+use Psr\Cache\InvalidArgumentException;
+use Symfony\Contracts\Cache\CacheInterface;
+use Symfony\Contracts\Cache\ItemInterface;
 
 /**
  * @method FieldOffices|null find($id, $lockMode = null, $lockVersion = null)
@@ -14,37 +18,30 @@ use Doctrine\Persistence\ManagerRegistry;
  */
 class FieldOfficesRepository extends ServiceEntityRepository
 {
-    public function __construct(ManagerRegistry $registry)
-    {
+    public function __construct(
+        ManagerRegistry $registry,
+        private CacheInterface $cache,
+        private CacheHelper $cacheHelper,
+    ){
         parent::__construct($registry, FieldOffices::class);
     }
 
-    // /**
-    //  * @return FieldOffices[] Returns an array of FieldOffices objects
-    //  */
-    /*
-    public function findByExampleField($value)
+    /**
+     * @return FieldOffices[]
+     * @throws InvalidArgumentException
+     */
+    public function list(): array
     {
-        return $this->createQueryBuilder('f')
-            ->andWhere('f.exampleField = :val')
-            ->setParameter('val', $value)
-            ->orderBy('f.id', 'ASC')
-            ->setMaxResults(10)
-            ->getQuery()
-            ->getResult()
-        ;
-    }
-    */
+        $cacheKey = $this->cacheHelper->getAllFieldOfficesKey();
+        $expiration = $this->cacheHelper->getExpirationDateTime(24);
 
-    /*
-    public function findOneBySomeField($value): ?FieldOffices
-    {
-        return $this->createQueryBuilder('f')
-            ->andWhere('f.exampleField = :val')
-            ->setParameter('val', $value)
-            ->getQuery()
-            ->getOneOrNullResult()
-        ;
+        return $this->cache->get($cacheKey, function (ItemInterface $item) use ($cacheKey, $expiration) {
+            $item->expiresAt($expiration);
+
+            return $this->createQueryBuilder('fo')
+                ->orderBy('fo.fieldOfficeId', 'DESC')
+                ->getQuery()
+                ->getResult();
+        });
     }
-    */
 }

@@ -18,6 +18,11 @@ use MyCLabs\Enum\Enum;
  * @method static self DELETING_QUARTER_FAILED()
  * @method static self DELETING_QUARTER_SUCCESS()
  * @method static self NO_PHASES_DATA()
+ * @method static self FETCHING_PHASES_SUCCESS()
+ * @method static self FETCHING_PHASES_FAILED()
+ * @method static self NO_FIELD_OFFICE_DATA()
+ * @method static self FETCHING_FIELD_OFFICE_SUCCESS()
+ * @method static self FETCHING_FIELD_OFFICE_FAILED()
  */
 class TherapeuticCommunity extends Enum implements Hashable
 {
@@ -33,6 +38,10 @@ class TherapeuticCommunity extends Enum implements Hashable
     public const NO_PHASES_DATA = "No phases found.";
     public const FETCHING_PHASES_SUCCESS = "Fetching phases success.";
     public const FETCHING_PHASES_FAILED = "Fetching phases failed.";
+
+    public const NO_FIELD_OFFICE_DATA = "No field office found.";
+    public const FETCHING_FIELD_OFFICE_SUCCESS = "Fetching field office success.";
+    public const FETCHING_FIELD_OFFICE_FAILED = "Fetching field office failed.";
 
     public function hash()
     {

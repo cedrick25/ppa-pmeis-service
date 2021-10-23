@@ -75,4 +75,12 @@ class TherapeuticCommunityController extends AbstractController
     {
         return $this->json($this->service->getAllPhases());
     }
+
+    /**
+     * @Route("/field-office/list", methods={"GET"})
+     */
+    public function getAllFieldOffice(): Response
+    {
+        return $this->json($this->service->getAllFieldOffices());
+    }
 }
