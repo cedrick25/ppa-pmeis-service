@@ -32,9 +32,11 @@ class TherapeuticCommunity extends Enum implements Hashable
     public const NO_SESSION_ACTIVITIES_DATA = "No session activity found.";
     public const FETCHING_SESSION_ACTIVITIES_SUCCESS = "Fetching session activity success.";
     public const FETCHING_SESSION_ACTIVITIES_FAILED = "Fetching session activity failed.";
-    public const VALIDATING_SESSION_ACTIVITIES_FAILED = "Validating session activity failed.";
-    public const CREATING_SESSION_ACTIVITIES_FAILED = "Creating session activity failed.";
-    public const CREATING_SESSION_ACTIVITIES_SUCCESS = "Creating session activity successful.";
+    public const VALIDATING_SESSION_ACTIVITY_FAILED = "Validating session activity failed.";
+    public const CREATING_SESSION_ACTIVITY_FAILED = "Creating session activity failed.";
+    public const CREATING_SESSION_ACTIVITY_SUCCESS = "Creating session activity successful.";
+    public const DELETING_SESSION_ACTIVITY_FAILED = "Deleting session activity failed.";
+    public const DELETING_SESSION_ACTIVITY_SUCCESS = "Deleting session activity success.";
 
     public function hash()
     {

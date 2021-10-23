@@ -79,6 +79,39 @@ class SessionActivitiesRepository extends ServiceEntityRepository
     /**
      * @throws NonUniqueResultException
      */
+    public function getSessionActivityById(int $id): ?SessionActivities
+    {
+        return $this->createQueryBuilder('sa')
+            ->andWhere('sa.sessionActivityId = :id')
+            ->setParameter('id', $id)
+            ->getQuery()
+            ->getOneOrNullResult();
+    }
+
+    /**
+     * @throws NonUniqueResultException
+     * @throws InvalidArgumentException
+     * @throws ORMException
+     */
+    public function delete(int $id): bool
+    {
+        $sessionActivityById = $this->getSessionActivityById($id);
+
+        if ($sessionActivityById == null) {
+            return false;
+        }
+
+        $this->cache->delete($this->cacheHelper->getAllSessionActivitiesKey());
+
+        $this->getEntityManager()->remove($sessionActivityById);
+        $this->getEntityManager()->flush();
+
+        return true;
+    }
+
+    /**
+     * @throws NonUniqueResultException
+     */
     private function isSessionActivityExistByName(string $name): bool
     {
         $sessionActivity = $this->createQueryBuilder('sa')
