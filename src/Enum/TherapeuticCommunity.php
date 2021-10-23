@@ -9,23 +9,6 @@ use MyCLabs\Enum\Enum;
 
 /**
  * @extends Enum<string>
- * @method static self VALIDATING_QUARTER_FAILED()
- * @method static self CREATING_QUARTER_FAILED()
- * @method static self CREATING_QUARTER_SUCCESS()
- * @method static self FETCHING_QUARTER_FAILED()
- * @method static self FETCHING_QUARTER_SUCCESS()
- * @method static self NO_QUARTER_DATA()
- * @method static self DELETING_QUARTER_FAILED()
- * @method static self DELETING_QUARTER_SUCCESS()
- * @method static self NO_PHASES_DATA()
- * @method static self FETCHING_PHASES_SUCCESS()
- * @method static self FETCHING_PHASES_FAILED()
- * @method static self NO_FIELD_OFFICE_DATA()
- * @method static self FETCHING_FIELD_OFFICE_SUCCESS()
- * @method static self FETCHING_FIELD_OFFICE_FAILED()
- * @method static self NO_SESSION_ACTIVITIES_DATA()
- * @method static self FETCHING_SESSION_ACTIVITIES_SUCCESS()
- * @method static self FETCHING_SESSION_ACTIVITIES_FAILED()
  */
 class TherapeuticCommunity extends Enum implements Hashable
 {
