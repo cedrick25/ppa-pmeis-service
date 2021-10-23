@@ -43,6 +43,8 @@ class QuartersRepository extends ServiceEntityRepository
             return null;
         }
 
+        $this->cache->delete($this->cacheHelper->getAllQuartersKey());
+
         $currentDateTime = new DateTimeImmutable();
         $currentDateTime->format("Y-m-d H:m:s");
 
@@ -125,6 +127,7 @@ class QuartersRepository extends ServiceEntityRepository
 
     /**
      * @throws ORMException
+     * @throws \Psr\Cache\InvalidArgumentException
      */
     public function delete(int $id): bool
     {
@@ -133,6 +136,9 @@ class QuartersRepository extends ServiceEntityRepository
         if ($quarterById == null) {
             return false;
         }
+
+        $this->cache->delete($this->cacheHelper->getAllQuartersKey());
+        $this->cache->delete($this->cacheHelper->getQuarterByNameAndYearKey($quarterById->getName(), $quarterById->getYear()));
 
         $this->getEntityManager()->remove($quarterById);
         $this->getEntityManager()->flush();

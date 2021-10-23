@@ -68,6 +68,8 @@ class TherapeuticCommunityService implements TherapeuticCommunityServiceInterfac
             }
 
             return $this->appFormatter->formatResponse(TCEnum::DELETING_QUARTER_SUCCESS, null);
+        } catch (InvalidArgumentException $exception) {
+            return $this->appFormatter->formatResponse(TCEnum::FETCHING_QUARTER_FAILED, null, ['cache' => $exception->getMessage()]);
         } catch (ORMException $exception) {
             return $this->appFormatter->formatResponse(TCEnum::DELETING_QUARTER_FAILED, null, ['orm' => $exception->getMessage()]);
         }

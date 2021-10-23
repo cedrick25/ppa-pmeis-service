@@ -65,6 +65,6 @@ class TherapeuticCommunityController extends AbstractController
      */
     public function deleteQuarterById(Request $request): Response
     {
-        return $this->json($this->service->deleteQuarterById($request->get("id")));
+        return $this->json($this->service->deleteQuarterById((int) $request->get("id")));
     }
 }
