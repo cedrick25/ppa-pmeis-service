@@ -67,4 +67,12 @@ class TherapeuticCommunityController extends AbstractController
     {
         return $this->json($this->service->deleteQuarterById((int) $request->get("id")));
     }
+
+    /**
+     * @Route("/phases/list", methods={"GET"})
+     */
+    public function getAllPhases(): Response
+    {
+        return $this->json($this->service->getAllPhases());
+    }
 }

@@ -17,6 +17,7 @@ use MyCLabs\Enum\Enum;
  * @method static self NO_QUARTER_DATA()
  * @method static self DELETING_QUARTER_FAILED()
  * @method static self DELETING_QUARTER_SUCCESS()
+ * @method static self NO_PHASES_DATA()
  */
 class TherapeuticCommunity extends Enum implements Hashable
 {
@@ -28,6 +29,10 @@ class TherapeuticCommunity extends Enum implements Hashable
     public const NO_QUARTER_DATA = "No quarter found.";
     public const DELETING_QUARTER_FAILED = "Deleting quarter failed.";
     public const DELETING_QUARTER_SUCCESS = "Deleting quarter success.";
+
+    public const NO_PHASES_DATA = "No phases found.";
+    public const FETCHING_PHASES_SUCCESS = "Fetching phases success.";
+    public const FETCHING_PHASES_FAILED = "Fetching phases failed.";
 
     public function hash()
     {

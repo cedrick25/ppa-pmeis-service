@@ -7,6 +7,7 @@ namespace App\Service;
 use App\Common\AppFormatter;
 use App\Model\Quarters as QuartersModel;
 use App\Enum\TherapeuticCommunity as TCEnum;
+use App\Repository\PhasesRepository;
 use App\Repository\QuartersRepository;
 use Doctrine\ORM\ORMException;
 use Psr\Cache\InvalidArgumentException;
@@ -16,6 +17,7 @@ class TherapeuticCommunityService implements TherapeuticCommunityServiceInterfac
 {
     public function __construct(
         private QuartersRepository $quartersRepository,
+        private PhasesRepository $phasesRepository,
         private ValidatorInterface    $validator,
         private AppFormatter          $appFormatter,
     ){}
@@ -72,6 +74,21 @@ class TherapeuticCommunityService implements TherapeuticCommunityServiceInterfac
             return $this->appFormatter->formatResponse(TCEnum::FETCHING_QUARTER_FAILED, null, ['cache' => $exception->getMessage()]);
         } catch (ORMException $exception) {
             return $this->appFormatter->formatResponse(TCEnum::DELETING_QUARTER_FAILED, null, ['orm' => $exception->getMessage()]);
+        }
+    }
+
+    public function getAllPhases(): array
+    {
+        try {
+            $phases = $this->phasesRepository->list();
+
+            if (sizeof($phases) == 0) {
+                return $this->appFormatter->formatResponse(TCEnum::NO_PHASES_DATA, null);
+            }
+
+            return $this->appFormatter->formatResponse(TCEnum::FETCHING_PHASES_SUCCESS, $phases);
+        } catch (InvalidArgumentException $exception) {
+            return $this->appFormatter->formatResponse(TCEnum::FETCHING_PHASES_FAILED, null, ['cache' => $exception->getMessage()]);
         }
     }
 }

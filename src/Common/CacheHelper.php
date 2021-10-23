@@ -31,4 +31,9 @@ class CacheHelper
     {
         return 'quarter_all';
     }
+
+    public function getAllPhasesKey(): string
+    {
+        return 'phases_all';
+    }
 }

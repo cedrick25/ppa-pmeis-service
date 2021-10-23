@@ -2,9 +2,13 @@
 
 namespace App\Repository;
 
+use App\Common\CacheHelper;
 use App\Entity\Phases;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
+use Psr\Cache\InvalidArgumentException;
+use Symfony\Contracts\Cache\CacheInterface;
+use Symfony\Contracts\Cache\ItemInterface;
 
 /**
  * @method Phases|null find($id, $lockMode = null, $lockVersion = null)
@@ -14,37 +18,30 @@ use Doctrine\Persistence\ManagerRegistry;
  */
 class PhasesRepository extends ServiceEntityRepository
 {
-    public function __construct(ManagerRegistry $registry)
-    {
+    public function __construct(
+        ManagerRegistry $registry,
+        private CacheInterface $cache,
+        private CacheHelper $cacheHelper,
+    ){
         parent::__construct($registry, Phases::class);
     }
 
-    // /**
-    //  * @return Phases[] Returns an array of Phases objects
-    //  */
-    /*
-    public function findByExampleField($value)
+    /**
+     * @return Phases[]
+     * @throws InvalidArgumentException
+     */
+    public function list(): array
     {
-        return $this->createQueryBuilder('p')
-            ->andWhere('p.exampleField = :val')
-            ->setParameter('val', $value)
-            ->orderBy('p.id', 'ASC')
-            ->setMaxResults(10)
-            ->getQuery()
-            ->getResult()
-        ;
-    }
-    */
+        $cacheKey = $this->cacheHelper->getAllPhasesKey();
+        $expiration = $this->cacheHelper->getExpirationDateTime(24);
 
-    /*
-    public function findOneBySomeField($value): ?Phases
-    {
-        return $this->createQueryBuilder('p')
-            ->andWhere('p.exampleField = :val')
-            ->setParameter('val', $value)
-            ->getQuery()
-            ->getOneOrNullResult()
-        ;
+        return $this->cache->get($cacheKey, function (ItemInterface $item) use ($cacheKey, $expiration) {
+            $item->expiresAt($expiration);
+
+            return $this->createQueryBuilder('ph')
+                ->orderBy('ph.phaseId', 'DESC')
+                ->getQuery()
+                ->getResult();
+        });
     }
-    */
 }
