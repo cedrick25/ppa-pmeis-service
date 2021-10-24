@@ -12,16 +12,16 @@ use MyCLabs\Enum\Enum;
  */
 class TherapeuticCommunity extends Enum implements Hashable
 {
-    public const VALIDATING_FAILED = "Validating failed.";
+    public const VALIDATING_FAILED = "Validating inputs failed.";
     public const NO_DATA = "No data found.";
-    public const FETCHING_SUCCESS = "Fetching success.";
-    public const FETCHING_FAILED = "Fetching failed.";
-    public const CREATING_FAILED = "Creating failed.";
-    public const CREATING_SUCCESS = "Creating successful.";
-    public const DELETING_FAILED = "Deleting failed.";
-    public const DELETING_SUCCESS = "Deleting success.";
-    public const UPDATING_FAILED = "Updating failed.";
-    public const UPDATING_SUCCESS = "Updating success.";
+    public const FETCHING_SUCCESS = "Fetching data success.";
+    public const FETCHING_FAILED = "Fetching data failed.";
+    public const CREATING_FAILED = "Creating new record failed.";
+    public const CREATING_SUCCESS = "Creating new record successful.";
+    public const DELETING_FAILED = "Deleting record failed.";
+    public const DELETING_SUCCESS = "Deleting record success.";
+    public const UPDATING_FAILED = "Updating record failed.";
+    public const UPDATING_SUCCESS = "Updating record success.";
 
     public function hash()
     {
