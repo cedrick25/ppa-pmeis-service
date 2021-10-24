@@ -34,6 +34,20 @@ class Venues implements VenuesInterface
         } catch (ORMException $exception) {
             return $this->appFormatter->formatResponse(TCEnum::CREATING_VENUE_FAILED, null, ['orm' => $exception->getMessage()]);
         }
-        return [];
+    }
+
+    public function getAll(): array
+    {
+        try {
+            $venues = $this->repository->list();
+
+            if (sizeof($venues) == 0) {
+                return $this->appFormatter->formatResponse(TCEnum::NO_VENUES_DATA, null);
+            }
+
+            return $this->appFormatter->formatResponse(TCEnum::FETCHING_VENUES_SUCCESS, $venues);
+        } catch (InvalidArgumentException $exception) {
+            return $this->appFormatter->formatResponse(TCEnum::FETCHING_VENUES_FAILED, null, ['cache' => $exception->getMessage()]);
+        }
     }
 }

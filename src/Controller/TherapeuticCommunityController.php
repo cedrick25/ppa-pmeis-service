@@ -123,4 +123,12 @@ class TherapeuticCommunityController extends AbstractController
     {
         return $this->json($this->venuesService->create($request->get("name")));
     }
+
+    /**
+     * @Route("/venue/list", methods={"GET"})
+     */
+    public function getAllVenues(): Response
+    {
+        return $this->json($this->venuesService->getAll());
+    }
 }

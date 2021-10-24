@@ -11,6 +11,7 @@ use Doctrine\ORM\ORMException;
 use Doctrine\Persistence\ManagerRegistry;
 use Psr\Cache\InvalidArgumentException;
 use Symfony\Contracts\Cache\CacheInterface;
+use Symfony\Contracts\Cache\ItemInterface;
 
 /**
  * @method Venues|null find($id, $lockMode = null, $lockVersion = null)
@@ -55,16 +56,35 @@ class VenuesRepository extends ServiceEntityRepository
     }
 
     /**
+     * @return Venues[]
+     * @throws InvalidArgumentException
+     */
+    public function list(): array
+    {
+        $cacheKey = $this->cacheHelper->getAllVenuesKey();
+        $expiration = $this->cacheHelper->getExpirationDateTime(24);
+
+        return $this->cache->get($cacheKey, function (ItemInterface $item) use ($cacheKey, $expiration) {
+            $item->expiresAt($expiration);
+
+            return $this->createQueryBuilder('vn')
+                ->orderBy('vn.venueId', 'DESC')
+                ->getQuery()
+                ->getResult();
+        });
+    }
+
+    /**
      * @throws NonUniqueResultException
      */
     private function isExistByName(string $name): bool
     {
-        $sessionActivity = $this->createQueryBuilder('vn')
+        $venue = $this->createQueryBuilder('vn')
             ->andWhere('vn.name = :name')
             ->setParameter('name', $name)
             ->getQuery()
             ->getOneOrNullResult();
 
-        return $sessionActivity != null;
+        return $venue != null;
     }
 }
