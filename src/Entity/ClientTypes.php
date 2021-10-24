@@ -29,7 +29,7 @@ class ClientTypes
      */
     private string $description;
 
-    public function getId(): ?int
+    public function getClientTypeId(): ?int
     {
         return $this->clientTypeId;
     }

@@ -41,6 +41,8 @@ class Sessions implements SessionsInterface
             return $this->appFormatter->formatResponse(TCEnum::CREATING_FAILED, null, ['orm' => $exception->getMessage()]);
         } catch (Exception $e) {
             return $this->appFormatter->formatResponse(TCEnum::CREATING_FAILED, null, ['app' => $e->getMessage()]);
+        } catch (\Psr\Cache\InvalidArgumentException $e) {
+            return $this->appFormatter->formatResponse(TCEnum::CREATING_FAILED, null, ['cache' => $e->getMessage()]);
         }
     }
 

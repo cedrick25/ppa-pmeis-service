@@ -2,9 +2,14 @@
 
 namespace App\Repository;
 
+use App\Common\CacheHelper;
 use App\Entity\ClientTypes;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
+use Doctrine\ORM\NonUniqueResultException;
+use Doctrine\ORM\ORMException;
 use Doctrine\Persistence\ManagerRegistry;
+use Psr\Cache\InvalidArgumentException;
+use Symfony\Contracts\Cache\CacheInterface;
 
 /**
  * @method ClientTypes|null find($id, $lockMode = null, $lockVersion = null)
@@ -14,37 +19,35 @@ use Doctrine\Persistence\ManagerRegistry;
  */
 class ClientTypesRepository extends ServiceEntityRepository
 {
-    public function __construct(ManagerRegistry $registry)
-    {
+    public function __construct(
+        ManagerRegistry $registry,
+        private CacheInterface $cache,
+        private CacheHelper $cacheHelper,
+    ){
         parent::__construct($registry, ClientTypes::class);
     }
 
-    // /**
-    //  * @return ClientTypes[] Returns an array of ClientTypes objects
-    //  */
-    /*
-    public function findByExampleField($value)
+    /**
+     * @throws InvalidArgumentException
+     * @throws ORMException
+     */
+    public function create(string $code, string $description): int | null
     {
-        return $this->createQueryBuilder('c')
-            ->andWhere('c.exampleField = :val')
-            ->setParameter('val', $value)
-            ->orderBy('c.id', 'ASC')
-            ->setMaxResults(10)
-            ->getQuery()
-            ->getResult()
-        ;
-    }
-    */
+        $clientType = $this->findOneBy(['code' => $code]);
 
-    /*
-    public function findOneBySomeField($value): ?ClientTypes
-    {
-        return $this->createQueryBuilder('c')
-            ->andWhere('c.exampleField = :val')
-            ->setParameter('val', $value)
-            ->getQuery()
-            ->getOneOrNullResult()
-        ;
+        if ($clientType != null) {
+            return null;
+        }
+
+        $this->cache->delete($this->cacheHelper->getAllClientTypesKey());
+
+        $newClientType = new ClientTypes();
+        $newClientType->setCode($code);
+        $newClientType->setDescription($description);
+
+        $this->getEntityManager()->persist($newClientType);
+        $this->getEntityManager()->flush();
+
+        return $newClientType->getClientTypeId();
     }
-    */
 }

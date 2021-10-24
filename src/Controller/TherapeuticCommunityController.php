@@ -8,6 +8,7 @@ use App\Common\AppFormatter;
 use App\Common\AppHydrator;
 use App\Model\Quarters as QuartersModel;
 use App\Model\Sessions as SessionsModel;
+use App\Service\TherapeuticCommunity\ClientTypesInterface;
 use App\Service\TherapeuticCommunity\FieldOfficesInterface;
 use App\Service\TherapeuticCommunity\PhasesInterface;
 use App\Service\TherapeuticCommunity\QuartersInterface;
@@ -19,6 +20,7 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
+use App\Model\ClientTypes as ClientTypesModel;
 
 /**
  * @Route("/api/tc")
@@ -34,6 +36,7 @@ class TherapeuticCommunityController extends AbstractController
         private SessionActivitiesInterface $sessionActivitiesService,
         private VenuesInterface $venuesService,
         private SessionsInterface $sessionService,
+        private ClientTypesInterface $clientTypeService,
     ){}
 
     /**
@@ -190,6 +193,23 @@ class TherapeuticCommunityController extends AbstractController
             return $this->json($this->sessionService->updateById((int) $request->get("id"), $session));
         } catch (ReflectionException $exception) {
             return $this->json($this->appFormatter->formatResponse('Updating session failed', null, ['reflection' => $exception->getMessage()]));
+        }
+    }
+
+    /**
+     * @Route("/client-type/create", methods={"POST"})
+     */
+    public function createClientType(Request $request): Response
+    {
+        try {
+            $data = json_decode($request->getContent(), true);
+
+            /** @var ClientTypesModel $clientType */
+            $clientType = $this->appHydrator->convertArrayToObject($data, ClientTypesModel::class);
+
+            return $this->json($this->clientTypeService->create($clientType));
+        } catch (ReflectionException $exception) {
+            return $this->json($this->appFormatter->formatResponse('Creating session failed', null, ['reflection' => $exception->getMessage()]));
         }
     }
 }

@@ -56,4 +56,9 @@ class CacheHelper
     {
         return 'sessions_all';
     }
+
+    public function getAllClientTypesKey(): string
+    {
+        return 'client_types_all';
+    }
 }
