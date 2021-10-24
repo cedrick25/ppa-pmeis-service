@@ -12,11 +12,11 @@ use Psr\Cache\InvalidArgumentException;
 class Phases implements PhasesInterface
 {
     public function __construct(
-        private AppFormatter          $appFormatter,
+        private AppFormatter     $appFormatter,
         private PhasesRepository $phasesRepository,
     ){}
 
-    public function getAllPhases(): array
+    public function getAll(): array
     {
         try {
             $phases = $this->phasesRepository->list();

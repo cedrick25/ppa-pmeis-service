@@ -4,5 +4,5 @@ namespace App\Service\TherapeuticCommunity;
 
 interface FieldOfficesInterface
 {
-    public function getAllFieldOffices(): array;
+    public function getAll(): array;
 }

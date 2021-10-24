@@ -6,9 +6,9 @@ use App\Model\Quarters as QuartersModel;
 
 interface QuartersInterface
 {
-    public function createQuarters(QuartersModel $quarters): array;
+    public function create(QuartersModel $quarters): array;
 
-    public function getAllQuarters(): array;
+    public function getAll(): array;
 
-    public function deleteQuarterById(int $id): array;
+    public function deleteById(int $id): array;
 }

@@ -11,6 +11,7 @@ use App\Service\TherapeuticCommunity\FieldOfficesInterface;
 use App\Service\TherapeuticCommunity\PhasesInterface;
 use App\Service\TherapeuticCommunity\QuartersInterface;
 use App\Service\TherapeuticCommunity\SessionActivitiesInterface;
+use App\Service\TherapeuticCommunity\VenuesInterface;
 use ReflectionException;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -28,7 +29,8 @@ class TherapeuticCommunityController extends AbstractController
         private FieldOfficesInterface $fieldOfficesService,
         private PhasesInterface $phasesService,
         private QuartersInterface $quartersService,
-        private SessionActivitiesInterface $sessionActivitiesService
+        private SessionActivitiesInterface $sessionActivitiesService,
+        private VenuesInterface $venuesService,
     ){}
 
     /**
@@ -52,7 +54,7 @@ class TherapeuticCommunityController extends AbstractController
             /** @var QuartersModel $quarter */
             $quarter = $this->appHydrator->convertArrayToObject($data, QuartersModel::class);
 
-            return $this->json($this->quartersService->createQuarters($quarter));
+            return $this->json($this->quartersService->create($quarter));
         } catch (ReflectionException $exception) {
             return $this->json($this->appFormatter->formatResponse('Quarter creation failed', null, ['reflection' => $exception->getMessage()]));
         }
@@ -63,7 +65,7 @@ class TherapeuticCommunityController extends AbstractController
      */
     public function getAllQuarters(): Response
     {
-        return $this->json($this->quartersService->getAllQuarters());
+        return $this->json($this->quartersService->getAll());
     }
 
     /**
@@ -71,7 +73,7 @@ class TherapeuticCommunityController extends AbstractController
      */
     public function deleteQuarterById(Request $request): Response
     {
-        return $this->json($this->quartersService->deleteQuarterById((int) $request->get("id")));
+        return $this->json($this->quartersService->deleteById((int) $request->get("id")));
     }
 
     /**
@@ -79,7 +81,7 @@ class TherapeuticCommunityController extends AbstractController
      */
     public function getAllPhases(): Response
     {
-        return $this->json($this->phasesService->getAllPhases());
+        return $this->json($this->phasesService->getAll());
     }
 
     /**
@@ -87,7 +89,7 @@ class TherapeuticCommunityController extends AbstractController
      */
     public function getAllFieldOffice(): Response
     {
-        return $this->json($this->fieldOfficesService->getAllFieldOffices());
+        return $this->json($this->fieldOfficesService->getAll());
     }
 
     /**
@@ -95,7 +97,7 @@ class TherapeuticCommunityController extends AbstractController
      */
     public function getAllSessionActivities(): Response
     {
-        return $this->json($this->sessionActivitiesService->getAllSessionActivities());
+        return $this->json($this->sessionActivitiesService->getAll());
     }
 
     /**
@@ -103,7 +105,7 @@ class TherapeuticCommunityController extends AbstractController
      */
     public function createNewSessionActivity(Request $request): Response
     {
-        return $this->json($this->sessionActivitiesService->createSessionActivity($request->get("name")));
+        return $this->json($this->sessionActivitiesService->create($request->get("name")));
     }
 
     /**
@@ -111,6 +113,14 @@ class TherapeuticCommunityController extends AbstractController
      */
     public function deleteSessionActivityById(Request $request): Response
     {
-        return $this->json($this->sessionActivitiesService->deleteSessionActivityById((int) $request->get("id")));
+        return $this->json($this->sessionActivitiesService->deleteById((int) $request->get("id")));
+    }
+
+    /**
+     * @Route("/venue/create/{name}", methods={"GET"})
+     */
+    public function createVenue(Request $request): Response
+    {
+        return $this->json($this->venuesService->create($request->get("name")));
     }
 }

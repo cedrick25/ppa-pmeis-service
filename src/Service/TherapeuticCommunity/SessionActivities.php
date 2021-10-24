@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Service\TherapeuticCommunity;
 
 use App\Common\AppFormatter;
@@ -7,17 +9,15 @@ use App\Enum\TherapeuticCommunity as TCEnum;
 use App\Repository\SessionActivitiesRepository;
 use Doctrine\ORM\ORMException;
 use Psr\Cache\InvalidArgumentException;
-use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 class SessionActivities implements SessionActivitiesInterface
 {
     public function __construct(
-        private ValidatorInterface    $validator,
-        private AppFormatter          $appFormatter,
+        private AppFormatter                $appFormatter,
         private SessionActivitiesRepository $sessionActivitiesRepository,
     ){}
 
-    public function getAllSessionActivities(): array
+    public function getAll(): array
     {
         try {
             $sessionActivities = $this->sessionActivitiesRepository->list();
@@ -32,7 +32,7 @@ class SessionActivities implements SessionActivitiesInterface
         }
     }
 
-    public function createSessionActivity(string $name): array
+    public function create(string $name): array
     {
         try {
             if ($name === "") {
@@ -53,7 +53,8 @@ class SessionActivities implements SessionActivitiesInterface
         }
     }
 
-    public function deleteSessionActivityById(int $id): array
+
+    public function deleteById(int $id): array
     {
         try {
             $isSessionActivityDeleted = $this->sessionActivitiesRepository->delete($id);

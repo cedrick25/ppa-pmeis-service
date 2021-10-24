@@ -4,9 +4,9 @@ namespace App\Service\TherapeuticCommunity;
 
 interface SessionActivitiesInterface
 {
-    public function getAllSessionActivities(): array;
+    public function getAll(): array;
 
-    public function createSessionActivity(string $name): array;
+    public function create(string $name): array;
 
-    public function deleteSessionActivityById(int $id): array;
+    public function deleteById(int $id): array;
 }

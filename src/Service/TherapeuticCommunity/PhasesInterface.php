@@ -4,5 +4,5 @@ namespace App\Service\TherapeuticCommunity;
 
 interface PhasesInterface
 {
-    public function getAllPhases(): array;
+    public function getAll(): array;
 }

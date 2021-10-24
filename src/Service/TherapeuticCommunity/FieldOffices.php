@@ -10,11 +10,11 @@ use Psr\Cache\InvalidArgumentException;
 class FieldOffices implements FieldOfficesInterface
 {
     public function __construct(
-        private AppFormatter          $appFormatter,
+        private AppFormatter           $appFormatter,
         private FieldOfficesRepository $fieldOfficesRepository,
     ){}
 
-    public function getAllFieldOffices(): array
+    public function getAll(): array
     {
         try {
             $fieldOffices = $this->fieldOfficesRepository->list();

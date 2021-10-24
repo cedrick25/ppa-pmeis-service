@@ -15,11 +15,11 @@ use Symfony\Component\Validator\Validator\ValidatorInterface;
 class Quarters implements QuartersInterface
 {
     public function __construct(
-        private ValidatorInterface    $validator,
-        private AppFormatter          $appFormatter,
+        private ValidatorInterface $validator,
+        private AppFormatter       $appFormatter,
         private QuartersRepository $quartersRepository,
     ){}
-    public function createQuarters(QuartersModel $quarters): array
+    public function create(QuartersModel $quarters): array
     {
         try {
             $errors = $this->validator->validate($quarters);
@@ -42,7 +42,7 @@ class Quarters implements QuartersInterface
         }
     }
 
-    public function getAllQuarters(): array
+    public function getAll(): array
     {
         try {
             $quarters = $this->quartersRepository->list();
@@ -57,7 +57,7 @@ class Quarters implements QuartersInterface
         }
     }
 
-    public function deleteQuarterById(int $id): array
+    public function deleteById(int $id): array
     {
         try {
             $isQuarterDeleted = $this->quartersRepository->delete($id);
