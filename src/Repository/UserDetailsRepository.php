@@ -24,7 +24,7 @@ class UserDetailsRepository extends ServiceEntityRepository
     /**
      * @throws Exception
      */
-    public function createUserDetails(int $userAccountId, UserAccountWithDetails $userAccountWithDetails): void
+    public function create(int $userAccountId, UserAccountWithDetails $userAccountWithDetails): void
     {
         $dateOfBirth = new \DateTimeImmutable($userAccountWithDetails->getDateOfBirth());
         $dateOfBirth->format("Y-m-d");

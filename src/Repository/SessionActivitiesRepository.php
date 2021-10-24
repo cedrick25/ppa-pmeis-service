@@ -55,7 +55,7 @@ class SessionActivitiesRepository extends ServiceEntityRepository
      */
     public function create(string $name): int|null
     {
-        $isSessionActivityExist = $this->isSessionActivityExistByName($name);
+        $isSessionActivityExist = $this->isExistByName($name);
 
         if ($isSessionActivityExist) {
             return null;
@@ -79,7 +79,7 @@ class SessionActivitiesRepository extends ServiceEntityRepository
     /**
      * @throws NonUniqueResultException
      */
-    public function getSessionActivityById(int $id): ?SessionActivities
+    public function getById(int $id): ?SessionActivities
     {
         return $this->createQueryBuilder('sa')
             ->andWhere('sa.sessionActivityId = :id')
@@ -95,7 +95,7 @@ class SessionActivitiesRepository extends ServiceEntityRepository
      */
     public function delete(int $id): bool
     {
-        $sessionActivityById = $this->getSessionActivityById($id);
+        $sessionActivityById = $this->getById($id);
 
         if ($sessionActivityById == null) {
             return false;
@@ -112,7 +112,7 @@ class SessionActivitiesRepository extends ServiceEntityRepository
     /**
      * @throws NonUniqueResultException
      */
-    private function isSessionActivityExistByName(string $name): bool
+    private function isExistByName(string $name): bool
     {
         $sessionActivity = $this->createQueryBuilder('sa')
             ->andWhere('sa.name = :name')

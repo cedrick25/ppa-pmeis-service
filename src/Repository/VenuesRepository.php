@@ -19,32 +19,8 @@ class VenuesRepository extends ServiceEntityRepository
         parent::__construct($registry, Venues::class);
     }
 
-    // /**
-    //  * @return Venues[] Returns an array of Venues objects
-    //  */
-    /*
-    public function findByExampleField($value)
+    public function create(string $name): int|null
     {
-        return $this->createQueryBuilder('v')
-            ->andWhere('v.exampleField = :val')
-            ->setParameter('val', $value)
-            ->orderBy('v.id', 'ASC')
-            ->setMaxResults(10)
-            ->getQuery()
-            ->getResult()
-        ;
+        return 1;
     }
-    */
-
-    /*
-    public function findOneBySomeField($value): ?Venues
-    {
-        return $this->createQueryBuilder('v')
-            ->andWhere('v.exampleField = :val')
-            ->setParameter('val', $value)
-            ->getQuery()
-            ->getOneOrNullResult()
-        ;
-    }
-    */
 }

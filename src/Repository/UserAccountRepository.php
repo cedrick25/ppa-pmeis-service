@@ -89,7 +89,7 @@ class UserAccountRepository extends ServiceEntityRepository
      */
     public function createUser(UserAccountWithDetails $userAccountWithDetails): int|null
     {
-        $userByEmail = $this->getUserAccountByEmail($userAccountWithDetails->getEmailAddress());
+        $userByEmail = $this->getByEmail($userAccountWithDetails->getEmailAddress());
         if ($userByEmail != null) {
             return null;
         }
@@ -111,7 +111,7 @@ class UserAccountRepository extends ServiceEntityRepository
         $this->getEntityManager()->persist($user);
         $this->getEntityManager()->flush();
 
-        $this->userDetailsRepository->createUserDetails($user->getUserAccountId(), $userAccountWithDetails);
+        $this->userDetailsRepository->create($user->getUserAccountId(), $userAccountWithDetails);
 
         return $user->getUserAccountId();
     }
@@ -122,7 +122,7 @@ class UserAccountRepository extends ServiceEntityRepository
      * @return UserAccount|null
      * @throws NonUniqueResultException
      */
-    public function getUserAccountByEmail(string $emailAddress): ?UserAccount
+    public function getByEmail(string $emailAddress): ?UserAccount
     {
         return $this->createQueryBuilder('ua')
             ->andWhere('ua.emailAddress = :emailAddress')

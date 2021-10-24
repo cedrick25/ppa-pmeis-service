@@ -37,7 +37,7 @@ class QuartersRepository extends ServiceEntityRepository
      */
     public function create(QuartersModel $quarters): int|null
     {
-        $quarterByNameAndYear = $this->getQuarterByNameAndYear($quarters->getName(), $quarters->getYear());
+        $quarterByNameAndYear = $this->getByNameAndYear($quarters->getName(), $quarters->getYear());
 
         if ($quarterByNameAndYear != null) {
             return null;
@@ -65,7 +65,7 @@ class QuartersRepository extends ServiceEntityRepository
      * @return Quarters|null
      * @throws \Psr\Cache\InvalidArgumentException
      */
-    public function getQuarterByNameAndYear(string $name, string $year): ?Quarters
+    public function getByNameAndYear(string $name, string $year): ?Quarters
     {
         $cacheKey = $this->cacheHelper->getQuarterByNameAndYearKey($name, $year);
 
@@ -116,7 +116,7 @@ class QuartersRepository extends ServiceEntityRepository
      * @return Quarters|null
      * @throws NonUniqueResultException
      */
-    public function getQuarterById(int $id): ?Quarters
+    public function getById(int $id): ?Quarters
     {
         return $this->createQueryBuilder('qtr')
             ->andWhere('qtr.quarterId = :id')
@@ -131,7 +131,7 @@ class QuartersRepository extends ServiceEntityRepository
      */
     public function delete(int $id): bool
     {
-        $quarterById = $this->getQuarterById($id);
+        $quarterById = $this->getById($id);
 
         if ($quarterById == null) {
             return false;
