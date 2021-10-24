@@ -77,6 +77,39 @@ class VenuesRepository extends ServiceEntityRepository
     /**
      * @throws NonUniqueResultException
      */
+    public function getById(int $id): ?Venues
+    {
+        return $this->createQueryBuilder('vn')
+            ->andWhere('vn.venueId = :id')
+            ->setParameter('id', $id)
+            ->getQuery()
+            ->getOneOrNullResult();
+    }
+
+    /**
+     * @throws NonUniqueResultException
+     * @throws InvalidArgumentException
+     * @throws ORMException
+     */
+    public function delete(int $id): bool
+    {
+        $venue = $this->getById($id);
+
+        if ($venue == null) {
+            return false;
+        }
+
+        $this->cache->delete($this->cacheHelper->getAllVenuesKey());
+
+        $this->getEntityManager()->remove($venue);
+        $this->getEntityManager()->flush();
+
+        return true;
+    }
+
+    /**
+     * @throws NonUniqueResultException
+     */
     private function isExistByName(string $name): bool
     {
         $venue = $this->createQueryBuilder('vn')

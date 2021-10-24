@@ -53,13 +53,12 @@ class SessionActivities implements SessionActivitiesInterface
         }
     }
 
-
     public function deleteById(int $id): array
     {
         try {
-            $isSessionActivityDeleted = $this->repository->delete($id);
+            $isDeleted = $this->repository->delete($id);
 
-            if (! $isSessionActivityDeleted) {
+            if (! $isDeleted) {
                 return $this->appFormatter->formatResponse(TCEnum::DELETING_SESSION_ACTIVITY_FAILED, null, ['app' => TCEnum::NO_SESSION_ACTIVITIES_DATA]);
             }
 

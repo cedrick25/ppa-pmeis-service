@@ -94,15 +94,15 @@ class SessionActivitiesRepository extends ServiceEntityRepository
      */
     public function delete(int $id): bool
     {
-        $sessionActivityById = $this->getById($id);
+        $sessionActivity = $this->getById($id);
 
-        if ($sessionActivityById == null) {
+        if ($sessionActivity == null) {
             return false;
         }
 
         $this->cache->delete($this->cacheHelper->getAllSessionActivitiesKey());
 
-        $this->getEntityManager()->remove($sessionActivityById);
+        $this->getEntityManager()->remove($sessionActivity);
         $this->getEntityManager()->flush();
 
         return true;

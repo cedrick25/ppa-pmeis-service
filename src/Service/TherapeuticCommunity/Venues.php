@@ -50,4 +50,21 @@ class Venues implements VenuesInterface
             return $this->appFormatter->formatResponse(TCEnum::FETCHING_VENUES_FAILED, null, ['cache' => $exception->getMessage()]);
         }
     }
+
+    public function deleteById(int $id): array
+    {
+        try {
+            $isDeleted = $this->repository->delete($id);
+
+            if (! $isDeleted) {
+                return $this->appFormatter->formatResponse(TCEnum::DELETING_VENUE_FAILED, null, ['app' => TCEnum::NO_VENUES_DATA]);
+            }
+
+            return $this->appFormatter->formatResponse(TCEnum::DELETING_VENUE_SUCCESS, null);
+        } catch (InvalidArgumentException $exception) {
+            return $this->appFormatter->formatResponse(TCEnum::DELETING_VENUE_FAILED, null, ['cache' => $exception->getMessage()]);
+        } catch (ORMException $exception) {
+            return $this->appFormatter->formatResponse(TCEnum::DELETING_VENUE_FAILED, null, ['orm' => $exception->getMessage()]);
+        }
+    }
 }

@@ -131,4 +131,12 @@ class TherapeuticCommunityController extends AbstractController
     {
         return $this->json($this->venuesService->getAll());
     }
+
+    /**
+     * @Route("/venue/delete/{id}", methods={"GET"})
+     */
+    public function deleteVenueById(Request $request): Response
+    {
+        return $this->json($this->venuesService->deleteById((int) $request->get("id")));
+    }
 }
