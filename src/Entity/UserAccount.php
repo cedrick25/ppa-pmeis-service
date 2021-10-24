@@ -211,9 +211,15 @@ class UserAccount implements UserInterface, PasswordAuthenticatedUserInterface
      */
     public function getRoles(): array
     {
-        $userRoles = ['ROLE_USER'];
-        if ($this->getUserType() == 3) {
-            $userRoles[] = 'ROLE_ADMIN';
+        $userRoles = ['FIELD_OFFICER'];
+
+        if ($this->getUserType() == 'RD') {
+            $userRoles[] = 'REGIONAL_DIRECTOR';
+        }
+
+        if ($this->getUserType() == 'ND') {
+            $userRoles[] = 'REGIONAL_DIRECTOR';
+            $userRoles[] = 'NATIONAL_DIRECTOR';
         }
 
         return $userRoles;
