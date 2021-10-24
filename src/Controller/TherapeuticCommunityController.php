@@ -7,10 +7,12 @@ namespace App\Controller;
 use App\Common\AppFormatter;
 use App\Common\AppHydrator;
 use App\Model\Quarters as QuartersModel;
+use App\Model\Sessions as SessionsModel;
 use App\Service\TherapeuticCommunity\FieldOfficesInterface;
 use App\Service\TherapeuticCommunity\PhasesInterface;
 use App\Service\TherapeuticCommunity\QuartersInterface;
 use App\Service\TherapeuticCommunity\SessionActivitiesInterface;
+use App\Service\TherapeuticCommunity\SessionsInterface;
 use App\Service\TherapeuticCommunity\VenuesInterface;
 use ReflectionException;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -31,6 +33,7 @@ class TherapeuticCommunityController extends AbstractController
         private QuartersInterface $quartersService,
         private SessionActivitiesInterface $sessionActivitiesService,
         private VenuesInterface $venuesService,
+        private SessionsInterface $sessionService,
     ){}
 
     /**
@@ -56,7 +59,7 @@ class TherapeuticCommunityController extends AbstractController
 
             return $this->json($this->quartersService->create($quarter));
         } catch (ReflectionException $exception) {
-            return $this->json($this->appFormatter->formatResponse('Quarter creation failed', null, ['reflection' => $exception->getMessage()]));
+            return $this->json($this->appFormatter->formatResponse('Creating quarter failed', null, ['reflection' => $exception->getMessage()]));
         }
     }
 
@@ -138,5 +141,22 @@ class TherapeuticCommunityController extends AbstractController
     public function deleteVenueById(Request $request): Response
     {
         return $this->json($this->venuesService->deleteById((int) $request->get("id")));
+    }
+
+    /**
+     * @Route("/session/create", methods={"POST"})
+     */
+    public function createSession(Request $request): Response
+    {
+        try {
+            $data = json_decode($request->getContent(), true);
+
+            /** @var SessionsModel $session */
+            $session = $this->appHydrator->convertArrayToObject($data, SessionsModel::class);
+
+            return $this->json($this->sessionService->create($session));
+        } catch (ReflectionException $exception) {
+            return $this->json($this->appFormatter->formatResponse('Creating session failed', null, ['reflection' => $exception->getMessage()]));
+        }
     }
 }

@@ -1,0 +1,160 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Model;
+
+use DateTimeInterface;
+use Symfony\Component\Validator\Constraints as Assert;
+
+class Sessions
+{
+    public function __construct(
+        private int $quarterId,
+        private int $regionId,
+        private int $fieldOfficeId,
+        private int $phaseId,
+        private int $sessionActivityId,
+        private int $treatmentCategoryId,
+        private string $date,
+        private int $venueId,
+        private string $period,
+        private string $remarks,
+        private int $createdBy,
+        private ?DateTimeInterface $createdAt = null,
+        private ?DateTimeInterface $updatedAt = null,
+        private ?DateTimeInterface $deletedAt = null
+    ){}
+
+    /**
+     * @Assert\NotBlank
+     * @Assert\GreaterThan(0)
+     * @return int
+     */
+    public function getQuarterId(): int
+    {
+        return $this->quarterId;
+    }
+
+    /**
+     * @Assert\NotBlank
+     * @Assert\GreaterThan(0)
+     * @return int
+     */
+    public function getRegionId(): int
+    {
+        return $this->regionId;
+    }
+
+    /**
+     * @Assert\NotBlank
+     * @Assert\GreaterThan(0)
+     * @return int
+     */
+    public function getFieldOfficeId(): int
+    {
+        return $this->fieldOfficeId;
+    }
+
+    /**
+     * @Assert\NotBlank
+     * @Assert\GreaterThan(0)
+     * @return int
+     */
+    public function getPhaseId(): int
+    {
+        return $this->phaseId;
+    }
+
+    /**
+     * @Assert\NotBlank
+     * @Assert\GreaterThan(0)
+     * @return int
+     */
+    public function getSessionActivityId(): int
+    {
+        return $this->sessionActivityId;
+    }
+
+    /**
+     * @Assert\NotBlank
+     * @Assert\GreaterThan(0)
+     * @return int
+     */
+    public function getTreatmentCategoryId(): int
+    {
+        return $this->treatmentCategoryId;
+    }
+
+    /**
+     * @Assert\NotBlank
+     * @return string
+     */
+    public function getDate(): string
+    {
+        return $this->date;
+    }
+
+    /**
+     * @Assert\NotBlank
+     * @Assert\GreaterThan(0)
+     * @return int
+     */
+    public function getVenueId(): int
+    {
+        return $this->venueId;
+    }
+
+    /**
+     * @Assert\NotBlank
+     * @Assert\Length(2)
+     * @return string
+     */
+    public function getPeriod(): string
+    {
+        return $this->period;
+    }
+
+    /**
+     * @Assert\NotBlank
+     * @return string
+     */
+    public function getRemarks(): string
+    {
+        return $this->remarks;
+    }
+
+    /**
+     * @Assert\NotBlank
+     * @Assert\GreaterThan(0)
+     * @return int
+     */
+    public function getCreatedBy(): int
+    {
+        return $this->createdBy;
+    }
+
+    /**
+     * @return DateTimeInterface|null
+     */
+    public function getCreatedAt(): ?DateTimeInterface
+    {
+        return $this->createdAt;
+    }
+
+    /**
+     * @return DateTimeInterface|null
+     */
+    public function getUpdatedAt(): ?DateTimeInterface
+    {
+        return $this->updatedAt;
+    }
+
+    /**
+     * @return DateTimeInterface|null
+     */
+    public function getDeletedAt(): ?DateTimeInterface
+    {
+        return $this->deletedAt;
+    }
+}

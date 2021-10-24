@@ -1,9 +1,13 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Repository;
 
+use App\Common\AppDateHelper;
 use App\Entity\UserDetails;
 use App\Model\UserAccountWithDetails;
+use DateTimeImmutable;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 use Exception;
@@ -16,8 +20,10 @@ use Exception;
  */
 class UserDetailsRepository extends ServiceEntityRepository
 {
-    public function __construct(ManagerRegistry $registry)
-    {
+    public function __construct(
+        ManagerRegistry $registry,
+        private AppDateHelper $appDateHelper,
+    ){
         parent::__construct($registry, UserDetails::class);
     }
 
@@ -26,9 +32,6 @@ class UserDetailsRepository extends ServiceEntityRepository
      */
     public function create(int $userAccountId, UserAccountWithDetails $userAccountWithDetails): void
     {
-        $dateOfBirth = new \DateTimeImmutable($userAccountWithDetails->getDateOfBirth());
-        $dateOfBirth->format("Y-m-d");
-
         $userDetails = new UserDetails();
         $userDetails->setUserAccountId($userAccountId);
         $userDetails->setFirstName($userAccountWithDetails->getFirstName());
@@ -36,7 +39,7 @@ class UserDetailsRepository extends ServiceEntityRepository
         $userDetails->setLastName($userAccountWithDetails->getLastName());
         $userDetails->setSuffix($userAccountWithDetails->getSuffix());
         $userDetails->setGender($userAccountWithDetails->getGender());
-        $userDetails->setDateOfBirth($dateOfBirth);
+        $userDetails->setDateOfBirth($this->appDateHelper->convertStringToImmutableDate($userAccountWithDetails->getDateOfBirth()));
         $userDetails->setIsSeniorCitizen($userAccountWithDetails->isSeniorCitizen());
         $userDetails->setIsPwd($userAccountWithDetails->isPwd());
 

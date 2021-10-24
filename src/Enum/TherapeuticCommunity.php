@@ -47,6 +47,15 @@ class TherapeuticCommunity extends Enum implements Hashable
     public const DELETING_VENUE_FAILED = "Deleting venue failed.";
     public const DELETING_VENUE_SUCCESS = "Deleting venue success.";
 
+    public const NO_SESSIONS_DATA = "No sessions found.";
+    public const FETCHING_SESSIONS_SUCCESS = "Fetching sessions success.";
+    public const FETCHING_SESSIONS_FAILED = "Fetching sessions failed.";
+    public const VALIDATING_SESSION_FAILED = "Validating session failed.";
+    public const CREATING_SESSION_FAILED = "Creating session failed.";
+    public const CREATING_SESSION_SUCCESS = "Creating session successful.";
+    public const DELETING_SESSION_FAILED = "Deleting session failed.";
+    public const DELETING_SESSION_SUCCESS = "Deleting session success.";
+
     public function hash()
     {
         return $this->getValue();
