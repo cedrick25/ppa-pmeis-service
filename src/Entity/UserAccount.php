@@ -213,11 +213,11 @@ class UserAccount implements UserInterface, PasswordAuthenticatedUserInterface
     {
         $userRoles = ['FIELD_OFFICER'];
 
-        if ($this->getUserType() == 'RD') {
+        if ($this->getUserType() == UserType::RD) {
             $userRoles[] = 'REGIONAL_DIRECTOR';
         }
 
-        if ($this->getUserType() == 'ND') {
+        if ($this->getUserType() == UserType::ND) {
             $userRoles[] = 'REGIONAL_DIRECTOR';
             $userRoles[] = 'NATIONAL_DIRECTOR';
         }
