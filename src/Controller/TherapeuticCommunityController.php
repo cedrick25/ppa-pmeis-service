@@ -220,4 +220,12 @@ class TherapeuticCommunityController extends AbstractController
     {
         return $this->json($this->clientTypeService->getAll());
     }
+
+    /**
+     * @Route("/client-type/delete/{id}", methods={"GET"})
+     */
+    public function deleteClientTypeById(Request $request): Response
+    {
+        return $this->json($this->clientTypeService->deleteById((int) $request->get("id")));
+    }
 }

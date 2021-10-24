@@ -67,4 +67,24 @@ class ClientTypesRepository extends ServiceEntityRepository
             return $this->findAll();
         });
     }
+
+    /**
+     * @throws InvalidArgumentException
+     * @throws ORMException
+     */
+    public function delete(int $id): bool
+    {
+        $clientType = $this->find($id);
+
+        if ($clientType == null) {
+            return false;
+        }
+
+        $this->cache->delete($this->cacheHelper->getAllClientTypesKey());
+
+        $this->getEntityManager()->remove($clientType);
+        $this->getEntityManager()->flush();
+
+        return true;
+    }
 }
