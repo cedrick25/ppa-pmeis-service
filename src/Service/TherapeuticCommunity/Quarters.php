@@ -60,9 +60,9 @@ class Quarters implements QuartersInterface
     public function deleteById(int $id): array
     {
         try {
-            $isQuarterDeleted = $this->repository->delete($id);
+            $isDeleted = $this->repository->delete($id);
 
-            if (! $isQuarterDeleted) {
+            if (! $isDeleted) {
                 return $this->appFormatter->formatResponse(TCEnum::DELETING_QUARTER_FAILED, null, ['app' => TCEnum::NO_QUARTER_DATA]);
             }
 

@@ -12,6 +12,8 @@ use DateTimeImmutable;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\DBAL\Exception\InvalidArgumentException;
 use Doctrine\ORM\NonUniqueResultException;
+use Doctrine\ORM\OptimisticLockException;
+use Doctrine\ORM\ORMException;
 use Doctrine\Persistence\ManagerRegistry;
 use Exception;
 use Symfony\Contracts\Cache\CacheInterface;
@@ -37,6 +39,7 @@ class SessionsRepository extends ServiceEntityRepository
     /**
      * @throws InvalidArgumentException
      * @throws Exception
+     * @throws \Psr\Cache\InvalidArgumentException
      */
     public function create(SessionsModel $sessionData): int | null
     {
@@ -45,6 +48,8 @@ class SessionsRepository extends ServiceEntityRepository
         if ($isExist) {
             return null;
         }
+
+        $this->cache->delete($this->cacheHelper->getAllSessionsKey());
 
         $session = new Sessions();
         $session->setQuarterId($sessionData->getQuarterId());
@@ -101,5 +106,39 @@ class SessionsRepository extends ServiceEntityRepository
                 ->getQuery()
                 ->getResult();
         });
+    }
+
+    /**
+     * @throws NonUniqueResultException
+     */
+    public function getById(int $id): ?Sessions
+    {
+        return $this->createQueryBuilder('se')
+            ->andWhere('se.sessionId = :id')
+            ->setParameter('id', $id)
+            ->getQuery()
+            ->getOneOrNullResult();
+    }
+
+    /**
+     * @throws OptimisticLockException
+     * @throws \Psr\Cache\InvalidArgumentException
+     * @throws ORMException
+     * @throws NonUniqueResultException
+     */
+    public function delete(int $id): bool
+    {
+        $session = $this->getById($id);
+
+        if ($session == null) {
+            return false;
+        }
+
+        $this->cache->delete($this->cacheHelper->getAllSessionsKey());
+
+        $this->getEntityManager()->remove($session);
+        $this->getEntityManager()->flush();
+
+        return true;
     }
 }

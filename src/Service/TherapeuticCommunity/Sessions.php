@@ -9,6 +9,7 @@ use App\Enum\TherapeuticCommunity as TCEnum;
 use App\Model\Sessions as SessionsModel;
 use App\Repository\SessionsRepository;
 use Doctrine\DBAL\Exception\InvalidArgumentException;
+use Doctrine\ORM\ORMException;
 use Exception;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 
@@ -55,6 +56,23 @@ class Sessions implements SessionsInterface
             return $this->appFormatter->formatResponse(TCEnum::FETCHING_SESSIONS_SUCCESS, $sessions);
         } catch (\Psr\Cache\InvalidArgumentException $exception) {
             return $this->appFormatter->formatResponse(TCEnum::FETCHING_SESSIONS_FAILED, null, ['cache' => $exception->getMessage()]);
+        }
+    }
+
+    public function deleteById(int $id): array
+    {
+        try {
+            $isDeleted = $this->repository->delete($id);
+
+            if (! $isDeleted) {
+                return $this->appFormatter->formatResponse(TCEnum::DELETING_SESSION_FAILED, null, ['app' => TCEnum::NO_SESSIONS_DATA]);
+            }
+
+            return $this->appFormatter->formatResponse(TCEnum::DELETING_SESSION_SUCCESS, null);
+        } catch (\Psr\Cache\InvalidArgumentException $exception) {
+            return $this->appFormatter->formatResponse(TCEnum::DELETING_SESSION_FAILED, null, ['cache' => $exception->getMessage()]);
+        } catch (ORMException $exception) {
+            return $this->appFormatter->formatResponse(TCEnum::DELETING_SESSION_FAILED, null, ['orm' => $exception->getMessage()]);
         }
     }
 }

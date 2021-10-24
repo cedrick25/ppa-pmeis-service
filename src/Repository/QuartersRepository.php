@@ -132,16 +132,16 @@ class QuartersRepository extends ServiceEntityRepository
      */
     public function delete(int $id): bool
     {
-        $quarterById = $this->getById($id);
+        $quarter = $this->getById($id);
 
-        if ($quarterById == null) {
+        if ($quarter == null) {
             return false;
         }
 
         $this->cache->delete($this->cacheHelper->getAllQuartersKey());
-        $this->cache->delete($this->cacheHelper->getQuarterByNameAndYearKey($quarterById->getName(), $quarterById->getYear()));
+        $this->cache->delete($this->cacheHelper->getQuarterByNameAndYearKey($quarter->getName(), $quarter->getYear()));
 
-        $this->getEntityManager()->remove($quarterById);
+        $this->getEntityManager()->remove($quarter);
         $this->getEntityManager()->flush();
 
         return true;
