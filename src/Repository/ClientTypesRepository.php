@@ -10,6 +10,7 @@ use Doctrine\ORM\ORMException;
 use Doctrine\Persistence\ManagerRegistry;
 use Psr\Cache\InvalidArgumentException;
 use Symfony\Contracts\Cache\CacheInterface;
+use Symfony\Contracts\Cache\ItemInterface;
 
 /**
  * @method ClientTypes|null find($id, $lockMode = null, $lockVersion = null)
@@ -49,5 +50,21 @@ class ClientTypesRepository extends ServiceEntityRepository
         $this->getEntityManager()->flush();
 
         return $newClientType->getClientTypeId();
+    }
+
+    /**
+     * @return ClientTypes[]
+     * @throws InvalidArgumentException
+     */
+    public function list(): array
+    {
+        $cacheKey = $this->cacheHelper->getAllClientTypesKey();
+        $expiration = $this->cacheHelper->getExpirationDateTime(24);
+
+        return $this->cache->get($cacheKey, function (ItemInterface $item) use ($cacheKey, $expiration) {
+            $item->expiresAt($expiration);
+
+            return $this->findAll();
+        });
     }
 }

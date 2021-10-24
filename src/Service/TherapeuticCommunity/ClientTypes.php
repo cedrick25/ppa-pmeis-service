@@ -40,4 +40,19 @@ class ClientTypes implements ClientTypesInterface
             return $this->appFormatter->formatResponse(TCEnum::CREATING_FAILED, null, ['orm' => $exception->getMessage()]);
         }
     }
+
+    public function getAll(): array
+    {
+        try {
+            $clientTypes = $this->repository->list();
+
+            if (sizeof($clientTypes) == 0) {
+                return $this->appFormatter->formatResponse(TCEnum::NO_DATA, null);
+            }
+
+            return $this->appFormatter->formatResponse(TCEnum::FETCHING_SUCCESS, $clientTypes);
+        } catch (InvalidArgumentException $exception) {
+            return $this->appFormatter->formatResponse(TCEnum::FETCHING_FAILED, null, ['cache' => $exception->getMessage()]);
+        }
+    }
 }
