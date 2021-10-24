@@ -23,7 +23,7 @@ final class Version20211022191824 extends AbstractMigration
             . "('IV', 4, '$currentDate')"
         );
 
-        $this->addSql("INSERT INTO treatment_categories (name, created_at) VALUES "
+        $this->addSql("INSERT INTO session_activities (name, created_at) VALUES "
             . "('Pre-Morning Meeting', '$currentDate'),"
             . "('Morning Meeting', '$currentDate'),"
             . "('Job Functions', '$currentDate'),"
@@ -31,7 +31,7 @@ final class Version20211022191824 extends AbstractMigration
             . "('Individual Counseling', '$currentDate')"
         );
 
-        $this->addSql("INSERT INTO session_activities (name, created_at) VALUES "
+        $this->addSql("INSERT INTO treatment_categories (name, created_at) VALUES "
             . "('MTCS-RBM', '$currentDate'),"
             . "('MTCS-AEP', '$currentDate'),"
             . "('MTCS-S', '$currentDate'),"
