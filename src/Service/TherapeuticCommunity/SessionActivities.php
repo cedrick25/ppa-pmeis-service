@@ -1,0 +1,72 @@
+<?php
+
+namespace App\Service\TherapeuticCommunity;
+
+use App\Common\AppFormatter;
+use App\Enum\TherapeuticCommunity as TCEnum;
+use App\Repository\SessionActivitiesRepository;
+use Doctrine\ORM\ORMException;
+use Psr\Cache\InvalidArgumentException;
+use Symfony\Component\Validator\Validator\ValidatorInterface;
+
+class SessionActivities implements SessionActivitiesInterface
+{
+    public function __construct(
+        private ValidatorInterface    $validator,
+        private AppFormatter          $appFormatter,
+        private SessionActivitiesRepository $sessionActivitiesRepository,
+    ){}
+
+    public function getAllSessionActivities(): array
+    {
+        try {
+            $sessionActivities = $this->sessionActivitiesRepository->list();
+
+            if (sizeof($sessionActivities) == 0) {
+                return $this->appFormatter->formatResponse(TCEnum::NO_SESSION_ACTIVITIES_DATA, null);
+            }
+
+            return $this->appFormatter->formatResponse(TCEnum::FETCHING_SESSION_ACTIVITIES_SUCCESS, $sessionActivities);
+        } catch (InvalidArgumentException $exception) {
+            return $this->appFormatter->formatResponse(TCEnum::FETCHING_SESSION_ACTIVITIES_FAILED, null, ['cache' => $exception->getMessage()]);
+        }
+    }
+
+    public function createSessionActivity(string $name): array
+    {
+        try {
+            if ($name === "") {
+                return $this->appFormatter->formatResponse(TCEnum::VALIDATING_SESSION_ACTIVITY_FAILED, null, ['app' => 'Session activity name cannot be empty.']);
+            }
+
+            $sessionActivityId = $this->sessionActivitiesRepository->create($name);
+
+            if ($sessionActivityId == null) {
+                return $this->appFormatter->formatResponse(TCEnum::CREATING_SESSION_ACTIVITY_FAILED, null, ['app' => 'Session activity already exist.']);
+            }
+
+            return $this->appFormatter->formatResponse(TCEnum::CREATING_SESSION_ACTIVITY_SUCCESS, ['id' => $sessionActivityId]);
+        } catch (InvalidArgumentException $exception) {
+            return $this->appFormatter->formatResponse(TCEnum::CREATING_SESSION_ACTIVITY_FAILED, null, ['cache' => $exception->getMessage()]);
+        } catch (ORMException $exception) {
+            return $this->appFormatter->formatResponse(TCEnum::DELETING_SESSION_ACTIVITY_FAILED, null, ['orm' => $exception->getMessage()]);
+        }
+    }
+
+    public function deleteSessionActivityById(int $id): array
+    {
+        try {
+            $isSessionActivityDeleted = $this->sessionActivitiesRepository->delete($id);
+
+            if (! $isSessionActivityDeleted) {
+                return $this->appFormatter->formatResponse(TCEnum::DELETING_SESSION_ACTIVITY_FAILED, null, ['app' => TCEnum::NO_SESSION_ACTIVITIES_DATA]);
+            }
+
+            return $this->appFormatter->formatResponse(TCEnum::DELETING_SESSION_ACTIVITY_SUCCESS, null);
+        } catch (InvalidArgumentException $exception) {
+            return $this->appFormatter->formatResponse(TCEnum::DELETING_SESSION_ACTIVITY_FAILED, null, ['cache' => $exception->getMessage()]);
+        } catch (ORMException $exception) {
+            return $this->appFormatter->formatResponse(TCEnum::DELETING_SESSION_ACTIVITY_FAILED, null, ['orm' => $exception->getMessage()]);
+        }
+    }
+}
