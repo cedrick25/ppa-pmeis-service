@@ -51,4 +51,9 @@ class CacheHelper
     {
         return 'venues_all';
     }
+
+    public function getAllSessionsKey(): string
+    {
+        return 'sessions_all';
+    }
 }

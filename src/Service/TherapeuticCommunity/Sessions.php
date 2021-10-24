@@ -42,4 +42,19 @@ class Sessions implements SessionsInterface
             return $this->appFormatter->formatResponse(TCEnum::CREATING_SESSION_FAILED, null, ['app' => $e->getMessage()]);
         }
     }
+
+    public function getAll(): array
+    {
+        try {
+            $sessions = $this->repository->list();
+
+            if (sizeof($sessions) == 0) {
+                return $this->appFormatter->formatResponse(TCEnum::NO_SESSIONS_DATA, null);
+            }
+
+            return $this->appFormatter->formatResponse(TCEnum::FETCHING_SESSIONS_SUCCESS, $sessions);
+        } catch (\Psr\Cache\InvalidArgumentException $exception) {
+            return $this->appFormatter->formatResponse(TCEnum::FETCHING_SESSIONS_FAILED, null, ['cache' => $exception->getMessage()]);
+        }
+    }
 }

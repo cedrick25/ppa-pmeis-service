@@ -159,4 +159,12 @@ class TherapeuticCommunityController extends AbstractController
             return $this->json($this->appFormatter->formatResponse('Creating session failed', null, ['reflection' => $exception->getMessage()]));
         }
     }
+
+    /**
+     * @Route("/session/list", methods={"GET"})
+     */
+    public function getAllSessions(): Response
+    {
+        return $this->json($this->sessionService->getAll());
+    }
 }

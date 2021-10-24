@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Repository;
 
 use App\Common\AppDateHelper;
+use App\Common\CacheHelper;
 use App\Entity\Sessions;
 use App\Model\Sessions as SessionsModel;
 use DateTimeImmutable;
@@ -13,6 +14,8 @@ use Doctrine\DBAL\Exception\InvalidArgumentException;
 use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\Persistence\ManagerRegistry;
 use Exception;
+use Symfony\Contracts\Cache\CacheInterface;
+use Symfony\Contracts\Cache\ItemInterface;
 
 /**
  * @method Sessions|null find($id, $lockMode = null, $lockVersion = null)
@@ -25,6 +28,8 @@ class SessionsRepository extends ServiceEntityRepository
     public function __construct(
         ManagerRegistry $registry,
         private AppDateHelper $appDateHelper,
+        private CacheInterface $cache,
+        private CacheHelper $cacheHelper,
     ){
         parent::__construct($registry, Sessions::class);
     }
@@ -77,5 +82,24 @@ class SessionsRepository extends ServiceEntityRepository
             ->getOneOrNullResult();
 
         return $session != null;
+    }
+
+    /**
+     * @return Sessions[]
+     * @throws \Psr\Cache\InvalidArgumentException
+     */
+    public function list(): array
+    {
+        $cacheKey = $this->cacheHelper->getAllSessionsKey();
+        $expiration = $this->cacheHelper->getExpirationDateTime(24);
+
+        return $this->cache->get($cacheKey, function (ItemInterface $item) use ($cacheKey, $expiration) {
+            $item->expiresAt($expiration);
+
+            return $this->createQueryBuilder('se')
+                ->orderBy('se.sessionId', 'DESC')
+                ->getQuery()
+                ->getResult();
+        });
     }
 }
