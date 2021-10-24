@@ -175,4 +175,21 @@ class TherapeuticCommunityController extends AbstractController
     {
         return $this->json($this->sessionService->deleteById((int) $request->get("id")));
     }
+
+    /**
+     * @Route("/session/update/{id}", methods={"POST"})
+     */
+    public function updateSessionById(Request $request): Response
+    {
+        try {
+            $data = json_decode($request->getContent(), true);
+
+            /** @var SessionsModel $session */
+            $session = $this->appHydrator->convertArrayToObject($data, SessionsModel::class);
+
+            return $this->json($this->sessionService->updateById((int) $request->get("id"), $session));
+        } catch (ReflectionException $exception) {
+            return $this->json($this->appFormatter->formatResponse('Updating session failed', null, ['reflection' => $exception->getMessage()]));
+        }
+    }
 }

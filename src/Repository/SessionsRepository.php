@@ -141,4 +141,37 @@ class SessionsRepository extends ServiceEntityRepository
 
         return true;
     }
+
+    /**
+     * @throws NonUniqueResultException
+     * @throws InvalidArgumentException
+     * @throws Exception
+     * @throws \Psr\Cache\InvalidArgumentException
+     */
+    public function update(int $id, SessionsModel $sessionData): bool
+    {
+        $session = $this->getById($id);
+
+        if ($session == null) {
+            return false;
+        }
+
+        $this->cache->delete($this->cacheHelper->getAllSessionsKey());
+
+        // quarter, phase and session activity cannot be updated to avoid conflict
+        // if needed, create new one instead
+        $session->setRegionId($sessionData->getRegionId());
+        $session->setFieldOfficeId($sessionData->getFieldOfficeId());
+        $session->setTreatmentCategoryId($sessionData->getTreatmentCategoryId());
+        $session->setDate($this->appDateHelper->convertStringToImmutableDate($sessionData->getDate()));
+        $session->setVenueId($sessionData->getVenueId());
+        $session->setPeriod($sessionData->getPeriod());
+        $session->setRemarks($sessionData->getRemarks());
+        $session->setCreatedBy($sessionData->getCreatedBy());
+        $session->setCreatedAt($this->appDateHelper->getCurrentImmutableDate());
+
+        $this->getEntityManager()->flush();
+
+        return true;
+    }
 }

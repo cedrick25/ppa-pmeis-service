@@ -75,4 +75,23 @@ class Sessions implements SessionsInterface
             return $this->appFormatter->formatResponse(TCEnum::DELETING_SESSION_FAILED, null, ['orm' => $exception->getMessage()]);
         }
     }
+
+    public function updateById(int $id, SessionsModel $sessionData):array
+    {
+        try {
+            $isUpdated = $this->repository->update($id, $sessionData);
+
+            if (! $isUpdated) {
+                return $this->appFormatter->formatResponse(TCEnum::UPDATING_SESSION_FAILED, null, ['app' => 'Session record not found.']);
+            }
+
+            return $this->appFormatter->formatResponse(TCEnum::UPDATING_SESSION_SUCCESS, null);
+        } catch (ORMException $exception) {
+            return $this->appFormatter->formatResponse(TCEnum::UPDATING_SESSION_FAILED, null, ['orm' => $exception->getMessage()]);
+        } catch (InvalidArgumentException | Exception $e) {
+            return $this->appFormatter->formatResponse(TCEnum::UPDATING_SESSION_FAILED, null, ['app' => $e->getMessage()]);
+        } catch (\Psr\Cache\InvalidArgumentException $e) {
+            return $this->appFormatter->formatResponse(TCEnum::UPDATING_SESSION_FAILED, null, ['cache' => $e->getMessage()]);
+        }
+    }
 }

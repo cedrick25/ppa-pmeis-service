@@ -55,6 +55,8 @@ class TherapeuticCommunity extends Enum implements Hashable
     public const CREATING_SESSION_SUCCESS = "Creating session successful.";
     public const DELETING_SESSION_FAILED = "Deleting session failed.";
     public const DELETING_SESSION_SUCCESS = "Deleting session success.";
+    public const UPDATING_SESSION_FAILED = "Updating session failed.";
+    public const UPDATING_SESSION_SUCCESS = "Updating session success.";
 
     public function hash()
     {
