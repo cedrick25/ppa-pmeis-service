@@ -20,12 +20,12 @@ class FieldOffices implements FieldOfficesInterface
             $fieldOffices = $this->repository->list();
 
             if (sizeof($fieldOffices) == 0) {
-                return $this->appFormatter->formatResponse(TCEnum::NO_FIELD_OFFICE_DATA, null);
+                return $this->appFormatter->formatResponse(TCEnum::NO_DATA, null);
             }
 
-            return $this->appFormatter->formatResponse(TCEnum::FETCHING_FIELD_OFFICE_SUCCESS, $fieldOffices);
+            return $this->appFormatter->formatResponse(TCEnum::FETCHING_SUCCESS, $fieldOffices);
         } catch (InvalidArgumentException $exception) {
-            return $this->appFormatter->formatResponse(TCEnum::FETCHING_FIELD_OFFICE_FAILED, null, ['cache' => $exception->getMessage()]);
+            return $this->appFormatter->formatResponse(TCEnum::FETCHING_FAILED, null, ['cache' => $exception->getMessage()]);
         }
     }
 }

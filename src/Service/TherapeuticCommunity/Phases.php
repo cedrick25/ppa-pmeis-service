@@ -22,12 +22,12 @@ class Phases implements PhasesInterface
             $phases = $this->repository->list();
 
             if (sizeof($phases) == 0) {
-                return $this->appFormatter->formatResponse(TCEnum::NO_PHASES_DATA, null);
+                return $this->appFormatter->formatResponse(TCEnum::NO_DATA, null);
             }
 
-            return $this->appFormatter->formatResponse(TCEnum::FETCHING_PHASES_SUCCESS, $phases);
+            return $this->appFormatter->formatResponse(TCEnum::FETCHING_SUCCESS, $phases);
         } catch (InvalidArgumentException $exception) {
-            return $this->appFormatter->formatResponse(TCEnum::FETCHING_PHASES_FAILED, null, ['cache' => $exception->getMessage()]);
+            return $this->appFormatter->formatResponse(TCEnum::FETCHING_FAILED, null, ['cache' => $exception->getMessage()]);
         }
     }
 }

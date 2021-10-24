@@ -23,12 +23,12 @@ class SessionActivities implements SessionActivitiesInterface
             $sessionActivities = $this->repository->list();
 
             if (sizeof($sessionActivities) == 0) {
-                return $this->appFormatter->formatResponse(TCEnum::NO_SESSION_ACTIVITIES_DATA, null);
+                return $this->appFormatter->formatResponse(TCEnum::NO_DATA, null);
             }
 
-            return $this->appFormatter->formatResponse(TCEnum::FETCHING_SESSION_ACTIVITIES_SUCCESS, $sessionActivities);
+            return $this->appFormatter->formatResponse(TCEnum::FETCHING_SUCCESS, $sessionActivities);
         } catch (InvalidArgumentException $exception) {
-            return $this->appFormatter->formatResponse(TCEnum::FETCHING_SESSION_ACTIVITIES_FAILED, null, ['cache' => $exception->getMessage()]);
+            return $this->appFormatter->formatResponse(TCEnum::FETCHING_FAILED, null, ['cache' => $exception->getMessage()]);
         }
     }
 
@@ -36,20 +36,20 @@ class SessionActivities implements SessionActivitiesInterface
     {
         try {
             if ($name === "") {
-                return $this->appFormatter->formatResponse(TCEnum::VALIDATING_SESSION_ACTIVITY_FAILED, null, ['app' => 'Session activity name cannot be empty.']);
+                return $this->appFormatter->formatResponse(TCEnum::VALIDATING_FAILED, null, ['app' => 'Session activity name cannot be empty.']);
             }
 
             $sessionActivityId = $this->repository->create($name);
 
             if ($sessionActivityId == null) {
-                return $this->appFormatter->formatResponse(TCEnum::CREATING_SESSION_ACTIVITY_FAILED, null, ['app' => 'Session activity already exist.']);
+                return $this->appFormatter->formatResponse(TCEnum::CREATING_FAILED, null, ['app' => 'Session activity already exist.']);
             }
 
-            return $this->appFormatter->formatResponse(TCEnum::CREATING_SESSION_ACTIVITY_SUCCESS, ['id' => $sessionActivityId]);
+            return $this->appFormatter->formatResponse(TCEnum::CREATING_FAILED, ['id' => $sessionActivityId]);
         } catch (InvalidArgumentException $exception) {
-            return $this->appFormatter->formatResponse(TCEnum::CREATING_SESSION_ACTIVITY_FAILED, null, ['cache' => $exception->getMessage()]);
+            return $this->appFormatter->formatResponse(TCEnum::CREATING_FAILED, null, ['cache' => $exception->getMessage()]);
         } catch (ORMException $exception) {
-            return $this->appFormatter->formatResponse(TCEnum::DELETING_SESSION_ACTIVITY_FAILED, null, ['orm' => $exception->getMessage()]);
+            return $this->appFormatter->formatResponse(TCEnum::CREATING_FAILED, null, ['orm' => $exception->getMessage()]);
         }
     }
 
@@ -59,14 +59,14 @@ class SessionActivities implements SessionActivitiesInterface
             $isDeleted = $this->repository->delete($id);
 
             if (! $isDeleted) {
-                return $this->appFormatter->formatResponse(TCEnum::DELETING_SESSION_ACTIVITY_FAILED, null, ['app' => TCEnum::NO_SESSION_ACTIVITIES_DATA]);
+                return $this->appFormatter->formatResponse(TCEnum::DELETING_FAILED, null, ['app' => TCEnum::NO_DATA]);
             }
 
-            return $this->appFormatter->formatResponse(TCEnum::DELETING_SESSION_ACTIVITY_SUCCESS, null);
+            return $this->appFormatter->formatResponse(TCEnum::DELETING_SUCCESS, null);
         } catch (InvalidArgumentException $exception) {
-            return $this->appFormatter->formatResponse(TCEnum::DELETING_SESSION_ACTIVITY_FAILED, null, ['cache' => $exception->getMessage()]);
+            return $this->appFormatter->formatResponse(TCEnum::DELETING_FAILED, null, ['cache' => $exception->getMessage()]);
         } catch (ORMException $exception) {
-            return $this->appFormatter->formatResponse(TCEnum::DELETING_SESSION_ACTIVITY_FAILED, null, ['orm' => $exception->getMessage()]);
+            return $this->appFormatter->formatResponse(TCEnum::DELETING_FAILED, null, ['orm' => $exception->getMessage()]);
         }
     }
 }

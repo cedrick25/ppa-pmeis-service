@@ -21,20 +21,20 @@ class Venues implements VenuesInterface
     {
         try {
             if ($name === "") {
-                return $this->appFormatter->formatResponse(TCEnum::VALIDATING_VENUE_FAILED, null, ['app' => 'Venue name cannot be empty.']);
+                return $this->appFormatter->formatResponse(TCEnum::VALIDATING_FAILED, null, ['app' => 'Venue name cannot be empty.']);
             }
 
             $venueId = $this->repository->create($name);
 
             if ($venueId == null) {
-                return $this->appFormatter->formatResponse(TCEnum::CREATING_VENUE_FAILED, null, ['app' => 'Venue already exist.']);
+                return $this->appFormatter->formatResponse(TCEnum::CREATING_FAILED, null, ['app' => 'Venue already exist.']);
             }
 
-            return $this->appFormatter->formatResponse(TCEnum::CREATING_VENUE_SUCCESS, ['id' => $venueId]);
+            return $this->appFormatter->formatResponse(TCEnum::CREATING_SUCCESS, ['id' => $venueId]);
         } catch (InvalidArgumentException $exception) {
-            return $this->appFormatter->formatResponse(TCEnum::CREATING_VENUE_FAILED, null, ['cache' => $exception->getMessage()]);
+            return $this->appFormatter->formatResponse(TCEnum::CREATING_FAILED, null, ['cache' => $exception->getMessage()]);
         } catch (ORMException $exception) {
-            return $this->appFormatter->formatResponse(TCEnum::CREATING_VENUE_FAILED, null, ['orm' => $exception->getMessage()]);
+            return $this->appFormatter->formatResponse(TCEnum::CREATING_FAILED, null, ['orm' => $exception->getMessage()]);
         }
     }
 
@@ -44,12 +44,12 @@ class Venues implements VenuesInterface
             $venues = $this->repository->list();
 
             if (sizeof($venues) == 0) {
-                return $this->appFormatter->formatResponse(TCEnum::NO_VENUES_DATA, null);
+                return $this->appFormatter->formatResponse(TCEnum::NO_DATA, null);
             }
 
-            return $this->appFormatter->formatResponse(TCEnum::FETCHING_VENUES_SUCCESS, $venues);
+            return $this->appFormatter->formatResponse(TCEnum::FETCHING_SUCCESS, $venues);
         } catch (InvalidArgumentException $exception) {
-            return $this->appFormatter->formatResponse(TCEnum::FETCHING_VENUES_FAILED, null, ['cache' => $exception->getMessage()]);
+            return $this->appFormatter->formatResponse(TCEnum::FETCHING_FAILED, null, ['cache' => $exception->getMessage()]);
         }
     }
 
@@ -59,14 +59,14 @@ class Venues implements VenuesInterface
             $isDeleted = $this->repository->delete($id);
 
             if (! $isDeleted) {
-                return $this->appFormatter->formatResponse(TCEnum::DELETING_VENUE_FAILED, null, ['app' => TCEnum::NO_VENUES_DATA]);
+                return $this->appFormatter->formatResponse(TCEnum::DELETING_FAILED, null, ['app' => TCEnum::NO_DATA]);
             }
 
-            return $this->appFormatter->formatResponse(TCEnum::DELETING_VENUE_SUCCESS, null);
+            return $this->appFormatter->formatResponse(TCEnum::DELETING_SUCCESS, null);
         } catch (InvalidArgumentException $exception) {
-            return $this->appFormatter->formatResponse(TCEnum::DELETING_VENUE_FAILED, null, ['cache' => $exception->getMessage()]);
+            return $this->appFormatter->formatResponse(TCEnum::DELETING_FAILED, null, ['cache' => $exception->getMessage()]);
         } catch (ORMException $exception) {
-            return $this->appFormatter->formatResponse(TCEnum::DELETING_VENUE_FAILED, null, ['orm' => $exception->getMessage()]);
+            return $this->appFormatter->formatResponse(TCEnum::DELETING_FAILED, null, ['orm' => $exception->getMessage()]);
         }
     }
 }
