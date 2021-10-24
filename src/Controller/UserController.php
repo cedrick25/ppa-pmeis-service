@@ -25,7 +25,7 @@ class UserController extends AbstractController
      */
     public function index(): Response
     {
-        return $this->json($this->userService->getUserByID(1));
+        return $this->json($this->userService->getByID(1));
     }
 
     public function register(Request $request): Response

@@ -27,7 +27,7 @@ class UserService implements UserServiceInterface
      * @return array<string, mixed>
      * @throws InvalidArgumentException
      */
-    public function getUserByID(int $id): array
+    public function getByID(int $id): array
     {
         $userAccount = $this->userAccountRepository->findAccountWithDetailsByID($id);
         unset($userAccount["password"]);
