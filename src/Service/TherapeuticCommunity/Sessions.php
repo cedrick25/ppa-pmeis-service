@@ -82,7 +82,7 @@ class Sessions implements SessionsInterface
             $isUpdated = $this->repository->update($id, $sessionData);
 
             if (! $isUpdated) {
-                return $this->appFormatter->formatResponse(TCEnum::UPDATING_SESSION_FAILED, null, ['app' => 'Session record not found.']);
+                return $this->appFormatter->formatResponse(TCEnum::UPDATING_SESSION_FAILED, null, ['app' => TCEnum::NO_SESSIONS_DATA]);
             }
 
             return $this->appFormatter->formatResponse(TCEnum::UPDATING_SESSION_SUCCESS, null);
