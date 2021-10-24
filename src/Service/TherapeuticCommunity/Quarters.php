@@ -17,7 +17,7 @@ class Quarters implements QuartersInterface
     public function __construct(
         private ValidatorInterface $validator,
         private AppFormatter       $appFormatter,
-        private QuartersRepository $quartersRepository,
+        private QuartersRepository $repository,
     ){}
     public function create(QuartersModel $quarters): array
     {
@@ -28,7 +28,7 @@ class Quarters implements QuartersInterface
                 return $this->appFormatter->formatResponse(TCEnum::VALIDATING_QUARTER_FAILED, null, $this->appFormatter->formatErrors($errors));
             }
 
-            $quarterId = $this->quartersRepository->create($quarters);
+            $quarterId = $this->repository->create($quarters);
 
             if ($quarterId == null) {
                 return $this->appFormatter->formatResponse(TCEnum::CREATING_QUARTER_FAILED, null, ['app' => 'Quarter already exist.']);
@@ -45,7 +45,7 @@ class Quarters implements QuartersInterface
     public function getAll(): array
     {
         try {
-            $quarters = $this->quartersRepository->list();
+            $quarters = $this->repository->list();
 
             if (sizeof($quarters) == 0) {
                 return $this->appFormatter->formatResponse(TCEnum::NO_QUARTER_DATA, null);
@@ -60,7 +60,7 @@ class Quarters implements QuartersInterface
     public function deleteById(int $id): array
     {
         try {
-            $isQuarterDeleted = $this->quartersRepository->delete($id);
+            $isQuarterDeleted = $this->repository->delete($id);
 
             if (! $isQuarterDeleted) {
                 return $this->appFormatter->formatResponse(TCEnum::DELETING_QUARTER_FAILED, null, ['app' => TCEnum::NO_QUARTER_DATA]);

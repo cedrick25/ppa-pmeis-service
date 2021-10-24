@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Repository;
 
+use App\Common\AppDateHelper;
 use App\Common\CacheHelper;
 use App\Entity\UserAccount;
 use App\Model\UserAccountWithDetails;
@@ -32,6 +33,7 @@ class UserAccountRepository extends ServiceEntityRepository
         private CacheHelper $cacheHelper,
         private UserPasswordHasherInterface $userPasswordHasher,
         private UserDetailsRepository $userDetailsRepository,
+        private AppDateHelper $appDateHelper,
     ) {
         parent::__construct($registry, UserAccount::class);
     }
@@ -87,15 +89,12 @@ class UserAccountRepository extends ServiceEntityRepository
      * @throws ORMException
      * @throws Exception
      */
-    public function createUser(UserAccountWithDetails $userAccountWithDetails): int|null
+    public function create(UserAccountWithDetails $userAccountWithDetails): int|null
     {
         $userByEmail = $this->getByEmail($userAccountWithDetails->getEmailAddress());
         if ($userByEmail != null) {
             return null;
         }
-
-        $currentDateTime = new DateTimeImmutable();
-        $currentDateTime->format("Y-m-d H:m:s");
 
         $user = new UserAccount();
         $hashedPassword = $this->userPasswordHasher->hashPassword($user, $userAccountWithDetails->getPassword());
@@ -106,7 +105,7 @@ class UserAccountRepository extends ServiceEntityRepository
         $user->setFieldOfficeId($userAccountWithDetails->getFieldOffice());
         $user->setRegionId($userAccountWithDetails->getRegion());
         $user->setStatus($userAccountWithDetails->getStatus());
-        $user->setCreatedAt($currentDateTime);
+        $user->setCreatedAt($this->appDateHelper->getCurrentImmutableDate());
 
         $this->getEntityManager()->persist($user);
         $this->getEntityManager()->flush();

@@ -53,7 +53,7 @@ class UserService implements UserServiceInterface
             if (count($errors) > 0) {
                 return $this->appFormatter->formatResponse(self::USER_VALIDATION_FAILED, null, $this->appFormatter->formatErrors($errors));
             }
-            $userAccountId = $this->userAccountRepository->createUser($userAccountWithDetails);
+            $userAccountId = $this->userAccountRepository->create($userAccountWithDetails);
 
             if ($userAccountId == null) {
                 return $this->appFormatter->formatResponse(self::USER_CREATION_FAILED, null, ['app' => 'Email address already exist']);

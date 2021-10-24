@@ -2,6 +2,7 @@
 
 namespace App\Repository;
 
+use App\Common\AppDateHelper;
 use App\Common\CacheHelper;
 use App\Entity\Phases;
 use App\Entity\SessionActivities;
@@ -26,6 +27,7 @@ class SessionActivitiesRepository extends ServiceEntityRepository
         ManagerRegistry $registry,
         private CacheInterface $cache,
         private CacheHelper $cacheHelper,
+        private AppDateHelper $appDateHelper,
     ){
         parent::__construct($registry, SessionActivities::class);
     }
@@ -55,20 +57,17 @@ class SessionActivitiesRepository extends ServiceEntityRepository
      */
     public function create(string $name): int|null
     {
-        $isSessionActivityExist = $this->isExistByName($name);
+        $isExist = $this->isExistByName($name);
 
-        if ($isSessionActivityExist) {
+        if ($isExist) {
             return null;
         }
 
         $this->cache->delete($this->cacheHelper->getAllSessionActivitiesKey());
 
-        $currentDateTime = new DateTimeImmutable();
-        $currentDateTime->format("Y-m-d H:m:s");
-
         $sessionActivity = new SessionActivities();
         $sessionActivity->setName($name);
-        $sessionActivity->setCreatedAt($currentDateTime);
+        $sessionActivity->setCreatedAt($this->appDateHelper->getCurrentImmutableDate());
 
         $this->getEntityManager()->persist($sessionActivity);
         $this->getEntityManager()->flush();

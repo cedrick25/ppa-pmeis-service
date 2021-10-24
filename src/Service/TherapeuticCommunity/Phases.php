@@ -13,13 +13,13 @@ class Phases implements PhasesInterface
 {
     public function __construct(
         private AppFormatter     $appFormatter,
-        private PhasesRepository $phasesRepository,
+        private PhasesRepository $repository,
     ){}
 
     public function getAll(): array
     {
         try {
-            $phases = $this->phasesRepository->list();
+            $phases = $this->repository->list();
 
             if (sizeof($phases) == 0) {
                 return $this->appFormatter->formatResponse(TCEnum::NO_PHASES_DATA, null);

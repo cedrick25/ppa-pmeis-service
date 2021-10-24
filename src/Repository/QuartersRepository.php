@@ -2,6 +2,7 @@
 
 namespace App\Repository;
 
+use App\Common\AppDateHelper;
 use App\Common\CacheHelper;
 use App\Entity\Quarters;
 use App\Model\Quarters as QuartersModel;
@@ -26,6 +27,7 @@ class QuartersRepository extends ServiceEntityRepository
         ManagerRegistry $registry,
         private CacheInterface $cache,
         private CacheHelper $cacheHelper,
+        private AppDateHelper $appDateHelper,
     ){
         parent::__construct($registry, Quarters::class);
     }
@@ -45,13 +47,10 @@ class QuartersRepository extends ServiceEntityRepository
 
         $this->cache->delete($this->cacheHelper->getAllQuartersKey());
 
-        $currentDateTime = new DateTimeImmutable();
-        $currentDateTime->format("Y-m-d H:m:s");
-
         $quarter = new Quarters();
         $quarter->setName($quarters->getName());
         $quarter->setYear($quarters->getYear());
-        $quarter->setCreatedAt($currentDateTime);
+        $quarter->setCreatedAt($this->appDateHelper->getCurrentImmutableDate());
 
         $this->getEntityManager()->persist($quarter);
         $this->getEntityManager()->flush();

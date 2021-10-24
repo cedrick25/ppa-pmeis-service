@@ -11,13 +11,13 @@ class FieldOffices implements FieldOfficesInterface
 {
     public function __construct(
         private AppFormatter           $appFormatter,
-        private FieldOfficesRepository $fieldOfficesRepository,
+        private FieldOfficesRepository $repository,
     ){}
 
     public function getAll(): array
     {
         try {
-            $fieldOffices = $this->fieldOfficesRepository->list();
+            $fieldOffices = $this->repository->list();
 
             if (sizeof($fieldOffices) == 0) {
                 return $this->appFormatter->formatResponse(TCEnum::NO_FIELD_OFFICE_DATA, null);

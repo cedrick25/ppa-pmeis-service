@@ -14,13 +14,13 @@ class SessionActivities implements SessionActivitiesInterface
 {
     public function __construct(
         private AppFormatter                $appFormatter,
-        private SessionActivitiesRepository $sessionActivitiesRepository,
+        private SessionActivitiesRepository $repository,
     ){}
 
     public function getAll(): array
     {
         try {
-            $sessionActivities = $this->sessionActivitiesRepository->list();
+            $sessionActivities = $this->repository->list();
 
             if (sizeof($sessionActivities) == 0) {
                 return $this->appFormatter->formatResponse(TCEnum::NO_SESSION_ACTIVITIES_DATA, null);
@@ -39,7 +39,7 @@ class SessionActivities implements SessionActivitiesInterface
                 return $this->appFormatter->formatResponse(TCEnum::VALIDATING_SESSION_ACTIVITY_FAILED, null, ['app' => 'Session activity name cannot be empty.']);
             }
 
-            $sessionActivityId = $this->sessionActivitiesRepository->create($name);
+            $sessionActivityId = $this->repository->create($name);
 
             if ($sessionActivityId == null) {
                 return $this->appFormatter->formatResponse(TCEnum::CREATING_SESSION_ACTIVITY_FAILED, null, ['app' => 'Session activity already exist.']);
@@ -57,7 +57,7 @@ class SessionActivities implements SessionActivitiesInterface
     public function deleteById(int $id): array
     {
         try {
-            $isSessionActivityDeleted = $this->sessionActivitiesRepository->delete($id);
+            $isSessionActivityDeleted = $this->repository->delete($id);
 
             if (! $isSessionActivityDeleted) {
                 return $this->appFormatter->formatResponse(TCEnum::DELETING_SESSION_ACTIVITY_FAILED, null, ['app' => TCEnum::NO_SESSION_ACTIVITIES_DATA]);
