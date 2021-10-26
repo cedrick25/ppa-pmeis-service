@@ -91,4 +91,24 @@ class ClientsRepository extends ServiceEntityRepository
             return $this->findAll();
         });
     }
+
+    /**
+     * @throws InvalidArgumentException
+     * @throws ORMException
+     */
+    public function delete(int $id): bool
+    {
+        $client = $this->find($id);
+
+        if ($client == null) {
+            return false;
+        }
+
+        $this->cache->delete($this->cacheHelper->getAllClientsKey());
+
+        $this->getEntityManager()->remove($client);
+        $this->getEntityManager()->flush();
+
+        return true;
+    }
 }
