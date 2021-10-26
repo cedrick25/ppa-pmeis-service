@@ -45,8 +45,17 @@ class Clients implements ClientsInterface
 
     public function getAll(): array
     {
-        // TODO: Implement getAll() method.
-        return [];
+        try {
+            $clients = $this->repository->list();
+
+            if (sizeof($clients) == 0) {
+                return $this->appFormatter->formatResponse(TCEnum::NO_DATA, null);
+            }
+
+            return $this->appFormatter->formatResponse(TCEnum::FETCHING_SUCCESS, $clients);
+        } catch (InvalidArgumentException $exception) {
+            return $this->appFormatter->formatResponse(TCEnum::FETCHING_FAILED, null, ['cache' => $exception->getMessage()]);
+        }
     }
 
     public function deleteById(int $id): array
