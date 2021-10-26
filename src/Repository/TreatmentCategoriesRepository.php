@@ -8,6 +8,7 @@ use App\Common\AppDateHelper;
 use App\Common\CacheHelper;
 use App\Entity\TreatmentCategories;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
+use Doctrine\ORM\ORMException;
 use Doctrine\Persistence\ManagerRegistry;
 use Psr\Cache\InvalidArgumentException;
 use Symfony\Contracts\Cache\CacheInterface;
@@ -36,7 +37,7 @@ class TreatmentCategoriesRepository extends ServiceEntityRepository
      */
     public function list(): array
     {
-        $cacheKey = $this->cacheHelper->getAllSessionActivitiesKey();
+        $cacheKey = $this->cacheHelper->getAllTreatmentCategoriesKey();
         $expiration = $this->cacheHelper->getExpirationDateTime(24);
 
         return $this->cache->get($cacheKey, function (ItemInterface $item) use ($cacheKey, $expiration) {
@@ -44,5 +45,28 @@ class TreatmentCategoriesRepository extends ServiceEntityRepository
 
             return $this->findAll();
         });
+    }
+    /**
+     * @throws InvalidArgumentException
+     * @throws ORMException
+     */
+    public function create(string $name): int | null
+    {
+        $treatmentCategory = $this->findOneBy(['name' => $name]);
+
+        if ($treatmentCategory != null) {
+            return null;
+        }
+
+        $this->cache->delete($this->cacheHelper->getAllTreatmentCategoriesKey());
+
+        $newTreatmentCategory = new TreatmentCategories();
+        $newTreatmentCategory->setName($name);
+        $newTreatmentCategory->setCreatedAt($this->appDateHelper->getCurrentImmutableDate());
+
+        $this->getEntityManager()->persist($newTreatmentCategory);
+        $this->getEntityManager()->flush();
+
+        return $newTreatmentCategory->getTreatmentCategoryId();
     }
 }

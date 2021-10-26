@@ -238,4 +238,12 @@ class TherapeuticCommunityController extends AbstractController
     {
         return $this->json($this->treatmentCategoryService->getAll());
     }
+
+    /**
+     * @Route("/treatment-category/create/{name}", methods={"GET"})
+     */
+    public function createTreatmentCategory(Request $request): Response
+    {
+        return $this->json($this->treatmentCategoryService->create($request->get("name")));
+    }
 }

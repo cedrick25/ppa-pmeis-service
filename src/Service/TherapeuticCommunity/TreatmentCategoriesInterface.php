@@ -5,4 +5,8 @@ namespace App\Service\TherapeuticCommunity;
 interface TreatmentCategoriesInterface
 {
     public function getAll(): array;
+
+    public function create(string $name): array;
+
+    public function deleteById(int $id): array;
 }
