@@ -54,6 +54,18 @@ class TreatmentCategories implements TreatmentCategoriesInterface
 
     public function deleteById(int $id): array
     {
-        return [];
+        try {
+            $isDeleted = $this->repository->delete($id);
+
+            if (! $isDeleted) {
+                return $this->appFormatter->formatResponse(TCEnum::DELETING_FAILED, null, ['app' => TCEnum::NO_DATA]);
+            }
+
+            return $this->appFormatter->formatResponse(TCEnum::DELETING_SUCCESS, null);
+        } catch (InvalidArgumentException $exception) {
+            return $this->appFormatter->formatResponse(TCEnum::DELETING_FAILED, null, ['cache' => $exception->getMessage()]);
+        } catch (ORMException $exception) {
+            return $this->appFormatter->formatResponse(TCEnum::DELETING_FAILED, null, ['orm' => $exception->getMessage()]);
+        }
     }
 }

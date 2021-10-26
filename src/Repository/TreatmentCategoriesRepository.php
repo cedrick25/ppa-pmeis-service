@@ -69,4 +69,24 @@ class TreatmentCategoriesRepository extends ServiceEntityRepository
 
         return $newTreatmentCategory->getTreatmentCategoryId();
     }
+
+    /**
+     * @throws InvalidArgumentException
+     * @throws ORMException
+     */
+    public function delete(int $id): bool
+    {
+        $treatmentCategory = $this->find($id);
+
+        if ($treatmentCategory == null) {
+            return false;
+        }
+
+        $this->cache->delete($this->cacheHelper->getAllTreatmentCategoriesKey());
+
+        $this->getEntityManager()->remove($treatmentCategory);
+        $this->getEntityManager()->flush();
+
+        return true;
+    }
 }

@@ -246,4 +246,12 @@ class TherapeuticCommunityController extends AbstractController
     {
         return $this->json($this->treatmentCategoryService->create($request->get("name")));
     }
+
+    /**
+     * @Route("/treatment-category/delete/{id}", methods={"GET"})
+     */
+    public function deleteTreatmentCategoryById(Request $request): Response
+    {
+        return $this->json($this->treatmentCategoryService->deleteById((int) $request->get("id")));
+    }
 }
