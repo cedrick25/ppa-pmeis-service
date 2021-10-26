@@ -16,12 +16,14 @@ use App\Service\TherapeuticCommunity\SessionActivitiesInterface;
 use App\Service\TherapeuticCommunity\SessionsInterface;
 use App\Service\TherapeuticCommunity\TreatmentCategoriesInterface;
 use App\Service\TherapeuticCommunity\VenuesInterface;
+use App\Service\TherapeuticCommunity\ClientsInterface;
 use ReflectionException;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use App\Model\ClientTypes as ClientTypesModel;
+use App\Model\Clients as ClientModel;
 
 /**
  * @Route("/api/tc")
@@ -39,6 +41,7 @@ class TherapeuticCommunityController extends AbstractController
         private SessionsInterface $sessionService,
         private ClientTypesInterface $clientTypeService,
         private TreatmentCategoriesInterface $treatmentCategoryService,
+        private ClientsInterface $clientService,
     ){}
 
     /**
@@ -253,5 +256,22 @@ class TherapeuticCommunityController extends AbstractController
     public function deleteTreatmentCategoryById(Request $request): Response
     {
         return $this->json($this->treatmentCategoryService->deleteById((int) $request->get("id")));
+    }
+
+    /**
+     * @Route("/client/create", methods={"POST"})
+     */
+    public function createClient(Request $request): Response
+    {
+        try {
+            $data = json_decode($request->getContent(), true);
+
+            /** @var ClientModel $client */
+            $client = $this->appHydrator->convertArrayToObject($data, ClientModel::class);
+
+            return $this->json($this->clientService->create($client));
+        } catch (ReflectionException $exception) {
+            return $this->json($this->appFormatter->formatResponse('Creating session failed', null, ['reflection' => $exception->getMessage()]));
+        }
     }
 }

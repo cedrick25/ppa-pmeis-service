@@ -2,9 +2,18 @@
 
 namespace App\Repository;
 
+use App\Common\AppDateHelper;
+use App\Common\CacheHelper;
 use App\Entity\Clients;
+use App\Entity\ClientTypes;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
+use Doctrine\ORM\ORMException;
 use Doctrine\Persistence\ManagerRegistry;
+
+use App\Model\Clients as ClientModel;
+use Exception;
+use Psr\Cache\InvalidArgumentException;
+use Symfony\Contracts\Cache\CacheInterface;
 
 /**
  * @method Clients|null find($id, $lockMode = null, $lockVersion = null)
@@ -14,37 +23,55 @@ use Doctrine\Persistence\ManagerRegistry;
  */
 class ClientsRepository extends ServiceEntityRepository
 {
-    public function __construct(ManagerRegistry $registry)
-    {
+    public function __construct(
+        ManagerRegistry $registry,
+        private CacheInterface $cache,
+        private CacheHelper $cacheHelper,
+        private AppDateHelper $appDateHelper,
+    ){
         parent::__construct($registry, Clients::class);
     }
 
-    // /**
-    //  * @return Clients[] Returns an array of Clients objects
-    //  */
-    /*
-    public function findByExampleField($value)
+    /**
+     * @throws InvalidArgumentException
+     * @throws ORMException
+     * @throws Exception
+     */
+    public function create(ClientModel $clientData): int | null
     {
-        return $this->createQueryBuilder('c')
-            ->andWhere('c.exampleField = :val')
-            ->setParameter('val', $value)
-            ->orderBy('c.id', 'ASC')
-            ->setMaxResults(10)
-            ->getQuery()
-            ->getResult()
-        ;
-    }
-    */
+        $client = $this->findOneBy([
+            'cmisId' => $clientData->getCmisId(),
+            'firstName' => $clientData->getFirstName(),
+            'lastName' => $clientData->getLastName()
+        ]);
 
-    /*
-    public function findOneBySomeField($value): ?Clients
-    {
-        return $this->createQueryBuilder('c')
-            ->andWhere('c.exampleField = :val')
-            ->setParameter('val', $value)
-            ->getQuery()
-            ->getOneOrNullResult()
-        ;
+        if ($client != null) {
+            return null;
+        }
+
+        $this->cache->delete($this->cacheHelper->getAllClientsKey());
+
+        $newClient = new Clients();
+        $newClient->setCmisId($clientData->getCmisId());
+        $newClient->setClientTypeId($clientData->getClientTypeId());
+        $newClient->setFirstName($clientData->getFirstName());
+        $newClient->setMiddleName($clientData->getMiddleName());
+        $newClient->setLastName($clientData->getLastName());
+        $newClient->setSuffix($clientData->getSuffix());
+        $newClient->setGender($clientData->getGender());
+        $newClient->setDateOfBirth($this->appDateHelper->convertStringToImmutableDate($clientData->getDateOfBirth()));
+        $newClient->setOffenseCategory($clientData->getOffenseCategory());
+        $newClient->setFieldOfficeId($clientData->getFieldOfficeId());
+        $newClient->setRegionId($clientData->getRegionId());
+        $newClient->setIsSeniorCitizen($clientData->isSeniorCitizen());
+        $newClient->setIsPwd($clientData->isPwd());
+        $newClient->setSupervisionStart($this->appDateHelper->convertStringToImmutableDate($clientData->getSupervisionStart()));
+        $newClient->setSupervisionEnd($this->appDateHelper->convertStringToImmutableDate($clientData->getSupervisionEnd()));
+        $newClient->setCreatedAt($this->appDateHelper->getCurrentImmutableDate());
+
+        $this->getEntityManager()->persist($newClient);
+        $this->getEntityManager()->flush();
+
+        return $newClient->getClientId();
     }
-    */
 }

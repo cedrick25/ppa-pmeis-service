@@ -51,7 +51,7 @@ class Clients
     /**
      * @ORM\Column(type="string", length=255, nullable=true)
      */
-    private string $suffix;
+    private ?string $suffix;
 
     /**
      * @ORM\Column(type="string", length=1)
@@ -71,12 +71,12 @@ class Clients
     /**
      * @ORM\Column(type="integer", nullable=true)
      */
-    private ?int $fieldOfficeId;
+    private int $fieldOfficeId;
 
     /**
      * @ORM\Column(type="integer", nullable=true)
      */
-    private ?int $regionId;
+    private int $regionId;
 
     /**
      * @ORM\Column(type="boolean")
@@ -113,7 +113,7 @@ class Clients
      */
     private ?DateTimeImmutable $deletedAt;
 
-    public function getId(): ?int
+    public function getClientId(): ?int
     {
         return $this->clientId;
     }
@@ -232,24 +232,24 @@ class Clients
         return $this;
     }
 
-    public function getFieldOfficeId(): ?int
+    public function getFieldOfficeId(): int
     {
         return $this->fieldOfficeId;
     }
 
-    public function setFieldOfficeId(?int $fieldOfficeId): self
+    public function setFieldOfficeId(int $fieldOfficeId): self
     {
         $this->fieldOfficeId = $fieldOfficeId;
 
         return $this;
     }
 
-    public function getRegionId(): ?int
+    public function getRegionId(): int
     {
         return $this->regionId;
     }
 
-    public function setRegionId(?int $regionId): self
+    public function setRegionId(int $regionId): self
     {
         $this->regionId = $regionId;
 

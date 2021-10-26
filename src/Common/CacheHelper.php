@@ -66,4 +66,9 @@ class CacheHelper
     {
         return 'treatment_categories_all';
     }
+
+    public function getAllClientsKey(): string
+    {
+        return 'clients_all';
+    }
 }
