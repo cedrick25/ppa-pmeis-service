@@ -111,4 +111,40 @@ class ClientsRepository extends ServiceEntityRepository
 
         return true;
     }
+
+
+    /**
+     * @throws InvalidArgumentException
+     * @throws Exception
+     */
+    public function update(int $id, ClientModel $clientData): bool
+    {
+        $client = $this->find($id);
+
+        if ($client == null) {
+            return false;
+        }
+
+        $this->cache->delete($this->cacheHelper->getAllClientsKey());
+
+        // cmis id, fist name and last name cannot be updated to avoid conflict
+        // if needed, create new one instead
+        $client->setClientTypeId($clientData->getClientTypeId());
+        $client->setMiddleName($clientData->getMiddleName());
+        $client->setSuffix($clientData->getSuffix());
+        $client->setGender($clientData->getGender());
+        $client->setDateOfBirth($this->appDateHelper->convertStringToImmutableDate($clientData->getDateOfBirth()));
+        $client->setOffenseCategory($clientData->getOffenseCategory());
+        $client->setFieldOfficeId($clientData->getFieldOfficeId());
+        $client->setRegionId($clientData->getRegionId());
+        $client->setIsSeniorCitizen($clientData->isSeniorCitizen());
+        $client->setIsPwd($clientData->isPwd());
+        $client->setSupervisionStart($this->appDateHelper->convertStringToImmutableDate($clientData->getSupervisionStart()));
+        $client->setSupervisionEnd($this->appDateHelper->convertStringToImmutableDate($clientData->getSupervisionEnd()));
+        $client->setCreatedAt($this->appDateHelper->getCurrentImmutableDate());
+
+        $this->getEntityManager()->flush();
+
+        return true;
+    }
 }

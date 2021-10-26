@@ -271,7 +271,7 @@ class TherapeuticCommunityController extends AbstractController
 
             return $this->json($this->clientService->create($client));
         } catch (ReflectionException $exception) {
-            return $this->json($this->appFormatter->formatResponse('Creating session failed', null, ['reflection' => $exception->getMessage()]));
+            return $this->json($this->appFormatter->formatResponse('Creating client failed', null, ['reflection' => $exception->getMessage()]));
         }
     }
 
@@ -289,5 +289,22 @@ class TherapeuticCommunityController extends AbstractController
     public function deleteClientById(Request $request): Response
     {
         return $this->json($this->clientService->deleteById((int) $request->get("id")));
+    }
+
+    /**
+     * @Route("/client/update/{id}", methods={"POST"})
+     */
+    public function updateClientById(Request $request): Response
+    {
+        try {
+            $data = json_decode($request->getContent(), true);
+
+            /** @var ClientModel $client */
+            $client = $this->appHydrator->convertArrayToObject($data, ClientModel::class);
+
+            return $this->json($this->clientService->updateById((int) $request->get("id"), $client));
+        } catch (ReflectionException $exception) {
+            return $this->json($this->appFormatter->formatResponse('Updating client failed', null, ['reflection' => $exception->getMessage()]));
+        }
     }
 }

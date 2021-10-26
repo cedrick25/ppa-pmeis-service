@@ -7,6 +7,7 @@ use App\Enum\TherapeuticCommunity as TCEnum;
 use App\Model\Clients as ClientModel;
 use App\Repository\ClientsRepository;
 use Doctrine\ORM\ORMException;
+use Exception;
 use Psr\Cache\InvalidArgumentException;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 
@@ -77,7 +78,18 @@ class Clients implements ClientsInterface
 
     public function updateById(int $id, ClientModel $clientData): array
     {
-        // TODO: Implement updateById() method.
-        return [];
+        try {
+            $isUpdated = $this->repository->update($id, $clientData);
+
+            if (! $isUpdated) {
+                return $this->appFormatter->formatResponse(TCEnum::UPDATING_FAILED, null, ['app' => TCEnum::NO_DATA]);
+            }
+
+            return $this->appFormatter->formatResponse(TCEnum::UPDATING_SUCCESS, null);
+        } catch (Exception $e) {
+            return $this->appFormatter->formatResponse(TCEnum::UPDATING_FAILED, null, ['app' => $e->getMessage()]);
+        } catch (InvalidArgumentException $e) {
+            return $this->appFormatter->formatResponse(TCEnum::UPDATING_FAILED, null, ['cache' => $e->getMessage()]);
+        }
     }
 }
