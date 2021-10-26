@@ -14,6 +14,7 @@ use App\Service\TherapeuticCommunity\PhasesInterface;
 use App\Service\TherapeuticCommunity\QuartersInterface;
 use App\Service\TherapeuticCommunity\SessionActivitiesInterface;
 use App\Service\TherapeuticCommunity\SessionsInterface;
+use App\Service\TherapeuticCommunity\TreatmentCategoriesInterface;
 use App\Service\TherapeuticCommunity\VenuesInterface;
 use ReflectionException;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -37,6 +38,7 @@ class TherapeuticCommunityController extends AbstractController
         private VenuesInterface $venuesService,
         private SessionsInterface $sessionService,
         private ClientTypesInterface $clientTypeService,
+        private TreatmentCategoriesInterface $treatmentCategoryService,
     ){}
 
     /**
@@ -227,5 +229,13 @@ class TherapeuticCommunityController extends AbstractController
     public function deleteClientTypeById(Request $request): Response
     {
         return $this->json($this->clientTypeService->deleteById((int) $request->get("id")));
+    }
+
+    /**
+     * @Route("/treatment-category/list", methods={"GET"})
+     */
+    public function getAllTreatmentCategories(): Response
+    {
+        return $this->json($this->treatmentCategoryService->getAll());
     }
 }

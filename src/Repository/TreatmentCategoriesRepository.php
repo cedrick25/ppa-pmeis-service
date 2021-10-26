@@ -4,9 +4,14 @@ declare(strict_types=1);
 
 namespace App\Repository;
 
+use App\Common\AppDateHelper;
+use App\Common\CacheHelper;
 use App\Entity\TreatmentCategories;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
+use Psr\Cache\InvalidArgumentException;
+use Symfony\Contracts\Cache\CacheInterface;
+use Symfony\Contracts\Cache\ItemInterface;
 
 /**
  * @method TreatmentCategories|null find($id, $lockMode = null, $lockVersion = null)
@@ -16,37 +21,28 @@ use Doctrine\Persistence\ManagerRegistry;
  */
 class TreatmentCategoriesRepository extends ServiceEntityRepository
 {
-    public function __construct(ManagerRegistry $registry)
-    {
+    public function __construct(
+        ManagerRegistry $registry,
+        private CacheInterface $cache,
+        private CacheHelper $cacheHelper,
+        private AppDateHelper $appDateHelper,
+    ){
         parent::__construct($registry, TreatmentCategories::class);
     }
 
-    // /**
-    //  * @return TreatmentCategories[] Returns an array of TreatmentCategories objects
-    //  */
-    /*
-    public function findByExampleField($value)
+    /**
+     * @throws InvalidArgumentException
+     * @return TreatmentCategories[]
+     */
+    public function list(): array
     {
-        return $this->createQueryBuilder('t')
-            ->andWhere('t.exampleField = :val')
-            ->setParameter('val', $value)
-            ->orderBy('t.id', 'ASC')
-            ->setMaxResults(10)
-            ->getQuery()
-            ->getResult()
-        ;
-    }
-    */
+        $cacheKey = $this->cacheHelper->getAllSessionActivitiesKey();
+        $expiration = $this->cacheHelper->getExpirationDateTime(24);
 
-    /*
-    public function findOneBySomeField($value): ?TreatmentCategories
-    {
-        return $this->createQueryBuilder('t')
-            ->andWhere('t.exampleField = :val')
-            ->setParameter('val', $value)
-            ->getQuery()
-            ->getOneOrNullResult()
-        ;
+        return $this->cache->get($cacheKey, function (ItemInterface $item) use ($cacheKey, $expiration) {
+            $item->expiresAt($expiration);
+
+            return $this->findAll();
+        });
     }
-    */
 }
