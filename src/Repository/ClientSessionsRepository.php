@@ -13,6 +13,7 @@ use Doctrine\ORM\ORMException;
 use Doctrine\Persistence\ManagerRegistry;
 use Psr\Cache\InvalidArgumentException;
 use Symfony\Contracts\Cache\CacheInterface;
+use Symfony\Contracts\Cache\ItemInterface;
 
 /**
  * @method ClientSessions|null find($id, $lockMode = null, $lockVersion = null)
@@ -26,7 +27,6 @@ class ClientSessionsRepository extends ServiceEntityRepository
         ManagerRegistry $registry,
         private CacheInterface $cache,
         private CacheHelper $cacheHelper,
-        private AppDateHelper $appDateHelper,
     ){
         parent::__construct($registry, ClientSessions::class);
     }
@@ -59,5 +59,21 @@ class ClientSessionsRepository extends ServiceEntityRepository
         $this->getEntityManager()->flush();
 
         return $newClientSession->getClientSessionId();
+    }
+
+    /**
+     * @throws InvalidArgumentException
+     * @return ClientSessions[]
+     */
+    public function list(): array
+    {
+        $cacheKey = $this->cacheHelper->getAllClientSessionsKey();
+        $expiration = $this->cacheHelper->getExpirationDateTime(24);
+
+        return $this->cache->get($cacheKey, function (ItemInterface $item) use ($cacheKey, $expiration) {
+            $item->expiresAt($expiration);
+
+            return $this->findAll();
+        });
     }
 }

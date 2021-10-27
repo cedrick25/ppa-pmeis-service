@@ -45,8 +45,17 @@ class ClientSessions implements ClientSessionsInterface
 
     public function getAll(): array
     {
-        // TODO: Implement getAll() method.
-        return [];
+        try {
+            $clientSessions = $this->repository->list();
+
+            if (sizeof($clientSessions) == 0) {
+                return $this->appFormatter->formatResponse(TCEnum::NO_DATA, null);
+            }
+
+            return $this->appFormatter->formatResponse(TCEnum::FETCHING_SUCCESS, $clientSessions);
+        } catch (InvalidArgumentException $exception) {
+            return $this->appFormatter->formatResponse(TCEnum::FETCHING_FAILED, null, ['cache' => $exception->getMessage()]);
+        }
     }
 
     public function deleteById(int $id): array
