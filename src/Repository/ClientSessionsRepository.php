@@ -11,6 +11,7 @@ use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\ORM\ORMException;
 use Doctrine\Persistence\ManagerRegistry;
+use Exception;
 use Psr\Cache\InvalidArgumentException;
 use Symfony\Contracts\Cache\CacheInterface;
 use Symfony\Contracts\Cache\ItemInterface;
@@ -83,17 +84,50 @@ class ClientSessionsRepository extends ServiceEntityRepository
      */
     public function delete(int $id): bool
     {
-        $client = $this->find($id);
+        $clientSession = $this->find($id);
 
-        if ($client == null) {
+        if ($clientSession == null) {
             return false;
         }
 
         $this->cache->delete($this->cacheHelper->getAllClientSessionsKey());
 
-        $this->getEntityManager()->remove($client);
+        $this->getEntityManager()->remove($clientSession);
         $this->getEntityManager()->flush();
 
         return true;
+    }
+
+    /**
+     * @throws InvalidArgumentException
+     * @throws Exception
+     */
+    public function update(int $id, ClientSessionModel $clientSessions): string
+    {
+        $clientSession = $this->find($id);
+
+        if ($clientSession == null) {
+            return "No data found.";
+        }
+
+        $checkClientSession = $this->findOneBy([
+            'clientId' => $clientSessions->getClientId(),
+            'sessionId' => $clientSessions->getSessionId()
+        ]);
+
+        if ($checkClientSession != null) {
+            return "Selected data conflicted with current .";
+        }
+
+        $this->cache->delete($this->cacheHelper->getAllClientSessionsKey());
+
+        $clientSession->setClientId($clientSessions->getClientId());
+        $clientSession->setSessionId($clientSessions->getSessionId());
+        $clientSession->setRole(ClientSessionRole::from($clientSessions->getRole()));
+
+        $this->getEntityManager()->persist($clientSession);
+        $this->getEntityManager()->flush();
+
+        return "OK";
     }
 }
