@@ -2,9 +2,17 @@
 
 namespace App\Repository;
 
+use App\Common\AppDateHelper;
+use App\Common\CacheHelper;
 use App\Entity\ClientSessions;
+use App\Enum\ClientSessionRole;
+use App\Model\ClientSessions as ClientSessionModel;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
+use Doctrine\ORM\NonUniqueResultException;
+use Doctrine\ORM\ORMException;
 use Doctrine\Persistence\ManagerRegistry;
+use Psr\Cache\InvalidArgumentException;
+use Symfony\Contracts\Cache\CacheInterface;
 
 /**
  * @method ClientSessions|null find($id, $lockMode = null, $lockVersion = null)
@@ -14,37 +22,42 @@ use Doctrine\Persistence\ManagerRegistry;
  */
 class ClientSessionsRepository extends ServiceEntityRepository
 {
-    public function __construct(ManagerRegistry $registry)
-    {
+    public function __construct(
+        ManagerRegistry $registry,
+        private CacheInterface $cache,
+        private CacheHelper $cacheHelper,
+        private AppDateHelper $appDateHelper,
+    ){
         parent::__construct($registry, ClientSessions::class);
     }
 
-    // /**
-    //  * @return ClientSessions[] Returns an array of ClientSessions objects
-    //  */
-    /*
-    public function findByExampleField($value)
+    /**
+     * @throws NonUniqueResultException
+     * @throws ORMException
+     * @throws InvalidArgumentException
+     * @throws \Doctrine\DBAL\Exception\InvalidArgumentException
+     */
+    public function create(ClientSessionModel $clientSessions): int|null
     {
-        return $this->createQueryBuilder('c')
-            ->andWhere('c.exampleField = :val')
-            ->setParameter('val', $value)
-            ->orderBy('c.id', 'ASC')
-            ->setMaxResults(10)
-            ->getQuery()
-            ->getResult()
-        ;
-    }
-    */
+        $clientSession = $this->findOneBy([
+            'clientId' => $clientSessions->getClientId(),
+            'sessionId' => $clientSessions->getSessionId()
+        ]);
 
-    /*
-    public function findOneBySomeField($value): ?ClientSessions
-    {
-        return $this->createQueryBuilder('c')
-            ->andWhere('c.exampleField = :val')
-            ->setParameter('val', $value)
-            ->getQuery()
-            ->getOneOrNullResult()
-        ;
+        if ($clientSession != null) {
+            return null;
+        }
+
+        $this->cache->delete($this->cacheHelper->getAllClientSessionsKey());
+
+        $newClientSession = new ClientSessions();
+        $newClientSession->setClientId($clientSessions->getClientId());
+        $newClientSession->setSessionId($clientSessions->getSessionId());
+        $newClientSession->setRole(ClientSessionRole::from($clientSessions->getRole()));
+
+        $this->getEntityManager()->persist($newClientSession);
+        $this->getEntityManager()->flush();
+
+        return $newClientSession->getClientSessionId();
     }
-    */
 }

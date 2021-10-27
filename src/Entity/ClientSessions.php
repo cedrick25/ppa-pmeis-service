@@ -36,7 +36,7 @@ class ClientSessions
      */
     private string $role;
 
-    public function getId(): ?int
+    public function getClientSessionId(): ?int
     {
         return $this->clientSessionId;
     }

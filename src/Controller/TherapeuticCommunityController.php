@@ -6,8 +6,10 @@ namespace App\Controller;
 
 use App\Common\AppFormatter;
 use App\Common\AppHydrator;
+use App\Model\ClientSessions as ClientSessionModel;
 use App\Model\Quarters as QuartersModel;
 use App\Model\Sessions as SessionsModel;
+use App\Service\TherapeuticCommunity\ClientSessionsInterface;
 use App\Service\TherapeuticCommunity\ClientTypesInterface;
 use App\Service\TherapeuticCommunity\FieldOfficesInterface;
 use App\Service\TherapeuticCommunity\PhasesInterface;
@@ -42,6 +44,7 @@ class TherapeuticCommunityController extends AbstractController
         private ClientTypesInterface $clientTypeService,
         private TreatmentCategoriesInterface $treatmentCategoryService,
         private ClientsInterface $clientService,
+        private ClientSessionsInterface $clientSessionService,
     ){}
 
     /**
@@ -305,6 +308,23 @@ class TherapeuticCommunityController extends AbstractController
             return $this->json($this->clientService->updateById((int) $request->get("id"), $client));
         } catch (ReflectionException $exception) {
             return $this->json($this->appFormatter->formatResponse('Updating client failed', null, ['reflection' => $exception->getMessage()]));
+        }
+    }
+
+    /**
+     * @Route("/client-session/create", methods={"POST"})
+     */
+    public function createClientSession(Request $request): Response
+    {
+        try {
+            $data = json_decode($request->getContent(), true);
+
+            /** @var ClientSessionModel $clientSession */
+            $clientSession = $this->appHydrator->convertArrayToObject($data, ClientSessionModel::class);
+
+            return $this->json($this->clientSessionService->create($clientSession));
+        } catch (ReflectionException $exception) {
+            return $this->json($this->appFormatter->formatResponse('Creating client failed', null, ['reflection' => $exception->getMessage()]));
         }
     }
 }

@@ -71,4 +71,9 @@ class CacheHelper
     {
         return 'clients_all';
     }
+
+    public function getAllClientSessionsKey(): string
+    {
+        return 'client_sessions_all';
+    }
 }
