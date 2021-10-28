@@ -62,7 +62,7 @@ class Clients implements ClientsInterface
     public function deleteById(int $id): array
     {
         try {
-            $isDeleted = $this->repository->delete($id);
+            $isDeleted = $this->repository->softDelete($id);
 
             if (! $isDeleted) {
                 return $this->appFormatter->formatResponse(TCEnum::DELETING_FAILED, null, ['app' => TCEnum::NO_DATA]);
@@ -81,8 +81,8 @@ class Clients implements ClientsInterface
         try {
             $isUpdated = $this->repository->update($id, $clientData);
 
-            if (! $isUpdated) {
-                return $this->appFormatter->formatResponse(TCEnum::UPDATING_FAILED, null, ['app' => TCEnum::NO_DATA]);
+            if ($isUpdated !== "OK") {
+                return $this->appFormatter->formatResponse(TCEnum::UPDATING_FAILED, null, ['app' => $isUpdated]);
             }
 
             return $this->appFormatter->formatResponse(TCEnum::UPDATING_SUCCESS, null);

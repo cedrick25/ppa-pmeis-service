@@ -7,6 +7,7 @@ use App\Common\CacheHelper;
 use App\Entity\Clients;
 use App\Entity\ClientTypes;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
+use Doctrine\ORM\OptimisticLockException;
 use Doctrine\ORM\ORMException;
 use Doctrine\Persistence\ManagerRegistry;
 
@@ -88,7 +89,11 @@ class ClientsRepository extends ServiceEntityRepository
         return $this->cache->get($cacheKey, function (ItemInterface $item) use ($cacheKey, $expiration) {
             $item->expiresAt($expiration);
 
-            return $this->findAll();
+            return $this->createQueryBuilder('cl')
+                ->andWhere('cl.deletedAt IS NULL')
+                ->orderBy('cl.clientId', 'DESC')
+                ->getQuery()
+                ->getResult();
         });
     }
 
@@ -112,12 +117,12 @@ class ClientsRepository extends ServiceEntityRepository
         return true;
     }
 
-
     /**
+     * @throws OptimisticLockException
+     * @throws ORMException
      * @throws InvalidArgumentException
-     * @throws Exception
      */
-    public function update(int $id, ClientModel $clientData): bool
+    public function softDelete(int $id): bool
     {
         $client = $this->find($id);
 
@@ -127,10 +132,44 @@ class ClientsRepository extends ServiceEntityRepository
 
         $this->cache->delete($this->cacheHelper->getAllClientsKey());
 
-        // cmis id, fist name and last name cannot be updated to avoid conflict
-        // if needed, create new one instead
+        $client->setDeletedAt($this->appDateHelper->getCurrentImmutableDate());
+
+        $this->getEntityManager()->flush();
+
+        return true;
+    }
+
+
+    /**
+     * @throws InvalidArgumentException
+     * @throws Exception
+     */
+    public function update(int $id, ClientModel $clientData): string
+    {
+        $client = $this->find($id);
+
+        if ($client == null) {
+            return "No data found.";
+        }
+
+        $checkClient = $this->findOneBy([
+            'cmisId' => $clientData->getCmisId(),
+            'firstName' => $clientData->getFirstName(),
+            'lastName' => $clientData->getLastName(),
+            'clientId' => null
+        ]);
+
+        if ($checkClient != null) {
+            return "Selected data conflicted with current .";
+        }
+
+        $this->cache->delete($this->cacheHelper->getAllClientsKey());
+
         $client->setClientTypeId($clientData->getClientTypeId());
+        $client->setCmisId($clientData->getCmisId());
+        $client->setFirstName($clientData->getFirstName());
         $client->setMiddleName($clientData->getMiddleName());
+        $client->setLastName($clientData->getLastName());
         $client->setSuffix($clientData->getSuffix());
         $client->setGender($clientData->getGender());
         $client->setDateOfBirth($this->appDateHelper->convertStringToImmutableDate($clientData->getDateOfBirth()));
@@ -141,10 +180,10 @@ class ClientsRepository extends ServiceEntityRepository
         $client->setIsPwd($clientData->isPwd());
         $client->setSupervisionStart($this->appDateHelper->convertStringToImmutableDate($clientData->getSupervisionStart()));
         $client->setSupervisionEnd($this->appDateHelper->convertStringToImmutableDate($clientData->getSupervisionEnd()));
-        $client->setCreatedAt($this->appDateHelper->getCurrentImmutableDate());
+        $client->setUpdatedAt($this->appDateHelper->getCurrentImmutableDate());
 
         $this->getEntityManager()->flush();
 
-        return true;
+        return "OK";
     }
 }

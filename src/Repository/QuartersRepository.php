@@ -132,6 +132,7 @@ class QuartersRepository extends ServiceEntityRepository
      */
     public function delete(int $id): bool
     {
+        // TODO: Check if there is an existing id in sessions
         $quarter = $this->getById($id);
 
         if ($quarter == null) {
@@ -146,4 +147,6 @@ class QuartersRepository extends ServiceEntityRepository
 
         return true;
     }
+
+    // TODO: Create soft delete
 }
