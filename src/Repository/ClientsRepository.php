@@ -105,7 +105,7 @@ class ClientsRepository extends ServiceEntityRepository
     public function delete(int $id): bool
     {
         // TODO: Check if there is an existing id in client sessions and rj conducted process
-        $client = $this->find($id);
+        $client = $this->isExistingById($id);
 
         if ($client == null) {
             return false;
@@ -127,7 +127,7 @@ class ClientsRepository extends ServiceEntityRepository
     public function softDelete(int $id): bool
     {
         // TODO: Check if there is an existing id in client sessions and rj conducted process
-        $client = $this->find($id);
+        $client =$this->isExistingById($id);
 
         if ($client == null) {
             return false;
@@ -149,17 +149,14 @@ class ClientsRepository extends ServiceEntityRepository
      */
     public function update(int $id, ClientModel $clientData): string
     {
-        $client = $this->findOneBy([
-            'clientId' => $id,
-            'deletedAt' => null
-        ]);
+        $client = $this->isExistingById($id);
 
-        if ($client == null) {
-            return "No data found.";
+        if (! $client) {
+            return "No record found.";
         }
 
         if ($this->isConflicted($client, $clientData)) {
-            return "Selected data conflicted with current record.";
+            return "Input data conflicted with current record.";
         }
 
         $this->cache->delete($this->cacheHelper->getAllClientsKey());
@@ -184,6 +181,20 @@ class ClientsRepository extends ServiceEntityRepository
         $this->getEntityManager()->flush();
 
         return "OK";
+    }
+
+    public function isExistingById(int $id): bool | Clients
+    {
+        $client = $this->findOneBy([
+            'clientId' => $id,
+            'deletedAt' => null
+        ]);
+
+        if ($client == null) {
+            return false;
+        }
+
+        return $client;
     }
 
     private function isConflicted(Clients $fetchedClient, ClientModel $clientData): bool
