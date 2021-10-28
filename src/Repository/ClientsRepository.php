@@ -44,7 +44,8 @@ class ClientsRepository extends ServiceEntityRepository
         $client = $this->findOneBy([
             'cmisId' => $clientData->getCmisId(),
             'firstName' => $clientData->getFirstName(),
-            'lastName' => $clientData->getLastName()
+            'lastName' => $clientData->getLastName(),
+            'deletedAt' => null
         ]);
 
         if ($client != null) {
@@ -103,6 +104,7 @@ class ClientsRepository extends ServiceEntityRepository
      */
     public function delete(int $id): bool
     {
+        // TODO: Check if there is an existing id in client sessions and rj conducted process
         $client = $this->find($id);
 
         if ($client == null) {
@@ -124,6 +126,7 @@ class ClientsRepository extends ServiceEntityRepository
      */
     public function softDelete(int $id): bool
     {
+        // TODO: Check if there is an existing id in client sessions and rj conducted process
         $client = $this->find($id);
 
         if ($client == null) {
@@ -146,21 +149,17 @@ class ClientsRepository extends ServiceEntityRepository
      */
     public function update(int $id, ClientModel $clientData): string
     {
-        $client = $this->find($id);
+        $client = $this->findOneBy([
+            'clientId' => $id,
+            'deletedAt' => null
+        ]);
 
         if ($client == null) {
             return "No data found.";
         }
 
-        $checkClient = $this->findOneBy([
-            'cmisId' => $clientData->getCmisId(),
-            'firstName' => $clientData->getFirstName(),
-            'lastName' => $clientData->getLastName(),
-            'clientId' => null
-        ]);
-
-        if ($checkClient != null) {
-            return "Selected data conflicted with current .";
+        if ($this->isConflicted($client, $clientData)) {
+            return "Selected data conflicted with current record.";
         }
 
         $this->cache->delete($this->cacheHelper->getAllClientsKey());
@@ -185,5 +184,33 @@ class ClientsRepository extends ServiceEntityRepository
         $this->getEntityManager()->flush();
 
         return "OK";
+    }
+
+    private function isConflicted(Clients $fetchedClient, ClientModel $clientData): bool
+    {
+        // Fetched and input client is the same.
+        // It is trying to update itself.
+        if (
+            $fetchedClient->getCmisId() === $clientData->getCmisId() &&
+            $fetchedClient->getFirstName() === $clientData->getFirstName() &&
+            $fetchedClient->getLastName() === $clientData->getLastName()
+        ) {
+            return false;
+        }
+
+        $client = $this->findOneBy([
+            'cmisId' => $clientData->getCmisId(),
+            'firstName' => $clientData->getFirstName(),
+            'lastName' => $clientData->getLastName(),
+            'deletedAt' => null
+        ]);
+
+        // There is an existing record in the database.
+        // It is trying to update another record that existing in the database.
+        if ($client != null) {
+            return true;
+        }
+
+        return false;
     }
 }
