@@ -8,6 +8,7 @@ use App\Common\AppDateHelper;
 use App\Common\CacheHelper;
 use App\Entity\TreatmentCategories;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
+use Doctrine\ORM\OptimisticLockException;
 use Doctrine\ORM\ORMException;
 use Doctrine\Persistence\ManagerRegistry;
 use Psr\Cache\InvalidArgumentException;
@@ -43,18 +44,21 @@ class TreatmentCategoriesRepository extends ServiceEntityRepository
         return $this->cache->get($cacheKey, function (ItemInterface $item) use ($cacheKey, $expiration) {
             $item->expiresAt($expiration);
 
-            return $this->findAll();
+            return $this->createQueryBuilder('tc')
+                ->andWhere('tc.deletedAt IS NULL')
+                ->orderBy('tc.treatmentCategoryId', 'DESC')
+                ->getQuery()
+                ->getResult();
         });
     }
+
     /**
      * @throws InvalidArgumentException
      * @throws ORMException
      */
     public function create(string $name): int | null
     {
-        $treatmentCategory = $this->findOneBy(['name' => $name]);
-
-        if ($treatmentCategory != null) {
+        if ($this->isExisting($name)) {
             return null;
         }
 
@@ -76,11 +80,13 @@ class TreatmentCategoriesRepository extends ServiceEntityRepository
      */
     public function delete(int $id): bool
     {
-        $treatmentCategory = $this->find($id);
+        $treatmentCategory = $this->isExistingById($id);
 
-        if ($treatmentCategory == null) {
+        if (! $treatmentCategory) {
             return false;
         }
+
+        // TODO: Check if there is an existing id in sessions
 
         $this->cache->delete($this->cacheHelper->getAllTreatmentCategoriesKey());
 
@@ -88,5 +94,49 @@ class TreatmentCategoriesRepository extends ServiceEntityRepository
         $this->getEntityManager()->flush();
 
         return true;
+    }
+
+    /**
+     * @throws OptimisticLockException
+     * @throws ORMException
+     * @throws InvalidArgumentException
+     */
+    public function softDelete(int $id): bool
+    {
+        $treatmentCategory = $this->isExistingById($id);
+
+        if (! $treatmentCategory) {
+            return false;
+        }
+
+        // TODO: Check if there is an existing id in sessions
+
+        $this->cache->delete($this->cacheHelper->getAllTreatmentCategoriesKey());
+
+        $treatmentCategory->setDeletedAt($this->appDateHelper->getCurrentImmutableDate());
+
+        $this->getEntityManager()->flush();
+
+        return true;
+    }
+
+    public function isExistingById(int $id): bool | TreatmentCategories
+    {
+        $treatmentCategory = $this->findOneBy([
+            'treatmentCategoryId' => $id,
+            'deletedAt' => null
+        ]);
+
+        return ($treatmentCategory == null) ? false : $treatmentCategory;
+    }
+
+    private function isExisting(string $name): bool
+    {
+        $client = $this->findOneBy([
+            'name' => $name,
+            'deletedAt' => null
+        ]);
+
+        return $client != null;
     }
 }

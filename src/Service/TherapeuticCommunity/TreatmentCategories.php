@@ -55,7 +55,7 @@ class TreatmentCategories implements TreatmentCategoriesInterface
     public function deleteById(int $id): array
     {
         try {
-            $isDeleted = $this->repository->delete($id);
+            $isDeleted = $this->repository->softDelete($id);
 
             if (! $isDeleted) {
                 return $this->appFormatter->formatResponse(TCEnum::DELETING_FAILED, null, ['app' => TCEnum::NO_DATA]);
