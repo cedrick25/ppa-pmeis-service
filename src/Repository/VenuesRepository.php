@@ -9,6 +9,7 @@ use App\Common\CacheHelper;
 use App\Entity\Venues;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\ORM\NonUniqueResultException;
+use Doctrine\ORM\OptimisticLockException;
 use Doctrine\ORM\ORMException;
 use Doctrine\Persistence\ManagerRegistry;
 use Psr\Cache\InvalidArgumentException;
@@ -70,22 +71,11 @@ class VenuesRepository extends ServiceEntityRepository
             $item->expiresAt($expiration);
 
             return $this->createQueryBuilder('vn')
+                ->andWhere('vn.deletedAt IS NULL')
                 ->orderBy('vn.venueId', 'DESC')
                 ->getQuery()
                 ->getResult();
         });
-    }
-
-    /**
-     * @throws NonUniqueResultException
-     */
-    public function getById(int $id): ?Venues
-    {
-        return $this->createQueryBuilder('vn')
-            ->andWhere('vn.venueId = :id')
-            ->setParameter('id', $id)
-            ->getQuery()
-            ->getOneOrNullResult();
     }
 
     /**
@@ -95,11 +85,13 @@ class VenuesRepository extends ServiceEntityRepository
      */
     public function delete(int $id): bool
     {
-        $venue = $this->getById($id);
+        $venue = $this->isExistingById($id);
 
-        if ($venue == null) {
+        if (! $venue) {
             return false;
         }
+
+        // TODO: Check if there is an existing id in sessions
 
         $this->cache->delete($this->cacheHelper->getAllVenuesKey());
 
@@ -110,15 +102,45 @@ class VenuesRepository extends ServiceEntityRepository
     }
 
     /**
-     * @throws NonUniqueResultException
+     * @throws OptimisticLockException
+     * @throws ORMException
+     * @throws InvalidArgumentException
      */
+    public function softDelete(int $id): bool
+    {
+        $treatmentCategory = $this->isExistingById($id);
+
+        if (! $treatmentCategory) {
+            return false;
+        }
+
+        // TODO: Check if there is an existing id in sessions
+
+        $this->cache->delete($this->cacheHelper->getAllVenuesKey());
+
+        $treatmentCategory->setDeletedAt($this->appDateHelper->getCurrentImmutableDate());
+
+        $this->getEntityManager()->flush();
+
+        return true;
+    }
+
+    public function isExistingById(int $id): bool | Venues
+    {
+        $treatmentCategory = $this->findOneBy([
+            'venueId' => $id,
+            'deletedAt' => null
+        ]);
+
+        return ($treatmentCategory == null) ? false : $treatmentCategory;
+    }
+
     private function isExistByName(string $name): bool
     {
-        $venue = $this->createQueryBuilder('vn')
-            ->andWhere('vn.name = :name')
-            ->setParameter('name', $name)
-            ->getQuery()
-            ->getOneOrNullResult();
+        $venue = $this->findOneBy([
+            'name' => $name,
+            'deletedAt' => null
+        ]);
 
         return $venue != null;
     }
