@@ -5,7 +5,7 @@ namespace App\Repository;
 use App\Common\AppDateHelper;
 use App\Common\CacheHelper;
 use App\Entity\Clients;
-use App\Entity\ClientTypes;
+use App\Enum\Response as ResponseEnum;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\ORM\OptimisticLockException;
 use Doctrine\ORM\ORMException;
@@ -152,11 +152,11 @@ class ClientsRepository extends ServiceEntityRepository
         $client = $this->isExistingById($id);
 
         if (! $client) {
-            return "No record found.";
+            return ResponseEnum::NO_RECORD;
         }
 
         if ($this->isConflicted($client, $clientData)) {
-            return "Input data conflicted with current record.";
+            return ResponseEnum::CONFLICTED_INPUT;
         }
 
         $this->cache->delete($this->cacheHelper->getAllClientsKey());
@@ -180,7 +180,7 @@ class ClientsRepository extends ServiceEntityRepository
 
         $this->getEntityManager()->flush();
 
-        return "OK";
+        return ResponseEnum::OK;
     }
 
     public function isExistingById(int $id): bool | Clients

@@ -11,4 +11,6 @@ interface QuartersInterface
     public function getAll(): array;
 
     public function deleteById(int $id): array;
+
+    public function updateById(int $id, QuartersModel $quarterData): array;
 }

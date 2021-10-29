@@ -91,6 +91,23 @@ class TherapeuticCommunityController extends AbstractController
     }
 
     /**
+     * @Route("/quarter/update/{id}", methods={"POST"})
+     */
+    public function updateQuarter(Request $request): Response
+    {
+        try {
+            $data = json_decode($request->getContent(), true);
+
+            /** @var QuartersModel $quarter */
+            $quarter = $this->appHydrator->convertArrayToObject($data, QuartersModel::class);
+
+            return $this->json($this->quartersService->updateById((int) $request->get("id"), $quarter));
+        } catch (ReflectionException $exception) {
+            return $this->json($this->appFormatter->formatResponse('Updating quarter failed', null, ['reflection' => $exception->getMessage()]));
+        }
+    }
+
+    /**
      * @Route("/phases/list", methods={"GET"})
      */
     public function getAllPhases(): Response

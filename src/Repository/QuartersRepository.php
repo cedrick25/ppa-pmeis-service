@@ -7,6 +7,7 @@ namespace App\Repository;
 use App\Common\AppDateHelper;
 use App\Common\CacheHelper;
 use App\Entity\Quarters;
+use App\Enum\Response as ResponseEnum;
 use App\Model\Quarters as QuartersModel;
 use DateTimeImmutable;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
@@ -14,6 +15,7 @@ use Doctrine\DBAL\Exception\InvalidArgumentException;
 use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\ORM\ORMException;
 use Doctrine\Persistence\ManagerRegistry;
+use Exception;
 use Symfony\Contracts\Cache\CacheInterface;
 use Symfony\Contracts\Cache\ItemInterface;
 
@@ -148,5 +150,57 @@ class QuartersRepository extends ServiceEntityRepository
         return true;
     }
 
-    // TODO: Create soft delete
+    /**
+     * @throws \Psr\Cache\InvalidArgumentException
+     * @throws Exception
+     */
+    public function update(int $id, QuartersModel $quarterData): string
+    {
+        $quarter = $this->isExistingById($id);
+
+        if (! $quarter) {
+            return ResponseEnum::NO_RECORD;
+        }
+
+        if ($this->isConflicted($quarter, $quarterData)) {
+            return ResponseEnum::CONFLICTED_INPUT;
+        }
+
+        $this->cache->delete($this->cacheHelper->getAllQuartersKey());
+
+        $quarter->setName($quarterData->getName());
+        $quarter->setYear($quarterData->getYear());
+
+        $this->getEntityManager()->flush();
+
+        return ResponseEnum::OK;
+    }
+
+    public function isExistingById(int $id): bool | Quarters
+    {
+        $quarter = $this->find($id);
+
+        return ($quarter == null) ? false : $quarter;
+    }
+
+    public function isConflicted(Quarters $fetchedQuarter, QuartersModel $quarterData): bool
+    {
+        if (
+            $fetchedQuarter->getName() === $quarterData->getName() &&
+            $fetchedQuarter->getYear() === $quarterData->getYear()
+        ) {
+            return false;
+        }
+
+        $quarter = $this->findOneBy([
+            'name' => $quarterData->getName(),
+            'year' => $quarterData->getYear()
+        ]);
+
+        if ($quarter != null) {
+            return true;
+        }
+
+        return false;
+    }
 }

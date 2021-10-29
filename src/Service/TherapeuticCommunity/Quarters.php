@@ -5,10 +5,12 @@ declare(strict_types=1);
 namespace App\Service\TherapeuticCommunity;
 
 use App\Common\AppFormatter;
+use App\Enum\Response as ResponseEnum;
 use App\Enum\TherapeuticCommunity as TCEnum;
 use App\Model\Quarters as QuartersModel;
 use App\Repository\QuartersRepository;
 use Doctrine\ORM\ORMException;
+use Exception;
 use Psr\Cache\InvalidArgumentException;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 
@@ -71,6 +73,23 @@ class Quarters implements QuartersInterface
             return $this->appFormatter->formatResponse(TCEnum::DELETING_FAILED, null, ['cache' => $exception->getMessage()]);
         } catch (ORMException $exception) {
             return $this->appFormatter->formatResponse(TCEnum::DELETING_FAILED, null, ['orm' => $exception->getMessage()]);
+        }
+    }
+
+    public function updateById(int $id, QuartersModel $quarterData): array
+    {
+        try {
+            $isUpdated = $this->repository->update($id, $quarterData);
+
+            if ($isUpdated !== ResponseEnum::OK) {
+                return $this->appFormatter->formatResponse(TCEnum::UPDATING_FAILED, null, ['app' => $isUpdated]);
+            }
+
+            return $this->appFormatter->formatResponse(TCEnum::UPDATING_SUCCESS, null);
+        } catch (Exception $e) {
+            return $this->appFormatter->formatResponse(TCEnum::UPDATING_FAILED, null, ['app' => $e->getMessage()]);
+        } catch (InvalidArgumentException $e) {
+            return $this->appFormatter->formatResponse(TCEnum::UPDATING_FAILED, null, ['cache' => $e->getMessage()]);
         }
     }
 }

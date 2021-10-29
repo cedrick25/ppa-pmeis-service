@@ -12,6 +12,10 @@ use MyCLabs\Enum\Enum;
  */
 class Response extends Enum implements Hashable
 {
+    public const OK = "OK";
+    public const NO_RECORD = "No record found.";
+    public const CONFLICTED_INPUT = "Input data conflicted with current record.";
+
     public function hash(): string
     {
         return $this->getValue();

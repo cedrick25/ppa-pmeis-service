@@ -3,6 +3,7 @@
 namespace App\Service\TherapeuticCommunity;
 
 use App\Common\AppFormatter;
+use App\Enum\Response as ResponseEnum;
 use App\Enum\TherapeuticCommunity as TCEnum;
 use App\Model\Clients as ClientModel;
 use App\Repository\ClientsRepository;
@@ -81,7 +82,7 @@ class Clients implements ClientsInterface
         try {
             $isUpdated = $this->repository->update($id, $clientData);
 
-            if ($isUpdated !== "OK") {
+            if ($isUpdated !== ResponseEnum::OK) {
                 return $this->appFormatter->formatResponse(TCEnum::UPDATING_FAILED, null, ['app' => $isUpdated]);
             }
 
