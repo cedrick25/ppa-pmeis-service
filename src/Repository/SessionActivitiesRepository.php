@@ -11,6 +11,7 @@ use App\Entity\SessionActivities;
 use DateTimeImmutable;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\ORM\NonUniqueResultException;
+use Doctrine\ORM\OptimisticLockException;
 use Doctrine\ORM\ORMException;
 use Doctrine\Persistence\ManagerRegistry;
 use Psr\Cache\InvalidArgumentException;
@@ -47,6 +48,7 @@ class SessionActivitiesRepository extends ServiceEntityRepository
             $item->expiresAt($expiration);
 
             return $this->createQueryBuilder('sa')
+                ->andWhere('sa.deletedAt IS NULL')
                 ->orderBy('sa.sessionActivityId', 'DESC')
                 ->getQuery()
                 ->getResult();
@@ -77,16 +79,12 @@ class SessionActivitiesRepository extends ServiceEntityRepository
         return $sessionActivity->getSessionActivityId();
     }
 
-    /**
-     * @throws NonUniqueResultException
-     */
     public function getById(int $id): ?SessionActivities
     {
-        return $this->createQueryBuilder('sa')
-            ->andWhere('sa.sessionActivityId = :id')
-            ->setParameter('id', $id)
-            ->getQuery()
-            ->getOneOrNullResult();
+        return $this->findOneBy([
+            'sessionActivityId' => $id,
+            'deletedAt' => null
+        ]);
     }
 
     /**
@@ -102,9 +100,35 @@ class SessionActivitiesRepository extends ServiceEntityRepository
             return false;
         }
 
+        // TODO: Check if there is an existing session activity to sessions
+
         $this->cache->delete($this->cacheHelper->getAllSessionActivitiesKey());
 
         $this->getEntityManager()->remove($sessionActivity);
+        $this->getEntityManager()->flush();
+
+        return true;
+    }
+
+    /**
+     * @throws OptimisticLockException
+     * @throws ORMException
+     * @throws InvalidArgumentException
+     */
+    public function softDelete(int $id): bool
+    {
+        $sessionActivity = $this->getById($id);
+
+        if ($sessionActivity == null) {
+            return false;
+        }
+
+        // TODO: Check if there is an existing session activity to sessions
+
+        $this->cache->delete($this->cacheHelper->getAllSessionActivitiesKey());
+
+        $sessionActivity->setDeletedAt($this->appDateHelper->getCurrentImmutableDate());
+
         $this->getEntityManager()->flush();
 
         return true;
