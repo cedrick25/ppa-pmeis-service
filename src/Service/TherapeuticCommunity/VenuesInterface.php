@@ -9,4 +9,6 @@ interface VenuesInterface
     public function getAll(): array;
 
     public function deleteById(int $id): array;
+
+    public function updateById(int $id, string $name): array;
 }

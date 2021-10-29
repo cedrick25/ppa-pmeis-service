@@ -7,11 +7,13 @@ namespace App\Repository;
 use App\Common\AppDateHelper;
 use App\Common\CacheHelper;
 use App\Entity\Venues;
+use App\Enum\Response as ResponseEnum;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\ORM\OptimisticLockException;
 use Doctrine\ORM\ORMException;
 use Doctrine\Persistence\ManagerRegistry;
+use Exception;
 use Psr\Cache\InvalidArgumentException;
 use Symfony\Contracts\Cache\CacheInterface;
 use Symfony\Contracts\Cache\ItemInterface;
@@ -123,6 +125,32 @@ class VenuesRepository extends ServiceEntityRepository
         $this->getEntityManager()->flush();
 
         return true;
+    }
+
+    /**
+     * @throws InvalidArgumentException
+     * @throws Exception
+     */
+    public function update(int $id, string $name): string
+    {
+        $venue = $this->isExistingById($id);
+
+        if (! $venue) {
+            return ResponseEnum::NO_RECORD;
+        }
+
+        if ($this->isExistByName($name) && $venue->getName() !== $name) {
+            return ResponseEnum::CONFLICTED_INPUT;
+        }
+
+        $this->cache->delete($this->cacheHelper->getAllVenuesKey());
+
+        $venue->setName($name);
+        $venue->setUpdatedAt($this->appDateHelper->getCurrentImmutableDate());
+
+        $this->getEntityManager()->flush();
+
+        return ResponseEnum::OK;
     }
 
     public function isExistingById(int $id): bool | Venues

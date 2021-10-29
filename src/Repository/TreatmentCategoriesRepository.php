@@ -134,7 +134,7 @@ class TreatmentCategoriesRepository extends ServiceEntityRepository
             return ResponseEnum::NO_RECORD;
         }
 
-        if ($this->isExistByName($name)) {
+        if ($this->isExistByName($name) && $treatmentCategory->getName() !== $name) {
             return ResponseEnum::CONFLICTED_INPUT;
         }
 

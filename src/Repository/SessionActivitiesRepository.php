@@ -140,7 +140,7 @@ class SessionActivitiesRepository extends ServiceEntityRepository
             return ResponseEnum::NO_RECORD;
         }
 
-        if ($this->isExistByName($name)) {
+        if ($this->isExistByName($name) && $sessionActivity->getName() !== $name) {
             return ResponseEnum::CONFLICTED_INPUT;
         }
 

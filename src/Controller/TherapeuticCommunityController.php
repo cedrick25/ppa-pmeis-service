@@ -180,6 +180,14 @@ class TherapeuticCommunityController extends AbstractController
     }
 
     /**
+     * @Route("/venue/update/{id}/{name}", methods={"GET"})
+     */
+    public function updateVenue(Request $request): Response
+    {
+        return $this->json($this->venuesService->updateById((int) $request->get("id"), $request->get("name")));
+    }
+
+    /**
      * @Route("/session/create", methods={"POST"})
      */
     public function createSession(Request $request): Response
