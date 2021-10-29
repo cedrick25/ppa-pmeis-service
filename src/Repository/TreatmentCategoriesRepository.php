@@ -7,10 +7,12 @@ namespace App\Repository;
 use App\Common\AppDateHelper;
 use App\Common\CacheHelper;
 use App\Entity\TreatmentCategories;
+use App\Enum\Response as ResponseEnum;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\ORM\OptimisticLockException;
 use Doctrine\ORM\ORMException;
 use Doctrine\Persistence\ManagerRegistry;
+use Exception;
 use Psr\Cache\InvalidArgumentException;
 use Symfony\Contracts\Cache\CacheInterface;
 use Symfony\Contracts\Cache\ItemInterface;
@@ -120,6 +122,32 @@ class TreatmentCategoriesRepository extends ServiceEntityRepository
         return true;
     }
 
+    /**
+     * @throws InvalidArgumentException
+     * @throws Exception
+     */
+    public function update(int $id, string $name): string
+    {
+        $treatmentCategory = $this->isExistingById($id);
+
+        if (! $treatmentCategory) {
+            return ResponseEnum::NO_RECORD;
+        }
+
+        if ($this->isExistByName($name)) {
+            return ResponseEnum::CONFLICTED_INPUT;
+        }
+
+        $this->cache->delete($this->cacheHelper->getAllTreatmentCategoriesKey());
+
+        $treatmentCategory->setName($name);
+        $treatmentCategory->setUpdatedAt($this->appDateHelper->getCurrentImmutableDate());
+
+        $this->getEntityManager()->flush();
+
+        return ResponseEnum::OK;
+    }
+
     public function isExistingById(int $id): bool | TreatmentCategories
     {
         $treatmentCategory = $this->findOneBy([
@@ -138,5 +166,15 @@ class TreatmentCategoriesRepository extends ServiceEntityRepository
         ]);
 
         return $client != null;
+    }
+
+    private function isExistByName(string $name): bool
+    {
+        $sessionActivity = $this->findOneBy([
+            'name' => $name,
+            'deletedAt' => null
+        ]);
+
+        return $sessionActivity != null;
     }
 }

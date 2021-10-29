@@ -9,4 +9,6 @@ interface TreatmentCategoriesInterface
     public function create(string $name): array;
 
     public function deleteById(int $id): array;
+
+    public function updateById(int $id, string $name): array;
 }
