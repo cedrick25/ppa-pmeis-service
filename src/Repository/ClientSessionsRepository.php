@@ -6,6 +6,7 @@ use App\Common\AppDateHelper;
 use App\Common\CacheHelper;
 use App\Entity\ClientSessions;
 use App\Enum\ClientSessionRole;
+use App\Enum\Response as ResponseEnum;
 use App\Model\ClientSessions as ClientSessionModel;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\ORM\NonUniqueResultException;
@@ -40,12 +41,7 @@ class ClientSessionsRepository extends ServiceEntityRepository
      */
     public function create(ClientSessionModel $clientSessions): int|null
     {
-        $clientSession = $this->findOneBy([
-            'clientId' => $clientSessions->getClientId(),
-            'sessionId' => $clientSessions->getSessionId()
-        ]);
-
-        if ($clientSession != null) {
+        if ($this->isExisting($clientSessions)) {
             return null;
         }
 
@@ -74,7 +70,10 @@ class ClientSessionsRepository extends ServiceEntityRepository
         return $this->cache->get($cacheKey, function (ItemInterface $item) use ($cacheKey, $expiration) {
             $item->expiresAt($expiration);
 
-            return $this->findAll();
+            return $this->createQueryBuilder('cs')
+                ->orderBy('cs.clientSessionId', 'DESC')
+                ->getQuery()
+                ->getResult();
         });
     }
 
@@ -84,9 +83,9 @@ class ClientSessionsRepository extends ServiceEntityRepository
      */
     public function delete(int $id): bool
     {
-        $clientSession = $this->find($id);
+        $clientSession = $this->isExistingById($id);
 
-        if ($clientSession == null) {
+        if (! $clientSession) {
             return false;
         }
 
@@ -102,32 +101,66 @@ class ClientSessionsRepository extends ServiceEntityRepository
      * @throws InvalidArgumentException
      * @throws Exception
      */
-    public function update(int $id, ClientSessionModel $clientSessions): string
+    public function update(int $id, ClientSessionModel $clientSessionData): string
     {
-        $clientSession = $this->find($id);
+        $clientSession = $this->isExistingById($id);
 
-        if ($clientSession == null) {
-            return "No data found.";
+        if (! $clientSession) {
+            return ResponseEnum::NO_RECORD;
         }
 
-        $checkClientSession = $this->findOneBy([
-            'clientId' => $clientSessions->getClientId(),
-            'sessionId' => $clientSessions->getSessionId()
-        ]);
-
-        if ($checkClientSession != null) {
-            return "Selected data conflicted with current .";
+        if ($this->isConflicted($clientSession, $clientSessionData)) {
+            return ResponseEnum::CONFLICTED_INPUT;
         }
 
         $this->cache->delete($this->cacheHelper->getAllClientSessionsKey());
 
-        $clientSession->setClientId($clientSessions->getClientId());
-        $clientSession->setSessionId($clientSessions->getSessionId());
-        $clientSession->setRole(ClientSessionRole::from($clientSessions->getRole()));
+        $clientSession->setClientId($clientSessionData->getClientId());
+        $clientSession->setSessionId($clientSessionData->getSessionId());
+        $clientSession->setRole(ClientSessionRole::from($clientSessionData->getRole()));
 
         $this->getEntityManager()->persist($clientSession);
         $this->getEntityManager()->flush();
 
-        return "OK";
+        return ResponseEnum::OK;
+    }
+
+    public function isExistingById(int $id): bool | ClientSessions
+    {
+        $client = $this->findOneBy([
+            'clientSessionId' => $id
+        ]);
+
+        return ($client == null) ? false : $client;
+    }
+
+    private function isExisting(ClientSessionModel $clientSessionData): bool
+    {
+        $clientSession = $this->findOneBy([
+            'clientId' => $clientSessionData->getClientId(),
+            'sessionId' => $clientSessionData->getSessionId()
+        ]);
+
+        return $clientSession != null;
+    }
+
+    private function isConflicted(ClientSessions $fetchedClientSession, ClientSessionModel $clientSessionData): bool
+    {
+        // Fetched and input client is the same.
+        // It is trying to update itself.
+        if (
+            $fetchedClientSession->getClientId() === $clientSessionData->getClientId() &&
+            $fetchedClientSession->getSessionId() === $clientSessionData->getSessionId()
+        ) {
+            return false;
+        }
+
+        // There is an existing record in the database.
+        // It is trying to update another record that existing in the database.
+        if ($this->isExisting($clientSessionData)) {
+            return true;
+        }
+
+        return false;
     }
 }

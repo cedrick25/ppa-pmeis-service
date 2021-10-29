@@ -41,14 +41,7 @@ class ClientsRepository extends ServiceEntityRepository
      */
     public function create(ClientModel $clientData): int | null
     {
-        $client = $this->findOneBy([
-            'cmisId' => $clientData->getCmisId(),
-            'firstName' => $clientData->getFirstName(),
-            'lastName' => $clientData->getLastName(),
-            'deletedAt' => null
-        ]);
-
-        if ($client != null) {
+        if ($this->isExisting($clientData)) {
             return null;
         }
 
@@ -104,12 +97,13 @@ class ClientsRepository extends ServiceEntityRepository
      */
     public function delete(int $id): bool
     {
-        // TODO: Check if there is an existing id in client sessions and rj conducted process
         $client = $this->isExistingById($id);
 
-        if ($client == null) {
+        if (! $client) {
             return false;
         }
+
+        // TODO: Check if there is an existing id in client sessions and rj conducted process
 
         $this->cache->delete($this->cacheHelper->getAllClientsKey());
 
@@ -190,11 +184,19 @@ class ClientsRepository extends ServiceEntityRepository
             'deletedAt' => null
         ]);
 
-        if ($client == null) {
-            return false;
-        }
+        return ($client == null) ? false : $client;
+    }
 
-        return $client;
+    private function isExisting(ClientModel $clientData): bool
+    {
+        $client = $this->findOneBy([
+            'cmisId' => $clientData->getCmisId(),
+            'firstName' => $clientData->getFirstName(),
+            'lastName' => $clientData->getLastName(),
+            'deletedAt' => null
+        ]);
+
+        return $client != null;
     }
 
     private function isConflicted(Clients $fetchedClient, ClientModel $clientData): bool
@@ -209,16 +211,9 @@ class ClientsRepository extends ServiceEntityRepository
             return false;
         }
 
-        $client = $this->findOneBy([
-            'cmisId' => $clientData->getCmisId(),
-            'firstName' => $clientData->getFirstName(),
-            'lastName' => $clientData->getLastName(),
-            'deletedAt' => null
-        ]);
-
         // There is an existing record in the database.
         // It is trying to update another record that existing in the database.
-        if ($client != null) {
+        if ($this->isExisting($clientData)) {
             return true;
         }
 
