@@ -41,58 +41,23 @@ class QuartersRepository extends ServiceEntityRepository
      * @throws InvalidArgumentException
      * @throws ORMException|\Psr\Cache\InvalidArgumentException
      */
-    public function create(QuartersModel $quarters): int|null
+    public function create(QuartersModel $quarterData): int|null
     {
-        $quarterByNameAndYear = $this->getByNameAndYear($quarters->getName(), $quarters->getYear());
-
-        if ($quarterByNameAndYear != null) {
+        if ($this->isExisting($quarterData)) {
             return null;
         }
 
         $this->cache->delete($this->cacheHelper->getAllQuartersKey());
 
         $quarter = new Quarters();
-        $quarter->setName($quarters->getName());
-        $quarter->setYear($quarters->getYear());
+        $quarter->setName($quarterData->getName());
+        $quarter->setYear($quarterData->getYear());
         $quarter->setCreatedAt($this->appDateHelper->getCurrentImmutableDate());
 
         $this->getEntityManager()->persist($quarter);
         $this->getEntityManager()->flush();
 
         return $quarter->getQuarterId();
-    }
-
-    /**
-     * @param string $name
-     * @param string $year
-     * @return Quarters|null
-     * @throws \Psr\Cache\InvalidArgumentException
-     */
-    public function getByNameAndYear(string $name, string $year): ?Quarters
-    {
-        $cacheKey = $this->cacheHelper->getQuarterByNameAndYearKey($name, $year);
-
-        return $this->cache->get($cacheKey, function (ItemInterface $item) use ($cacheKey, $name, $year) {
-            $dateTimeExpiration = new \DateTime();
-            $result = $this->createQueryBuilder('qtr')
-                ->andWhere('qtr.name = :name AND qtr.year = :year')
-                ->setParameter('name', $name)
-                ->setParameter('year', $year)
-                ->getQuery()
-                ->getOneOrNullResult();
-
-            // Immediately expires the cache if there is no record found.
-            // This resolves the issue of checking the record if already exist before creating new one.
-            if ($result == null) {
-                $dateTimeExpiration->add(new \DateInterval("PT1S"));
-            } else {
-                $dateTimeExpiration->add(new \DateInterval("PT24H"));
-            }
-
-            $item->expiresAt($dateTimeExpiration);
-
-            return $result;
-        });
     }
 
     /**
@@ -115,31 +80,18 @@ class QuartersRepository extends ServiceEntityRepository
     }
 
     /**
-     * @param int $id
-     * @return Quarters|null
-     * @throws NonUniqueResultException
-     */
-    public function getById(int $id): ?Quarters
-    {
-        return $this->createQueryBuilder('qtr')
-            ->andWhere('qtr.quarterId = :id')
-            ->setParameter('id', $id)
-            ->getQuery()
-            ->getOneOrNullResult();
-    }
-
-    /**
      * @throws ORMException
      * @throws \Psr\Cache\InvalidArgumentException
      */
     public function delete(int $id): bool
     {
-        // TODO: Check if there is an existing id in sessions
-        $quarter = $this->getById($id);
+        $quarter = $this->isExistingById($id);
 
-        if ($quarter == null) {
+        if (! $quarter) {
             return false;
         }
+
+        // TODO: Check if there is an existing id in sessions
 
         $this->cache->delete($this->cacheHelper->getAllQuartersKey());
         $this->cache->delete($this->cacheHelper->getQuarterByNameAndYearKey($quarter->getName(), $quarter->getYear()));
@@ -183,6 +135,16 @@ class QuartersRepository extends ServiceEntityRepository
         return ($quarter == null) ? false : $quarter;
     }
 
+    public function isExisting(QuartersModel $quarterData): bool
+    {
+        $quarter = $this->findOneBy([
+            'name' => $quarterData->getName(),
+            'year' => $quarterData->getYear()
+        ]);
+
+        return $quarter != null;
+    }
+
     public function isConflicted(Quarters $fetchedQuarter, QuartersModel $quarterData): bool
     {
         if (
@@ -192,12 +154,7 @@ class QuartersRepository extends ServiceEntityRepository
             return false;
         }
 
-        $quarter = $this->findOneBy([
-            'name' => $quarterData->getName(),
-            'year' => $quarterData->getYear()
-        ]);
-
-        if ($quarter != null) {
+        if ($this->isExisting($quarterData)) {
             return true;
         }
 
