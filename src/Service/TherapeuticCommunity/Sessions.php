@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Service\TherapeuticCommunity;
 
 use App\Common\AppFormatter;
+use App\Enum\Response as ResponseEnum;
 use App\Enum\TherapeuticCommunity as TCEnum;
 use App\Model\Sessions as SessionsModel;
 use App\Repository\SessionsRepository;
@@ -83,8 +84,8 @@ class Sessions implements SessionsInterface
         try {
             $isUpdated = $this->repository->update($id, $sessionData);
 
-            if (! $isUpdated) {
-                return $this->appFormatter->formatResponse(TCEnum::UPDATING_FAILED, null, ['app' => TCEnum::NO_DATA]);
+            if ($isUpdated !== ResponseEnum::OK) {
+                return $this->appFormatter->formatResponse(TCEnum::UPDATING_FAILED, null, ['app' => $isUpdated]);
             }
 
             return $this->appFormatter->formatResponse(TCEnum::UPDATING_SUCCESS, null);

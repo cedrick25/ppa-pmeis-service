@@ -7,6 +7,7 @@ namespace App\Repository;
 use App\Common\AppDateHelper;
 use App\Common\CacheHelper;
 use App\Entity\Sessions;
+use App\Enum\Response as ResponseEnum;
 use App\Model\Sessions as SessionsModel;
 use DateTimeImmutable;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
@@ -43,10 +44,7 @@ class SessionsRepository extends ServiceEntityRepository
      */
     public function create(SessionsModel $sessionData): int | null
     {
-        $isExist = $this->isSessionExist(
-            $sessionData->getQuarterId(),
-            $sessionData->getPhaseId(),
-            $sessionData->getSessionActivityId());
+        $isExist = $this->isExisting($sessionData);
 
         if ($isExist) {
             return null;
@@ -102,9 +100,9 @@ class SessionsRepository extends ServiceEntityRepository
      */
     public function delete(int $id): bool
     {
-        $session = $this->getById($id);
+        $session = $this->isExistingById($id);
 
-        if ($session == null) {
+        if (! $session) {
             return false;
         }
 
@@ -125,9 +123,9 @@ class SessionsRepository extends ServiceEntityRepository
      */
     public function softDelete(int $id): bool
     {
-        $session = $this->getById($id);
+        $session = $this->isExistingById($id);
 
-        if ($session == null) {
+        if (! $session) {
             return false;
         }
 
@@ -148,18 +146,23 @@ class SessionsRepository extends ServiceEntityRepository
      * @throws Exception
      * @throws \Psr\Cache\InvalidArgumentException
      */
-    public function update(int $id, SessionsModel $sessionData): bool
+    public function update(int $id, SessionsModel $sessionData): string
     {
-        $session = $this->getById($id);
+        $session = $this->isExistingById($id);
 
-        if ($session == null) {
-            return false;
+        if (! $session) {
+            return ResponseEnum::NO_RECORD;
+        }
+
+        if ($this->isConflicted($session, $sessionData)) {
+            return ResponseEnum::CONFLICTED_INPUT;
         }
 
         $this->cache->delete($this->cacheHelper->getAllSessionsKey());
 
-        // quarter, phase and session activity cannot be updated to avoid conflict
-        // if needed, create new one instead
+        $session->setQuarterId($sessionData->getQuarterId());
+        $session->setPhaseId($sessionData->getPhaseId());
+        $session->setSessionActivityId($sessionData->getSessionActivityId());
         $session->setRegionId($sessionData->getRegionId());
         $session->setFieldOfficeId($sessionData->getFieldOfficeId());
         $session->setTreatmentCategoryId($sessionData->getTreatmentCategoryId());
@@ -172,26 +175,49 @@ class SessionsRepository extends ServiceEntityRepository
 
         $this->getEntityManager()->flush();
 
-        return true;
+        return ResponseEnum::OK;
     }
 
-    public function getById(int $id): ?Sessions
+    public function isExistingById(int $id): bool | Sessions
     {
-        return $this->findOneBy([
+        $session = $this->findOneBy([
             'sessionId' => $id,
             'deletedAt' => null
         ]);
+
+        return ($session == null) ? false : $session;
     }
 
-    public function isSessionExist(int $quarterId, int $phaseId, int $sessionActivityId): bool
+    public function isExisting(SessionsModel $sessionData): bool
     {
         $session = $this->findOneBy([
-            'quarterId' => $quarterId,
-            'phaseId' => $phaseId,
-            'sessionActivityId' => $sessionActivityId,
+            'quarterId' => $sessionData->getQuarterId(),
+            'phaseId' => $sessionData->getPhaseId(),
+            'sessionActivityId' => $sessionData->getSessionActivityId(),
             'deletedAt' => null
         ]);
 
         return $session != null;
+    }
+
+    private function isConflicted(Sessions $fetchedSession, SessionsModel $sessionData): bool
+    {
+        // Fetched and input client is the same.
+        // It is trying to update itself.
+        if (
+            $fetchedSession->getQuarterId() === $sessionData->getQuarterId() &&
+            $fetchedSession->getPhaseId() === $sessionData->getPhaseId() &&
+            $fetchedSession->getSessionActivityId() === $sessionData->getSessionActivityId()
+        ) {
+            return false;
+        }
+
+        // There is an existing record in the database.
+        // It is trying to update another record that existing in the database.
+        if ($this->isExisting($sessionData)) {
+            return true;
+        }
+
+        return false;
     }
 }
