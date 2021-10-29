@@ -43,7 +43,10 @@ class SessionsRepository extends ServiceEntityRepository
      */
     public function create(SessionsModel $sessionData): int | null
     {
-        $isExist = $this->isSessionExist($sessionData->getQuarterId(), $sessionData->getPhaseId(), $sessionData->getSessionActivityId());
+        $isExist = $this->isSessionExist(
+            $sessionData->getQuarterId(),
+            $sessionData->getPhaseId(),
+            $sessionData->getSessionActivityId());
 
         if ($isExist) {
             return null;
@@ -72,24 +75,6 @@ class SessionsRepository extends ServiceEntityRepository
     }
 
     /**
-     * @throws NonUniqueResultException
-     */
-    public function isSessionExist(int $quarterId, int $phaseId, int $sessionActivityId): bool
-    {
-        $session = $this->createQueryBuilder('se')
-            ->andWhere('se.quarterId = :quarterId')
-            ->andWhere('se.phaseId = :phaseId')
-            ->andWhere('se.sessionActivityId = :sessionActivityId')
-            ->setParameter('quarterId', $quarterId)
-            ->setParameter('phaseId', $phaseId)
-            ->setParameter('sessionActivityId', $sessionActivityId)
-            ->getQuery()
-            ->getOneOrNullResult();
-
-        return $session != null;
-    }
-
-    /**
      * @return Sessions[]
      * @throws \Psr\Cache\InvalidArgumentException
      */
@@ -102,22 +87,11 @@ class SessionsRepository extends ServiceEntityRepository
             $item->expiresAt($expiration);
 
             return $this->createQueryBuilder('se')
+                ->andWhere('se.deletedAt IS NULL')
                 ->orderBy('se.sessionId', 'DESC')
                 ->getQuery()
                 ->getResult();
         });
-    }
-
-    /**
-     * @throws NonUniqueResultException
-     */
-    public function getById(int $id): ?Sessions
-    {
-        return $this->createQueryBuilder('se')
-            ->andWhere('se.sessionId = :id')
-            ->setParameter('id', $id)
-            ->getQuery()
-            ->getOneOrNullResult();
     }
 
     /**
@@ -134,9 +108,35 @@ class SessionsRepository extends ServiceEntityRepository
             return false;
         }
 
+        // TODO: check if existing in client sessions, resource facilitator sessions
+
         $this->cache->delete($this->cacheHelper->getAllSessionsKey());
 
         $this->getEntityManager()->remove($session);
+        $this->getEntityManager()->flush();
+
+        return true;
+    }
+
+    /**
+     * @throws OptimisticLockException
+     * @throws ORMException
+     * @throws \Psr\Cache\InvalidArgumentException
+     */
+    public function softDelete(int $id): bool
+    {
+        $session = $this->getById($id);
+
+        if ($session == null) {
+            return false;
+        }
+
+        // TODO: check if existing in client sessions, resource facilitator sessions
+
+        $this->cache->delete($this->cacheHelper->getAllSessionsKey());
+
+        $session->setDeletedAt($this->appDateHelper->getCurrentImmutableDate());
+
         $this->getEntityManager()->flush();
 
         return true;
@@ -173,5 +173,25 @@ class SessionsRepository extends ServiceEntityRepository
         $this->getEntityManager()->flush();
 
         return true;
+    }
+
+    public function getById(int $id): ?Sessions
+    {
+        return $this->findOneBy([
+            'sessionId' => $id,
+            'deletedAt' => null
+        ]);
+    }
+
+    public function isSessionExist(int $quarterId, int $phaseId, int $sessionActivityId): bool
+    {
+        $session = $this->findOneBy([
+            'quarterId' => $quarterId,
+            'phaseId' => $phaseId,
+            'sessionActivityId' => $sessionActivityId,
+            'deletedAt' => null
+        ]);
+
+        return $session != null;
     }
 }
