@@ -8,12 +8,14 @@ use App\Common\AppDateHelper;
 use App\Common\CacheHelper;
 use App\Entity\Phases;
 use App\Entity\SessionActivities;
+use App\Enum\Response as ResponseEnum;
 use DateTimeImmutable;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\ORM\OptimisticLockException;
 use Doctrine\ORM\ORMException;
 use Doctrine\Persistence\ManagerRegistry;
+use Exception;
 use Psr\Cache\InvalidArgumentException;
 use Symfony\Contracts\Cache\CacheInterface;
 use Symfony\Contracts\Cache\ItemInterface;
@@ -79,14 +81,6 @@ class SessionActivitiesRepository extends ServiceEntityRepository
         return $sessionActivity->getSessionActivityId();
     }
 
-    public function getById(int $id): ?SessionActivities
-    {
-        return $this->findOneBy([
-            'sessionActivityId' => $id,
-            'deletedAt' => null
-        ]);
-    }
-
     /**
      * @throws NonUniqueResultException
      * @throws InvalidArgumentException
@@ -135,15 +129,45 @@ class SessionActivitiesRepository extends ServiceEntityRepository
     }
 
     /**
-     * @throws NonUniqueResultException
+     * @throws InvalidArgumentException
+     * @throws Exception
      */
+    public function update(int $id, string $name): string
+    {
+        $sessionActivity = $this->getById($id);
+
+        if ($sessionActivity == null) {
+            return ResponseEnum::NO_RECORD;
+        }
+
+        if ($this->isExistByName($name)) {
+            return ResponseEnum::CONFLICTED_INPUT;
+        }
+
+        $this->cache->delete($this->cacheHelper->getAllSessionActivitiesKey());
+
+        $sessionActivity->setName($name);
+        $sessionActivity->setUpdatedAt($this->appDateHelper->getCurrentImmutableDate());
+
+        $this->getEntityManager()->flush();
+
+        return ResponseEnum::OK;
+    }
+
+    public function getById(int $id): ?SessionActivities
+    {
+        return $this->findOneBy([
+            'sessionActivityId' => $id,
+            'deletedAt' => null
+        ]);
+    }
+
     private function isExistByName(string $name): bool
     {
-        $sessionActivity = $this->createQueryBuilder('sa')
-            ->andWhere('sa.name = :name')
-            ->setParameter('name', $name)
-            ->getQuery()
-            ->getOneOrNullResult();
+        $sessionActivity = $this->findOneBy([
+            'name' => $name,
+            'deletedAt' => null
+        ]);
 
         return $sessionActivity != null;
     }
