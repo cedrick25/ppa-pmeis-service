@@ -57,7 +57,7 @@ class UserController extends AbstractController
     /**
      * @Route("/delete/{id}", methods={"GET"})
      */
-    public function deleteQuarterById(Request $request): Response
+    public function deleteById(Request $request): Response
     {
         return $this->json($this->userService->deleteById((int) $request->get("id")));
     }
