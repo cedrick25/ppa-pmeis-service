@@ -5,13 +5,14 @@ declare(strict_types=1);
 namespace App\Service;
 
 use App\Common\AppFormatter;
+use App\Enum\Response as ResponseEnum;
 use App\Model\UserAccountWithDetails;
 use App\Repository\UserAccountRepository;
 use Doctrine\ORM\ORMException;
 use Psr\Cache\InvalidArgumentException;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 
-class UserService implements UserServiceInterface
+class User implements UserInterface
 {
     public const USER_CREATION_SUCCESS = "User creation successful.";
     public const USER_CREATION_FAILED = "User creation failed.";
@@ -25,21 +26,31 @@ class UserService implements UserServiceInterface
 
     /**
      * @return array<string, mixed>
-     * @throws InvalidArgumentException
+     * @throws
      */
     public function getByID(int $id): array
     {
-        $userAccount = $this->userAccountRepository->findAccountWithDetailsByID($id);
-        unset($userAccount["password"]);
-        $userAccount["user_account_id"] = (int) $userAccount["user_account_id"];
-        $userAccount["user_detail_id"] = (int) $userAccount["user_detail_id"];
-        $userAccount["field_office_id"] = (int) $userAccount["status"];
-        $userAccount["region_id"] = (int) $userAccount["region_id"];
-        $userAccount["status"] = (int) $userAccount["status"];
-        $userAccount["is_pwd"] = (bool) $userAccount["is_pwd"];
-        $userAccount["is_senior_citizen"] = (bool) $userAccount["is_senior_citizen"];
+        try {
+            $userAccount = $this->userAccountRepository->findAccountWithDetailsByID($id);
 
-        return $userAccount;
+            if ($userAccount == null) {
+                return $this->appFormatter->formatResponse(ResponseEnum::NO_DATA, null);
+            }
+
+            unset($userAccount["password"]);
+            $userAccount["user_account_id"] = (int) $userAccount["user_account_id"];
+            $userAccount["user_detail_id"] = (int) $userAccount["user_detail_id"];
+            $userAccount["field_office_id"] = (int) $userAccount["status"];
+            $userAccount["region_id"] = (int) $userAccount["region_id"];
+            $userAccount["status"] = (int) $userAccount["status"];
+            $userAccount["is_pwd"] = (bool) $userAccount["is_pwd"];
+            $userAccount["is_senior_citizen"] = (bool) $userAccount["is_senior_citizen"];
+            $userAccount["position_id"] = (int) $userAccount["position_id"];
+
+            return $userAccount;
+        } catch (InvalidArgumentException $exception) {
+            return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_FAILED, null, ['cache' => $exception->getMessage()]);
+        }
     }
 
     /**

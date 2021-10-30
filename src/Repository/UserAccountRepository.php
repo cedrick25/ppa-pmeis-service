@@ -43,24 +43,31 @@ class UserAccountRepository extends ServiceEntityRepository
      * @return array<string, mixed>|null
      * @throws InvalidArgumentException
      */
-    public function findAccountWithDetailsByID(int $id): ?array
+    public function findAccountWithDetailsByID(int $id): array | null
     {
         $cacheKey = $this->cacheHelper->getAccountWithDetailsKey($id);
-        $expiration = $this->cacheHelper->getExpirationDateTime(1);
 
-        return $this->cache->get($cacheKey, function (ItemInterface $item) use ($cacheKey, $id, $expiration) {
-            $item->expiresAt($expiration);
+        return $this->cache->get($cacheKey, function (ItemInterface $item) use ($cacheKey, $id) {
+            $dateTimeExpiration = new \DateTime();
 
             $conn = $this->getEntityManager()->getConnection();
             $sql = "SELECT ua.*, ud.*, rg.name as region_name, fe.name as field_office_name FROM user_account ua 
                     LEFT JOIN user_details ud ON ud.user_account_id = ua.user_account_id
                     LEFT JOIN regions rg ON rg.region_id = ua.region_id
                     LEFT JOIN field_offices fe ON fe.field_office_id = ua.field_office_id
-                    WHERE ua.user_account_id = {$id}";
+                    WHERE ua.user_account_id = {$id} AND ua.deleted_at IS NULL";
             $stmt = $conn->prepare($sql);
-            $result = $stmt->executeQuery();
+            $result = $stmt->executeQuery()->fetchAssociative();
 
-            return $result->fetchAssociative();
+            if (! $result) {
+                $dateTimeExpiration->add(new \DateInterval("PT1S"));
+                return null;
+            }
+
+            $dateTimeExpiration->add(new \DateInterval("PT1H"));
+            $item->expiresAt($dateTimeExpiration);
+
+            return $result;
         });
     }
 

@@ -7,25 +7,30 @@ namespace App\Controller;
 use App\Common\AppFormatter;
 use App\Common\AppHydrator;
 use App\Model\UserAccountWithDetails;
-use App\Service\UserServiceInterface;
+use App\Service\UserInterface;
 use ReflectionException;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\Routing\Annotation\Route;
 
+/**
+ * @Route("/api/user")
+ */
 class UserController extends AbstractController
 {
     public function __construct(
-        private UserServiceInterface $userService,
-        private AppHydrator $appHydrator,
-        private AppFormatter $appFormatter,
+        private UserInterface $userService,
+        private AppHydrator   $appHydrator,
+        private AppFormatter  $appFormatter,
     ){}
 
     /**
+     * @Route("/list", methods={"GET"})
      */
-    public function index(): Response
+    public function list(): Response
     {
-        return $this->json($this->userService->getByID(1));
+        return $this->json("Users");
     }
 
     public function register(Request $request): Response
@@ -39,5 +44,13 @@ class UserController extends AbstractController
         } catch (ReflectionException $exception) {
             return $this->json($this->appFormatter->formatResponse('User creation failed', null, ['reflection' => $exception->getMessage()]));
         }
+    }
+
+    /**
+     * @Route("/{id}", methods={"GET"})
+     */
+    public function getById(Request $request): Response
+    {
+        return $this->json($this->userService->getByID((int) $request->get("id")));
     }
 }

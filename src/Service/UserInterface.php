@@ -4,7 +4,7 @@ namespace App\Service;
 
 use \App\Model\UserAccountWithDetails;
 
-interface UserServiceInterface
+interface UserInterface
 {
     public function getByID(int $id): array;
 
