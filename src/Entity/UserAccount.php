@@ -106,6 +106,10 @@ class UserAccount implements UserInterface, PasswordAuthenticatedUserInterface
 
     public function getPassword(): ?string
     {
+        if ($this->getDeletedAt() !== null) {
+            return null;
+        }
+
         return $this->password;
     }
 

@@ -11,6 +11,7 @@ use App\Model\UserAccountWithDetails;
 use DateTimeImmutable;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\ORM\NonUniqueResultException;
+use Doctrine\ORM\OptimisticLockException;
 use Doctrine\ORM\ORMException;
 use Doctrine\Persistence\ManagerRegistry;
 use Exception;
@@ -110,6 +111,40 @@ class UserAccountRepository extends ServiceEntityRepository
         $this->cache->delete($this->cacheHelper->getAllUsersKey());
 
         return $user->getUserAccountId();
+    }
+
+    /**
+     * @throws OptimisticLockException
+     * @throws ORMException
+     * @throws InvalidArgumentException
+     */
+    public function softDelete(int $id): bool
+    {
+        // TODO: Check table constraints
+        $user =$this->isExistingById($id);
+
+        if ($user == null) {
+            return false;
+        }
+
+        $this->cache->delete($this->cacheHelper->getAccountWithDetailsKey($id));
+        $this->cache->delete($this->cacheHelper->getAllUsersKey());
+
+        $user->setDeletedAt($this->appDateHelper->getCurrentImmutableDate());
+
+        $this->getEntityManager()->flush();
+
+        return true;
+    }
+
+    public function isExistingById(int $id): bool | UserAccount
+    {
+        $user = $this->findOneBy([
+            'userAccountId' => $id,
+            'deletedAt' => null
+        ]);
+
+        return ($user == null) ? false : $user;
     }
 
 

@@ -19,7 +19,7 @@ class User implements UserInterface
     public const USER_VALIDATION_FAILED = "User validation failed.";
 
     public function __construct(
-        private UserAccountRepository $userAccountRepository,
+        private UserAccountRepository $repository,
         private ValidatorInterface    $validator,
         private AppFormatter          $appFormatter,
     ){}
@@ -27,7 +27,7 @@ class User implements UserInterface
     public function getAll(): array
     {
         try {
-            $userAccounts = $this->userAccountRepository->findWithDetails();
+            $userAccounts = $this->repository->findWithDetails();
             $accounts = [];
 
             if ($userAccounts == null) {
@@ -61,7 +61,7 @@ class User implements UserInterface
     public function getByID(int $id): array
     {
         try {
-            $userAccount = $this->userAccountRepository->findWithDetails($id);
+            $userAccount = $this->repository->findWithDetails($id);
 
             if ($userAccount == null) {
                 return $this->appFormatter->formatResponse(ResponseEnum::NO_DATA, null);
@@ -94,7 +94,7 @@ class User implements UserInterface
             if (count($errors) > 0) {
                 return $this->appFormatter->formatResponse(self::USER_VALIDATION_FAILED, null, $this->appFormatter->formatErrors($errors));
             }
-            $userAccountId = $this->userAccountRepository->create($userAccountWithDetails);
+            $userAccountId = $this->repository->create($userAccountWithDetails);
 
             if ($userAccountId == null) {
                 return $this->appFormatter->formatResponse(self::USER_CREATION_FAILED, null, ['app' => 'Email address already exist']);
@@ -103,8 +103,25 @@ class User implements UserInterface
             return $this->appFormatter->formatResponse(self::USER_CREATION_SUCCESS, ['id' => $userAccountId]);
         } catch (ORMException $exception) {
             return $this->appFormatter->formatResponse(self::USER_CREATION_FAILED, null, ['orm' => $exception->getMessage()]);
-        } catch (\Exception $e) {
+        } catch (\Exception | InvalidArgumentException $e) {
             return $this->appFormatter->formatResponse(self::USER_CREATION_FAILED, null, ['app' => $e->getMessage()]);
+        }
+    }
+
+    public function deleteById(int $id): array
+    {
+        try {
+            $isDeleted = $this->repository->softDelete($id);
+
+            if (! $isDeleted) {
+                return $this->appFormatter->formatResponse(ResponseEnum::DELETING_FAILED, null, ['app' => ResponseEnum::NO_DATA]);
+            }
+
+            return $this->appFormatter->formatResponse(ResponseEnum::DELETING_SUCCESS, null);
+        } catch (InvalidArgumentException $exception) {
+            return $this->appFormatter->formatResponse(ResponseEnum::DELETING_FAILED, null, ['cache' => $exception->getMessage()]);
+        } catch (ORMException $exception) {
+            return $this->appFormatter->formatResponse(ResponseEnum::DELETING_FAILED, null, ['orm' => $exception->getMessage()]);
         }
     }
 }
