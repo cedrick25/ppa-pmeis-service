@@ -48,7 +48,7 @@ class User implements UserInterface
                 $accounts[] = $userAccount;
             }
 
-            return $accounts;
+            return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_SUCCESS, $accounts);
         } catch (InvalidArgumentException $exception) {
             return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_FAILED, null, ['cache' => $exception->getMessage()]);
         }
@@ -77,7 +77,7 @@ class User implements UserInterface
             $userAccount["is_senior_citizen"] = (bool) $userAccount["is_senior_citizen"];
             $userAccount["position_id"] = (int) $userAccount["position_id"];
 
-            return $userAccount;
+            return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_SUCCESS, $userAccount);
         } catch (InvalidArgumentException $exception) {
             return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_FAILED, null, ['cache' => $exception->getMessage()]);
         }
