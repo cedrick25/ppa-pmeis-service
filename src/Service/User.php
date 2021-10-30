@@ -24,6 +24,36 @@ class User implements UserInterface
         private AppFormatter          $appFormatter,
     ){}
 
+    public function getAll(): array
+    {
+        try {
+            $userAccounts = $this->userAccountRepository->findWithDetails();
+            $accounts = [];
+
+            if ($userAccounts == null) {
+                return $this->appFormatter->formatResponse(ResponseEnum::NO_DATA, null);
+            }
+
+            foreach ($userAccounts as $userAccount) {
+                unset($userAccount["password"]);
+                $userAccount["user_account_id"] = (int) $userAccount["user_account_id"];
+                $userAccount["user_detail_id"] = (int) $userAccount["user_detail_id"];
+                $userAccount["field_office_id"] = (int) $userAccount["status"];
+                $userAccount["region_id"] = (int) $userAccount["region_id"];
+                $userAccount["status"] = (int) $userAccount["status"];
+                $userAccount["is_pwd"] = (bool) $userAccount["is_pwd"];
+                $userAccount["is_senior_citizen"] = (bool) $userAccount["is_senior_citizen"];
+                $userAccount["position_id"] = (int) $userAccount["position_id"];
+
+                $accounts[] = $userAccount;
+            }
+
+            return $accounts;
+        } catch (InvalidArgumentException $exception) {
+            return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_FAILED, null, ['cache' => $exception->getMessage()]);
+        }
+    }
+
     /**
      * @return array<string, mixed>
      * @throws
@@ -31,7 +61,7 @@ class User implements UserInterface
     public function getByID(int $id): array
     {
         try {
-            $userAccount = $this->userAccountRepository->findAccountWithDetailsByID($id);
+            $userAccount = $this->userAccountRepository->findWithDetails($id);
 
             if ($userAccount == null) {
                 return $this->appFormatter->formatResponse(ResponseEnum::NO_DATA, null);

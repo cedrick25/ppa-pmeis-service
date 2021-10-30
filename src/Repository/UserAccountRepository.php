@@ -39,15 +39,21 @@ class UserAccountRepository extends ServiceEntityRepository
     }
 
     /**
-     * @param int $id
+     * @param int|null $id
      * @return array<string, mixed>|null
      * @throws InvalidArgumentException
      */
-    public function findAccountWithDetailsByID(int $id): array | null
+    public function findWithDetails(?int $id = null): array | null
     {
-        $cacheKey = $this->cacheHelper->getAccountWithDetailsKey($id);
+        $singleUser = "";
+        $cacheKey = $this->cacheHelper->getAllUsersKey();
 
-        return $this->cache->get($cacheKey, function (ItemInterface $item) use ($cacheKey, $id) {
+        if ($id != null) {
+            $singleUser = "ua.user_account_id = {$id} AND";
+            $cacheKey = $this->cacheHelper->getAccountWithDetailsKey($id);
+        }
+
+        return $this->cache->get($cacheKey, function (ItemInterface $item) use ($cacheKey, $id, $singleUser) {
             $dateTimeExpiration = new \DateTime();
 
             $conn = $this->getEntityManager()->getConnection();
@@ -55,9 +61,10 @@ class UserAccountRepository extends ServiceEntityRepository
                     LEFT JOIN user_details ud ON ud.user_account_id = ua.user_account_id
                     LEFT JOIN regions rg ON rg.region_id = ua.region_id
                     LEFT JOIN field_offices fe ON fe.field_office_id = ua.field_office_id
-                    WHERE ua.user_account_id = {$id} AND ua.deleted_at IS NULL";
+                    WHERE {$singleUser} ua.deleted_at IS NULL";
             $stmt = $conn->prepare($sql);
-            $result = $stmt->executeQuery()->fetchAssociative();
+            $query = $stmt->executeQuery();
+            $result = ($id != null) ? $query->fetchAssociative() : $query->fetchAllAssociative();
 
             if (! $result) {
                 $dateTimeExpiration->add(new \DateInterval("PT1S"));
@@ -72,29 +79,9 @@ class UserAccountRepository extends ServiceEntityRepository
     }
 
     /**
-     * @param int $id
-     * @return UserAccount|null
-     * @throws InvalidArgumentException
-     */
-    public function findAccountByID(int $id): ?UserAccount
-    {
-        $cacheKey = $this->cacheHelper->getAccountKey($id);
-        $expiration = $this->cacheHelper->getExpirationDateTime(1);
-
-        return $this->cache->get($cacheKey, function (ItemInterface $item) use ($cacheKey, $id, $expiration) {
-            $item->expiresAt($expiration);
-
-            return $this->createQueryBuilder('ua')
-                ->andWhere('ua.userAccountId = :id')
-                ->setParameter('id', $id)
-                ->getQuery()
-                ->getOneOrNullResult();
-        });
-    }
-
-    /**
      * @throws ORMException
      * @throws Exception
+     * @throws InvalidArgumentException
      */
     public function create(UserAccountWithDetails $userAccountWithDetails): int|null
     {
@@ -119,6 +106,9 @@ class UserAccountRepository extends ServiceEntityRepository
 
         $this->userDetailsRepository->create($user->getUserAccountId(), $userAccountWithDetails);
 
+        $this->cache->delete($this->cacheHelper->getAccountWithDetailsKey($user->getUserAccountId()));
+        $this->cache->delete($this->cacheHelper->getAllUsersKey());
+
         return $user->getUserAccountId();
     }
 
@@ -126,14 +116,12 @@ class UserAccountRepository extends ServiceEntityRepository
     /**
      * @param string $emailAddress
      * @return UserAccount|null
-     * @throws NonUniqueResultException
      */
     public function getByEmail(string $emailAddress): ?UserAccount
     {
-        return $this->createQueryBuilder('ua')
-            ->andWhere('ua.emailAddress = :emailAddress')
-            ->setParameter('emailAddress', $emailAddress)
-            ->getQuery()
-            ->getOneOrNullResult();
+        return $this->findOneBy([
+            'emailAddress' => $emailAddress,
+            'deletedAt' => null
+        ]);
     }
 }

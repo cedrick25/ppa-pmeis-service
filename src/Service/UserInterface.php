@@ -6,6 +6,8 @@ use \App\Model\UserAccountWithDetails;
 
 interface UserInterface
 {
+    public function getAll(): array;
+
     public function getByID(int $id): array;
 
     public function register(UserAccountWithDetails $userAccountWithDetails): array;

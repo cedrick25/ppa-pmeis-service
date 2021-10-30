@@ -30,7 +30,7 @@ class UserController extends AbstractController
      */
     public function list(): Response
     {
-        return $this->json("Users");
+        return $this->json($this->userService->getAll());
     }
 
     public function register(Request $request): Response
