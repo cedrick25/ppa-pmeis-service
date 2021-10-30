@@ -66,6 +66,11 @@ class  UserDetails
     private bool $isPwd;
 
     /**
+     * @ORM\Column(type="integer")
+     */
+    private int $positionId;
+
+    /**
      * @ORM\Column(type="datetime_immutable", nullable=true)
      */
     private ?DateTimeImmutable $updatedAt;
@@ -181,6 +186,22 @@ class  UserDetails
         $this->isPwd = $isPwd;
 
         return $this;
+    }
+
+    /**
+     * @return int
+     */
+    public function getPositionId(): int
+    {
+        return $this->positionId;
+    }
+
+    /**
+     * @param int $positionId
+     */
+    public function setPositionId(int $positionId): void
+    {
+        $this->positionId = $positionId;
     }
 
     public function getUpdatedAt(): ?DateTimeImmutable

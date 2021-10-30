@@ -11,14 +11,15 @@ class UserDetails
     public function __construct(
         private int $userAccountId,
         private string $firstName,
-        private ?string $middleName = null,
         private string $lastName,
-        private ?string $suffix = null,
         private string $gender,
         private string $dateOfBirth,
+        private int $positionId,
         private bool $isSeniorCitizen = false,
         private bool $isPwd = false,
-        private ?string $updatedAt = null
+        private ?string $updatedAt = null,
+        private ?string $middleName = null,
+        private ?string $suffix = null,
     ){}
 
     /**
@@ -82,6 +83,15 @@ class UserDetails
     public function getDateOfBirth(): string
     {
         return $this->dateOfBirth;
+    }
+
+    /**
+     * @Assert\NotBlank
+     * @return int
+     */
+    public function getPositionId(): int
+    {
+        return $this->positionId;
     }
 
     /**

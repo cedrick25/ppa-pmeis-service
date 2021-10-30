@@ -42,6 +42,7 @@ class UserDetailsRepository extends ServiceEntityRepository
         $userDetails->setDateOfBirth($this->appDateHelper->convertStringToImmutableDate($userAccountWithDetails->getDateOfBirth()));
         $userDetails->setIsSeniorCitizen($userAccountWithDetails->isSeniorCitizen());
         $userDetails->setIsPwd($userAccountWithDetails->isPwd());
+        $userDetails->setPositionId($userAccountWithDetails->getPositionId());
 
         $this->getEntityManager()->persist($userDetails);
         $this->getEntityManager()->flush();

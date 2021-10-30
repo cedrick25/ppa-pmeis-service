@@ -19,8 +19,8 @@ final class Version20211018203300 extends AbstractMigration
         $password = '$2y$13$XECx8Q7xtXFtJ7KvEbNYyO28m7YmUSiz0NhBNzgUtRI7Bt5dM2t5G';
         $this->addSql("INSERT INTO user_account (email_address, contact_number, password, user_type, field_office_id, region_id, status)" .
                     "VALUES ('juan.delcruz@test.com', '09884522345', '{$password}', 'RD', 1, 1, 1)");
-        $this->addSql("INSERT INTO user_details (user_account_id, first_name, last_name, gender, date_of_birth, is_senior_citizen, is_pwd)" .
-                    "VALUES (1, 'Juan', 'Dela Cruz', 'M', '{$birthDate}', false, false)");
+        $this->addSql("INSERT INTO user_details (user_account_id, first_name, last_name, gender, date_of_birth, is_senior_citizen, is_pwd, position_id)" .
+                    "VALUES (1, 'Juan', 'Dela Cruz', 'M', '{$birthDate}', false, false, 1)");
     }
 
     public function down(Schema $schema): void

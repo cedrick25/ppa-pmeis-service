@@ -23,6 +23,7 @@ class UserAccountWithDetails
         private string $lastName,
         private string $gender,
         private string $dateOfBirth,
+        private int $positionId,
         private bool $isSeniorCitizen = false,
         private bool $isPwd = false,
         private ?string $middleName = null,
@@ -181,6 +182,15 @@ class UserAccountWithDetails
     public function getDateOfBirth(): string
     {
         return $this->dateOfBirth;
+    }
+
+    /**
+     * @Assert\NotBlank
+     * @return int
+     */
+    public function getPositionId(): int
+    {
+        return $this->positionId;
     }
 
     /**
