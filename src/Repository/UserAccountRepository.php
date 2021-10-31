@@ -7,6 +7,7 @@ namespace App\Repository;
 use App\Common\AppDateHelper;
 use App\Common\CacheHelper;
 use App\Entity\UserAccount;
+use App\Enum\Response as ResponseEnum;
 use App\Model\UserAccountWithDetails;
 use DateTimeImmutable;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
@@ -86,8 +87,7 @@ class UserAccountRepository extends ServiceEntityRepository
      */
     public function create(UserAccountWithDetails $userAccountWithDetails): int|null
     {
-        $userByEmail = $this->getByEmail($userAccountWithDetails->getEmailAddress());
-        if ($userByEmail != null) {
+        if ($this->isExisting($userAccountWithDetails->getEmailAddress())) {
             return null;
         }
 
@@ -137,6 +137,44 @@ class UserAccountRepository extends ServiceEntityRepository
         return true;
     }
 
+    /**
+     * @throws InvalidArgumentException
+     * @throws ORMException
+     * @throws OptimisticLockException
+     * @throws \Doctrine\DBAL\Exception\InvalidArgumentException
+     * @throws Exception
+     */
+    public function update(int $id, UserAccountWithDetails $userAccountWithDetails): string
+    {
+        $user = $this->isExistingById($id);
+
+        if (! $user) {
+            return ResponseEnum::NO_RECORD;
+        }
+
+        if ($this->isConflicted($user, $userAccountWithDetails)) {
+            return ResponseEnum::CONFLICTED_INPUT;
+        }
+
+        $this->cache->delete($this->cacheHelper->getAccountWithDetailsKey($id));
+        $this->cache->delete($this->cacheHelper->getAllUsersKey());
+
+        $user->setEmailAddress($userAccountWithDetails->getEmailAddress());
+        $user->setContactNumber($userAccountWithDetails->getContactNumber());
+        $user->setUserType($userAccountWithDetails->getUserType());
+        $user->setFieldOfficeId($userAccountWithDetails->getFieldOffice());
+        $user->setRegionId($userAccountWithDetails->getRegion());
+        $user->setStatus($userAccountWithDetails->getStatus());
+        $user->setCreatedAt($this->appDateHelper->getCurrentImmutableDate());
+
+        $this->userDetailsRepository->updateByAccountId($user->getUserAccountId(), $userAccountWithDetails);
+
+        $this->getEntityManager()->flush();
+
+        return ResponseEnum::OK;
+
+    }
+
     public function isExistingById(int $id): bool | UserAccount
     {
         $user = $this->findOneBy([
@@ -147,16 +185,30 @@ class UserAccountRepository extends ServiceEntityRepository
         return ($user == null) ? false : $user;
     }
 
-
-    /**
-     * @param string $emailAddress
-     * @return UserAccount|null
-     */
-    public function getByEmail(string $emailAddress): ?UserAccount
+    public function isExisting(string $emailAddress): bool
     {
-        return $this->findOneBy([
+        $user = $this->findOneBy([
             'emailAddress' => $emailAddress,
             'deletedAt' => null
         ]);
+
+        return $user != null;
+    }
+
+    private function isConflicted(UserAccount $fetchedUser, UserAccountWithDetails $userData): bool
+    {
+        // Fetched and user input is the same.
+        // It is trying to update itself.
+        if ($fetchedUser->getEmailAddress() === $userData->getEmailAddress()) {
+            return false;
+        }
+
+        // There is an existing record in the database.
+        // It is trying to update another record that existing in the database.
+        if ($this->isExisting($userData->getEmailAddress())) {
+            return true;
+        }
+
+        return false;
     }
 }

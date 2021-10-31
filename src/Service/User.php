@@ -9,6 +9,7 @@ use App\Enum\Response as ResponseEnum;
 use App\Model\UserAccountWithDetails;
 use App\Repository\UserAccountRepository;
 use Doctrine\ORM\ORMException;
+use Exception;
 use Psr\Cache\InvalidArgumentException;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 
@@ -122,6 +123,23 @@ class User implements UserInterface
             return $this->appFormatter->formatResponse(ResponseEnum::DELETING_FAILED, null, ['cache' => $exception->getMessage()]);
         } catch (ORMException $exception) {
             return $this->appFormatter->formatResponse(ResponseEnum::DELETING_FAILED, null, ['orm' => $exception->getMessage()]);
+        }
+    }
+
+    public function updateById(int $id, UserAccountWithDetails $userAccountWithDetails): array
+    {
+        try {
+            $isUpdated = $this->repository->update($id, $userAccountWithDetails);
+
+            if ($isUpdated !== ResponseEnum::OK) {
+                return $this->appFormatter->formatResponse(ResponseEnum::UPDATING_FAILED, null, ['app' => $isUpdated]);
+            }
+
+            return $this->appFormatter->formatResponse(ResponseEnum::UPDATING_SUCCESS, null);
+        } catch (Exception $e) {
+            return $this->appFormatter->formatResponse(ResponseEnum::UPDATING_FAILED, null, ['app' => $e->getMessage()]);
+        } catch (InvalidArgumentException $e) {
+            return $this->appFormatter->formatResponse(ResponseEnum::UPDATING_FAILED, null, ['cache' => $e->getMessage()]);
         }
     }
 }

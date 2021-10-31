@@ -61,4 +61,20 @@ class UserController extends AbstractController
     {
         return $this->json($this->userService->deleteById((int) $request->get("id")));
     }
+
+    /**
+     * @Route("/update/{id}", methods={"POST"})
+     */
+    public function update(Request $request): Response
+    {
+        try {
+            $data = json_decode($request->getContent(), true);
+            /** @var $user UserAccountWithDetails */
+            $user = $this->appHydrator->convertArrayToObject($data, UserAccountWithDetails::class);
+
+            return $this->json($this->userService->updateById((int) $request->get("id"), $user));
+        } catch (ReflectionException $exception) {
+            return $this->json($this->appFormatter->formatResponse('User update failed', null, ['reflection' => $exception->getMessage()]));
+        }
+    }
 }

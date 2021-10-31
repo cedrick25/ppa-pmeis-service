@@ -47,4 +47,27 @@ class UserDetailsRepository extends ServiceEntityRepository
         $this->getEntityManager()->persist($userDetails);
         $this->getEntityManager()->flush();
     }
+
+    /**
+     * @throws Exception
+     */
+    public function updateByAccountId(int $userAccountId, UserAccountWithDetails $userAccountWithDetails): void
+    {
+        $userDetails = $this->findOneBy([
+            'userAccountId' => $userAccountId
+        ]);
+
+        $userDetails->setUserAccountId($userAccountId);
+        $userDetails->setFirstName($userAccountWithDetails->getFirstName());
+        $userDetails->setMiddleName($userAccountWithDetails->getMiddleName());
+        $userDetails->setLastName($userAccountWithDetails->getLastName());
+        $userDetails->setSuffix($userAccountWithDetails->getSuffix());
+        $userDetails->setGender($userAccountWithDetails->getGender());
+        $userDetails->setDateOfBirth($this->appDateHelper->convertStringToImmutableDate($userAccountWithDetails->getDateOfBirth()));
+        $userDetails->setIsSeniorCitizen($userAccountWithDetails->isSeniorCitizen());
+        $userDetails->setIsPwd($userAccountWithDetails->isPwd());
+        $userDetails->setPositionId($userAccountWithDetails->getPositionId());
+
+        $this->getEntityManager()->flush();
+    }
 }
