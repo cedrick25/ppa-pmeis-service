@@ -437,4 +437,21 @@ class TherapeuticCommunityController extends AbstractController
     {
         return $this->json($this->volunteerService->deleteById((int) $request->get("id")));
     }
+
+    /**
+     * @Route("/volunteer/update/{id}", methods={"POST"})
+     */
+    public function updateVolunteerById(Request $request): Response
+    {
+        try {
+            $data = json_decode($request->getContent(), true);
+
+            /** @var VolunteerModel $volunteer */
+            $volunteer = $this->appHydrator->convertArrayToObject($data, VolunteerModel::class);
+
+            return $this->json($this->volunteerService->updateById((int) $request->get("id"), $volunteer));
+        } catch (ReflectionException $exception) {
+            return $this->json($this->appFormatter->formatResponse('Updating volunteer session failed', null, ['reflection' => $exception->getMessage()]));
+        }
+    }
 }

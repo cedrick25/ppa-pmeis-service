@@ -6,6 +6,7 @@ use App\Common\AppFormatter;
 use App\Enum\Response as ResponseEnum;
 use App\Repository\VolunteerRepository;
 use Doctrine\ORM\ORMException;
+use Exception;
 use Psr\Cache\InvalidArgumentException;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 use \App\Model\Volunteer as VolunteerModel;
@@ -75,9 +76,20 @@ class Volunteer implements VolunteerInterface
         }
     }
 
-    public function updateById(int $id, \App\Model\Volunteer $volunteerData): array
+    public function updateById(int $id, VolunteerModel $volunteerData): array
     {
-        // TODO: Implement updateById() method.
-        return [];
+        try {
+            $isUpdated = $this->repository->update($id, $volunteerData);
+
+            if ($isUpdated !== ResponseEnum::OK) {
+                return $this->appFormatter->formatResponse(ResponseEnum::UPDATING_FAILED, null, ['app' => $isUpdated]);
+            }
+
+            return $this->appFormatter->formatResponse(ResponseEnum::UPDATING_SUCCESS, null);
+        } catch (Exception $e) {
+            return $this->appFormatter->formatResponse(ResponseEnum::UPDATING_FAILED, null, ['app' => $e->getMessage()]);
+        } catch (InvalidArgumentException $e) {
+            return $this->appFormatter->formatResponse(ResponseEnum::UPDATING_FAILED, null, ['cache' => $e->getMessage()]);
+        }
     }
 }

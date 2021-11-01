@@ -5,6 +5,7 @@ namespace App\Repository;
 use App\Common\AppDateHelper;
 use App\Common\CacheHelper;
 use App\Entity\Volunteer;
+use App\Enum\Response as ResponseEnum;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\ORM\OptimisticLockException;
 use Doctrine\ORM\ORMException;
@@ -108,6 +109,41 @@ class VolunteerRepository extends ServiceEntityRepository
         return true;
     }
 
+    /**
+     * @throws InvalidArgumentException
+     * @throws Exception
+     */
+    public function update(int $id, VolunteerModel $volunteerData): string
+    {
+        $volunteer =$this->isExistingById($id);
+
+        if ($volunteer == null) {
+            return ResponseEnum::NO_RECORD;
+        }
+
+        if ($this->isConflicted($volunteer, $volunteerData)) {
+            return ResponseEnum::CONFLICTED_INPUT;
+        }
+
+        $this->cache->delete($this->cacheHelper->getAllVolunteersKey());
+
+        $volunteer->setFirstName($volunteerData->getFirstName());
+        $volunteer->setMiddleName($volunteerData->getMiddleName());
+        $volunteer->setLastName($volunteerData->getLastName());
+        $volunteer->setSuffix($volunteerData->getSuffix());
+        $volunteer->setGender($volunteerData->getGender());
+        $volunteer->setDateOfBirth($this->appDateHelper->convertStringToImmutableDate($volunteerData->getDateOfBirth()));
+        $volunteer->setIsSeniorCitizen($volunteerData->getIsSeniorCitizen());
+        $volunteer->setIsPwd($volunteerData->getIsPwd());
+        $volunteer->setFieldOfficeId($volunteerData->getFieldOfficeId());
+        $volunteer->setRegionId($volunteerData->getRegionId());
+        $volunteer->setUpdatedAt($this->appDateHelper->getCurrentImmutableDate());
+
+        $this->getEntityManager()->flush();
+
+        return ResponseEnum::OK;
+    }
+
     private function isExisting(VolunteerModel $volunteerData): bool
     {
         $client = $this->findOneBy([
@@ -128,5 +164,26 @@ class VolunteerRepository extends ServiceEntityRepository
         ]);
 
         return ($client == null) ? false : $client;
+    }
+
+    private function isConflicted(Volunteer $fetchedVolunteer, VolunteerModel $volunteerData): bool
+    {
+        // Fetched and input client is the same.
+        // It is trying to update itself.
+        if (
+            $fetchedVolunteer->getFirstName() === $volunteerData->getFirstName() &&
+            $fetchedVolunteer->getMiddleName() === $volunteerData->getMiddleName() &&
+            $fetchedVolunteer->getLastName() === $volunteerData->getLastName()
+        ) {
+            return false;
+        }
+
+        // There is an existing record in the database.
+        // It is trying to update another record that existing in the database.
+        if ($this->isExisting($volunteerData)) {
+            return true;
+        }
+
+        return false;
     }
 }
