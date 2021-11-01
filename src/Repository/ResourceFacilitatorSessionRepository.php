@@ -72,6 +72,26 @@ class ResourceFacilitatorSessionRepository extends ServiceEntityRepository
         });
     }
 
+    /**
+     * @throws InvalidArgumentException
+     * @throws ORMException
+     */
+    public function delete(int $id): bool
+    {
+        $resourceFacilitatorSession = $this->isExistingById($id);
+
+        if (! $resourceFacilitatorSession) {
+            return false;
+        }
+
+        $this->cache->delete($this->cacheHelper->getAllResourceFacilitatorSessionsKey());
+
+        $this->getEntityManager()->remove($resourceFacilitatorSession);
+        $this->getEntityManager()->flush();
+
+        return true;
+    }
+
     private function isExisting(ResourceFacilitatorSessionModel $resourceFacilitatorSessionData): bool
     {
         $client = $this->findOneBy([
@@ -81,5 +101,14 @@ class ResourceFacilitatorSessionRepository extends ServiceEntityRepository
         ]);
 
         return $client != null;
+    }
+
+    public function isExistingById(int $id): bool | ResourceFacilitatorSession
+    {
+        $client = $this->findOneBy([
+            'resourceFacilitatorSessionId' => $id
+        ]);
+
+        return ($client == null) ? false : $client;
     }
 }

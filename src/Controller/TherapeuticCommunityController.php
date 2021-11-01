@@ -482,4 +482,12 @@ class TherapeuticCommunityController extends AbstractController
     {
         return $this->json($this->resourceFacilitatorSessionService->getAll());
     }
+
+    /**
+     * @Route("/resource-facilitator-session/delete/{id}", methods={"GET"})
+     */
+    public function deleteResourceFacilitatorSessionById(Request $request): Response
+    {
+        return $this->json($this->resourceFacilitatorSessionService->deleteById((int) $request->get("id")));
+    }
 }
