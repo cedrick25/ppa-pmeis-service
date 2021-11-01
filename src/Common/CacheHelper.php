@@ -81,4 +81,9 @@ class CacheHelper
     {
         return 'client_sessions_all';
     }
+
+    public function getAllVolunteersKey(): string
+    {
+        return 'volunteers_all';
+    }
 }

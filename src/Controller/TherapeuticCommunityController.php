@@ -19,6 +19,7 @@ use App\Service\TherapeuticCommunity\SessionsInterface;
 use App\Service\TherapeuticCommunity\TreatmentCategoriesInterface;
 use App\Service\TherapeuticCommunity\VenuesInterface;
 use App\Service\TherapeuticCommunity\ClientsInterface;
+use App\Service\TherapeuticCommunity\VolunteerInterface;
 use ReflectionException;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -26,6 +27,7 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use App\Model\ClientTypes as ClientTypesModel;
 use App\Model\Clients as ClientModel;
+use App\Model\Volunteer as VolunteerModel;
 
 /**
  * @Route("/api/tc")
@@ -45,6 +47,7 @@ class TherapeuticCommunityController extends AbstractController
         private TreatmentCategoriesInterface $treatmentCategoryService,
         private ClientsInterface $clientService,
         private ClientSessionsInterface $clientSessionService,
+        private VolunteerInterface $volunteerService,
     ){}
 
     /**
@@ -399,6 +402,23 @@ class TherapeuticCommunityController extends AbstractController
             return $this->json($this->clientSessionService->updateById((int) $request->get("id"), $clientSession));
         } catch (ReflectionException $exception) {
             return $this->json($this->appFormatter->formatResponse('Updating client session failed', null, ['reflection' => $exception->getMessage()]));
+        }
+    }
+
+    /**
+     * @Route("/volunteer/create", methods={"POST"})
+     */
+    public function createVolunteer(Request $request): Response
+    {
+        try {
+            $data = json_decode($request->getContent(), true);
+
+            /** @var VolunteerModel $volunteer */
+            $volunteer = $this->appHydrator->convertArrayToObject($data, VolunteerModel::class);
+
+            return $this->json($this->volunteerService->create($volunteer));
+        } catch (ReflectionException $exception) {
+            return $this->json($this->appFormatter->formatResponse('Creating volunteer failed', null, ['reflection' => $exception->getMessage()]));
         }
     }
 }
