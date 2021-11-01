@@ -13,5 +13,4 @@ interface VolunteerInterface
     public function deleteById(int $id): array;
 
     public function updateById(int $id, Volunteer $volunteerData):array;
-
 }

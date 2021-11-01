@@ -86,4 +86,9 @@ class CacheHelper
     {
         return 'volunteers_all';
     }
+
+    public function getAllResourceFacilitatorSessionsKey(): string
+    {
+        return 'resource_facilitator_session_all';
+    }
 }

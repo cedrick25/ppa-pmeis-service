@@ -8,12 +8,14 @@ use App\Common\AppFormatter;
 use App\Common\AppHydrator;
 use App\Model\ClientSessions as ClientSessionModel;
 use App\Model\Quarters as QuartersModel;
+use App\Model\ResourceFacilitatorSession as ResourceFacilitatorSessionModel;
 use App\Model\Sessions as SessionsModel;
 use App\Service\TherapeuticCommunity\ClientSessionsInterface;
 use App\Service\TherapeuticCommunity\ClientTypesInterface;
 use App\Service\TherapeuticCommunity\FieldOfficesInterface;
 use App\Service\TherapeuticCommunity\PhasesInterface;
 use App\Service\TherapeuticCommunity\QuartersInterface;
+use App\Service\TherapeuticCommunity\ResourceFacilitatorSession;
 use App\Service\TherapeuticCommunity\SessionActivitiesInterface;
 use App\Service\TherapeuticCommunity\SessionsInterface;
 use App\Service\TherapeuticCommunity\TreatmentCategoriesInterface;
@@ -48,6 +50,7 @@ class TherapeuticCommunityController extends AbstractController
         private ClientsInterface $clientService,
         private ClientSessionsInterface $clientSessionService,
         private VolunteerInterface $volunteerService,
+        private ResourceFacilitatorSession $resourceFacilitatorSessionService
     ){}
 
     /**
@@ -452,6 +455,23 @@ class TherapeuticCommunityController extends AbstractController
             return $this->json($this->volunteerService->updateById((int) $request->get("id"), $volunteer));
         } catch (ReflectionException $exception) {
             return $this->json($this->appFormatter->formatResponse('Updating volunteer session failed', null, ['reflection' => $exception->getMessage()]));
+        }
+    }
+
+    /**
+     * @Route("/resource-facilitator-session/create", methods={"POST"})
+     */
+    public function createResourceFacilitatorSession(Request $request): Response
+    {
+        try {
+            $data = json_decode($request->getContent(), true);
+
+            /** @var ResourceFacilitatorSessionModel $resourceFacilitatorSession */
+            $resourceFacilitatorSession = $this->appHydrator->convertArrayToObject($data, ResourceFacilitatorSessionModel::class);
+
+            return $this->json($this->resourceFacilitatorSessionService->create($resourceFacilitatorSession));
+        } catch (ReflectionException $exception) {
+            return $this->json($this->appFormatter->formatResponse('Creating resource facilitator session failed', null, ['reflection' => $exception->getMessage()]));
         }
     }
 }
