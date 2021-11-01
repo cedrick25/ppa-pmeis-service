@@ -421,4 +421,12 @@ class TherapeuticCommunityController extends AbstractController
             return $this->json($this->appFormatter->formatResponse('Creating volunteer failed', null, ['reflection' => $exception->getMessage()]));
         }
     }
+
+    /**
+     * @Route("/volunteer/list", methods={"GET"})
+     */
+    public function getAllVolunteers(): Response
+    {
+        return $this->json($this->volunteerService->getAll());
+    }
 }

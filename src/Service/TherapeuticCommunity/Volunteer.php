@@ -45,8 +45,17 @@ class Volunteer implements VolunteerInterface
 
     public function getAll(): array
     {
-        // TODO: Implement getAll() method.
-        return [];
+        try {
+            $volunteers = $this->repository->list();
+
+            if (sizeof($volunteers) == 0) {
+                return $this->appFormatter->formatResponse(ResponseEnum::NO_DATA, null);
+            }
+
+            return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_SUCCESS, $volunteers);
+        } catch (InvalidArgumentException $exception) {
+            return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_FAILED, null, ['cache' => $exception->getMessage()]);
+        }
     }
 
     public function deleteById(int $id): array

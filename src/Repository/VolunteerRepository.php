@@ -12,6 +12,7 @@ use App\Model\Volunteer as VolunteerModel;
 use Exception;
 use Psr\Cache\InvalidArgumentException;
 use Symfony\Contracts\Cache\CacheInterface;
+use Symfony\Contracts\Cache\ItemInterface;
 
 /**
  * @method Volunteer|null find($id, $lockMode = null, $lockVersion = null)
@@ -60,6 +61,26 @@ class VolunteerRepository extends ServiceEntityRepository
         $this->getEntityManager()->flush();
 
         return $newVolunteer->getVolunteerId();
+    }
+
+    /**
+     * @throws InvalidArgumentException
+     * @return Volunteer[]
+     */
+    public function list(): array
+    {
+        $cacheKey = $this->cacheHelper->getAllVolunteersKey();
+        $expiration = $this->cacheHelper->getExpirationDateTime(24);
+
+        return $this->cache->get($cacheKey, function (ItemInterface $item) use ($cacheKey, $expiration) {
+            $item->expiresAt($expiration);
+
+            return $this->createQueryBuilder('v')
+                ->andWhere('v.deletedAt IS NULL')
+                ->orderBy('v.volunteerId', 'DESC')
+                ->getQuery()
+                ->getResult();
+        });
     }
 
     private function isExisting(VolunteerModel $volunteerData): bool
