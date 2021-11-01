@@ -4,10 +4,12 @@ namespace App\Repository;
 
 use App\Common\CacheHelper;
 use App\Entity\ResourceFacilitatorSession;
+use App\Enum\Response as ResponseEnum;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\ORM\ORMException;
 use Doctrine\Persistence\ManagerRegistry;
 use App\Model\ResourceFacilitatorSession as ResourceFacilitatorSessionModel;
+use Exception;
 use Psr\Cache\InvalidArgumentException;
 use Symfony\Contracts\Cache\CacheInterface;
 use App\Enum\ResourceFacilitatorType;
@@ -92,6 +94,35 @@ class ResourceFacilitatorSessionRepository extends ServiceEntityRepository
         return true;
     }
 
+    /**
+     * @throws \Doctrine\DBAL\Exception\InvalidArgumentException
+     * @throws InvalidArgumentException
+     * @throws Exception
+     */
+    public function update(int $id, ResourceFacilitatorSessionModel $resourceFacilitatorSessionData): string
+    {
+        $resourceFacilitatorSession = $this->isExistingById($id);
+
+        if (! $resourceFacilitatorSession) {
+            return ResponseEnum::NO_RECORD;
+        }
+
+        if ($this->isConflicted($resourceFacilitatorSession, $resourceFacilitatorSessionData)) {
+            return ResponseEnum::CONFLICTED_INPUT;
+        }
+
+        $this->cache->delete($this->cacheHelper->getAllResourceFacilitatorSessionsKey());
+
+        $resourceFacilitatorSession->setSessionId($resourceFacilitatorSessionData->getSessionId());
+        $resourceFacilitatorSession->setResourceFacilitatorId($resourceFacilitatorSessionData->getResourceFacilitatorId());
+        $resourceFacilitatorSession->setResourceFacilitatorType(ResourceFacilitatorType::from($resourceFacilitatorSessionData->getResourceFacilitatorType()));
+
+        $this->getEntityManager()->flush();
+
+        return ResponseEnum::OK;
+
+    }
+
     private function isExisting(ResourceFacilitatorSessionModel $resourceFacilitatorSessionData): bool
     {
         $client = $this->findOneBy([
@@ -110,5 +141,28 @@ class ResourceFacilitatorSessionRepository extends ServiceEntityRepository
         ]);
 
         return ($client == null) ? false : $client;
+    }
+
+    private function isConflicted(
+        ResourceFacilitatorSession $fetchedResourceFacilitatorSession,
+        ResourceFacilitatorSessionModel $resourceFacilitatorSessionData): bool
+    {
+        // Fetched and input client is the same.
+        // It is trying to update itself.
+        if (
+            $fetchedResourceFacilitatorSession->getSessionId() === $resourceFacilitatorSessionData->getSessionId() &&
+            $fetchedResourceFacilitatorSession->getResourceFacilitatorId() === $resourceFacilitatorSessionData->getResourceFacilitatorId() &&
+            $fetchedResourceFacilitatorSession->getResourceFacilitatorType() === $resourceFacilitatorSessionData->getResourceFacilitatorType()
+        ) {
+            return false;
+        }
+
+        // There is an existing record in the database.
+        // It is trying to update another record that existing in the database.
+        if ($this->isExisting($resourceFacilitatorSessionData)) {
+            return true;
+        }
+
+        return false;
     }
 }

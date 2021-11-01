@@ -7,6 +7,7 @@ use App\Enum\Response as ResponseEnum;
 use App\Model\ResourceFacilitatorSession as ResourceFacilitatorSessionModel;
 use App\Repository\ResourceFacilitatorSessionRepository;
 use Doctrine\ORM\ORMException;
+use Exception;
 use Psr\Cache\InvalidArgumentException;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 
@@ -77,8 +78,19 @@ class ResourceFacilitatorSession implements ResourceFacilitatorSessionInterface
 
     public function updateById(int $id, ResourceFacilitatorSessionModel $resourceFacilitatorSessionData): array
     {
-        // TODO: Implement updateById() method.
-        return [];
+        try {
+            $isUpdated = $this->repository->update($id, $resourceFacilitatorSessionData);
+
+            if ($isUpdated !== ResponseEnum::OK) {
+                return $this->appFormatter->formatResponse(ResponseEnum::UPDATING_FAILED, null, ['app' => $isUpdated]);
+            }
+
+            return $this->appFormatter->formatResponse(ResponseEnum::UPDATING_SUCCESS, null);
+        } catch (Exception $e) {
+            return $this->appFormatter->formatResponse(ResponseEnum::UPDATING_FAILED, null, ['app' => $e->getMessage()]);
+        } catch (InvalidArgumentException $e) {
+            return $this->appFormatter->formatResponse(ResponseEnum::UPDATING_FAILED, null, ['cache' => $e->getMessage()]);
+        }
     }
 
 }

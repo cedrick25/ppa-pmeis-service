@@ -490,4 +490,21 @@ class TherapeuticCommunityController extends AbstractController
     {
         return $this->json($this->resourceFacilitatorSessionService->deleteById((int) $request->get("id")));
     }
+
+    /**
+     * @Route("/resource-facilitator-session/update/{id}", methods={"POST"})
+     */
+    public function updateResourceFacilitatorSessionById(Request $request): Response
+    {
+        try {
+            $data = json_decode($request->getContent(), true);
+
+            /** @var ResourceFacilitatorSessionModel $resourceFacilitatorSession */
+            $resourceFacilitatorSession = $this->appHydrator->convertArrayToObject($data, ResourceFacilitatorSessionModel::class);
+
+            return $this->json($this->resourceFacilitatorSessionService->updateById((int) $request->get("id"), $resourceFacilitatorSession));
+        } catch (ReflectionException $exception) {
+            return $this->json($this->appFormatter->formatResponse('Updating resource facilitator session failed', null, ['reflection' => $exception->getMessage()]));
+        }
+    }
 }
