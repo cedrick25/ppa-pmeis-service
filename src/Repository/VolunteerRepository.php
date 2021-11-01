@@ -6,6 +6,7 @@ use App\Common\AppDateHelper;
 use App\Common\CacheHelper;
 use App\Entity\Volunteer;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
+use Doctrine\ORM\OptimisticLockException;
 use Doctrine\ORM\ORMException;
 use Doctrine\Persistence\ManagerRegistry;
 use App\Model\Volunteer as VolunteerModel;
@@ -83,6 +84,30 @@ class VolunteerRepository extends ServiceEntityRepository
         });
     }
 
+    /**
+     * @throws OptimisticLockException
+     * @throws ORMException
+     * @throws InvalidArgumentException
+     */
+    public function softDelete(int $id): bool
+    {
+        $client =$this->isExistingById($id);
+
+        if ($client == null) {
+            return false;
+        }
+
+        // TODO: Check table constraints
+
+        $this->cache->delete($this->cacheHelper->getAllVolunteersKey());
+
+        $client->setDeletedAt($this->appDateHelper->getCurrentImmutableDate());
+
+        $this->getEntityManager()->flush();
+
+        return true;
+    }
+
     private function isExisting(VolunteerModel $volunteerData): bool
     {
         $client = $this->findOneBy([
@@ -93,5 +118,15 @@ class VolunteerRepository extends ServiceEntityRepository
         ]);
 
         return $client != null;
+    }
+
+    public function isExistingById(int $id): bool | Volunteer
+    {
+        $client = $this->findOneBy([
+            'volunteerId' => $id,
+            'deletedAt' => null
+        ]);
+
+        return ($client == null) ? false : $client;
     }
 }
