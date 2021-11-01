@@ -66,7 +66,7 @@ class TherapeuticCommunityController extends AbstractController
     /**
      * @Route("/quarter/create", methods={"POST"})
      */
-    public function createNewQuarter(Request $request): Response
+    public function createQuarter(Request $request): Response
     {
         try {
             $data = json_decode($request->getContent(), true);
@@ -140,7 +140,7 @@ class TherapeuticCommunityController extends AbstractController
     /**
      * @Route("/session-activity/create/{name}", methods={"GET"})
      */
-    public function createNewSessionActivity(Request $request): Response
+    public function createSessionActivity(Request $request): Response
     {
         return $this->json($this->sessionActivitiesService->create($request->get("name")));
     }
@@ -473,5 +473,13 @@ class TherapeuticCommunityController extends AbstractController
         } catch (ReflectionException $exception) {
             return $this->json($this->appFormatter->formatResponse('Creating resource facilitator session failed', null, ['reflection' => $exception->getMessage()]));
         }
+    }
+
+    /**
+     * @Route("/resource-facilitator-session/list", methods={"GET"})
+     */
+    public function getAllResourceFacilitatorSessions(): Response
+    {
+        return $this->json($this->resourceFacilitatorSessionService->getAll());
     }
 }

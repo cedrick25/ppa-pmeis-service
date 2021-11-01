@@ -2,7 +2,6 @@
 
 namespace App\Repository;
 
-use App\Common\AppDateHelper;
 use App\Common\CacheHelper;
 use App\Entity\ResourceFacilitatorSession;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
@@ -12,6 +11,7 @@ use App\Model\ResourceFacilitatorSession as ResourceFacilitatorSessionModel;
 use Psr\Cache\InvalidArgumentException;
 use Symfony\Contracts\Cache\CacheInterface;
 use App\Enum\ResourceFacilitatorType;
+use Symfony\Contracts\Cache\ItemInterface;
 
 /**
  * @method ResourceFacilitatorSession|null find($id, $lockMode = null, $lockVersion = null)
@@ -51,6 +51,25 @@ class ResourceFacilitatorSessionRepository extends ServiceEntityRepository
         $this->getEntityManager()->flush();
 
         return $newResourceFacilitatorSession->getResourceFacilitatorSessionId();
+    }
+
+    /**
+     * @throws InvalidArgumentException
+     * @return ResourceFacilitatorSession[]
+     */
+    public function list(): array
+    {
+        $cacheKey = $this->cacheHelper->getAllResourceFacilitatorSessionsKey();
+        $expiration = $this->cacheHelper->getExpirationDateTime(24);
+
+        return $this->cache->get($cacheKey, function (ItemInterface $item) use ($cacheKey, $expiration) {
+            $item->expiresAt($expiration);
+
+            return $this->createQueryBuilder('rfs')
+                ->orderBy('rfs.resourceFacilitatorSessionId', 'DESC')
+                ->getQuery()
+                ->getResult();
+        });
     }
 
     private function isExisting(ResourceFacilitatorSessionModel $resourceFacilitatorSessionData): bool
