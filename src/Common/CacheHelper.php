@@ -47,6 +47,11 @@ class CacheHelper
         return 'field_offices_all';
     }
 
+    public function getPaginatedKey($page, $size): string
+    {
+        return 'field_offices_' . $page . '_' . $size;
+    }
+
     public function getAllSessionActivitiesKey(): string
     {
         return 'session_activities_all';

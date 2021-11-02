@@ -42,4 +42,16 @@ class AppFormatter
 
         return $response;
     }
+
+    /**
+     * @return array<string, mixed>
+     */
+    public function formatPagination($totalItems, $pageCount, $pageItems): array
+    {
+        return [
+            "itemCount" => $totalItems,
+            "pageCount" => $pageCount,
+            "items" => $pageItems
+        ];
+    }
 }

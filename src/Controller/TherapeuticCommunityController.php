@@ -130,6 +130,17 @@ class TherapeuticCommunityController extends AbstractController
     }
 
     /**
+     * @Route("/field-office/{page}/{pageSize}", methods={"GET"})
+     */
+    public function getPaginatedFieldOffice(Request $request): Response
+    {
+        return $this->json($this->fieldOfficesService->getPaginated(
+            (int) $request->get("page"),
+            (int) $request->get("pageSize")
+        ));
+    }
+
+    /**
      * @Route("/session-activity/list", methods={"GET"})
      */
     public function getAllSessionActivities(): Response
