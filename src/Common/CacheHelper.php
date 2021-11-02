@@ -47,7 +47,7 @@ class CacheHelper
         return 'field_offices_all';
     }
 
-    public function getPaginatedKey($page, $size): string
+    public function getFieldOfficePaginatedKey($page, $size): string
     {
         return 'field_offices_' . $page . '_' . $size;
     }
@@ -80,6 +80,11 @@ class CacheHelper
     public function getAllClientsKey(): string
     {
         return 'clients_all';
+    }
+
+    public function getClientsPaginatedKey($page, $size): string
+    {
+        return 'clients_' . $page . '_' . $size;
     }
 
     public function getAllClientSessionsKey(): string

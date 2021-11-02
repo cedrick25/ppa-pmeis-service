@@ -40,7 +40,7 @@ class FieldOffices implements FieldOfficesInterface
 
             return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_SUCCESS, $fieldOffices);
         } catch (InvalidArgumentException $exception) {
-            return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_FAILED, null, ['app' => $exception->getMessage()]);
+            return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_FAILED, null, ['cache' => $exception->getMessage()]);
         }
     }
 }

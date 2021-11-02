@@ -13,4 +13,6 @@ interface ClientsInterface
     public function deleteById(int $id): array;
 
     public function updateById(int $id, Clients $clientData):array;
+
+    public function getPaginated(int $page, int $pageSize): array;
 }

@@ -28,8 +28,7 @@ class FieldOfficesRepository extends ServiceEntityRepository
         ManagerRegistry $registry,
         private CacheInterface $cache,
         private CacheHelper $cacheHelper,
-        private AppFormatter $appFormatter,
-        private AppHydrator $appHydrator,
+        private AppFormatter $appFormatter
     ){
         parent::__construct($registry, FieldOffices::class);
     }
@@ -59,7 +58,7 @@ class FieldOfficesRepository extends ServiceEntityRepository
      */
     public function paginated(int $page = 1, int $pageSize = 10): array
     {
-        $cacheKey = $this->cacheHelper->getPaginatedKey($page, $pageSize);
+        $cacheKey = $this->cacheHelper->getFieldOfficePaginatedKey($page, $pageSize);
         $expiration = $this->cacheHelper->getExpirationDateTime(24);
 
         return $this->cache->get($cacheKey, function (ItemInterface $item) use ($cacheKey, $expiration, $page, $pageSize) {

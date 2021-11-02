@@ -92,4 +92,19 @@ class Clients implements ClientsInterface
             return $this->appFormatter->formatResponse(ResponseEnum::UPDATING_FAILED, null, ['cache' => $e->getMessage()]);
         }
     }
+
+    public function getPaginated(int $page, int $pageSize): array
+    {
+        try {
+            $fieldOffices = $this->repository->paginated($page, $pageSize);
+
+            if (sizeof($fieldOffices) == 0) {
+                return $this->appFormatter->formatResponse(ResponseEnum::NO_DATA, null);
+            }
+
+            return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_SUCCESS, $fieldOffices);
+        } catch (InvalidArgumentException $exception) {
+            return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_FAILED, null, ['cache' => $exception->getMessage()]);
+        }
+    }
 }
