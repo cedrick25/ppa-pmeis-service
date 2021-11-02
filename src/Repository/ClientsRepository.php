@@ -160,7 +160,6 @@ class ClientsRepository extends ServiceEntityRepository
 
         $this->cache->invalidateTags([self::CACHE_TAG]);
 
-
         $client->setClientTypeId($clientData->getClientTypeId());
         $client->setCmisId($clientData->getCmisId());
         $client->setFirstName($clientData->getFirstName());

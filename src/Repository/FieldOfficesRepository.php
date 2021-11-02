@@ -11,7 +11,7 @@ use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\ORM\Tools\Pagination\Paginator;
 use Doctrine\Persistence\ManagerRegistry;
 use Psr\Cache\InvalidArgumentException;
-use Symfony\Contracts\Cache\CacheInterface;
+use Symfony\Contracts\Cache\TagAwareCacheInterface;
 use Symfony\Contracts\Cache\ItemInterface;
 
 /**
@@ -22,9 +22,11 @@ use Symfony\Contracts\Cache\ItemInterface;
  */
 class FieldOfficesRepository extends ServiceEntityRepository
 {
+    protected const CACHE_TAG = "field_offices";
+
     public function __construct(
         ManagerRegistry $registry,
-        private CacheInterface $cache,
+        private TagAwareCacheInterface $cache,
         private CacheHelper $cacheHelper,
         private AppFormatter $appFormatter
     ){
@@ -42,6 +44,7 @@ class FieldOfficesRepository extends ServiceEntityRepository
 
         return $this->cache->get($cacheKey, function (ItemInterface $item) use ($cacheKey, $expiration) {
             $item->expiresAt($expiration);
+            $item->tag(self::CACHE_TAG);
 
             return $this->createQueryBuilder('fo')
                 ->orderBy('fo.fieldOfficeId', 'DESC')
@@ -61,6 +64,7 @@ class FieldOfficesRepository extends ServiceEntityRepository
 
         return $this->cache->get($cacheKey, function (ItemInterface $item) use ($cacheKey, $expiration, $page, $pageSize) {
             $item->expiresAt($expiration);
+            $item->tag(self::CACHE_TAG);
 
             $query = $this->createQueryBuilder('fo')->orderBy('fo.fieldOfficeId');
 
