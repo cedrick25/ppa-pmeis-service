@@ -33,7 +33,6 @@ class ClientSessionsRepository extends ServiceEntityRepository
         ManagerRegistry $registry,
         private TagAwareCacheInterface $cache,
         private CacheHelper $cacheHelper,
-        private AppFormatter $appFormatter,
         private Helper $helper
     ){
         parent::__construct($registry, ClientSessions::class);
