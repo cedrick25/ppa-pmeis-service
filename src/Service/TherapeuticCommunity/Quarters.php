@@ -6,7 +6,6 @@ namespace App\Service\TherapeuticCommunity;
 
 use App\Common\AppFormatter;
 use App\Enum\Response as ResponseEnum;
-use App\Enum\TherapeuticCommunity as TCEnum;
 use App\Model\Quarters as QuartersModel;
 use App\Repository\QuartersRepository;
 use Doctrine\ORM\ORMException;
@@ -27,20 +26,20 @@ class Quarters implements QuartersInterface
             $errors = $this->validator->validate($quarters);
 
             if (count($errors) > 0) {
-                return $this->appFormatter->formatResponse(TCEnum::VALIDATING_FAILED, null, $this->appFormatter->formatErrors($errors));
+                return $this->appFormatter->formatResponse(ResponseEnum::VALIDATING_FAILED, null, $this->appFormatter->formatErrors($errors));
             }
 
             $quarterId = $this->repository->create($quarters);
 
             if ($quarterId == null) {
-                return $this->appFormatter->formatResponse(TCEnum::CREATING_FAILED, null, ['app' => 'Quarter already exist.']);
+                return $this->appFormatter->formatResponse(ResponseEnum::CREATING_FAILED, null, ['app' => 'Quarter already exist.']);
             }
 
-            return $this->appFormatter->formatResponse(TCEnum::CREATING_SUCCESS, ['id' => $quarterId]);
+            return $this->appFormatter->formatResponse(ResponseEnum::CREATING_SUCCESS, ['id' => $quarterId]);
         } catch (InvalidArgumentException $exception) {
-            return $this->appFormatter->formatResponse(TCEnum::CREATING_FAILED, null, ['cache' => $exception->getMessage()]);
+            return $this->appFormatter->formatResponse(ResponseEnum::CREATING_FAILED, null, ['cache' => $exception->getMessage()]);
         } catch (ORMException | \Doctrine\DBAL\Exception\InvalidArgumentException $exception) {
-            return $this->appFormatter->formatResponse(TCEnum::CREATING_FAILED, null, ['orm' => $exception->getMessage()]);
+            return $this->appFormatter->formatResponse(ResponseEnum::CREATING_FAILED, null, ['orm' => $exception->getMessage()]);
         }
     }
 
@@ -50,12 +49,12 @@ class Quarters implements QuartersInterface
             $quarters = $this->repository->list();
 
             if (sizeof($quarters) == 0) {
-                return $this->appFormatter->formatResponse(TCEnum::NO_DATA, null);
+                return $this->appFormatter->formatResponse(ResponseEnum::NO_DATA, null);
             }
 
-            return $this->appFormatter->formatResponse(TCEnum::FETCHING_SUCCESS, $quarters);
+            return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_SUCCESS, $quarters);
         } catch (InvalidArgumentException $exception) {
-            return $this->appFormatter->formatResponse(TCEnum::FETCHING_FAILED, null, ['cache' => $exception->getMessage()]);
+            return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_FAILED, null, ['cache' => $exception->getMessage()]);
         }
     }
 
@@ -65,14 +64,14 @@ class Quarters implements QuartersInterface
             $isDeleted = $this->repository->delete($id);
 
             if (! $isDeleted) {
-                return $this->appFormatter->formatResponse(TCEnum::DELETING_FAILED, null, ['app' => TCEnum::NO_DATA]);
+                return $this->appFormatter->formatResponse(ResponseEnum::DELETING_FAILED, null, ['app' => ResponseEnum::NO_DATA]);
             }
 
-            return $this->appFormatter->formatResponse(TCEnum::DELETING_SUCCESS, null);
+            return $this->appFormatter->formatResponse(ResponseEnum::DELETING_SUCCESS, null);
         } catch (InvalidArgumentException $exception) {
-            return $this->appFormatter->formatResponse(TCEnum::DELETING_FAILED, null, ['cache' => $exception->getMessage()]);
+            return $this->appFormatter->formatResponse(ResponseEnum::DELETING_FAILED, null, ['cache' => $exception->getMessage()]);
         } catch (ORMException $exception) {
-            return $this->appFormatter->formatResponse(TCEnum::DELETING_FAILED, null, ['orm' => $exception->getMessage()]);
+            return $this->appFormatter->formatResponse(ResponseEnum::DELETING_FAILED, null, ['orm' => $exception->getMessage()]);
         }
     }
 
@@ -82,14 +81,14 @@ class Quarters implements QuartersInterface
             $isUpdated = $this->repository->update($id, $quarterData);
 
             if ($isUpdated !== ResponseEnum::OK) {
-                return $this->appFormatter->formatResponse(TCEnum::UPDATING_FAILED, null, ['app' => $isUpdated]);
+                return $this->appFormatter->formatResponse(ResponseEnum::UPDATING_FAILED, null, ['app' => $isUpdated]);
             }
 
-            return $this->appFormatter->formatResponse(TCEnum::UPDATING_SUCCESS, null);
+            return $this->appFormatter->formatResponse(ResponseEnum::UPDATING_SUCCESS, null);
         } catch (Exception $e) {
-            return $this->appFormatter->formatResponse(TCEnum::UPDATING_FAILED, null, ['app' => $e->getMessage()]);
+            return $this->appFormatter->formatResponse(ResponseEnum::UPDATING_FAILED, null, ['app' => $e->getMessage()]);
         } catch (InvalidArgumentException $e) {
-            return $this->appFormatter->formatResponse(TCEnum::UPDATING_FAILED, null, ['cache' => $e->getMessage()]);
+            return $this->appFormatter->formatResponse(ResponseEnum::UPDATING_FAILED, null, ['cache' => $e->getMessage()]);
         }
     }
 }

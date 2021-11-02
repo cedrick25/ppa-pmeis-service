@@ -6,7 +6,6 @@ namespace App\Service\TherapeuticCommunity;
 
 use App\Common\AppFormatter;
 use App\Enum\Response as ResponseEnum;
-use App\Enum\TherapeuticCommunity as TCEnum;
 use App\Repository\SessionActivitiesRepository;
 use Doctrine\ORM\ORMException;
 use Exception;
@@ -25,12 +24,12 @@ class SessionActivities implements SessionActivitiesInterface
             $sessionActivities = $this->repository->list();
 
             if (sizeof($sessionActivities) == 0) {
-                return $this->appFormatter->formatResponse(TCEnum::NO_DATA, null);
+                return $this->appFormatter->formatResponse(ResponseEnum::NO_DATA, null);
             }
 
-            return $this->appFormatter->formatResponse(TCEnum::FETCHING_SUCCESS, $sessionActivities);
+            return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_SUCCESS, $sessionActivities);
         } catch (InvalidArgumentException $exception) {
-            return $this->appFormatter->formatResponse(TCEnum::FETCHING_FAILED, null, ['cache' => $exception->getMessage()]);
+            return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_FAILED, null, ['cache' => $exception->getMessage()]);
         }
     }
 
@@ -38,20 +37,20 @@ class SessionActivities implements SessionActivitiesInterface
     {
         try {
             if ($name === "") {
-                return $this->appFormatter->formatResponse(TCEnum::VALIDATING_FAILED, null, ['app' => 'Session activity name cannot be empty.']);
+                return $this->appFormatter->formatResponse(ResponseEnum::VALIDATING_FAILED, null, ['app' => 'Session activity name cannot be empty.']);
             }
 
             $sessionActivityId = $this->repository->create($name);
 
             if ($sessionActivityId == null) {
-                return $this->appFormatter->formatResponse(TCEnum::CREATING_FAILED, null, ['app' => 'Session activity already exist.']);
+                return $this->appFormatter->formatResponse(ResponseEnum::CREATING_FAILED, null, ['app' => 'Session activity already exist.']);
             }
 
-            return $this->appFormatter->formatResponse(TCEnum::CREATING_FAILED, ['id' => $sessionActivityId]);
+            return $this->appFormatter->formatResponse(ResponseEnum::CREATING_FAILED, ['id' => $sessionActivityId]);
         } catch (InvalidArgumentException $exception) {
-            return $this->appFormatter->formatResponse(TCEnum::CREATING_FAILED, null, ['cache' => $exception->getMessage()]);
+            return $this->appFormatter->formatResponse(ResponseEnum::CREATING_FAILED, null, ['cache' => $exception->getMessage()]);
         } catch (ORMException $exception) {
-            return $this->appFormatter->formatResponse(TCEnum::CREATING_FAILED, null, ['orm' => $exception->getMessage()]);
+            return $this->appFormatter->formatResponse(ResponseEnum::CREATING_FAILED, null, ['orm' => $exception->getMessage()]);
         }
     }
 
@@ -61,14 +60,14 @@ class SessionActivities implements SessionActivitiesInterface
             $isDeleted = $this->repository->softDelete($id);
 
             if (! $isDeleted) {
-                return $this->appFormatter->formatResponse(TCEnum::DELETING_FAILED, null, ['app' => TCEnum::NO_DATA]);
+                return $this->appFormatter->formatResponse(ResponseEnum::DELETING_FAILED, null, ['app' => ResponseEnum::NO_DATA]);
             }
 
-            return $this->appFormatter->formatResponse(TCEnum::DELETING_SUCCESS, null);
+            return $this->appFormatter->formatResponse(ResponseEnum::DELETING_SUCCESS, null);
         } catch (InvalidArgumentException $exception) {
-            return $this->appFormatter->formatResponse(TCEnum::DELETING_FAILED, null, ['cache' => $exception->getMessage()]);
+            return $this->appFormatter->formatResponse(ResponseEnum::DELETING_FAILED, null, ['cache' => $exception->getMessage()]);
         } catch (ORMException $exception) {
-            return $this->appFormatter->formatResponse(TCEnum::DELETING_FAILED, null, ['orm' => $exception->getMessage()]);
+            return $this->appFormatter->formatResponse(ResponseEnum::DELETING_FAILED, null, ['orm' => $exception->getMessage()]);
         }
     }
 
@@ -78,14 +77,14 @@ class SessionActivities implements SessionActivitiesInterface
             $isUpdated = $this->repository->update($id, $name);
 
             if ($isUpdated !== ResponseEnum::OK) {
-                return $this->appFormatter->formatResponse(TCEnum::UPDATING_FAILED, null, ['app' => $isUpdated]);
+                return $this->appFormatter->formatResponse(ResponseEnum::UPDATING_FAILED, null, ['app' => $isUpdated]);
             }
 
-            return $this->appFormatter->formatResponse(TCEnum::UPDATING_SUCCESS, null);
+            return $this->appFormatter->formatResponse(ResponseEnum::UPDATING_SUCCESS, null);
         } catch (Exception $e) {
-            return $this->appFormatter->formatResponse(TCEnum::UPDATING_FAILED, null, ['app' => $e->getMessage()]);
+            return $this->appFormatter->formatResponse(ResponseEnum::UPDATING_FAILED, null, ['app' => $e->getMessage()]);
         } catch (InvalidArgumentException $e) {
-            return $this->appFormatter->formatResponse(TCEnum::UPDATING_FAILED, null, ['cache' => $e->getMessage()]);
+            return $this->appFormatter->formatResponse(ResponseEnum::UPDATING_FAILED, null, ['cache' => $e->getMessage()]);
         }
     }
 }

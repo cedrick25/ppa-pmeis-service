@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Service\TherapeuticCommunity;
 
 use App\Common\AppFormatter;
-use App\Enum\TherapeuticCommunity as TCEnum;
+use App\Enum\Response as ResponseEnum;
 use App\Repository\PhasesRepository;
 use Psr\Cache\InvalidArgumentException;
 
@@ -22,12 +22,12 @@ class Phases implements PhasesInterface
             $phases = $this->repository->list();
 
             if (sizeof($phases) == 0) {
-                return $this->appFormatter->formatResponse(TCEnum::NO_DATA, null);
+                return $this->appFormatter->formatResponse(ResponseEnum::NO_DATA, null);
             }
 
-            return $this->appFormatter->formatResponse(TCEnum::FETCHING_SUCCESS, $phases);
+            return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_SUCCESS, $phases);
         } catch (InvalidArgumentException $exception) {
-            return $this->appFormatter->formatResponse(TCEnum::FETCHING_FAILED, null, ['cache' => $exception->getMessage()]);
+            return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_FAILED, null, ['cache' => $exception->getMessage()]);
         }
     }
 }

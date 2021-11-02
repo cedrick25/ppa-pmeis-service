@@ -6,7 +6,6 @@ namespace App\Service\TherapeuticCommunity;
 
 use App\Common\AppFormatter;
 use App\Enum\Response as ResponseEnum;
-use App\Enum\TherapeuticCommunity as TCEnum;
 use App\Repository\VenuesRepository;
 use Doctrine\ORM\ORMException;
 use Exception;
@@ -23,20 +22,20 @@ class Venues implements VenuesInterface
     {
         try {
             if ($name === "") {
-                return $this->appFormatter->formatResponse(TCEnum::VALIDATING_FAILED, null, ['app' => 'Venue name cannot be empty.']);
+                return $this->appFormatter->formatResponse(ResponseEnum::VALIDATING_FAILED, null, ['app' => 'Venue name cannot be empty.']);
             }
 
             $venueId = $this->repository->create($name);
 
             if ($venueId == null) {
-                return $this->appFormatter->formatResponse(TCEnum::CREATING_FAILED, null, ['app' => 'Venue already exist.']);
+                return $this->appFormatter->formatResponse(ResponseEnum::CREATING_FAILED, null, ['app' => 'Venue already exist.']);
             }
 
-            return $this->appFormatter->formatResponse(TCEnum::CREATING_SUCCESS, ['id' => $venueId]);
+            return $this->appFormatter->formatResponse(ResponseEnum::CREATING_SUCCESS, ['id' => $venueId]);
         } catch (InvalidArgumentException $exception) {
-            return $this->appFormatter->formatResponse(TCEnum::CREATING_FAILED, null, ['cache' => $exception->getMessage()]);
+            return $this->appFormatter->formatResponse(ResponseEnum::CREATING_FAILED, null, ['cache' => $exception->getMessage()]);
         } catch (ORMException $exception) {
-            return $this->appFormatter->formatResponse(TCEnum::CREATING_FAILED, null, ['orm' => $exception->getMessage()]);
+            return $this->appFormatter->formatResponse(ResponseEnum::CREATING_FAILED, null, ['orm' => $exception->getMessage()]);
         }
     }
 
@@ -46,12 +45,12 @@ class Venues implements VenuesInterface
             $venues = $this->repository->list();
 
             if (sizeof($venues) == 0) {
-                return $this->appFormatter->formatResponse(TCEnum::NO_DATA, null);
+                return $this->appFormatter->formatResponse(ResponseEnum::NO_DATA, null);
             }
 
-            return $this->appFormatter->formatResponse(TCEnum::FETCHING_SUCCESS, $venues);
+            return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_SUCCESS, $venues);
         } catch (InvalidArgumentException $exception) {
-            return $this->appFormatter->formatResponse(TCEnum::FETCHING_FAILED, null, ['cache' => $exception->getMessage()]);
+            return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_FAILED, null, ['cache' => $exception->getMessage()]);
         }
     }
 
@@ -61,14 +60,14 @@ class Venues implements VenuesInterface
             $isDeleted = $this->repository->softDelete($id);
 
             if (! $isDeleted) {
-                return $this->appFormatter->formatResponse(TCEnum::DELETING_FAILED, null, ['app' => TCEnum::NO_DATA]);
+                return $this->appFormatter->formatResponse(ResponseEnum::DELETING_FAILED, null, ['app' => ResponseEnum::NO_DATA]);
             }
 
-            return $this->appFormatter->formatResponse(TCEnum::DELETING_SUCCESS, null);
+            return $this->appFormatter->formatResponse(ResponseEnum::DELETING_SUCCESS, null);
         } catch (InvalidArgumentException $exception) {
-            return $this->appFormatter->formatResponse(TCEnum::DELETING_FAILED, null, ['cache' => $exception->getMessage()]);
+            return $this->appFormatter->formatResponse(ResponseEnum::DELETING_FAILED, null, ['cache' => $exception->getMessage()]);
         } catch (ORMException $exception) {
-            return $this->appFormatter->formatResponse(TCEnum::DELETING_FAILED, null, ['orm' => $exception->getMessage()]);
+            return $this->appFormatter->formatResponse(ResponseEnum::DELETING_FAILED, null, ['orm' => $exception->getMessage()]);
         }
     }
 
@@ -78,14 +77,14 @@ class Venues implements VenuesInterface
             $isUpdated = $this->repository->update($id, $name);
 
             if ($isUpdated !== ResponseEnum::OK) {
-                return $this->appFormatter->formatResponse(TCEnum::UPDATING_FAILED, null, ['app' => $isUpdated]);
+                return $this->appFormatter->formatResponse(ResponseEnum::UPDATING_FAILED, null, ['app' => $isUpdated]);
             }
 
-            return $this->appFormatter->formatResponse(TCEnum::UPDATING_SUCCESS, null);
+            return $this->appFormatter->formatResponse(ResponseEnum::UPDATING_SUCCESS, null);
         } catch (Exception $e) {
-            return $this->appFormatter->formatResponse(TCEnum::UPDATING_FAILED, null, ['app' => $e->getMessage()]);
+            return $this->appFormatter->formatResponse(ResponseEnum::UPDATING_FAILED, null, ['app' => $e->getMessage()]);
         } catch (InvalidArgumentException $e) {
-            return $this->appFormatter->formatResponse(TCEnum::UPDATING_FAILED, null, ['cache' => $e->getMessage()]);
+            return $this->appFormatter->formatResponse(ResponseEnum::UPDATING_FAILED, null, ['cache' => $e->getMessage()]);
         }
     }
 }

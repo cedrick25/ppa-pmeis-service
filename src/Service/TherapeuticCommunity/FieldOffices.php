@@ -3,7 +3,7 @@
 namespace App\Service\TherapeuticCommunity;
 
 use App\Common\AppFormatter;
-use App\Enum\TherapeuticCommunity as TCEnum;
+use App\Enum\Response as ResponseEnum;
 use App\Repository\FieldOfficesRepository;
 use Psr\Cache\InvalidArgumentException;
 
@@ -20,12 +20,12 @@ class FieldOffices implements FieldOfficesInterface
             $fieldOffices = $this->repository->list();
 
             if (sizeof($fieldOffices) == 0) {
-                return $this->appFormatter->formatResponse(TCEnum::NO_DATA, null);
+                return $this->appFormatter->formatResponse(ResponseEnum::NO_DATA, null);
             }
 
-            return $this->appFormatter->formatResponse(TCEnum::FETCHING_SUCCESS, $fieldOffices);
+            return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_SUCCESS, $fieldOffices);
         } catch (InvalidArgumentException $exception) {
-            return $this->appFormatter->formatResponse(TCEnum::FETCHING_FAILED, null, ['cache' => $exception->getMessage()]);
+            return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_FAILED, null, ['cache' => $exception->getMessage()]);
         }
     }
 }
