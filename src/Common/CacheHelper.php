@@ -72,6 +72,11 @@ class CacheHelper
         return 'client_types_all';
     }
 
+    public function getClientTypesPaginatedKey($page, $size): string
+    {
+        return 'client_types_' . $page . '_' . $size;
+    }
+
     public function getAllTreatmentCategoriesKey(): string
     {
         return 'treatment_categories_all';

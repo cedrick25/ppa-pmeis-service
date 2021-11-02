@@ -8,6 +8,7 @@ use App\Common\AppFormatter;
 use App\Enum\Response as ResponseEnum;
 use App\Repository\ClientTypesRepository;
 use Doctrine\ORM\ORMException;
+use Psr\Cache\CacheException;
 use Psr\Cache\InvalidArgumentException;
 use App\Model\ClientTypes as ClientTypesModel;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
@@ -72,6 +73,21 @@ class ClientTypes implements ClientTypesInterface
             return $this->appFormatter->formatResponse(ResponseEnum::DELETING_FAILED, null, ['cache' => $exception->getMessage()]);
         } catch (ORMException $exception) {
             return $this->appFormatter->formatResponse(ResponseEnum::DELETING_FAILED, null, ['orm' => $exception->getMessage()]);
+        }
+    }
+
+    public function getPaginated(int $page, int $pageSize): array
+    {
+        try {
+            $clientSessions = $this->repository->paginated($page, $pageSize);
+
+            if (sizeof($clientSessions) == 0) {
+                return $this->appFormatter->formatResponse(ResponseEnum::NO_DATA, null);
+            }
+
+            return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_SUCCESS, $clientSessions);
+        } catch (CacheException| InvalidArgumentException $exception) {
+            return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_FAILED, null, ['cache' => $exception->getMessage()]);
         }
     }
 }

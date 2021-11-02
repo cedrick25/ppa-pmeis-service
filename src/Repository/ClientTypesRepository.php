@@ -4,14 +4,18 @@ declare(strict_types=1);
 
 namespace App\Repository;
 
+use App\Common\AppFormatter;
 use App\Common\CacheHelper;
 use App\Entity\ClientTypes;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
+use Doctrine\ORM\OptimisticLockException;
 use Doctrine\ORM\ORMException;
+use Doctrine\ORM\Tools\Pagination\Paginator;
 use Doctrine\Persistence\ManagerRegistry;
+use Psr\Cache\CacheException;
 use Psr\Cache\InvalidArgumentException;
-use Symfony\Contracts\Cache\CacheInterface;
 use Symfony\Contracts\Cache\ItemInterface;
+use Symfony\Contracts\Cache\TagAwareCacheInterface;
 
 /**
  * @method ClientTypes|null find($id, $lockMode = null, $lockVersion = null)
@@ -21,10 +25,13 @@ use Symfony\Contracts\Cache\ItemInterface;
  */
 class ClientTypesRepository extends ServiceEntityRepository
 {
+    protected const CACHE_TAG = "client_types";
+
     public function __construct(
         ManagerRegistry $registry,
-        private CacheInterface $cache,
+        private TagAwareCacheInterface $cache,
         private CacheHelper $cacheHelper,
+        private AppFormatter $appFormatter
     ){
         parent::__construct($registry, ClientTypes::class);
     }
@@ -41,7 +48,7 @@ class ClientTypesRepository extends ServiceEntityRepository
             return null;
         }
 
-        $this->cache->delete($this->cacheHelper->getAllClientTypesKey());
+        $this->cache->invalidateTags([self::CACHE_TAG]);
 
         $newClientType = new ClientTypes();
         $newClientType->setCode($code);
@@ -60,18 +67,22 @@ class ClientTypesRepository extends ServiceEntityRepository
     public function list(): array
     {
         $cacheKey = $this->cacheHelper->getAllClientTypesKey();
-        $expiration = $this->cacheHelper->getExpirationDateTime(24);
+        $expiration = $this->cacheHelper->getExpirationDateTime();
 
         return $this->cache->get($cacheKey, function (ItemInterface $item) use ($cacheKey, $expiration) {
             $item->expiresAt($expiration);
+            $item->tag(self::CACHE_TAG);
 
             return $this->findAll();
         });
     }
 
     /**
+     * @param int $id
+     * @return bool
      * @throws InvalidArgumentException
      * @throws ORMException
+     * @throws OptimisticLockException
      */
     public function delete(int $id): bool
     {
@@ -81,11 +92,47 @@ class ClientTypesRepository extends ServiceEntityRepository
             return false;
         }
 
-        $this->cache->delete($this->cacheHelper->getAllClientTypesKey());
+        $this->cache->invalidateTags([self::CACHE_TAG]);
 
         $this->getEntityManager()->remove($clientType);
         $this->getEntityManager()->flush();
 
         return true;
+    }
+
+    /**
+     * @param int $page
+     * @param int $pageSize
+     * @return array<string, mixed>
+     * @throws InvalidArgumentException
+     * @throws CacheException
+     */
+    public function paginated(int $page = 1, int $pageSize = 10): array
+    {
+        $cacheKey = $this->cacheHelper->getClientTypesPaginatedKey($page, $pageSize);
+        $expiration = $this->cacheHelper->getExpirationDateTime();
+
+        return $this->cache->get($cacheKey, function (ItemInterface $item) use ($cacheKey, $expiration, $page, $pageSize) {
+            $item->expiresAt($expiration);
+            $item->tag(self::CACHE_TAG);
+
+            $query = $this->createQueryBuilder('ct')->orderBy('ct.clientTypeId');
+
+            $pageItems = array();
+            $paginator = new Paginator($query);
+            $totalItems = $paginator->count();
+            $pageCount = ceil($totalItems / $pageSize);
+
+            $paginator
+                ->getQuery()
+                ->setFirstResult($pageSize * ($page-1))
+                ->setMaxResults($pageSize);
+
+            foreach ($paginator as $pageItem) {
+                $pageItems[] = $pageItem;
+            }
+
+            return $this->appFormatter->formatPagination($totalItems, $pageCount, $pageItems);
+        });
     }
 }

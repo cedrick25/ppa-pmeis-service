@@ -11,4 +11,6 @@ interface ClientTypesInterface
     public function getAll(): array;
 
     public function deleteById(int $id): array;
+
+    public function getPaginated(int $page, int $pageSize): array;
 }
