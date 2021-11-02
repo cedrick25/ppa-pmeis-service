@@ -65,8 +65,7 @@ class FieldOfficesRepository extends ServiceEntityRepository
         return $this->cache->get($cacheKey, function (ItemInterface $item) use ($cacheKey, $expiration, $page, $pageSize) {
             $item->expiresAt($expiration);
 
-            $query = $this->createQueryBuilder('fo')
-                ->orderBy('fo.fieldOfficeId');
+            $query = $this->createQueryBuilder('fo')->orderBy('fo.fieldOfficeId');
 
             $pageItems = array();
             $paginator = new Paginator($query);
