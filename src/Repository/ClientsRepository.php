@@ -12,12 +12,11 @@ use Doctrine\ORM\OptimisticLockException;
 use Doctrine\ORM\ORMException;
 use Doctrine\ORM\Tools\Pagination\Paginator;
 use Doctrine\Persistence\ManagerRegistry;
-
 use App\Model\Clients as ClientModel;
 use Exception;
 use Psr\Cache\InvalidArgumentException;
-use Symfony\Contracts\Cache\CacheInterface;
 use Symfony\Contracts\Cache\ItemInterface;
+use Symfony\Contracts\Cache\TagAwareCacheInterface;
 
 /**
  * @method Clients|null find($id, $lockMode = null, $lockVersion = null)
@@ -27,9 +26,11 @@ use Symfony\Contracts\Cache\ItemInterface;
  */
 class ClientsRepository extends ServiceEntityRepository
 {
+    protected const CACHE_TAG = "clients";
+
     public function __construct(
         ManagerRegistry $registry,
-        private CacheInterface $cache,
+        private TagAwareCacheInterface $cache,
         private CacheHelper $cacheHelper,
         private AppDateHelper $appDateHelper,
         private AppFormatter $appFormatter
@@ -48,7 +49,7 @@ class ClientsRepository extends ServiceEntityRepository
             return null;
         }
 
-        $this->cache->delete($this->cacheHelper->getAllClientsKey());
+        $this->cache->invalidateTags([self::CACHE_TAG]);
 
         $newClient = new Clients();
         $newClient->setCmisId($clientData->getCmisId());
@@ -85,6 +86,7 @@ class ClientsRepository extends ServiceEntityRepository
 
         return $this->cache->get($cacheKey, function (ItemInterface $item) use ($cacheKey, $expiration) {
             $item->expiresAt($expiration);
+            $item->tag(self::CACHE_TAG);
 
             return $this->createQueryBuilder('cl')
                 ->andWhere('cl.deletedAt IS NULL')
@@ -108,7 +110,7 @@ class ClientsRepository extends ServiceEntityRepository
 
         // TODO: Check if there is an existing id in client sessions and rj conducted process
 
-        $this->cache->delete($this->cacheHelper->getAllClientsKey());
+        $this->cache->invalidateTags([self::CACHE_TAG]);
 
         $this->getEntityManager()->remove($client);
         $this->getEntityManager()->flush();
@@ -130,7 +132,7 @@ class ClientsRepository extends ServiceEntityRepository
             return false;
         }
 
-        $this->cache->delete($this->cacheHelper->getAllClientsKey());
+        $this->cache->invalidateTags([self::CACHE_TAG]);
 
         $client->setDeletedAt($this->appDateHelper->getCurrentImmutableDate());
 
@@ -156,7 +158,8 @@ class ClientsRepository extends ServiceEntityRepository
             return ResponseEnum::CONFLICTED_INPUT;
         }
 
-        $this->cache->delete($this->cacheHelper->getAllClientsKey());
+        $this->cache->invalidateTags([self::CACHE_TAG]);
+
 
         $client->setClientTypeId($clientData->getClientTypeId());
         $client->setCmisId($clientData->getCmisId());
@@ -201,6 +204,7 @@ class ClientsRepository extends ServiceEntityRepository
 
         return $this->cache->get($cacheKey, function (ItemInterface $item) use ($cacheKey, $expiration, $page, $pageSize) {
             $item->expiresAt($expiration);
+            $item->tag(self::CACHE_TAG);
 
             $query = $this->createQueryBuilder('cl')->orderBy('cl.clientId');
 
