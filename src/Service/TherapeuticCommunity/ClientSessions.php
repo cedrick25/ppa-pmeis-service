@@ -8,6 +8,7 @@ use \App\Model\ClientSessions as ClientSessionModel;
 use App\Repository\ClientSessionsRepository;
 use Doctrine\ORM\ORMException;
 use Exception;
+use Psr\Cache\CacheException;
 use Psr\Cache\InvalidArgumentException;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 

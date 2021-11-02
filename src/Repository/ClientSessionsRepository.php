@@ -14,6 +14,7 @@ use Doctrine\ORM\ORMException;
 use Doctrine\ORM\Tools\Pagination\Paginator;
 use Doctrine\Persistence\ManagerRegistry;
 use Exception;
+use Psr\Cache\CacheException;
 use Psr\Cache\InvalidArgumentException;
 use Symfony\Contracts\Cache\TagAwareCacheInterface;
 use Symfony\Contracts\Cache\ItemInterface;
@@ -152,7 +153,7 @@ class ClientSessionsRepository extends ServiceEntityRepository
             $item->expiresAt($expiration);
             $item->tag(self::CACHE_TAG);
 
-            $query = $this->createQueryBuilder('cs')->orderBy('cs.clientSessionId', 'DESC');
+            $query = $this->createQueryBuilder('cs')->orderBy('cs.clientSessionId');
 
             $pageItems = array();
             $paginator = new Paginator($query);

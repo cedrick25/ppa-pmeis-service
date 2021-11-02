@@ -14,6 +14,7 @@ use Doctrine\ORM\Tools\Pagination\Paginator;
 use Doctrine\Persistence\ManagerRegistry;
 use App\Model\Clients as ClientModel;
 use Exception;
+use Psr\Cache\CacheException;
 use Psr\Cache\InvalidArgumentException;
 use Symfony\Contracts\Cache\ItemInterface;
 use Symfony\Contracts\Cache\TagAwareCacheInterface;
@@ -193,8 +194,11 @@ class ClientsRepository extends ServiceEntityRepository
     }
 
     /**
+     * @param int $page
+     * @param int $pageSize
      * @return array<string, mixed>
      * @throws InvalidArgumentException
+     * @throws CacheException
      */
     public function paginated(int $page = 1, int $pageSize = 10): array
     {
