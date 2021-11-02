@@ -2,7 +2,7 @@
 
 namespace App\Repository;
 
-use App\Common\AppDateHelper;
+use App\Common\AppFormatter;
 use App\Common\CacheHelper;
 use App\Entity\ClientSessions;
 use App\Enum\ClientSessionRole;
@@ -11,10 +11,11 @@ use App\Model\ClientSessions as ClientSessionModel;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\ORM\ORMException;
+use Doctrine\ORM\Tools\Pagination\Paginator;
 use Doctrine\Persistence\ManagerRegistry;
 use Exception;
 use Psr\Cache\InvalidArgumentException;
-use Symfony\Contracts\Cache\CacheInterface;
+use Symfony\Contracts\Cache\TagAwareCacheInterface;
 use Symfony\Contracts\Cache\ItemInterface;
 
 /**
@@ -25,10 +26,13 @@ use Symfony\Contracts\Cache\ItemInterface;
  */
 class ClientSessionsRepository extends ServiceEntityRepository
 {
+    protected const CACHE_TAG = "client_sessions";
+
     public function __construct(
         ManagerRegistry $registry,
-        private CacheInterface $cache,
+        private TagAwareCacheInterface $cache,
         private CacheHelper $cacheHelper,
+        private AppFormatter $appFormatter
     ){
         parent::__construct($registry, ClientSessions::class);
     }
@@ -45,7 +49,7 @@ class ClientSessionsRepository extends ServiceEntityRepository
             return null;
         }
 
-        $this->cache->delete($this->cacheHelper->getAllClientSessionsKey());
+        $this->cache->invalidateTags([self::CACHE_TAG]);
 
         $newClientSession = new ClientSessions();
         $newClientSession->setClientId($clientSessions->getClientId());
@@ -65,10 +69,11 @@ class ClientSessionsRepository extends ServiceEntityRepository
     public function list(): array
     {
         $cacheKey = $this->cacheHelper->getAllClientSessionsKey();
-        $expiration = $this->cacheHelper->getExpirationDateTime(24);
+        $expiration = $this->cacheHelper->getExpirationDateTime();
 
         return $this->cache->get($cacheKey, function (ItemInterface $item) use ($cacheKey, $expiration) {
             $item->expiresAt($expiration);
+            $item->tag(self::CACHE_TAG);
 
             return $this->createQueryBuilder('cs')
                 ->orderBy('cs.clientSessionId', 'DESC')
@@ -89,7 +94,7 @@ class ClientSessionsRepository extends ServiceEntityRepository
             return false;
         }
 
-        $this->cache->delete($this->cacheHelper->getAllClientSessionsKey());
+        $this->cache->invalidateTags([self::CACHE_TAG]);
 
         $this->getEntityManager()->remove($clientSession);
         $this->getEntityManager()->flush();
@@ -113,7 +118,7 @@ class ClientSessionsRepository extends ServiceEntityRepository
             return ResponseEnum::CONFLICTED_INPUT;
         }
 
-        $this->cache->delete($this->cacheHelper->getAllClientSessionsKey());
+        $this->cache->invalidateTags([self::CACHE_TAG]);
 
         $clientSession->setClientId($clientSessionData->getClientId());
         $clientSession->setSessionId($clientSessionData->getSessionId());
@@ -132,6 +137,39 @@ class ClientSessionsRepository extends ServiceEntityRepository
         ]);
 
         return ($client == null) ? false : $client;
+    }
+
+    /**
+     * @return array<string, mixed>
+     * @throws InvalidArgumentException
+     */
+    public function paginated(int $page = 1, int $pageSize = 10): array
+    {
+        $cacheKey = $this->cacheHelper->getClientsPaginatedKey($page, $pageSize);
+        $expiration = $this->cacheHelper->getExpirationDateTime();
+
+        return $this->cache->get($cacheKey, function (ItemInterface $item) use ($cacheKey, $expiration, $page, $pageSize) {
+            $item->expiresAt($expiration);
+            $item->tag(self::CACHE_TAG);
+
+            $query = $this->createQueryBuilder('cs')->orderBy('cs.clientSessionId', 'DESC');
+
+            $pageItems = array();
+            $paginator = new Paginator($query);
+            $totalItems = $paginator->count();
+            $pageCount = ceil($totalItems / $pageSize);
+
+            $paginator
+                ->getQuery()
+                ->setFirstResult($pageSize * ($page-1))
+                ->setMaxResults($pageSize);
+
+            foreach ($paginator as $pageItem) {
+                $pageItems[] = $pageItem;
+            }
+
+            return $this->appFormatter->formatPagination($totalItems, $pageCount, $pageItems);
+        });
     }
 
     private function isExisting(ClientSessionModel $clientSessionData): bool

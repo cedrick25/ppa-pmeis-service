@@ -4,7 +4,7 @@ namespace App\Common;
 
 class CacheHelper
 {
-    public function getExpirationDateTime(int $hour): \DateTime
+    public function getExpirationDateTime(int $hour = 24): \DateTime
     {
         $dateTimeExpiration = new \DateTime();
         $dateTimeExpiration->add(new \DateInterval("PT{$hour}H"));
@@ -90,6 +90,11 @@ class CacheHelper
     public function getAllClientSessionsKey(): string
     {
         return 'client_sessions_all';
+    }
+
+    public function getClientSessionsPaginatedKey($page, $size): string
+    {
+        return 'client_sessions_' . $page . '_' . $size;
     }
 
     public function getAllVolunteersKey(): string

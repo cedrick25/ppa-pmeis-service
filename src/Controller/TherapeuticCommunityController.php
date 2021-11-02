@@ -345,17 +345,6 @@ class TherapeuticCommunityController extends AbstractController
     }
 
     /**
-     * @Route("/client/{page}/{pageSize}", methods={"GET"})
-     */
-    public function getPaginatedClients(Request $request): Response
-    {
-        return $this->json($this->clientService->getPaginated(
-            (int) $request->get("page"),
-            (int) $request->get("pageSize")
-        ));
-    }
-
-    /**
      * @Route("/client/delete/{id}", methods={"GET"})
      */
     public function deleteClientById(Request $request): Response
@@ -378,6 +367,17 @@ class TherapeuticCommunityController extends AbstractController
         } catch (ReflectionException $exception) {
             return $this->json($this->appFormatter->formatResponse('Updating client failed', null, ['reflection' => $exception->getMessage()]));
         }
+    }
+
+    /**
+     * @Route("/client/{page}/{pageSize}", methods={"GET"})
+     */
+    public function getPaginatedClients(Request $request): Response
+    {
+        return $this->json($this->clientService->getPaginated(
+            (int) $request->get("page"),
+            (int) $request->get("pageSize")
+        ));
     }
 
     /**
@@ -428,6 +428,17 @@ class TherapeuticCommunityController extends AbstractController
         } catch (ReflectionException $exception) {
             return $this->json($this->appFormatter->formatResponse('Updating client session failed', null, ['reflection' => $exception->getMessage()]));
         }
+    }
+
+    /**
+     * @Route("/client-session/{page}/{pageSize}", methods={"GET"})
+     */
+    public function getPaginatedClientSessions(Request $request): Response
+    {
+        return $this->json($this->clientSessionService->getPaginated(
+            (int) $request->get("page"),
+            (int) $request->get("pageSize")
+        ));
     }
 
     /**

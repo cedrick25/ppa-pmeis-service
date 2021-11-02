@@ -40,7 +40,7 @@ class FieldOfficesRepository extends ServiceEntityRepository
     public function list(): array
     {
         $cacheKey = $this->cacheHelper->getAllFieldOfficesKey();
-        $expiration = $this->cacheHelper->getExpirationDateTime(24);
+        $expiration = $this->cacheHelper->getExpirationDateTime();
 
         return $this->cache->get($cacheKey, function (ItemInterface $item) use ($cacheKey, $expiration) {
             $item->expiresAt($expiration);
@@ -60,7 +60,7 @@ class FieldOfficesRepository extends ServiceEntityRepository
     public function paginated(int $page = 1, int $pageSize = 10): array
     {
         $cacheKey = $this->cacheHelper->getFieldOfficePaginatedKey($page, $pageSize);
-        $expiration = $this->cacheHelper->getExpirationDateTime(24);
+        $expiration = $this->cacheHelper->getExpirationDateTime();
 
         return $this->cache->get($cacheKey, function (ItemInterface $item) use ($cacheKey, $expiration, $page, $pageSize) {
             $item->expiresAt($expiration);
