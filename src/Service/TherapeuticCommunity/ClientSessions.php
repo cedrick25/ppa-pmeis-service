@@ -8,6 +8,7 @@ use \App\Model\ClientSessions as ClientSessionModel;
 use App\Repository\ClientSessionsRepository;
 use Doctrine\ORM\ORMException;
 use Exception;
+use Psr\Cache\CacheException;
 use Psr\Cache\InvalidArgumentException;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 
@@ -90,6 +91,21 @@ class ClientSessions implements ClientSessionsInterface
             return $this->appFormatter->formatResponse(ResponseEnum::UPDATING_FAILED, null, ['app' => $e->getMessage()]);
         } catch (InvalidArgumentException $e) {
             return $this->appFormatter->formatResponse(ResponseEnum::UPDATING_FAILED, null, ['cache' => $e->getMessage()]);
+        }
+    }
+
+    public function getPaginated(int $page, int $pageSize): array
+    {
+        try {
+            $clientSessions = $this->repository->paginated($page, $pageSize);
+
+            if (sizeof($clientSessions) == 0) {
+                return $this->appFormatter->formatResponse(ResponseEnum::NO_DATA, null);
+            }
+
+            return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_SUCCESS, $clientSessions);
+        } catch (CacheException | InvalidArgumentException $exception) {
+            return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_FAILED, null, ['cache' => $exception->getMessage()]);
         }
     }
 }

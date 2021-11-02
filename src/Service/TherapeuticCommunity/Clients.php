@@ -96,13 +96,13 @@ class Clients implements ClientsInterface
     public function getPaginated(int $page, int $pageSize): array
     {
         try {
-            $fieldOffices = $this->repository->paginated($page, $pageSize);
+            $clients = $this->repository->paginated($page, $pageSize);
 
-            if (sizeof($fieldOffices) == 0) {
+            if (sizeof($clients) == 0) {
                 return $this->appFormatter->formatResponse(ResponseEnum::NO_DATA, null);
             }
 
-            return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_SUCCESS, $fieldOffices);
+            return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_SUCCESS, $clients);
         } catch (InvalidArgumentException $exception) {
             return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_FAILED, null, ['cache' => $exception->getMessage()]);
         }

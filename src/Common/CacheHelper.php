@@ -92,6 +92,11 @@ class CacheHelper
         return 'client_sessions_all';
     }
 
+    public function getClientSessionsPaginatedKey($page, $size): string
+    {
+        return 'client_sessions_' . $page . '_' . $size;
+    }
+
     public function getAllVolunteersKey(): string
     {
         return 'volunteers_all';

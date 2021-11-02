@@ -2,7 +2,7 @@
 
 namespace App\Repository;
 
-use App\Common\AppDateHelper;
+use App\Common\AppFormatter;
 use App\Common\CacheHelper;
 use App\Entity\ClientSessions;
 use App\Enum\ClientSessionRole;
@@ -11,10 +11,12 @@ use App\Model\ClientSessions as ClientSessionModel;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\ORM\ORMException;
+use Doctrine\ORM\Tools\Pagination\Paginator;
 use Doctrine\Persistence\ManagerRegistry;
 use Exception;
+use Psr\Cache\CacheException;
 use Psr\Cache\InvalidArgumentException;
-use Symfony\Contracts\Cache\CacheInterface;
+use Symfony\Contracts\Cache\TagAwareCacheInterface;
 use Symfony\Contracts\Cache\ItemInterface;
 
 /**
@@ -25,10 +27,14 @@ use Symfony\Contracts\Cache\ItemInterface;
  */
 class ClientSessionsRepository extends ServiceEntityRepository
 {
+    protected const CACHE_TAG = "client_sessions";
+
     public function __construct(
         ManagerRegistry $registry,
-        private CacheInterface $cache,
+        private TagAwareCacheInterface $cache,
         private CacheHelper $cacheHelper,
+        private AppFormatter $appFormatter,
+        private Helper $helper
     ){
         parent::__construct($registry, ClientSessions::class);
     }
@@ -45,7 +51,7 @@ class ClientSessionsRepository extends ServiceEntityRepository
             return null;
         }
 
-        $this->cache->delete($this->cacheHelper->getAllClientSessionsKey());
+        $this->cache->invalidateTags([self::CACHE_TAG]);
 
         $newClientSession = new ClientSessions();
         $newClientSession->setClientId($clientSessions->getClientId());
@@ -89,7 +95,7 @@ class ClientSessionsRepository extends ServiceEntityRepository
             return false;
         }
 
-        $this->cache->delete($this->cacheHelper->getAllClientSessionsKey());
+        $this->cache->invalidateTags([self::CACHE_TAG]);
 
         $this->getEntityManager()->remove($clientSession);
         $this->getEntityManager()->flush();
@@ -113,7 +119,7 @@ class ClientSessionsRepository extends ServiceEntityRepository
             return ResponseEnum::CONFLICTED_INPUT;
         }
 
-        $this->cache->delete($this->cacheHelper->getAllClientSessionsKey());
+        $this->cache->invalidateTags([self::CACHE_TAG]);
 
         $clientSession->setClientId($clientSessionData->getClientId());
         $clientSession->setSessionId($clientSessionData->getSessionId());
@@ -132,6 +138,30 @@ class ClientSessionsRepository extends ServiceEntityRepository
         ]);
 
         return ($client == null) ? false : $client;
+    }
+
+    /**
+     * @param int $page
+     * @param int $pageSize
+     * @return array<string, mixed
+     * @throws InvalidArgumentException
+     * @throws CacheException
+     */
+    public function paginated(int $page = 1, int $pageSize = 10): array
+    {
+        $cacheKey = $this->cacheHelper->getClientSessionsPaginatedKey($page, $pageSize);
+        $expiration = $this->cacheHelper->getExpirationDateTime(24);
+        $params = [
+            'cacheKey' => $cacheKey,
+            'expiration' => $expiration,
+            'cacheTag' => self::CACHE_TAG,
+            'pageSize' => $pageSize,
+            'page' => $page
+        ];
+
+        $query = $this->createQueryBuilder('cs')->orderBy('cs.clientSessionId');
+
+        return $this->helper->setCachedPaginatedResponse($query, $params);
     }
 
     private function isExisting(ClientSessionModel $clientSessionData): bool
