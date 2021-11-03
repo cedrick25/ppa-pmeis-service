@@ -15,7 +15,6 @@ class UserAccounts
         private string $password,
         private string $userType,
         private int $status,
-        private ?int $region,
         private ?int $fieldOffice,
         private ?DateTimeInterface $createdAt = null,
         private ?DateTimeInterface $updatedAt = null,
@@ -70,14 +69,6 @@ class UserAccounts
     public function getStatus(): int
     {
         return $this->status;
-    }
-
-    /**
-     * @return int|null
-     */
-    public function getRegion(): ?int
-    {
-        return $this->region;
     }
 
     /**

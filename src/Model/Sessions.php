@@ -11,7 +11,6 @@ class Sessions
 {
     public function __construct(
         private int $quarterId,
-        private int $regionId,
         private int $fieldOfficeId,
         private int $phaseId,
         private int $sessionActivityId,
@@ -34,16 +33,6 @@ class Sessions
     public function getQuarterId(): int
     {
         return $this->quarterId;
-    }
-
-    /**
-     * @Assert\NotBlank
-     * @Assert\GreaterThan(0)
-     * @return int
-     */
-    public function getRegionId(): int
-    {
-        return $this->regionId;
     }
 
     /**

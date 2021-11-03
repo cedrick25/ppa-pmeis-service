@@ -54,7 +54,6 @@ class SessionsRepository extends ServiceEntityRepository
 
         $session = new Sessions();
         $session->setQuarterId($sessionData->getQuarterId());
-        $session->setRegionId($sessionData->getRegionId());
         $session->setFieldOfficeId($sessionData->getFieldOfficeId());
         $session->setPhaseId($sessionData->getPhaseId());
         $session->setSessionActivityId($sessionData->getSessionActivityId());
@@ -163,7 +162,6 @@ class SessionsRepository extends ServiceEntityRepository
         $session->setQuarterId($sessionData->getQuarterId());
         $session->setPhaseId($sessionData->getPhaseId());
         $session->setSessionActivityId($sessionData->getSessionActivityId());
-        $session->setRegionId($sessionData->getRegionId());
         $session->setFieldOfficeId($sessionData->getFieldOfficeId());
         $session->setTreatmentCategoryId($sessionData->getTreatmentCategoryId());
         $session->setDate($this->appDateHelper->convertStringToImmutableDate($sessionData->getDate()));

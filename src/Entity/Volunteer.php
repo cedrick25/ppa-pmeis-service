@@ -67,11 +67,6 @@ class Volunteer
     private ?int $fieldOfficeId;
 
     /**
-     * @ORM\Column(type="integer", nullable=true)
-     */
-    private ?int $regionId;
-
-    /**
      * @ORM\Column(type="datetime_immutable")
      */
     private DateTimeImmutable $createdAt;
@@ -195,18 +190,6 @@ class Volunteer
     public function setFieldOfficeId(?int $fieldOfficeId): self
     {
         $this->fieldOfficeId = $fieldOfficeId;
-
-        return $this;
-    }
-
-    public function getRegionId(): ?int
-    {
-        return $this->regionId;
-    }
-
-    public function setRegionId(?int $regionId): self
-    {
-        $this->regionId = $regionId;
 
         return $this;
     }

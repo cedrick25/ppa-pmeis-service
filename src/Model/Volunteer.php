@@ -15,7 +15,6 @@ class Volunteer
         private ?string $middleName = "",
         private ?string $suffix = null,
         private ?int $fieldOfficeId = null,
-        private ?int $regionId = null,
         private ?bool $isSeniorCitizen = false,
         private ?bool $isPwd = false,
         private ?DateTimeImmutable $createdAt = null,
@@ -83,15 +82,6 @@ class Volunteer
     public function getFieldOfficeId(): ?int
     {
         return $this->fieldOfficeId;
-    }
-
-    /**
-     * @Assert\GreaterThan(0)
-     * @return int|null
-     */
-    public function getRegionId(): ?int
-    {
-        return $this->regionId;
     }
 
     /**

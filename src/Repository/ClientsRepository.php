@@ -61,7 +61,6 @@ class ClientsRepository extends ServiceEntityRepository
         $newClient->setDateOfBirth($this->appDateHelper->convertStringToImmutableDate($clientData->getDateOfBirth()));
         $newClient->setOffenseCategory($clientData->getOffenseCategory());
         $newClient->setFieldOfficeId($clientData->getFieldOfficeId());
-        $newClient->setRegionId($clientData->getRegionId());
         $newClient->setIsSeniorCitizen($clientData->isSeniorCitizen());
         $newClient->setIsPwd($clientData->isPwd());
         $newClient->setSupervisionStart($this->appDateHelper->convertStringToImmutableDate($clientData->getSupervisionStart()));
@@ -169,7 +168,6 @@ class ClientsRepository extends ServiceEntityRepository
         $client->setDateOfBirth($this->appDateHelper->convertStringToImmutableDate($clientData->getDateOfBirth()));
         $client->setOffenseCategory($clientData->getOffenseCategory());
         $client->setFieldOfficeId($clientData->getFieldOfficeId());
-        $client->setRegionId($clientData->getRegionId());
         $client->setIsSeniorCitizen($clientData->isSeniorCitizen());
         $client->setIsPwd($clientData->isPwd());
         $client->setSupervisionStart($this->appDateHelper->convertStringToImmutableDate($clientData->getSupervisionStart()));

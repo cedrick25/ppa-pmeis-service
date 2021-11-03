@@ -20,7 +20,6 @@ class Clients
         private string $supervisionStart,
         private string $supervisionEnd,
         private int $fieldOfficeId,
-        private int $regionId,
         private ?string $middleName = null,
         private ?string $suffix = null,
         private ?DateTimeInterface $createdAt = null,
@@ -132,16 +131,6 @@ class Clients
     public function getFieldOfficeId(): int
     {
         return $this->fieldOfficeId;
-    }
-
-    /**
-     * @Assert\NotBlank
-     * @Assert\GreaterThan(0)
-     * @return int
-     */
-    public function getRegionId(): int
-    {
-        return $this->regionId;
     }
 
     /**

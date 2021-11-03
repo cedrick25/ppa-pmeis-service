@@ -51,11 +51,6 @@ class UserAccount implements UserInterface, PasswordAuthenticatedUserInterface
     private ?int $fieldOfficeId;
 
     /**
-     * @ORM\Column(type="integer", nullable=true)
-     */
-    private ?int $regionId;
-
-    /**
      * @ORM\Column(type="integer", length=1)
      */
     private int $status;
@@ -150,18 +145,6 @@ class UserAccount implements UserInterface, PasswordAuthenticatedUserInterface
         return $this;
     }
 
-    public function getRegionId(): ?int
-    {
-        return $this->regionId;
-    }
-
-    public function setRegionId(?int $regionId): self
-    {
-        $this->regionId = $regionId;
-
-        return $this;
-    }
-
     public function getStatus(): ?int
     {
         return $this->status;
@@ -217,11 +200,7 @@ class UserAccount implements UserInterface, PasswordAuthenticatedUserInterface
     {
         $userRoles = ['FIELD_OFFICER'];
 
-        if ($this->getRegionId() !== null) {
-            $userRoles['region_id'] = $this->getRegionId();
-        }
-
-        if ($this->getRegionId() !== null) {
+        if ($this->getFieldOfficeId() !== null) {
             $userRoles['field_office_id'] = $this->getFieldOfficeId();
         }
 

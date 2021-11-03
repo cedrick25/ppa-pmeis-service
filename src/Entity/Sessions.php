@@ -31,11 +31,6 @@ class Sessions
     /**
      * @ORM\Column(type="integer")
      */
-    private int $regionId;
-
-    /**
-     * @ORM\Column(type="integer")
-     */
     private int $fieldOfficeId;
 
     /**
@@ -106,18 +101,6 @@ class Sessions
     public function setQuarterId(int $quarterId): self
     {
         $this->quarterId = $quarterId;
-
-        return $this;
-    }
-
-    public function getRegionId(): ?int
-    {
-        return $this->regionId;
-    }
-
-    public function setRegionId(int $regionId): self
-    {
-        $this->regionId = $regionId;
 
         return $this;
     }

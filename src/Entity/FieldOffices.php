@@ -26,6 +26,11 @@ class FieldOffices
     private string $name;
 
     /**
+     * @ORM\Column(type="integer")
+     */
+    private int $regionId;
+
+    /**
      * @ORM\Column(type="datetime_immutable", nullable=true)
      */
     private ?DateTimeImmutable $createdAt;
@@ -55,6 +60,22 @@ class FieldOffices
         $this->name = $name;
 
         return $this;
+    }
+
+    /**
+     * @return int
+     */
+    public function getRegionId(): int
+    {
+        return $this->regionId;
+    }
+
+    /**
+     * @param int $regionId
+     */
+    public function setRegionId(int $regionId): void
+    {
+        $this->regionId = $regionId;
     }
 
     public function getCreatedAt(): ?DateTimeImmutable

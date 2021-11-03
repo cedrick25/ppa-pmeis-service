@@ -11,6 +11,7 @@ class FieldOffices
     public function __construct(
         private int $id,
         private string $name,
+        private int $regionId,
         private ?DateTimeInterface $createdAt = null,
         private ?DateTimeInterface $updatedAt = null,
         private ?DateTimeInterface $deletedAt = null
@@ -30,6 +31,14 @@ class FieldOffices
     public function getName(): string
     {
         return $this->name;
+    }
+
+    /**
+     * @return int
+     */
+    public function getRegionId(): int
+    {
+        return $this->regionId;
     }
 
     /**

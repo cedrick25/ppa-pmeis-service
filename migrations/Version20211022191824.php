@@ -51,4 +51,9 @@ final class Version20211022191824 extends AbstractMigration
         $this->addSql("TRUNCATE TABLE session_activities");
         $this->addSql("TRUNCATE TABLE treatment_categories");
     }
+
+    public function isTransactional(): bool
+    {
+        return false;
+    }
 }

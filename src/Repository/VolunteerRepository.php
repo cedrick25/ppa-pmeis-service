@@ -56,7 +56,6 @@ class VolunteerRepository extends ServiceEntityRepository
         $newVolunteer->setIsSeniorCitizen($volunteerData->getIsSeniorCitizen());
         $newVolunteer->setIsPwd($volunteerData->getIsPwd());
         $newVolunteer->setFieldOfficeId($volunteerData->getFieldOfficeId());
-        $newVolunteer->setRegionId($volunteerData->getRegionId());
         $newVolunteer->setCreatedAt($this->appDateHelper->getCurrentImmutableDate());
 
         $this->getEntityManager()->persist($newVolunteer);
@@ -136,7 +135,6 @@ class VolunteerRepository extends ServiceEntityRepository
         $volunteer->setIsSeniorCitizen($volunteerData->getIsSeniorCitizen());
         $volunteer->setIsPwd($volunteerData->getIsPwd());
         $volunteer->setFieldOfficeId($volunteerData->getFieldOfficeId());
-        $volunteer->setRegionId($volunteerData->getRegionId());
         $volunteer->setUpdatedAt($this->appDateHelper->getCurrentImmutableDate());
 
         $this->getEntityManager()->flush();

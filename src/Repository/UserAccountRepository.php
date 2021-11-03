@@ -61,8 +61,8 @@ class UserAccountRepository extends ServiceEntityRepository
             $conn = $this->getEntityManager()->getConnection();
             $sql = "SELECT ua.*, ud.*, rg.name as region_name, fe.name as field_office_name FROM user_account ua 
                     LEFT JOIN user_details ud ON ud.user_account_id = ua.user_account_id
-                    LEFT JOIN regions rg ON rg.region_id = ua.region_id
                     LEFT JOIN field_offices fe ON fe.field_office_id = ua.field_office_id
+                    LEFT JOIN regions rg ON rg.region_id = fe.region_id
                     WHERE {$singleUser} ua.deleted_at IS NULL";
             $stmt = $conn->prepare($sql);
             $query = $stmt->executeQuery();
@@ -98,7 +98,6 @@ class UserAccountRepository extends ServiceEntityRepository
         $user->setPassword($hashedPassword);
         $user->setUserType($userAccountWithDetails->getUserType());
         $user->setFieldOfficeId($userAccountWithDetails->getFieldOffice());
-        $user->setRegionId($userAccountWithDetails->getRegion());
         $user->setStatus($userAccountWithDetails->getStatus());
         $user->setCreatedAt($this->appDateHelper->getCurrentImmutableDate());
 
@@ -163,7 +162,6 @@ class UserAccountRepository extends ServiceEntityRepository
         $user->setContactNumber($userAccountWithDetails->getContactNumber());
         $user->setUserType($userAccountWithDetails->getUserType());
         $user->setFieldOfficeId($userAccountWithDetails->getFieldOffice());
-        $user->setRegionId($userAccountWithDetails->getRegion());
         $user->setStatus($userAccountWithDetails->getStatus());
         $user->setCreatedAt($this->appDateHelper->getCurrentImmutableDate());
 
