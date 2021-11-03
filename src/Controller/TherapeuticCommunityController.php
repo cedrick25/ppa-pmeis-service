@@ -114,6 +114,17 @@ class TherapeuticCommunityController extends AbstractController
     }
 
     /**
+     * @Route("/quarter/{page}/{pageSize}", methods={"GET"})
+     */
+    public function getPaginatedQuarters(Request $request): Response
+    {
+        return $this->json($this->quartersService->getPaginated(
+            (int) $request->get("page"),
+            (int) $request->get("pageSize")
+        ));
+    }
+
+    /**
      * @Route("/phases/list", methods={"GET"})
      */
     public function getAllPhases(): Response

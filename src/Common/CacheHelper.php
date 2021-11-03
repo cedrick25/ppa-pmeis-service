@@ -34,7 +34,12 @@ class CacheHelper
 
     public function getAllQuartersKey(): string
     {
-        return 'quarter_all';
+        return 'quarters_all';
+    }
+
+    public function getQuartersPaginatedKey($page, $size): string
+    {
+        return 'quarters_' . $page . '_' . $size;
     }
 
     public function getAllPhasesKey(): string

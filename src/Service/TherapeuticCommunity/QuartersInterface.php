@@ -13,4 +13,6 @@ interface QuartersInterface
     public function deleteById(int $id): array;
 
     public function updateById(int $id, QuartersModel $quarterData): array;
+
+    public function getPaginated(int $page, int $pageSize): array;
 }

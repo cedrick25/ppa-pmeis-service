@@ -42,7 +42,7 @@ class Phases implements PhasesInterface
             }
 
             return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_SUCCESS, $phases);
-        } catch (CacheException | InvalidArgumentException $exception) {
+        } catch (InvalidArgumentException $exception) {
             return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_FAILED, null, ['cache' => $exception->getMessage()]);
         }
     }

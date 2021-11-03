@@ -5,19 +5,20 @@ declare(strict_types=1);
 namespace App\Repository;
 
 use App\Common\AppDateHelper;
+use App\Common\AppFormatter;
 use App\Common\CacheHelper;
 use App\Entity\Quarters;
 use App\Enum\Response as ResponseEnum;
 use App\Model\Quarters as QuartersModel;
-use DateTimeImmutable;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\DBAL\Exception\InvalidArgumentException;
 use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\ORM\ORMException;
 use Doctrine\Persistence\ManagerRegistry;
 use Exception;
-use Symfony\Contracts\Cache\CacheInterface;
+use Psr\Cache\CacheException;
 use Symfony\Contracts\Cache\ItemInterface;
+use Symfony\Contracts\Cache\TagAwareCacheInterface;
 
 /**
  * @method Quarters|null find($id, $lockMode = null, $lockVersion = null)
@@ -27,11 +28,14 @@ use Symfony\Contracts\Cache\ItemInterface;
  */
 class QuartersRepository extends ServiceEntityRepository
 {
+    protected const CACHE_TAG = "quarters";
+
     public function __construct(
         ManagerRegistry $registry,
-        private CacheInterface $cache,
+        private TagAwareCacheInterface $cache,
         private CacheHelper $cacheHelper,
         private AppDateHelper $appDateHelper,
+        private Helper $helper,
     ){
         parent::__construct($registry, Quarters::class);
     }
@@ -47,7 +51,7 @@ class QuartersRepository extends ServiceEntityRepository
             return null;
         }
 
-        $this->cache->delete($this->cacheHelper->getAllQuartersKey());
+        $this->cache->invalidateTags([self::CACHE_TAG]);
 
         $quarter = new Quarters();
         $quarter->setName($quarterData->getName());
@@ -67,10 +71,11 @@ class QuartersRepository extends ServiceEntityRepository
     public function list(): array
     {
         $cacheKey = $this->cacheHelper->getAllQuartersKey();
-        $expiration = $this->cacheHelper->getExpirationDateTime(24);
+        $expiration = $this->cacheHelper->getExpirationDateTime();
 
         return $this->cache->get($cacheKey, function (ItemInterface $item) use ($cacheKey, $expiration) {
             $item->expiresAt($expiration);
+            $item->tag(self::CACHE_TAG);
 
             return $this->createQueryBuilder('qtr')
                 ->orderBy('qtr.quarterId', 'DESC')
@@ -93,8 +98,7 @@ class QuartersRepository extends ServiceEntityRepository
 
         // TODO: Check if there is an existing id in sessions
 
-        $this->cache->delete($this->cacheHelper->getAllQuartersKey());
-        $this->cache->delete($this->cacheHelper->getQuarterByNameAndYearKey($quarter->getName(), $quarter->getYear()));
+        $this->cache->invalidateTags([self::CACHE_TAG]);
 
         $this->getEntityManager()->remove($quarter);
         $this->getEntityManager()->flush();
@@ -118,7 +122,7 @@ class QuartersRepository extends ServiceEntityRepository
             return ResponseEnum::CONFLICTED_INPUT;
         }
 
-        $this->cache->delete($this->cacheHelper->getAllQuartersKey());
+        $this->cache->invalidateTags([self::CACHE_TAG]);
 
         $quarter->setName($quarterData->getName());
         $quarter->setYear($quarterData->getYear());
@@ -133,6 +137,30 @@ class QuartersRepository extends ServiceEntityRepository
         $quarter = $this->find($id);
 
         return ($quarter == null) ? false : $quarter;
+    }
+
+    /**
+     * @param int $page
+     * @param int $pageSize
+     * @return array<string, mixed>
+     * @throws \Psr\Cache\InvalidArgumentException
+     * @throws CacheException
+     */
+    public function paginated(int $page = 1, int $pageSize = 10): array
+    {
+        $cacheKey = $this->cacheHelper->getQuartersPaginatedKey($page, $pageSize);
+        $expiration = $this->cacheHelper->getExpirationDateTime();
+        $params = [
+            'cacheKey' => $cacheKey,
+            'expiration' => $expiration,
+            'cacheTag' => self::CACHE_TAG,
+            'pageSize' => $pageSize,
+            'page' => $page
+        ];
+
+        return $this->helper->createPaginatedResponse($params, function() {
+            return $this->createQueryBuilder('qtr')->orderBy('qtr.quarterId');
+        });
     }
 
     public function isExisting(QuartersModel $quarterData): bool
