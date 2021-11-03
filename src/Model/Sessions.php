@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Model;
 
 use DateTimeInterface;
@@ -8,7 +10,7 @@ use Symfony\Component\Validator\Constraints as Assert;
 class Sessions
 {
     public function __construct(
-        private $quarterId,
+        private int $quarterId,
         private int $regionId,
         private int $fieldOfficeId,
         private int $phaseId,
