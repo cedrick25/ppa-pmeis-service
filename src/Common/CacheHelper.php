@@ -37,7 +37,7 @@ class CacheHelper
         return 'quarters_all';
     }
 
-    public function getQuartersPaginatedKey($page, $size): string
+    public function getQuartersPaginatedKey(int $page, int $size): string
     {
         return 'quarters_' . $page . '_' . $size;
     }
@@ -47,7 +47,7 @@ class CacheHelper
         return 'phases_all';
     }
 
-    public function getPhasesPaginatedKey($page, $size): string
+    public function getPhasesPaginatedKey(int $page, int $size): string
     {
         return 'phases_' . $page . '_' . $size;
     }
@@ -57,9 +57,14 @@ class CacheHelper
         return 'field_offices_all';
     }
 
-    public function getFieldOfficePaginatedKey($page, $size): string
+    public function getFieldOfficePaginatedKey(int $page, int $size): string
     {
         return 'field_offices_' . $page . '_' . $size;
+    }
+
+    public function getFieldOfficeByRegionKey(int $regionId): string
+    {
+        return 'field_offices_region_' . $regionId;
     }
 
     public function getAllRegionsKey(): string
@@ -87,7 +92,7 @@ class CacheHelper
         return 'client_types_all';
     }
 
-    public function getClientTypesPaginatedKey($page, $size): string
+    public function getClientTypesPaginatedKey(int $page, int $size): string
     {
         return 'client_types_' . $page . '_' . $size;
     }
@@ -102,7 +107,7 @@ class CacheHelper
         return 'clients_all';
     }
 
-    public function getClientsPaginatedKey($page, $size): string
+    public function getClientsPaginatedKey(int $page, int $size): string
     {
         return 'clients_' . $page . '_' . $size;
     }
@@ -112,7 +117,7 @@ class CacheHelper
         return 'client_sessions_all';
     }
 
-    public function getClientSessionsPaginatedKey($page, $size): string
+    public function getClientSessionsPaginatedKey(int $page, int $size): string
     {
         return 'client_sessions_' . $page . '_' . $size;
     }

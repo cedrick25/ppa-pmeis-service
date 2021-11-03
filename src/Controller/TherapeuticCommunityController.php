@@ -165,6 +165,16 @@ class TherapeuticCommunityController extends AbstractController
     }
 
     /**
+     * @Route("/field-office/by/region/{regionId}", methods={"GET"})
+     */
+    public function getFieldOfficesByRegionId(Request $request): Response
+    {
+        return $this->json($this->fieldOfficesService->getByRegion(
+            (int) $request->get("regionId")
+        ));
+    }
+
+    /**
      * @Route("/region/list", methods={"GET"})
      */
     public function getAllRegions(): Response

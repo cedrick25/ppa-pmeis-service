@@ -73,4 +73,24 @@ class FieldOfficesRepository extends ServiceEntityRepository
             return $this->createQueryBuilder('fo')->orderBy('fo.fieldOfficeId');
         });
     }
+
+    /**
+     * @throws InvalidArgumentException
+     * @return FieldOffices[]
+     */
+    public function getByRegion(int $regionId): array
+    {
+        $cacheKey = $this->cacheHelper->getFieldOfficeByRegionKey($regionId);
+        $expiration = $this->cacheHelper->getExpirationDateTime();
+
+        return $this->cache->get($cacheKey, function (ItemInterface $item) use ($cacheKey, $expiration, $regionId) {
+            $item->expiresAt($expiration);
+            $item->tag(self::CACHE_TAG);
+
+            return $this->findBy([
+                    'regionId' => $regionId,
+                    'deletedAt' => null
+                ]);
+        });
+    }
 }
