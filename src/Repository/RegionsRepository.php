@@ -16,37 +16,10 @@ use Doctrine\Persistence\ManagerRegistry;
  */
 class RegionsRepository extends ServiceEntityRepository
 {
+    protected const CACHE_TAG = "regions";
+
     public function __construct(ManagerRegistry $registry)
     {
         parent::__construct($registry, Regions::class);
     }
-
-    // /**
-    //  * @return Regions[] Returns an array of Regions objects
-    //  */
-    /*
-    public function findByExampleField($value)
-    {
-        return $this->createQueryBuilder('r')
-            ->andWhere('r.exampleField = :val')
-            ->setParameter('val', $value)
-            ->orderBy('r.id', 'ASC')
-            ->setMaxResults(10)
-            ->getQuery()
-            ->getResult()
-        ;
-    }
-    */
-
-    /*
-    public function findOneBySomeField($value): ?Regions
-    {
-        return $this->createQueryBuilder('r')
-            ->andWhere('r.exampleField = :val')
-            ->setParameter('val', $value)
-            ->getQuery()
-            ->getOneOrNullResult()
-        ;
-    }
-    */
 }

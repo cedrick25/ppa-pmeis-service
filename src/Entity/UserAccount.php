@@ -217,6 +217,14 @@ class UserAccount implements UserInterface, PasswordAuthenticatedUserInterface
     {
         $userRoles = ['FIELD_OFFICER'];
 
+        if ($this->getRegionId() !== null) {
+            $userRoles['region_id'] = $this->getRegionId();
+        }
+
+        if ($this->getRegionId() !== null) {
+            $userRoles['field_office_id'] = $this->getFieldOfficeId();
+        }
+
         if ($this->getUserType() == UserType::RD) {
             $userRoles[] = 'REGIONAL_DIRECTOR';
         }
