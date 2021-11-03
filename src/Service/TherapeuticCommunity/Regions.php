@@ -1,0 +1,32 @@
+<?php
+
+namespace App\Service\TherapeuticCommunity;
+
+use App\Common\AppFormatter;
+use App\Enum\Response as ResponseEnum;
+use App\Repository\RegionsRepository;
+use Psr\Cache\InvalidArgumentException;
+
+class Regions implements RegionsInterface
+{
+    public function __construct(
+        private AppFormatter           $appFormatter,
+        private RegionsRepository $repository,
+    ){}
+
+    public function getAll(): array
+    {
+        try {
+            $regions = $this->repository->list();
+
+            if (sizeof($regions) == 0) {
+                return $this->appFormatter->formatResponse(ResponseEnum::NO_DATA, null);
+            }
+
+            return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_SUCCESS, $regions);
+        } catch (InvalidArgumentException $exception) {
+            return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_FAILED, null, ['cache' => $exception->getMessage()]);
+        }
+    }
+
+}

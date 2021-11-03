@@ -15,6 +15,7 @@ use App\Service\TherapeuticCommunity\ClientTypesInterface;
 use App\Service\TherapeuticCommunity\FieldOfficesInterface;
 use App\Service\TherapeuticCommunity\PhasesInterface;
 use App\Service\TherapeuticCommunity\QuartersInterface;
+use App\Service\TherapeuticCommunity\RegionsInterface;
 use App\Service\TherapeuticCommunity\ResourceFacilitatorSession;
 use App\Service\TherapeuticCommunity\SessionActivitiesInterface;
 use App\Service\TherapeuticCommunity\SessionsInterface;
@@ -50,7 +51,8 @@ class TherapeuticCommunityController extends AbstractController
         private ClientsInterface $clientService,
         private ClientSessionsInterface $clientSessionService,
         private VolunteerInterface $volunteerService,
-        private ResourceFacilitatorSession $resourceFacilitatorSessionService
+        private ResourceFacilitatorSession $resourceFacilitatorSessionService,
+        private RegionsInterface $regionService,
     ){}
 
     /**
@@ -160,6 +162,14 @@ class TherapeuticCommunityController extends AbstractController
             (int) $request->get("page"),
             (int) $request->get("pageSize")
         ));
+    }
+
+    /**
+     * @Route("/region/list", methods={"GET"})
+     */
+    public function getAllRegions(): Response
+    {
+        return $this->json($this->regionService->getAll());
     }
 
     /**

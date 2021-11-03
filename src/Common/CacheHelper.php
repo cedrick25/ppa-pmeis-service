@@ -62,6 +62,11 @@ class CacheHelper
         return 'field_offices_' . $page . '_' . $size;
     }
 
+    public function getAllRegionsKey(): string
+    {
+        return 'regions_all';
+    }
+
     public function getAllSessionActivitiesKey(): string
     {
         return 'session_activities_all';
