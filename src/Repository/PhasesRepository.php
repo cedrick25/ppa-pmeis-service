@@ -35,16 +35,17 @@ class PhasesRepository extends ServiceEntityRepository
     /**
      * @return Phases[]
      * @throws InvalidArgumentException
+     * @throws CacheException
      */
     public function list(): array
     {
-        $cacheKey = $this->cacheHelper->getAllPhasesKey();
-        $expiration = $this->cacheHelper->getExpirationDateTime(24);
+        $params = [
+            'cacheKey' => $this->cacheHelper->getAllPhasesKey(),
+            'expiration' => $this->cacheHelper->getExpirationDateTime(),
+            'cacheTag' => self::CACHE_TAG
+        ];
 
-        return $this->cache->get($cacheKey, function (ItemInterface $item) use ($cacheKey, $expiration) {
-            $item->expiresAt($expiration);
-            $item->tag(self::CACHE_TAG);
-
+        return $this->helper->createCachedResponse($params, function() {
             return $this->createQueryBuilder('ph')
                 ->orderBy('ph.phaseId', 'DESC')
                 ->getQuery()

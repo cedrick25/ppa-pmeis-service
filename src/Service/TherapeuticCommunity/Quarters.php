@@ -54,7 +54,7 @@ class Quarters implements QuartersInterface
             }
 
             return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_SUCCESS, $quarters);
-        } catch (InvalidArgumentException $exception) {
+        } catch (CacheException | InvalidArgumentException $exception) {
             return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_FAILED, null, ['cache' => $exception->getMessage()]);
         }
     }

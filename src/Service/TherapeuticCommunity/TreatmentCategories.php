@@ -7,6 +7,7 @@ use App\Enum\Response as ResponseEnum;
 use App\Repository\TreatmentCategoriesRepository;
 use Doctrine\ORM\ORMException;
 use Exception;
+use Psr\Cache\CacheException;
 use Psr\Cache\InvalidArgumentException;
 
 class TreatmentCategories implements TreatmentCategoriesInterface
@@ -26,7 +27,7 @@ class TreatmentCategories implements TreatmentCategoriesInterface
             }
 
             return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_SUCCESS, $treatmentCategories);
-        } catch (InvalidArgumentException $exception) {
+        } catch (CacheException|InvalidArgumentException $exception) {
             return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_FAILED, null, ['cache' => $exception->getMessage()]);
         }
     }

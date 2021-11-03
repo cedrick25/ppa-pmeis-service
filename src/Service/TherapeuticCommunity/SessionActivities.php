@@ -9,6 +9,7 @@ use App\Enum\Response as ResponseEnum;
 use App\Repository\SessionActivitiesRepository;
 use Doctrine\ORM\ORMException;
 use Exception;
+use Psr\Cache\CacheException;
 use Psr\Cache\InvalidArgumentException;
 
 class SessionActivities implements SessionActivitiesInterface
@@ -28,7 +29,7 @@ class SessionActivities implements SessionActivitiesInterface
             }
 
             return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_SUCCESS, $sessionActivities);
-        } catch (InvalidArgumentException $exception) {
+        } catch (CacheException|InvalidArgumentException $exception) {
             return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_FAILED, null, ['cache' => $exception->getMessage()]);
         }
     }

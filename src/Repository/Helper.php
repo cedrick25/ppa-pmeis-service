@@ -16,6 +16,23 @@ class Helper
         private TagAwareCacheInterface $cache,
         private AppFormatter $appFormatter
     ){}
+
+    /**
+     * @param array $params
+     * @param callable $getData
+     * @return array<string, mixed>
+     * @throws InvalidArgumentException|CacheException
+     */
+    public function createCachedResponse(array $params, Callable $getData): array
+    {
+        return $this->cache->get($params['cacheKey'], function (ItemInterface $item) use ($params, $getData) {
+            $item->expiresAt($params['expiration']);
+            $item->tag($params['cacheTag']);
+
+            return $getData();
+        });
+    }
+
     /**
      * @param array $params
      * @param callable $getQuery

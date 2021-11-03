@@ -67,16 +67,17 @@ class QuartersRepository extends ServiceEntityRepository
     /**
      * @return Quarters[]
      * @throws \Psr\Cache\InvalidArgumentException
+     * @throws CacheException
      */
     public function list(): array
     {
-        $cacheKey = $this->cacheHelper->getAllQuartersKey();
-        $expiration = $this->cacheHelper->getExpirationDateTime();
+        $params = [
+            'cacheKey' => $this->cacheHelper->getAllQuartersKey(),
+            'expiration' => $this->cacheHelper->getExpirationDateTime(),
+            'cacheTag' => self::CACHE_TAG
+        ];
 
-        return $this->cache->get($cacheKey, function (ItemInterface $item) use ($cacheKey, $expiration) {
-            $item->expiresAt($expiration);
-            $item->tag(self::CACHE_TAG);
-
+        return $this->helper->createCachedResponse($params, function() {
             return $this->createQueryBuilder('qtr')
                 ->orderBy('qtr.quarterId', 'DESC')
                 ->getQuery()

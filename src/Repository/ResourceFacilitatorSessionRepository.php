@@ -10,10 +10,10 @@ use Doctrine\ORM\ORMException;
 use Doctrine\Persistence\ManagerRegistry;
 use App\Model\ResourceFacilitatorSession as ResourceFacilitatorSessionModel;
 use Exception;
+use Psr\Cache\CacheException;
 use Psr\Cache\InvalidArgumentException;
-use Symfony\Contracts\Cache\CacheInterface;
 use App\Enum\ResourceFacilitatorType;
-use Symfony\Contracts\Cache\ItemInterface;
+use Symfony\Contracts\Cache\TagAwareCacheInterface;
 
 /**
  * @method ResourceFacilitatorSession|null find($id, $lockMode = null, $lockVersion = null)
@@ -23,10 +23,13 @@ use Symfony\Contracts\Cache\ItemInterface;
  */
 class ResourceFacilitatorSessionRepository extends ServiceEntityRepository
 {
+    protected const CACHE_TAG = "resource_facilitator_sessions";
+
     public function __construct(
         ManagerRegistry $registry,
-        private CacheInterface $cache,
-        private CacheHelper $cacheHelper
+        private TagAwareCacheInterface $cache,
+        private CacheHelper $cacheHelper,
+        private Helper $helper
     ){
         parent::__construct($registry, ResourceFacilitatorSession::class);
     }
@@ -56,17 +59,19 @@ class ResourceFacilitatorSessionRepository extends ServiceEntityRepository
     }
 
     /**
-     * @throws InvalidArgumentException
      * @return ResourceFacilitatorSession[]
+     * @throws CacheException
+     * @throws InvalidArgumentException
      */
     public function list(): array
     {
-        $cacheKey = $this->cacheHelper->getAllResourceFacilitatorSessionsKey();
-        $expiration = $this->cacheHelper->getExpirationDateTime(24);
+        $params = [
+            'cacheKey' => $this->cacheHelper->getAllResourceFacilitatorSessionsKey(),
+            'expiration' => $this->cacheHelper->getExpirationDateTime(),
+            'cacheTag' => self::CACHE_TAG
+        ];
 
-        return $this->cache->get($cacheKey, function (ItemInterface $item) use ($cacheKey, $expiration) {
-            $item->expiresAt($expiration);
-
+        return $this->helper->createCachedResponse($params, function() {
             return $this->createQueryBuilder('rfs')
                 ->orderBy('rfs.resourceFacilitatorSessionId', 'DESC')
                 ->getQuery()

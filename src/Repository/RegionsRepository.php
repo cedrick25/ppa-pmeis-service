@@ -8,6 +8,7 @@ use App\Common\CacheHelper;
 use App\Entity\Regions;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
+use Psr\Cache\CacheException;
 use Psr\Cache\InvalidArgumentException;
 use Symfony\Contracts\Cache\ItemInterface;
 use Symfony\Contracts\Cache\TagAwareCacheInterface;
@@ -35,16 +36,17 @@ class RegionsRepository extends ServiceEntityRepository
     /**
      * @return Regions[]
      * @throws InvalidArgumentException
+     * @throws CacheException
      */
     public function list(): array
     {
-        $cacheKey = $this->cacheHelper->getAllRegionsKey();
-        $expiration = $this->cacheHelper->getExpirationDateTime();
+        $params = [
+            'cacheKey' => $this->cacheHelper->getAllRegionsKey(),
+            'expiration' => $this->cacheHelper->getExpirationDateTime(),
+            'cacheTag' => self::CACHE_TAG
+        ];
 
-        return $this->cache->get($cacheKey, function (ItemInterface $item) use ($cacheKey, $expiration) {
-            $item->expiresAt($expiration);
-            $item->tag(self::CACHE_TAG);
-
+        return $this->helper->createCachedResponse($params, function() {
             return $this->createQueryBuilder('r')
                 ->orderBy('r.regionId', 'DESC')
                 ->getQuery()

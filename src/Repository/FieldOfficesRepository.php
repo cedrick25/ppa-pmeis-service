@@ -35,16 +35,17 @@ class FieldOfficesRepository extends ServiceEntityRepository
     /**
      * @return FieldOffices[]
      * @throws InvalidArgumentException
+     * @throws CacheException
      */
     public function list(): array
     {
-        $cacheKey = $this->cacheHelper->getAllFieldOfficesKey();
-        $expiration = $this->cacheHelper->getExpirationDateTime();
+        $params = [
+            'cacheKey' => $this->cacheHelper->getAllFieldOfficesKey(),
+            'expiration' => $this->cacheHelper->getExpirationDateTime(),
+            'cacheTag' => self::CACHE_TAG
+        ];
 
-        return $this->cache->get($cacheKey, function (ItemInterface $item) use ($cacheKey, $expiration) {
-            $item->expiresAt($expiration);
-            $item->tag(self::CACHE_TAG);
-
+        return $this->helper->createCachedResponse($params, function() {
             return $this->createQueryBuilder('fo')
                 ->orderBy('fo.fieldOfficeId', 'DESC')
                 ->getQuery()
@@ -75,22 +76,23 @@ class FieldOfficesRepository extends ServiceEntityRepository
     }
 
     /**
-     * @throws InvalidArgumentException
      * @return FieldOffices[]
+     * @throws CacheException
+     * @throws InvalidArgumentException
      */
     public function getByRegion(int $regionId): array
     {
-        $cacheKey = $this->cacheHelper->getFieldOfficeByRegionKey($regionId);
-        $expiration = $this->cacheHelper->getExpirationDateTime();
+        $params = [
+            'cacheKey' => $this->cacheHelper->getFieldOfficeByRegionKey($regionId),
+            'expiration' => $this->cacheHelper->getExpirationDateTime(),
+            'cacheTag' => self::CACHE_TAG
+        ];
 
-        return $this->cache->get($cacheKey, function (ItemInterface $item) use ($cacheKey, $expiration, $regionId) {
-            $item->expiresAt($expiration);
-            $item->tag(self::CACHE_TAG);
-
+        return $this->helper->createCachedResponse($params, function() use ($regionId){
             return $this->findBy([
-                    'regionId' => $regionId,
-                    'deletedAt' => null
-                ]);
+                'regionId' => $regionId,
+                'deletedAt' => null
+            ]);
         });
     }
 }

@@ -13,9 +13,10 @@ use Doctrine\ORM\OptimisticLockException;
 use Doctrine\ORM\ORMException;
 use Doctrine\Persistence\ManagerRegistry;
 use Exception;
+use Psr\Cache\CacheException;
 use Psr\Cache\InvalidArgumentException;
-use Symfony\Contracts\Cache\CacheInterface;
 use Symfony\Contracts\Cache\ItemInterface;
+use Symfony\Contracts\Cache\TagAwareCacheInterface;
 
 /**
  * @method TreatmentCategories|null find($id, $lockMode = null, $lockVersion = null)
@@ -25,27 +26,32 @@ use Symfony\Contracts\Cache\ItemInterface;
  */
 class TreatmentCategoriesRepository extends ServiceEntityRepository
 {
+    protected const CACHE_TAG = "treatment_categories";
+
     public function __construct(
         ManagerRegistry $registry,
-        private CacheInterface $cache,
+        private TagAwareCacheInterface $cache,
         private CacheHelper $cacheHelper,
         private AppDateHelper $appDateHelper,
+        private Helper $helper,
     ){
         parent::__construct($registry, TreatmentCategories::class);
     }
 
     /**
-     * @throws InvalidArgumentException
      * @return TreatmentCategories[]
+     * @throws CacheException
+     * @throws InvalidArgumentException
      */
     public function list(): array
     {
-        $cacheKey = $this->cacheHelper->getAllTreatmentCategoriesKey();
-        $expiration = $this->cacheHelper->getExpirationDateTime(24);
+        $params = [
+            'cacheKey' => $this->cacheHelper->getAllTreatmentCategoriesKey(),
+            'expiration' => $this->cacheHelper->getExpirationDateTime(),
+            'cacheTag' => self::CACHE_TAG
+        ];
 
-        return $this->cache->get($cacheKey, function (ItemInterface $item) use ($cacheKey, $expiration) {
-            $item->expiresAt($expiration);
-
+        return $this->helper->createCachedResponse($params, function() {
             return $this->createQueryBuilder('tc')
                 ->andWhere('tc.deletedAt IS NULL')
                 ->orderBy('tc.treatmentCategoryId', 'DESC')

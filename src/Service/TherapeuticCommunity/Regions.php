@@ -5,6 +5,7 @@ namespace App\Service\TherapeuticCommunity;
 use App\Common\AppFormatter;
 use App\Enum\Response as ResponseEnum;
 use App\Repository\RegionsRepository;
+use Psr\Cache\CacheException;
 use Psr\Cache\InvalidArgumentException;
 
 class Regions implements RegionsInterface
@@ -24,7 +25,7 @@ class Regions implements RegionsInterface
             }
 
             return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_SUCCESS, $regions);
-        } catch (InvalidArgumentException $exception) {
+        } catch (CacheException|InvalidArgumentException $exception) {
             return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_FAILED, null, ['cache' => $exception->getMessage()]);
         }
     }

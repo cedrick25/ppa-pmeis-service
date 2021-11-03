@@ -74,18 +74,19 @@ class ClientsRepository extends ServiceEntityRepository
     }
 
     /**
-     * @throws InvalidArgumentException
      * @return Clients[]
+     * @throws CacheException
+     * @throws InvalidArgumentException
      */
     public function list(): array
     {
-        $cacheKey = $this->cacheHelper->getAllClientsKey();
-        $expiration = $this->cacheHelper->getExpirationDateTime();
+        $params = [
+            'cacheKey' => $this->cacheHelper->getAllClientsKey(),
+            'expiration' => $this->cacheHelper->getExpirationDateTime(),
+            'cacheTag' => self::CACHE_TAG
+        ];
 
-        return $this->cache->get($cacheKey, function (ItemInterface $item) use ($cacheKey, $expiration) {
-            $item->expiresAt($expiration);
-            $item->tag(self::CACHE_TAG);
-
+        return $this->helper->createCachedResponse($params, function() {
             return $this->createQueryBuilder('cl')
                 ->andWhere('cl.deletedAt IS NULL')
                 ->orderBy('cl.clientId', 'DESC')

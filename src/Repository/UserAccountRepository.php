@@ -9,17 +9,15 @@ use App\Common\CacheHelper;
 use App\Entity\UserAccount;
 use App\Enum\Response as ResponseEnum;
 use App\Model\UserAccountWithDetails;
-use DateTimeImmutable;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
-use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\ORM\OptimisticLockException;
 use Doctrine\ORM\ORMException;
 use Doctrine\Persistence\ManagerRegistry;
 use Exception;
 use Psr\Cache\InvalidArgumentException;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
-use Symfony\Contracts\Cache\CacheInterface;
-use Symfony\Contracts\Cache\ItemInterface;;
+use Symfony\Contracts\Cache\ItemInterface;
+use Symfony\Contracts\Cache\TagAwareCacheInterface;
 
 /**
  * @method UserAccount|null find($id, $lockMode = null, $lockVersion = null)
@@ -29,13 +27,15 @@ use Symfony\Contracts\Cache\ItemInterface;;
  */
 class UserAccountRepository extends ServiceEntityRepository
 {
+    protected const CACHE_TAG = "user_accounts";
+
     public function __construct(
         ManagerRegistry $registry,
-        private CacheInterface $cache,
+        private TagAwareCacheInterface $cache,
         private CacheHelper $cacheHelper,
         private UserPasswordHasherInterface $userPasswordHasher,
         private UserDetailsRepository $userDetailsRepository,
-        private AppDateHelper $appDateHelper,
+        private AppDateHelper $appDateHelper
     ) {
         parent::__construct($registry, UserAccount::class);
     }
@@ -75,6 +75,7 @@ class UserAccountRepository extends ServiceEntityRepository
 
             $dateTimeExpiration->add(new \DateInterval("PT1H"));
             $item->expiresAt($dateTimeExpiration);
+            $item->tag(self::CACHE_TAG);
 
             return $result;
         });
@@ -106,8 +107,7 @@ class UserAccountRepository extends ServiceEntityRepository
 
         $this->userDetailsRepository->create($user->getUserAccountId(), $userAccountWithDetails);
 
-        $this->cache->delete($this->cacheHelper->getAccountWithDetailsKey($user->getUserAccountId()));
-        $this->cache->delete($this->cacheHelper->getAllUsersKey());
+        $this->cache->invalidateTags([self::CACHE_TAG]);
 
         return $user->getUserAccountId();
     }
@@ -126,8 +126,7 @@ class UserAccountRepository extends ServiceEntityRepository
             return false;
         }
 
-        $this->cache->delete($this->cacheHelper->getAccountWithDetailsKey($id));
-        $this->cache->delete($this->cacheHelper->getAllUsersKey());
+        $this->cache->invalidateTags([self::CACHE_TAG]);
 
         $user->setDeletedAt($this->appDateHelper->getCurrentImmutableDate());
 
@@ -155,8 +154,7 @@ class UserAccountRepository extends ServiceEntityRepository
             return ResponseEnum::CONFLICTED_INPUT;
         }
 
-        $this->cache->delete($this->cacheHelper->getAccountWithDetailsKey($id));
-        $this->cache->delete($this->cacheHelper->getAllUsersKey());
+        $this->cache->invalidateTags([self::CACHE_TAG]);
 
         $user->setEmailAddress($userAccountWithDetails->getEmailAddress());
         $user->setContactNumber($userAccountWithDetails->getContactNumber());

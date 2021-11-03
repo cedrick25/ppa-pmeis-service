@@ -62,18 +62,19 @@ class ClientSessionsRepository extends ServiceEntityRepository
     }
 
     /**
-     * @throws InvalidArgumentException
      * @return ClientSessions[]
+     * @throws CacheException
+     * @throws InvalidArgumentException
      */
     public function list(): array
     {
-        $cacheKey = $this->cacheHelper->getAllClientSessionsKey();
-        $expiration = $this->cacheHelper->getExpirationDateTime();
+        $params = [
+            'cacheKey' => $this->cacheHelper->getAllClientSessionsKey(),
+            'expiration' => $this->cacheHelper->getExpirationDateTime(),
+            'cacheTag' => self::CACHE_TAG
+        ];
 
-        return $this->cache->get($cacheKey, function (ItemInterface $item) use ($cacheKey, $expiration) {
-            $item->expiresAt($expiration);
-            $item->tag(self::CACHE_TAG);
-
+        return $this->helper->createCachedResponse($params, function() {
             return $this->createQueryBuilder('cs')
                 ->orderBy('cs.clientSessionId', 'DESC')
                 ->getQuery()

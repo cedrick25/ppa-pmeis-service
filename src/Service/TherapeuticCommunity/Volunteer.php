@@ -7,6 +7,7 @@ use App\Enum\Response as ResponseEnum;
 use App\Repository\VolunteerRepository;
 use Doctrine\ORM\ORMException;
 use Exception;
+use Psr\Cache\CacheException;
 use Psr\Cache\InvalidArgumentException;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 use \App\Model\Volunteer as VolunteerModel;
@@ -54,7 +55,7 @@ class Volunteer implements VolunteerInterface
             }
 
             return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_SUCCESS, $volunteers);
-        } catch (InvalidArgumentException $exception) {
+        } catch (CacheException|InvalidArgumentException $exception) {
             return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_FAILED, null, ['cache' => $exception->getMessage()]);
         }
     }

@@ -8,6 +8,7 @@ use App\Model\ResourceFacilitatorSession as ResourceFacilitatorSessionModel;
 use App\Repository\ResourceFacilitatorSessionRepository;
 use Doctrine\ORM\ORMException;
 use Exception;
+use Psr\Cache\CacheException;
 use Psr\Cache\InvalidArgumentException;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 
@@ -54,7 +55,7 @@ class ResourceFacilitatorSession implements ResourceFacilitatorSessionInterface
             }
 
             return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_SUCCESS, $resourceFacilitatorSession);
-        } catch (InvalidArgumentException $exception) {
+        } catch (CacheException | InvalidArgumentException $exception) {
             return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_FAILED, null, ['cache' => $exception->getMessage()]);
         }
     }

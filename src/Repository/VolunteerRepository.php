@@ -13,8 +13,8 @@ use Doctrine\Persistence\ManagerRegistry;
 use App\Model\Volunteer as VolunteerModel;
 use Exception;
 use Psr\Cache\InvalidArgumentException;
-use Symfony\Contracts\Cache\CacheInterface;
 use Symfony\Contracts\Cache\ItemInterface;
+use Symfony\Contracts\Cache\TagAwareCacheInterface;
 
 /**
  * @method Volunteer|null find($id, $lockMode = null, $lockVersion = null)
@@ -24,11 +24,14 @@ use Symfony\Contracts\Cache\ItemInterface;
  */
 class VolunteerRepository extends ServiceEntityRepository
 {
+    protected const CACHE_TAG = "volunteers";
+
     public function __construct(
         ManagerRegistry $registry,
-        private CacheInterface $cache,
+        private TagAwareCacheInterface $cache,
         private CacheHelper $cacheHelper,
         private AppDateHelper $appDateHelper,
+        private Helper $helper,
     ){
         parent::__construct($registry, Volunteer::class);
     }
@@ -65,17 +68,19 @@ class VolunteerRepository extends ServiceEntityRepository
     }
 
     /**
-     * @throws InvalidArgumentException
      * @return Volunteer[]
+     * @throws \Psr\Cache\CacheException
+     * @throws InvalidArgumentException
      */
     public function list(): array
     {
-        $cacheKey = $this->cacheHelper->getAllVolunteersKey();
-        $expiration = $this->cacheHelper->getExpirationDateTime(24);
+        $params = [
+            'cacheKey' => $this->cacheHelper->getAllVolunteersKey(),
+            'expiration' => $this->cacheHelper->getExpirationDateTime(),
+            'cacheTag' => self::CACHE_TAG
+        ];
 
-        return $this->cache->get($cacheKey, function (ItemInterface $item) use ($cacheKey, $expiration) {
-            $item->expiresAt($expiration);
-
+        return $this->helper->createCachedResponse($params, function() {
             return $this->createQueryBuilder('v')
                 ->andWhere('v.deletedAt IS NULL')
                 ->orderBy('v.volunteerId', 'DESC')

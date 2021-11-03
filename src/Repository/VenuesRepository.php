@@ -14,9 +14,10 @@ use Doctrine\ORM\OptimisticLockException;
 use Doctrine\ORM\ORMException;
 use Doctrine\Persistence\ManagerRegistry;
 use Exception;
+use Psr\Cache\CacheException;
 use Psr\Cache\InvalidArgumentException;
-use Symfony\Contracts\Cache\CacheInterface;
 use Symfony\Contracts\Cache\ItemInterface;
+use Symfony\Contracts\Cache\TagAwareCacheInterface;
 
 /**
  * @method Venues|null find($id, $lockMode = null, $lockVersion = null)
@@ -26,11 +27,14 @@ use Symfony\Contracts\Cache\ItemInterface;
  */
 class VenuesRepository extends ServiceEntityRepository
 {
+    protected const CACHE_TAG = "venues";
+
     public function __construct(
         ManagerRegistry $registry,
-        private CacheInterface $cache,
+        private TagAwareCacheInterface $cache,
         private CacheHelper $cacheHelper,
         private AppDateHelper $appDateHelper,
+        private Helper $helper,
     ){
         parent::__construct($registry, Venues::class);
     }
@@ -63,15 +67,17 @@ class VenuesRepository extends ServiceEntityRepository
     /**
      * @return Venues[]
      * @throws InvalidArgumentException
+     * @throws CacheException
      */
     public function list(): array
     {
-        $cacheKey = $this->cacheHelper->getAllVenuesKey();
-        $expiration = $this->cacheHelper->getExpirationDateTime(24);
+        $params = [
+            'cacheKey' => $this->cacheHelper->getAllVenuesKey(),
+            'expiration' => $this->cacheHelper->getExpirationDateTime(),
+            'cacheTag' => self::CACHE_TAG
+        ];
 
-        return $this->cache->get($cacheKey, function (ItemInterface $item) use ($cacheKey, $expiration) {
-            $item->expiresAt($expiration);
-
+        return $this->helper->createCachedResponse($params, function() {
             return $this->createQueryBuilder('vn')
                 ->andWhere('vn.deletedAt IS NULL')
                 ->orderBy('vn.venueId', 'DESC')

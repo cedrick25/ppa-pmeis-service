@@ -9,7 +9,6 @@ use App\Common\CacheHelper;
 use App\Entity\Sessions;
 use App\Enum\Response as ResponseEnum;
 use App\Model\Sessions as SessionsModel;
-use DateTimeImmutable;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\DBAL\Exception\InvalidArgumentException;
 use Doctrine\ORM\NonUniqueResultException;
@@ -17,8 +16,9 @@ use Doctrine\ORM\OptimisticLockException;
 use Doctrine\ORM\ORMException;
 use Doctrine\Persistence\ManagerRegistry;
 use Exception;
-use Symfony\Contracts\Cache\CacheInterface;
+use Psr\Cache\CacheException;
 use Symfony\Contracts\Cache\ItemInterface;
+use Symfony\Contracts\Cache\TagAwareCacheInterface;
 
 /**
  * @method Sessions|null find($id, $lockMode = null, $lockVersion = null)
@@ -28,11 +28,14 @@ use Symfony\Contracts\Cache\ItemInterface;
  */
 class SessionsRepository extends ServiceEntityRepository
 {
+    protected const CACHE_TAG = "sessions";
+
     public function __construct(
         ManagerRegistry $registry,
         private AppDateHelper $appDateHelper,
-        private CacheInterface $cache,
+        private TagAwareCacheInterface $cache,
         private CacheHelper $cacheHelper,
+        private Helper $helper,
     ){
         parent::__construct($registry, Sessions::class);
     }
@@ -74,15 +77,17 @@ class SessionsRepository extends ServiceEntityRepository
     /**
      * @return Sessions[]
      * @throws \Psr\Cache\InvalidArgumentException
+     * @throws CacheException
      */
     public function list(): array
     {
-        $cacheKey = $this->cacheHelper->getAllSessionsKey();
-        $expiration = $this->cacheHelper->getExpirationDateTime(24);
+        $params = [
+            'cacheKey' => $this->cacheHelper->getAllSessionsKey(),
+            'expiration' => $this->cacheHelper->getExpirationDateTime(),
+            'cacheTag' => self::CACHE_TAG
+        ];
 
-        return $this->cache->get($cacheKey, function (ItemInterface $item) use ($cacheKey, $expiration) {
-            $item->expiresAt($expiration);
-
+        return $this->helper->createCachedResponse($params, function() {
             return $this->createQueryBuilder('se')
                 ->andWhere('se.deletedAt IS NULL')
                 ->orderBy('se.sessionId', 'DESC')

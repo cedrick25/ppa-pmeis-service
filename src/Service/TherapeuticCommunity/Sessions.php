@@ -11,6 +11,7 @@ use App\Repository\SessionsRepository;
 use Doctrine\DBAL\Exception\InvalidArgumentException;
 use Doctrine\ORM\ORMException;
 use Exception;
+use Psr\Cache\CacheException;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 class Sessions implements SessionsInterface
@@ -56,7 +57,7 @@ class Sessions implements SessionsInterface
             }
 
             return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_SUCCESS, $sessions);
-        } catch (\Psr\Cache\InvalidArgumentException $exception) {
+        } catch (CacheException| \Psr\Cache\InvalidArgumentException $exception) {
             return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_FAILED, null, ['cache' => $exception->getMessage()]);
         }
     }
