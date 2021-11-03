@@ -122,9 +122,20 @@ class TherapeuticCommunityController extends AbstractController
     }
 
     /**
+     * @Route("/phases/{page}/{pageSize}", methods={"GET"})
+     */
+    public function getPaginatedPhases(Request $request): Response
+    {
+        return $this->json($this->phasesService->getPaginated(
+            (int) $request->get("page"),
+            (int) $request->get("pageSize")
+        ));
+    }
+
+    /**
      * @Route("/field-office/list", methods={"GET"})
      */
-    public function getAllFieldOffice(): Response
+    public function getAllFieldOffices(): Response
     {
         return $this->json($this->fieldOfficesService->getAll());
     }
@@ -132,7 +143,7 @@ class TherapeuticCommunityController extends AbstractController
     /**
      * @Route("/field-office/{page}/{pageSize}", methods={"GET"})
      */
-    public function getPaginatedFieldOffice(Request $request): Response
+    public function getPaginatedFieldOffices(Request $request): Response
     {
         return $this->json($this->fieldOfficesService->getPaginated(
             (int) $request->get("page"),

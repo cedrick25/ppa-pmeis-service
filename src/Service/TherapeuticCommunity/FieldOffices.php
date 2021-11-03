@@ -5,6 +5,7 @@ namespace App\Service\TherapeuticCommunity;
 use App\Common\AppFormatter;
 use App\Enum\Response as ResponseEnum;
 use App\Repository\FieldOfficesRepository;
+use Psr\Cache\CacheException;
 use Psr\Cache\InvalidArgumentException;
 
 class FieldOffices implements FieldOfficesInterface
@@ -39,7 +40,7 @@ class FieldOffices implements FieldOfficesInterface
             }
 
             return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_SUCCESS, $fieldOffices);
-        } catch (InvalidArgumentException $exception) {
+        } catch (CacheException | InvalidArgumentException $exception) {
             return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_FAILED, null, ['cache' => $exception->getMessage()]);
         }
     }
