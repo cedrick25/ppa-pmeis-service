@@ -3,14 +3,12 @@
 namespace App\Repository;
 
 use App\Common\AppDateHelper;
-use App\Common\AppFormatter;
 use App\Common\CacheHelper;
 use App\Entity\Clients;
 use App\Enum\Response as ResponseEnum;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\ORM\OptimisticLockException;
 use Doctrine\ORM\ORMException;
-use Doctrine\ORM\Tools\Pagination\Paginator;
 use Doctrine\Persistence\ManagerRegistry;
 use App\Model\Clients as ClientModel;
 use Exception;
@@ -34,7 +32,7 @@ class ClientsRepository extends ServiceEntityRepository
         private TagAwareCacheInterface $cache,
         private CacheHelper $cacheHelper,
         private AppDateHelper $appDateHelper,
-        private AppFormatter $appFormatter
+        private Helper $helper,
     ){
         parent::__construct($registry, Clients::class);
     }
@@ -202,30 +200,16 @@ class ClientsRepository extends ServiceEntityRepository
      */
     public function paginated(int $page = 1, int $pageSize = 10): array
     {
-        $cacheKey = $this->cacheHelper->getClientsPaginatedKey($page, $pageSize);
-        $expiration = $this->cacheHelper->getExpirationDateTime();
+        $params = [
+            'cacheKey' => $this->cacheHelper->getClientsPaginatedKey($page, $pageSize),
+            'expiration' => $this->cacheHelper->getExpirationDateTime(),
+            'cacheTag' => self::CACHE_TAG,
+            'pageSize' => $pageSize,
+            'page' => $page
+        ];
 
-        return $this->cache->get($cacheKey, function (ItemInterface $item) use ($cacheKey, $expiration, $page, $pageSize) {
-            $item->expiresAt($expiration);
-            $item->tag(self::CACHE_TAG);
-
-            $query = $this->createQueryBuilder('cl')->orderBy('cl.clientId');
-
-            $pageItems = array();
-            $paginator = new Paginator($query);
-            $totalItems = $paginator->count();
-            $pageCount = ceil($totalItems / $pageSize);
-
-            $paginator
-                ->getQuery()
-                ->setFirstResult($pageSize * ($page-1))
-                ->setMaxResults($pageSize);
-
-            foreach ($paginator as $pageItem) {
-                $pageItems[] = $pageItem;
-            }
-
-            return $this->appFormatter->formatPagination($totalItems, $pageCount, $pageItems);
+        return $this->helper->createPaginatedResponse($params, function() {
+            return $this->createQueryBuilder('cl')->orderBy('cl.clientId');
         });
     }
 

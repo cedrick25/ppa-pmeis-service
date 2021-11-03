@@ -4,11 +4,9 @@ declare(strict_types=1);
 
 namespace App\Repository;
 
-use App\Common\AppFormatter;
 use App\Common\CacheHelper;
 use App\Entity\FieldOffices;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
-use Doctrine\ORM\Tools\Pagination\Paginator;
 use Doctrine\Persistence\ManagerRegistry;
 use Psr\Cache\CacheException;
 use Psr\Cache\InvalidArgumentException;
@@ -29,7 +27,7 @@ class FieldOfficesRepository extends ServiceEntityRepository
         ManagerRegistry $registry,
         private TagAwareCacheInterface $cache,
         private CacheHelper $cacheHelper,
-        private AppFormatter $appFormatter
+        private Helper $helper,
     ){
         parent::__construct($registry, FieldOffices::class);
     }
@@ -63,30 +61,16 @@ class FieldOfficesRepository extends ServiceEntityRepository
      */
     public function paginated(int $page = 1, int $pageSize = 10): array
     {
-        $cacheKey = $this->cacheHelper->getFieldOfficePaginatedKey($page, $pageSize);
-        $expiration = $this->cacheHelper->getExpirationDateTime();
+        $params = [
+            'cacheKey' => $this->cacheHelper->getFieldOfficePaginatedKey($page, $pageSize),
+            'expiration' => $this->cacheHelper->getExpirationDateTime(),
+            'cacheTag' => self::CACHE_TAG,
+            'pageSize' => $pageSize,
+            'page' => $page
+        ];
 
-        return $this->cache->get($cacheKey, function (ItemInterface $item) use ($cacheKey, $expiration, $page, $pageSize) {
-            $item->expiresAt($expiration);
-            $item->tag(self::CACHE_TAG);
-
-            $query = $this->createQueryBuilder('fo')->orderBy('fo.fieldOfficeId');
-
-            $pageItems = array();
-            $paginator = new Paginator($query);
-            $totalItems = $paginator->count();
-            $pageCount = ceil($totalItems / $pageSize);
-
-            $paginator
-                ->getQuery()
-                ->setFirstResult($pageSize * ($page-1))
-                ->setMaxResults($pageSize);
-
-            foreach ($paginator as $pageItem) {
-                $pageItems[] = $pageItem;
-            }
-
-            return $this->appFormatter->formatPagination($totalItems, $pageCount, $pageItems);
+        return $this->helper->createPaginatedResponse($params, function() {
+            return $this->createQueryBuilder('fo')->orderBy('fo.fieldOfficeId');
         });
     }
 }

@@ -148,11 +148,9 @@ class QuartersRepository extends ServiceEntityRepository
      */
     public function paginated(int $page = 1, int $pageSize = 10): array
     {
-        $cacheKey = $this->cacheHelper->getQuartersPaginatedKey($page, $pageSize);
-        $expiration = $this->cacheHelper->getExpirationDateTime();
         $params = [
-            'cacheKey' => $cacheKey,
-            'expiration' => $expiration,
+            'cacheKey' => $this->cacheHelper->getQuartersPaginatedKey($page, $pageSize),
+            'expiration' => $this->cacheHelper->getExpirationDateTime(),
             'cacheTag' => self::CACHE_TAG,
             'pageSize' => $pageSize,
             'page' => $page

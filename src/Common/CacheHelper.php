@@ -47,6 +47,11 @@ class CacheHelper
         return 'phases_all';
     }
 
+    public function getPhasesPaginatedKey($page, $size): string
+    {
+        return 'phases_' . $page . '_' . $size;
+    }
+
     public function getAllFieldOfficesKey(): string
     {
         return 'field_offices_all';
