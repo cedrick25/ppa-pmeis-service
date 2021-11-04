@@ -88,4 +88,15 @@ class SessionActivities implements SessionActivitiesInterface
             return $this->appFormatter->formatResponse(ResponseEnum::UPDATING_FAILED, null, ['cache' => $e->getMessage()]);
         }
     }
+
+    public function getById(int $id): array
+    {
+        $sessionActivity = $this->repository->getById($id);
+
+        if (!$sessionActivity) {
+            return $this->appFormatter->formatResponse(ResponseEnum::NO_DATA, null);
+        }
+
+        return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_SUCCESS, $sessionActivity);
+    }
 }
