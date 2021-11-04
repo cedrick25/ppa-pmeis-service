@@ -129,6 +129,14 @@ class TherapeuticCommunityController extends AbstractController
     }
 
     /**
+     * @Route("/quarter/by/id/{id}", methods={"GET"})
+     */
+    public function getQuarterById(Request $request): Response
+    {
+        return $this->json($this->quartersService->getById((int) $request->get("id")));
+    }
+
+    /**
      * @Route("/phases/list", methods={"GET"})
      */
     public function getAllPhases(): Response

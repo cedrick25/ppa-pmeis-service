@@ -7,4 +7,6 @@ interface PositionInterface
     public function getAll(): array;
 
     public function create(string $name): array;
+
+    public function getById(int $id): array;
 }

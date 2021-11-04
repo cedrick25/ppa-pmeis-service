@@ -107,4 +107,15 @@ class Quarters implements QuartersInterface
             return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_FAILED, null, ['cache' => $exception->getMessage()]);
         }
     }
+
+    public function getById(int $id): array
+    {
+        $quarter = $this->repository->isExistingById($id);
+
+        if (!$quarter) {
+            return $this->appFormatter->formatResponse(ResponseEnum::NO_DATA, null);
+        }
+
+        return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_SUCCESS, $quarter);
+    }
 }
