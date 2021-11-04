@@ -11,7 +11,6 @@ use Doctrine\Persistence\ManagerRegistry;
 use Psr\Cache\CacheException;
 use Psr\Cache\InvalidArgumentException;
 use Symfony\Contracts\Cache\TagAwareCacheInterface;
-use Symfony\Contracts\Cache\ItemInterface;
 
 /**
  * @method Phases|null find($id, $lockMode = null, $lockVersion = null)
@@ -73,6 +72,13 @@ class PhasesRepository extends ServiceEntityRepository
         return $this->helper->createPaginatedResponse($params, function() {
             return $this->createQueryBuilder('ph')->orderBy('ph.phaseId');
         });
+    }
+
+    public function isExistingById(int $id): bool | Phases
+    {
+        $phase = $this->find($id);
+
+        return ($phase == null) ? false : $phase;
     }
 }
 
