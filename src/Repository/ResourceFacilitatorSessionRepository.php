@@ -45,7 +45,7 @@ class ResourceFacilitatorSessionRepository extends ServiceEntityRepository
             return null;
         }
 
-        $this->cache->delete($this->cacheHelper->getAllResourceFacilitatorSessionsKey());
+        $this->cache->invalidateTags([self::CACHE_TAG]);
 
         $newResourceFacilitatorSession = new ResourceFacilitatorSession();
         $newResourceFacilitatorSession->setSessionId($resourceFacilitatorSessionData->getSessionId());
@@ -91,7 +91,7 @@ class ResourceFacilitatorSessionRepository extends ServiceEntityRepository
             return false;
         }
 
-        $this->cache->delete($this->cacheHelper->getAllResourceFacilitatorSessionsKey());
+        $this->cache->invalidateTags([self::CACHE_TAG]);
 
         $this->getEntityManager()->remove($resourceFacilitatorSession);
         $this->getEntityManager()->flush();
@@ -116,7 +116,7 @@ class ResourceFacilitatorSessionRepository extends ServiceEntityRepository
             return ResponseEnum::CONFLICTED_INPUT;
         }
 
-        $this->cache->delete($this->cacheHelper->getAllResourceFacilitatorSessionsKey());
+        $this->cache->invalidateTags([self::CACHE_TAG]);
 
         $resourceFacilitatorSession->setSessionId($resourceFacilitatorSessionData->getSessionId());
         $resourceFacilitatorSession->setResourceFacilitatorId($resourceFacilitatorSessionData->getResourceFacilitatorId());

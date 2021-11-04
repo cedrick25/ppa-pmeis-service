@@ -13,7 +13,6 @@ use Doctrine\Persistence\ManagerRegistry;
 use App\Model\Volunteer as VolunteerModel;
 use Exception;
 use Psr\Cache\InvalidArgumentException;
-use Symfony\Contracts\Cache\ItemInterface;
 use Symfony\Contracts\Cache\TagAwareCacheInterface;
 
 /**
@@ -47,7 +46,7 @@ class VolunteerRepository extends ServiceEntityRepository
             return null;
         }
 
-        $this->cache->delete($this->cacheHelper->getAllVolunteersKey());
+        $this->cache->invalidateTags([self::CACHE_TAG]);
 
         $newVolunteer = new Volunteer();
         $newVolunteer->setFirstName($volunteerData->getFirstName());
@@ -104,7 +103,7 @@ class VolunteerRepository extends ServiceEntityRepository
 
         // TODO: Check table constraints
 
-        $this->cache->delete($this->cacheHelper->getAllVolunteersKey());
+        $this->cache->invalidateTags([self::CACHE_TAG]);
 
         $client->setDeletedAt($this->appDateHelper->getCurrentImmutableDate());
 
@@ -129,7 +128,7 @@ class VolunteerRepository extends ServiceEntityRepository
             return ResponseEnum::CONFLICTED_INPUT;
         }
 
-        $this->cache->delete($this->cacheHelper->getAllVolunteersKey());
+        $this->cache->invalidateTags([self::CACHE_TAG]);
 
         $volunteer->setFirstName($volunteerData->getFirstName());
         $volunteer->setMiddleName($volunteerData->getMiddleName());

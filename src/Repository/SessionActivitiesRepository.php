@@ -74,7 +74,7 @@ class SessionActivitiesRepository extends ServiceEntityRepository
             return null;
         }
 
-        $this->cache->delete($this->cacheHelper->getAllSessionActivitiesKey());
+        $this->cache->invalidateTags([self::CACHE_TAG]);
 
         $sessionActivity = new SessionActivities();
         $sessionActivity->setName($name);
@@ -101,7 +101,7 @@ class SessionActivitiesRepository extends ServiceEntityRepository
 
         // TODO: Check if there is an existing session activity to sessions
 
-        $this->cache->delete($this->cacheHelper->getAllSessionActivitiesKey());
+        $this->cache->invalidateTags([self::CACHE_TAG]);
 
         $this->getEntityManager()->remove($sessionActivity);
         $this->getEntityManager()->flush();
@@ -124,7 +124,7 @@ class SessionActivitiesRepository extends ServiceEntityRepository
 
         // TODO: Check if there is an existing session activity to sessions
 
-        $this->cache->delete($this->cacheHelper->getAllSessionActivitiesKey());
+        $this->cache->invalidateTags([self::CACHE_TAG]);
 
         $sessionActivity->setDeletedAt($this->appDateHelper->getCurrentImmutableDate());
 
@@ -149,7 +149,7 @@ class SessionActivitiesRepository extends ServiceEntityRepository
             return ResponseEnum::CONFLICTED_INPUT;
         }
 
-        $this->cache->delete($this->cacheHelper->getAllSessionActivitiesKey());
+        $this->cache->invalidateTags([self::CACHE_TAG]);
 
         $sessionActivity->setName($name);
         $sessionActivity->setUpdatedAt($this->appDateHelper->getCurrentImmutableDate());

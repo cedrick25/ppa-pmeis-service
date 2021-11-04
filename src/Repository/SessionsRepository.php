@@ -53,7 +53,7 @@ class SessionsRepository extends ServiceEntityRepository
             return null;
         }
 
-        $this->cache->delete($this->cacheHelper->getAllSessionsKey());
+        $this->cache->invalidateTags([self::CACHE_TAG]);
 
         $session = new Sessions();
         $session->setQuarterId($sessionData->getQuarterId());
@@ -112,7 +112,7 @@ class SessionsRepository extends ServiceEntityRepository
 
         // TODO: check if existing in client sessions, resource facilitator sessions
 
-        $this->cache->delete($this->cacheHelper->getAllSessionsKey());
+        $this->cache->invalidateTags([self::CACHE_TAG]);
 
         $this->getEntityManager()->remove($session);
         $this->getEntityManager()->flush();
@@ -135,7 +135,7 @@ class SessionsRepository extends ServiceEntityRepository
 
         // TODO: check if existing in client sessions, resource facilitator sessions
 
-        $this->cache->delete($this->cacheHelper->getAllSessionsKey());
+        $this->cache->invalidateTags([self::CACHE_TAG]);
 
         $session->setDeletedAt($this->appDateHelper->getCurrentImmutableDate());
 
@@ -162,7 +162,7 @@ class SessionsRepository extends ServiceEntityRepository
             return ResponseEnum::CONFLICTED_INPUT;
         }
 
-        $this->cache->delete($this->cacheHelper->getAllSessionsKey());
+        $this->cache->invalidateTags([self::CACHE_TAG]);
 
         $session->setQuarterId($sessionData->getQuarterId());
         $session->setPhaseId($sessionData->getPhaseId());

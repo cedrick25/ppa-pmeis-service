@@ -70,7 +70,7 @@ class TreatmentCategoriesRepository extends ServiceEntityRepository
             return null;
         }
 
-        $this->cache->delete($this->cacheHelper->getAllTreatmentCategoriesKey());
+        $this->cache->invalidateTags([self::CACHE_TAG]);
 
         $newTreatmentCategory = new TreatmentCategories();
         $newTreatmentCategory->setName($name);
@@ -96,7 +96,7 @@ class TreatmentCategoriesRepository extends ServiceEntityRepository
 
         // TODO: Check if there is an existing id in sessions
 
-        $this->cache->delete($this->cacheHelper->getAllTreatmentCategoriesKey());
+        $this->cache->invalidateTags([self::CACHE_TAG]);
 
         $this->getEntityManager()->remove($treatmentCategory);
         $this->getEntityManager()->flush();
@@ -119,7 +119,7 @@ class TreatmentCategoriesRepository extends ServiceEntityRepository
 
         // TODO: Check if there is an existing id in sessions
 
-        $this->cache->delete($this->cacheHelper->getAllTreatmentCategoriesKey());
+        $this->cache->invalidateTags([self::CACHE_TAG]);
 
         $treatmentCategory->setDeletedAt($this->appDateHelper->getCurrentImmutableDate());
 

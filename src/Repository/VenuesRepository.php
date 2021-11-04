@@ -52,7 +52,7 @@ class VenuesRepository extends ServiceEntityRepository
             return null;
         }
 
-        $this->cache->delete($this->cacheHelper->getAllVenuesKey());
+        $this->cache->invalidateTags([self::CACHE_TAG]);
 
         $venue = new Venues();
         $venue->setName($name);
@@ -101,7 +101,7 @@ class VenuesRepository extends ServiceEntityRepository
 
         // TODO: Check if there is an existing id in sessions
 
-        $this->cache->delete($this->cacheHelper->getAllVenuesKey());
+        $this->cache->invalidateTags([self::CACHE_TAG]);
 
         $this->getEntityManager()->remove($venue);
         $this->getEntityManager()->flush();
@@ -124,7 +124,7 @@ class VenuesRepository extends ServiceEntityRepository
 
         // TODO: Check if there is an existing id in sessions
 
-        $this->cache->delete($this->cacheHelper->getAllVenuesKey());
+        $this->cache->invalidateTags([self::CACHE_TAG]);
 
         $treatmentCategory->setDeletedAt($this->appDateHelper->getCurrentImmutableDate());
 
@@ -149,7 +149,7 @@ class VenuesRepository extends ServiceEntityRepository
             return ResponseEnum::CONFLICTED_INPUT;
         }
 
-        $this->cache->delete($this->cacheHelper->getAllVenuesKey());
+        $this->cache->invalidateTags([self::CACHE_TAG]);
 
         $venue->setName($name);
         $venue->setUpdatedAt($this->appDateHelper->getCurrentImmutableDate());
