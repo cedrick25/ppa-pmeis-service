@@ -104,8 +104,19 @@ class Clients implements ClientsInterface
             }
 
             return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_SUCCESS, $clients);
-        } catch (InvalidArgumentException $exception) {
+        } catch (CacheException| InvalidArgumentException $exception) {
             return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_FAILED, null, ['cache' => $exception->getMessage()]);
         }
+    }
+
+    public function getById(int $id): array
+    {
+        $client = $this->repository->isExistingById($id);
+
+        if (!$client) {
+            return $this->appFormatter->formatResponse(ResponseEnum::NO_DATA, null);
+        }
+
+        return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_SUCCESS, $client);
     }
 }
