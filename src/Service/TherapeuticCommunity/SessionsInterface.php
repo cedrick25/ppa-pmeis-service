@@ -13,4 +13,6 @@ interface SessionsInterface
     public function deleteById(int $id): array;
 
     public function updateById(int $id, SessionsModel $sessionData):array;
+
+    public function getById(int $id): array;
 }

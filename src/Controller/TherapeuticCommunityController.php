@@ -339,6 +339,14 @@ class TherapeuticCommunityController extends AbstractController
     }
 
     /**
+     * @Route("/session/by/id/{id}", methods={"GET"})
+     */
+    public function getSessionById(Request $request): Response
+    {
+        return $this->json($this->sessionService->getById((int) $request->get("id")));
+    }
+
+    /**
      * @Route("/client-type/create", methods={"POST"})
      */
     public function createClientType(Request $request): Response

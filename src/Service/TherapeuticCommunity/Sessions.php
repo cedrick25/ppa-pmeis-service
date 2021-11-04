@@ -97,4 +97,15 @@ class Sessions implements SessionsInterface
             return $this->appFormatter->formatResponse(ResponseEnum::UPDATING_FAILED, null, ['cache' => $e->getMessage()]);
         }
     }
+
+    public function getById(int $id): array
+    {
+        $session = $this->repository->isExistingById($id);
+
+        if (!$session) {
+            return $this->appFormatter->formatResponse(ResponseEnum::NO_DATA, null);
+        }
+
+        return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_SUCCESS, $session);
+    }
 }
