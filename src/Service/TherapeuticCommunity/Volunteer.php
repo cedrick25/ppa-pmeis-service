@@ -93,4 +93,15 @@ class Volunteer implements VolunteerInterface
             return $this->appFormatter->formatResponse(ResponseEnum::UPDATING_FAILED, null, ['cache' => $e->getMessage()]);
         }
     }
+
+    public function getById(int $id): array
+    {
+        $volunteer = $this->repository->isExistingById($id);
+
+        if (!$volunteer) {
+            return $this->appFormatter->formatResponse(ResponseEnum::NO_DATA, null);
+        }
+
+        return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_SUCCESS, $volunteer);
+    }
 }
