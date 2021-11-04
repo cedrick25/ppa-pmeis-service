@@ -1,18 +1,18 @@
 <?php
 
-namespace App\Service\TherapeuticCommunity;
+namespace App\Service;
 
 use App\Common\AppFormatter;
 use App\Enum\Response as ResponseEnum;
-use App\Repository\RegionsRepository;
+use App\Repository\PositionRepository;
 use Psr\Cache\CacheException;
 use Psr\Cache\InvalidArgumentException;
 
-class Regions implements RegionsInterface
+class Position implements PositionInterface
 {
     public function __construct(
-        private AppFormatter      $appFormatter,
-        private RegionsRepository $repository,
+        private AppFormatter       $appFormatter,
+        private PositionRepository $repository,
     ){}
 
     public function getAll(): array

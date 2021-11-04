@@ -10,6 +10,7 @@ use App\Model\ClientSessions as ClientSessionModel;
 use App\Model\Quarters as QuartersModel;
 use App\Model\ResourceFacilitatorSession as ResourceFacilitatorSessionModel;
 use App\Model\Sessions as SessionsModel;
+use App\Service\PositionInterface;
 use App\Service\TherapeuticCommunity\ClientSessionsInterface;
 use App\Service\TherapeuticCommunity\ClientTypesInterface;
 use App\Service\TherapeuticCommunity\FieldOfficesInterface;
@@ -53,6 +54,7 @@ class TherapeuticCommunityController extends AbstractController
         private VolunteerInterface $volunteerService,
         private ResourceFacilitatorSession $resourceFacilitatorSessionService,
         private RegionsInterface $regionService,
+        private PositionInterface $positionService,
     ){}
 
     /**
@@ -592,5 +594,13 @@ class TherapeuticCommunityController extends AbstractController
         } catch (ReflectionException $exception) {
             return $this->json($this->appFormatter->formatResponse('Updating resource facilitator session failed', null, ['reflection' => $exception->getMessage()]));
         }
+    }
+
+    /**
+     * @Route("/position/list", methods={"GET"})
+     */
+    public function getAllPositions(): Response
+    {
+        return $this->json($this->positionService->getAll());
     }
 }

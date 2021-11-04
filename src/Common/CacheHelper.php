@@ -131,4 +131,9 @@ class CacheHelper
     {
         return 'resource_facilitator_session_all';
     }
+
+    public function getAllPositionsKey(): string
+    {
+        return 'positions_all';
+    }
 }

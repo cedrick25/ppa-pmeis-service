@@ -1,0 +1,52 @@
+<?php
+
+namespace App\Repository;
+
+use App\Common\CacheHelper;
+use App\Entity\Position;
+use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
+use Doctrine\Persistence\ManagerRegistry;
+use Psr\Cache\CacheException;
+use Psr\Cache\InvalidArgumentException;
+use Symfony\Contracts\Cache\TagAwareCacheInterface;
+
+/**
+ * @method Position|null find($id, $lockMode = null, $lockVersion = null)
+ * @method Position|null findOneBy(array $criteria, array $orderBy = null)
+ * @method Position[]    findAll()
+ * @method Position[]    findBy(array $criteria, array $orderBy = null, $limit = null, $offset = null)
+ */
+class PositionRepository extends ServiceEntityRepository
+{
+    protected const CACHE_TAG = "positions";
+
+    public function __construct(
+        ManagerRegistry $registry,
+        private TagAwareCacheInterface $cache,
+        private CacheHelper $cacheHelper,
+        private Helper $helper,
+    ){
+        parent::__construct($registry, Position::class);
+    }
+
+    /**
+     * @return Position[]
+     * @throws CacheException
+     * @throws InvalidArgumentException
+     */
+    public function list(): array
+    {
+        $params = [
+            'cacheKey' => $this->cacheHelper->getAllPositionsKey(),
+            'expiration' => $this->cacheHelper->getExpirationDateTime(),
+            'cacheTag' => self::CACHE_TAG
+        ];
+
+        return $this->helper->createCachedResponse($params, function() {
+            return $this->createQueryBuilder('p')
+                ->orderBy('p.positionId', 'DESC')
+                ->getQuery()
+                ->getResult();
+        });
+    }
+}
