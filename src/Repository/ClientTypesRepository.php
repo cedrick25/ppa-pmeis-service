@@ -120,4 +120,11 @@ class ClientTypesRepository extends ServiceEntityRepository
             return $this->createQueryBuilder('ct')->orderBy('ct.clientTypeId');
         });
     }
+
+    public function isExistingById(int $id): bool | ClientTypes
+    {
+        $clientType = $this->find($id);
+
+        return ($clientType == null) ? false : $clientType;
+    }
 }

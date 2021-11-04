@@ -90,4 +90,15 @@ class ClientTypes implements ClientTypesInterface
             return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_FAILED, null, ['cache' => $exception->getMessage()]);
         }
     }
+
+    public function getById(int $id): array
+    {
+        $clientType = $this->repository->isExistingById($id);
+
+        if (!$clientType) {
+            return $this->appFormatter->formatResponse(ResponseEnum::NO_DATA, null);
+        }
+
+        return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_SUCCESS, $clientType);
+    }
 }

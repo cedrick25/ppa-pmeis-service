@@ -343,6 +343,14 @@ class TherapeuticCommunityController extends AbstractController
     }
 
     /**
+     * @Route("/client-type/by/id/{id}", methods={"GET"})
+     */
+    public function getClientTypeById(Request $request): Response
+    {
+        return $this->json($this->clientTypeService->getById((int) $request->get("id")));
+    }
+
+    /**
      * @Route("/treatment-category/list", methods={"GET"})
      */
     public function getAllTreatmentCategories(): Response
