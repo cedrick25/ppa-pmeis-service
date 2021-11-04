@@ -51,4 +51,15 @@ class Position implements PositionInterface
             return $this->appFormatter->formatResponse(ResponseEnum::CREATING_FAILED, null, ['orm' => $exception->getMessage()]);
         }
     }
+
+    public function getById(int $id): array
+    {
+        $position = $this->repository->isExistingById($id);
+
+        if (!$position) {
+            return $this->appFormatter->formatResponse(ResponseEnum::NO_DATA, null);
+        }
+
+        return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_SUCCESS, $position);
+    }
 }

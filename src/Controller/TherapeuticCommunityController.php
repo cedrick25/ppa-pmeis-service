@@ -651,4 +651,12 @@ class TherapeuticCommunityController extends AbstractController
     {
         return $this->json($this->positionService->create($request->get("name")));
     }
+
+    /**
+     * @Route("/position/by/id/{id}", methods={"GET"})
+     */
+    public function getPositionById(Request $request): Response
+    {
+        return $this->json($this->positionService->getById((int) $request->get("id")));
+    }
 }

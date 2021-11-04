@@ -76,6 +76,16 @@ class PositionRepository extends ServiceEntityRepository
         return $newPosition->getPositionId();
     }
 
+    public function isExistingById(int $id): bool | Position
+    {
+        $position = $this->findOneBy([
+            'positionId' => $id,
+            'deletedAt' => null
+        ]);
+
+        return ($position == null) ? false : $position;
+    }
+
     private function isExisting(string $name): bool
     {
         $position = $this->findOneBy([
