@@ -140,11 +140,11 @@ class TreatmentCategoriesRepository extends ServiceEntityRepository
             return ResponseEnum::NO_RECORD;
         }
 
-        if ($this->isExistByName($name) && $treatmentCategory->getName() !== $name) {
+        if ($this->isExisting($name) && $treatmentCategory->getName() !== $name) {
             return ResponseEnum::CONFLICTED_INPUT;
         }
 
-        $this->cache->delete($this->cacheHelper->getAllTreatmentCategoriesKey());
+        $this->cache->invalidateTags([self::CACHE_TAG]);
 
         $treatmentCategory->setName($name);
         $treatmentCategory->setUpdatedAt($this->appDateHelper->getCurrentImmutableDate());
@@ -166,21 +166,11 @@ class TreatmentCategoriesRepository extends ServiceEntityRepository
 
     private function isExisting(string $name): bool
     {
-        $client = $this->findOneBy([
+        $treatmentCategory = $this->findOneBy([
             'name' => $name,
             'deletedAt' => null
         ]);
 
-        return $client != null;
-    }
-
-    private function isExistByName(string $name): bool
-    {
-        $sessionActivity = $this->findOneBy([
-            'name' => $name,
-            'deletedAt' => null
-        ]);
-
-        return $sessionActivity != null;
+        return $treatmentCategory != null;
     }
 }

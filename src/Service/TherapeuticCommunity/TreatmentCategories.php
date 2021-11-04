@@ -35,7 +35,6 @@ class TreatmentCategories implements TreatmentCategoriesInterface
     public function create(string $name): array
     {
         try {
-
             if ($name === "") {
                 return $this->appFormatter->formatResponse(ResponseEnum::VALIDATING_FAILED, null, ['app' => 'Treatment Category name cannot be empty.']);
             }

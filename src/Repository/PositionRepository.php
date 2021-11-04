@@ -2,9 +2,12 @@
 
 namespace App\Repository;
 
+use App\Common\AppDateHelper;
 use App\Common\CacheHelper;
 use App\Entity\Position;
+use App\Entity\TreatmentCategories;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
+use Doctrine\ORM\ORMException;
 use Doctrine\Persistence\ManagerRegistry;
 use Psr\Cache\CacheException;
 use Psr\Cache\InvalidArgumentException;
@@ -25,6 +28,7 @@ class PositionRepository extends ServiceEntityRepository
         private TagAwareCacheInterface $cache,
         private CacheHelper $cacheHelper,
         private Helper $helper,
+        private AppDateHelper $appDateHelper,
     ){
         parent::__construct($registry, Position::class);
     }
@@ -48,5 +52,37 @@ class PositionRepository extends ServiceEntityRepository
                 ->getQuery()
                 ->getResult();
         });
+    }
+
+    /**
+     * @throws InvalidArgumentException
+     * @throws ORMException
+     */
+    public function create(string $name): int | null
+    {
+        if ($this->isExisting($name)) {
+            return null;
+        }
+
+        $this->cache->invalidateTags([self::CACHE_TAG]);
+
+        $newPosition = new Position();
+        $newPosition->setName($name);
+        $newPosition->setCreatedAt($this->appDateHelper->getCurrentImmutableDate());
+
+        $this->getEntityManager()->persist($newPosition);
+        $this->getEntityManager()->flush();
+
+        return $newPosition->getPositionId();
+    }
+
+    private function isExisting(string $name): bool
+    {
+        $position = $this->findOneBy([
+            'name' => $name,
+            'deletedAt' => null
+        ]);
+
+        return $position != null;
     }
 }
