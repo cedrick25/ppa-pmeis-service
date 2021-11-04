@@ -209,6 +209,14 @@ class TherapeuticCommunityController extends AbstractController
     }
 
     /**
+     * @Route("/region/by/id/{id}", methods={"GET"})
+     */
+    public function getRegionById(Request $request): Response
+    {
+        return $this->json($this->regionService->getById((int) $request->get("id")));
+    }
+
+    /**
      * @Route("/session-activity/list", methods={"GET"})
      */
     public function getAllSessionActivities(): Response

@@ -53,4 +53,14 @@ class RegionsRepository extends ServiceEntityRepository
                 ->getResult();
         });
     }
+
+    public function isExistingById(int $id): bool | Regions
+    {
+        $region = $this->findOneBy([
+            'regionId' => $id,
+            'deletedAt' => null
+        ]);
+
+        return ($region == null) ? false : $region;
+    }
 }

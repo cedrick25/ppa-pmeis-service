@@ -29,4 +29,15 @@ class Regions implements RegionsInterface
             return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_FAILED, null, ['cache' => $exception->getMessage()]);
         }
     }
+
+    public function getById(int $id): array
+    {
+        $region = $this->repository->isExistingById($id);
+
+        if (!$region) {
+            return $this->appFormatter->formatResponse(ResponseEnum::NO_DATA, null);
+        }
+
+        return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_SUCCESS, $region);
+    }
 }
