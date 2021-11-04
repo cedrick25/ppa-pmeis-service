@@ -59,4 +59,15 @@ class FieldOffices implements FieldOfficesInterface
             return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_FAILED, null, ['cache' => $exception->getMessage()]);
         }
     }
+
+    public function getById(int $id): array
+    {
+        $fieldOffice = $this->repository->isExistingById($id);
+
+        if (!$fieldOffice) {
+            return $this->appFormatter->formatResponse(ResponseEnum::NO_DATA, null);
+        }
+
+        return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_SUCCESS, $fieldOffice);
+    }
 }

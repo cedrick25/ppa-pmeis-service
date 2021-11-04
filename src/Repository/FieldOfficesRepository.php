@@ -11,7 +11,6 @@ use Doctrine\Persistence\ManagerRegistry;
 use Psr\Cache\CacheException;
 use Psr\Cache\InvalidArgumentException;
 use Symfony\Contracts\Cache\TagAwareCacheInterface;
-use Symfony\Contracts\Cache\ItemInterface;
 
 /**
  * @method FieldOffices|null find($id, $lockMode = null, $lockVersion = null)
@@ -94,5 +93,12 @@ class FieldOfficesRepository extends ServiceEntityRepository
                 'deletedAt' => null
             ]);
         });
+    }
+
+    public function isExistingById(int $id): bool | FieldOffices
+    {
+        $fieldOffice = $this->find($id);
+
+        return ($fieldOffice == null) ? false : $fieldOffice;
     }
 }
