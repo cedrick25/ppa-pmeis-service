@@ -88,4 +88,15 @@ class Venues implements VenuesInterface
             return $this->appFormatter->formatResponse(ResponseEnum::UPDATING_FAILED, null, ['cache' => $e->getMessage()]);
         }
     }
+
+    public function getById(int $id): array
+    {
+        $venue = $this->repository->isExistingById($id);
+
+        if (!$venue) {
+            return $this->appFormatter->formatResponse(ResponseEnum::NO_DATA, null);
+        }
+
+        return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_SUCCESS, $venue);
+    }
 }

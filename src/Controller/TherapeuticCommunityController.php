@@ -289,6 +289,14 @@ class TherapeuticCommunityController extends AbstractController
     }
 
     /**
+     * @Route("/venue/by/id/{id}", methods={"GET"})
+     */
+    public function getVenueById(Request $request): Response
+    {
+        return $this->json($this->venuesService->getById((int) $request->get("id")));
+    }
+
+    /**
      * @Route("/session/create", methods={"POST"})
      */
     public function createSession(Request $request): Response
