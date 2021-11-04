@@ -15,7 +15,6 @@ use Exception;
 use Psr\Cache\CacheException;
 use Psr\Cache\InvalidArgumentException;
 use Symfony\Contracts\Cache\TagAwareCacheInterface;
-use Symfony\Contracts\Cache\ItemInterface;
 
 /**
  * @method ClientSessions|null find($id, $lockMode = null, $lockVersion = null)

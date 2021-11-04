@@ -108,4 +108,15 @@ class ClientSessions implements ClientSessionsInterface
             return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_FAILED, null, ['cache' => $exception->getMessage()]);
         }
     }
+
+    public function getById(int $id): array
+    {
+        $clientSession = $this->repository->isExistingById($id);
+
+        if (!$clientSession) {
+            return $this->appFormatter->formatResponse(ResponseEnum::NO_DATA, null);
+        }
+
+        return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_SUCCESS, ['data' => $clientSession]);
+    }
 }
