@@ -14,4 +14,5 @@ interface ResourceFacilitatorSessionInterface
 
     public function updateById(int $id, ResourceFacilitatorSessionModel $resourceFacilitatorSessionData):array;
 
+    public function getById(int $id): array;
 }

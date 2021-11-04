@@ -94,4 +94,14 @@ class ResourceFacilitatorSession implements ResourceFacilitatorSessionInterface
         }
     }
 
+    public function getById(int $id): array
+    {
+        $resourceFacilitatorSession = $this->repository->isExistingById($id);
+
+        if (!$resourceFacilitatorSession) {
+            return $this->appFormatter->formatResponse(ResponseEnum::NO_DATA, null);
+        }
+
+        return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_SUCCESS, $resourceFacilitatorSession);
+    }
 }
