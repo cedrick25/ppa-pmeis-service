@@ -86,4 +86,15 @@ class TreatmentCategories implements TreatmentCategoriesInterface
             return $this->appFormatter->formatResponse(ResponseEnum::UPDATING_FAILED, null, ['cache' => $e->getMessage()]);
         }
     }
+
+    public function getById(int $id): array
+    {
+        $treatmentCategory = $this->repository->isExistingById($id);
+
+        if (!$treatmentCategory) {
+            return $this->appFormatter->formatResponse(ResponseEnum::NO_DATA, null);
+        }
+
+        return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_SUCCESS, $treatmentCategory);
+    }
 }
