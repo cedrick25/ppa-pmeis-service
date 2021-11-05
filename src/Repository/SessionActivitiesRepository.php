@@ -185,7 +185,9 @@ class SessionActivitiesRepository extends ServiceEntityRepository
         ];
 
         return $this->helper->createPaginatedResponse($params, function() {
-            return $this->createQueryBuilder('sa')->orderBy('sa.sessionActivityId');
+            return $this->createQueryBuilder('sa')
+                ->where('sa.deletedAt IS NULL')
+                ->orderBy('sa.sessionActivityId');
         });
     }
 

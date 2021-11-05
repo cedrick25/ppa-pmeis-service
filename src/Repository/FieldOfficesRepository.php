@@ -46,6 +46,7 @@ class FieldOfficesRepository extends ServiceEntityRepository
 
         return $this->helper->createCachedResponse($params, function() {
             return $this->createQueryBuilder('fo')
+                ->where('fo.deletedAt IS NULL')
                 ->orderBy('fo.fieldOfficeId', 'DESC')
                 ->getQuery()
                 ->getResult();
@@ -70,7 +71,9 @@ class FieldOfficesRepository extends ServiceEntityRepository
         ];
 
         return $this->helper->createPaginatedResponse($params, function() {
-            return $this->createQueryBuilder('fo')->orderBy('fo.fieldOfficeId');
+            return $this->createQueryBuilder('fo')
+                ->where('fo.deletedAt IS NULL')
+                ->orderBy('fo.fieldOfficeId');
         });
     }
 

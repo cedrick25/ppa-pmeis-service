@@ -48,6 +48,7 @@ class RegionsRepository extends ServiceEntityRepository
 
         return $this->helper->createCachedResponse($params, function() {
             return $this->createQueryBuilder('r')
+                ->where('r.deletedAt IS NULL')
                 ->orderBy('r.regionId', 'DESC')
                 ->getQuery()
                 ->getResult();
@@ -82,7 +83,9 @@ class RegionsRepository extends ServiceEntityRepository
         ];
 
         return $this->helper->createPaginatedResponse($params, function() {
-            return $this->createQueryBuilder('r')->orderBy('r.regionId');
+            return $this->createQueryBuilder('r')
+                ->where('r.deletedAt IS NULL')
+                ->orderBy('r.regionId');
         });
     }
 }

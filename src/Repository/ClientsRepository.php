@@ -208,7 +208,10 @@ class ClientsRepository extends ServiceEntityRepository
         ];
 
         return $this->helper->createPaginatedResponse($params, function() {
-            return $this->createQueryBuilder('cl')->orderBy('cl.clientId');
+            return $this->createQueryBuilder('cl')
+                ->where('cl.deletedAt IS NULL')
+                ->orderBy('cl.clientId');
+
         });
     }
 

@@ -48,6 +48,7 @@ class PositionRepository extends ServiceEntityRepository
 
         return $this->helper->createCachedResponse($params, function() {
             return $this->createQueryBuilder('p')
+                ->where('p.deletedAt IS NULL')
                 ->orderBy('p.positionId', 'DESC')
                 ->getQuery()
                 ->getResult();
@@ -104,7 +105,9 @@ class PositionRepository extends ServiceEntityRepository
         ];
 
         return $this->helper->createPaginatedResponse($params, function() {
-            return $this->createQueryBuilder('p')->orderBy('p.positionId');
+            return $this->createQueryBuilder('p')
+                ->where('p.deletedAt IS NULL')
+                ->orderBy('p.positionId');
         });
     }
 
