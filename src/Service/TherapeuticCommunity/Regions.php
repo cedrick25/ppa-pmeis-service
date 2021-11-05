@@ -40,4 +40,19 @@ class Regions implements RegionsInterface
 
         return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_SUCCESS, $region);
     }
+
+    public function getPaginated(int $page, int $pageSize): array
+    {
+        try {
+            $regions = $this->repository->paginated($page, $pageSize);
+
+            if (sizeof($regions) == 0) {
+                return $this->appFormatter->formatResponse(ResponseEnum::NO_DATA, null);
+            }
+
+            return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_SUCCESS, $regions);
+        } catch (CacheException | InvalidArgumentException $exception) {
+            return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_FAILED, null, ['cache' => $exception->getMessage()]);
+        }
+    }
 }

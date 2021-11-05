@@ -215,6 +215,17 @@ class TherapeuticCommunityController extends AbstractController
     }
 
     /**
+     * @Route("/region/{page}/{pageSize}", methods={"GET"})
+     */
+    public function getPaginatedRegions(Request $request): Response
+    {
+        return $this->json($this->regionService->getPaginated(
+            (int) $request->get("page"),
+            (int) $request->get("pageSize")
+        ));
+    }
+
+    /**
      * @Route("/session-activity/list", methods={"GET"})
      */
     public function getAllSessionActivities(): Response

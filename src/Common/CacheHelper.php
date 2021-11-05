@@ -72,6 +72,11 @@ class CacheHelper
         return 'regions_all';
     }
 
+    public function getRegionsPaginatedKey(int $page, int $size): string
+    {
+        return 'regions_' . $page . '_' . $size;
+    }
+
     public function getAllSessionActivitiesKey(): string
     {
         return 'session_activities_all';
