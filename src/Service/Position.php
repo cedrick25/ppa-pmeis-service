@@ -62,4 +62,19 @@ class Position implements PositionInterface
 
         return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_SUCCESS, $position);
     }
+
+    public function getPaginated(int $page, int $pageSize): array
+    {
+        try {
+            $positions = $this->repository->paginated($page, $pageSize);
+
+            if (sizeof($positions) == 0) {
+                return $this->appFormatter->formatResponse(ResponseEnum::NO_DATA, null);
+            }
+
+            return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_SUCCESS, $positions);
+        } catch (CacheException|InvalidArgumentException $exception) {
+            return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_FAILED, null, ['cache' => $exception->getMessage()]);
+        }
+    }
 }

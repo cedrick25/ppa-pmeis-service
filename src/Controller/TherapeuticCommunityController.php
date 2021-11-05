@@ -10,7 +10,6 @@ use App\Model\ClientSessions as ClientSessionModel;
 use App\Model\Quarters as QuartersModel;
 use App\Model\ResourceFacilitatorSession as ResourceFacilitatorSessionModel;
 use App\Model\Sessions as SessionsModel;
-use App\Service\PositionInterface;
 use App\Service\TherapeuticCommunity\ClientSessionsInterface;
 use App\Service\TherapeuticCommunity\ClientTypesInterface;
 use App\Service\TherapeuticCommunity\FieldOfficesInterface;
@@ -54,7 +53,6 @@ class TherapeuticCommunityController extends AbstractController
         private VolunteerInterface $volunteerService,
         private ResourceFacilitatorSession $resourceFacilitatorSessionService,
         private RegionsInterface $regionService,
-        private PositionInterface $positionService,
     ){}
 
     /**
@@ -698,29 +696,5 @@ class TherapeuticCommunityController extends AbstractController
     public function getResourceFacilitatorSessionById(Request $request): Response
     {
         return $this->json($this->resourceFacilitatorSessionService->getById((int) $request->get("id")));
-    }
-
-    /**
-     * @Route("/position/list", methods={"GET"})
-     */
-    public function getAllPositions(): Response
-    {
-        return $this->json($this->positionService->getAll());
-    }
-
-    /**
-     * @Route("/position/create/{name}", methods={"GET"})
-     */
-    public function createPosition(Request $request): Response
-    {
-        return $this->json($this->positionService->create($request->get("name")));
-    }
-
-    /**
-     * @Route("/position/by/id/{id}", methods={"GET"})
-     */
-    public function getPositionById(Request $request): Response
-    {
-        return $this->json($this->positionService->getById((int) $request->get("id")));
     }
 }

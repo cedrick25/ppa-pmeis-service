@@ -136,4 +136,10 @@ class CacheHelper
     {
         return 'positions_all';
     }
+
+    public function getPositionsPaginatedKey(int $page, int $size): string
+    {
+        return 'positions_' . $page . '_' . $size;
+    }
+
 }

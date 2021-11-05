@@ -7,6 +7,7 @@ namespace App\Controller;
 use App\Common\AppFormatter;
 use App\Common\AppHydrator;
 use App\Model\UserAccountWithDetails;
+use App\Service\PositionInterface;
 use App\Service\UserInterface;
 use ReflectionException;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -20,9 +21,10 @@ use Symfony\Component\Routing\Annotation\Route;
 class UserController extends AbstractController
 {
     public function __construct(
-        private UserInterface $userService,
-        private AppHydrator   $appHydrator,
-        private AppFormatter  $appFormatter,
+        private UserInterface     $userService,
+        private AppHydrator       $appHydrator,
+        private AppFormatter      $appFormatter,
+        private PositionInterface $positionService,
     ){}
 
     /**
@@ -76,5 +78,40 @@ class UserController extends AbstractController
         } catch (ReflectionException $exception) {
             return $this->json($this->appFormatter->formatResponse('User update failed', null, ['reflection' => $exception->getMessage()]));
         }
+    }
+
+    /**
+     * @Route("/position/list", methods={"GET"})
+     */
+    public function getAllPositions(): Response
+    {
+        return $this->json($this->positionService->getAll());
+    }
+
+    /**
+     * @Route("/position/create/{name}", methods={"GET"})
+     */
+    public function createPosition(Request $request): Response
+    {
+        return $this->json($this->positionService->create($request->get("name")));
+    }
+
+    /**
+     * @Route("/position/by/id/{id}", methods={"GET"})
+     */
+    public function getPositionById(Request $request): Response
+    {
+        return $this->json($this->positionService->getById((int) $request->get("id")));
+    }
+
+    /**
+     * @Route("/position/{page}/{pageSize}", methods={"GET"})
+     */
+    public function getPositions(Request $request): Response
+    {
+        return $this->json($this->positionService->getPaginated(
+            (int) $request->get("page"),
+            (int) $request->get("pageSize")
+        ));
     }
 }

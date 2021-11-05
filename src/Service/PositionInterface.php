@@ -9,4 +9,6 @@ interface PositionInterface
     public function create(string $name): array;
 
     public function getById(int $id): array;
+
+    public function getPaginated(int $page, int $pageSize): array;
 }
