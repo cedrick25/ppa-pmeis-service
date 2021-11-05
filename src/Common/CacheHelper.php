@@ -137,6 +137,11 @@ class CacheHelper
         return 'resource_facilitator_session_all';
     }
 
+    public function getResourceFacilitatorSessionsPaginatedKey(int $page, int $size): string
+    {
+        return 'resource_facilitator_sessions_' . $page . '_' . $size;
+    }
+
     public function getAllPositionsKey(): string
     {
         return 'positions_all';

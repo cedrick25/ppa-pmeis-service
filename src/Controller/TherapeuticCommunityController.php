@@ -708,4 +708,15 @@ class TherapeuticCommunityController extends AbstractController
     {
         return $this->json($this->resourceFacilitatorSessionService->getById((int) $request->get("id")));
     }
+
+    /**
+     * @Route("/resource-facilitator-session/{page}/{pageSize}", methods={"GET"})
+     */
+    public function getPaginatedResourceFacilitatorSession(Request $request): Response
+    {
+        return $this->json($this->resourceFacilitatorSessionService->getPaginated(
+            (int) $request->get("page"),
+            (int) $request->get("pageSize")
+        ));
+    }
 }

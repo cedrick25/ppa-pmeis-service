@@ -104,4 +104,19 @@ class ResourceFacilitatorSession implements ResourceFacilitatorSessionInterface
 
         return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_SUCCESS, $resourceFacilitatorSession);
     }
+
+    public function getPaginated(int $page, int $pageSize): array
+    {
+        try {
+            $resourceFacilitatorSessions = $this->repository->paginated($page, $pageSize);
+
+            if (sizeof($resourceFacilitatorSessions) == 0) {
+                return $this->appFormatter->formatResponse(ResponseEnum::NO_DATA, null);
+            }
+
+            return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_SUCCESS, $resourceFacilitatorSessions);
+        } catch (CacheException | InvalidArgumentException $exception) {
+            return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_FAILED, null, ['cache' => $exception->getMessage()]);
+        }
+    }
 }

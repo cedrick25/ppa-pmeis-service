@@ -128,6 +128,28 @@ class ResourceFacilitatorSessionRepository extends ServiceEntityRepository
 
     }
 
+    /**
+     * @param int $page
+     * @param int $pageSize
+     * @return array<string, mixed>
+     * @throws InvalidArgumentException
+     * @throws CacheException
+     */
+    public function paginated(int $page = 1, int $pageSize = 10): array
+    {
+        $params = [
+            'cacheKey' => $this->cacheHelper->getResourceFacilitatorSessionsPaginatedKey($page, $pageSize),
+            'expiration' => $this->cacheHelper->getExpirationDateTime(),
+            'cacheTag' => self::CACHE_TAG,
+            'pageSize' => $pageSize,
+            'page' => $page
+        ];
+
+        return $this->helper->createPaginatedResponse($params, function() {
+            return $this->createQueryBuilder('rfs')->orderBy('rfs.resourceFacilitatorSessionId');
+        });
+    }
+
     private function isExisting(ResourceFacilitatorSessionModel $resourceFacilitatorSessionData): bool
     {
         $client = $this->findOneBy([
