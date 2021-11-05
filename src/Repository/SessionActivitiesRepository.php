@@ -167,6 +167,28 @@ class SessionActivitiesRepository extends ServiceEntityRepository
         ]);
     }
 
+    /**
+     * @param int $page
+     * @param int $pageSize
+     * @return array<string, mixed>
+     * @throws InvalidArgumentException
+     * @throws CacheException
+     */
+    public function paginated(int $page = 1, int $pageSize = 10): array
+    {
+        $params = [
+            'cacheKey' => $this->cacheHelper->getSessionActivitiesPaginatedKey($page, $pageSize),
+            'expiration' => $this->cacheHelper->getExpirationDateTime(),
+            'cacheTag' => self::CACHE_TAG,
+            'pageSize' => $pageSize,
+            'page' => $page
+        ];
+
+        return $this->helper->createPaginatedResponse($params, function() {
+            return $this->createQueryBuilder('sa')->orderBy('sa.sessionActivityId');
+        });
+    }
+
     private function isExistByName(string $name): bool
     {
         $sessionActivity = $this->findOneBy([

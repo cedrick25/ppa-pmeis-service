@@ -99,4 +99,19 @@ class SessionActivities implements SessionActivitiesInterface
 
         return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_SUCCESS, $sessionActivity);
     }
+
+    public function getPaginated(int $page, int $pageSize): array
+    {
+        try {
+            $sessionActivities = $this->repository->paginated($page, $pageSize);
+
+            if (sizeof($sessionActivities) == 0) {
+                return $this->appFormatter->formatResponse(ResponseEnum::NO_DATA, null);
+            }
+
+            return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_SUCCESS, $sessionActivities);
+        } catch (CacheException|InvalidArgumentException $exception) {
+            return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_FAILED, null, ['cache' => $exception->getMessage()]);
+        }
+    }
 }

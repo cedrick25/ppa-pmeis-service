@@ -266,6 +266,17 @@ class TherapeuticCommunityController extends AbstractController
     }
 
     /**
+     * @Route("/session-activity/{page}/{pageSize}", methods={"GET"})
+     */
+    public function getPaginatedSessionActivities(Request $request): Response
+    {
+        return $this->json($this->sessionActivitiesService->getPaginated(
+            (int) $request->get("page"),
+            (int) $request->get("pageSize")
+        ));
+    }
+
+    /**
      * @Route("/venue/create/{name}", methods={"GET"})
      */
     public function createVenue(Request $request): Response

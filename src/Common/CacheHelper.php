@@ -82,6 +82,11 @@ class CacheHelper
         return 'session_activities_all';
     }
 
+    public function getSessionActivitiesPaginatedKey(int $page, int $size): string
+    {
+        return 'session_activities_' . $page . '_' . $size;
+    }
+
     public function getAllVenuesKey(): string
     {
         return 'venues_all';

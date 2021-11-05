@@ -86,7 +86,7 @@ class ClientTypes implements ClientTypesInterface
             }
 
             return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_SUCCESS, $clientSessions);
-        } catch (CacheException| InvalidArgumentException $exception) {
+        } catch (CacheException | InvalidArgumentException $exception) {
             return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_FAILED, null, ['cache' => $exception->getMessage()]);
         }
     }
