@@ -169,6 +169,30 @@ class VenuesRepository extends ServiceEntityRepository
         return ($treatmentCategory == null) ? false : $treatmentCategory;
     }
 
+    /**
+     * @param int $page
+     * @param int $pageSize
+     * @return array<string, mixed>
+     * @throws InvalidArgumentException
+     * @throws CacheException
+     */
+    public function paginated(int $page = 1, int $pageSize = 10): array
+    {
+        $params = [
+            'cacheKey' => $this->cacheHelper->getVenuesPaginatedKey($page, $pageSize),
+            'expiration' => $this->cacheHelper->getExpirationDateTime(),
+            'cacheTag' => self::CACHE_TAG,
+            'pageSize' => $pageSize,
+            'page' => $page
+        ];
+
+        return $this->helper->createPaginatedResponse($params, function() {
+            return $this->createQueryBuilder('v')
+                ->where('v.deletedAt IS NULL')
+                ->orderBy('v.venueId');
+        });
+    }
+
     private function isExistByName(string $name): bool
     {
         $venue = $this->findOneBy([

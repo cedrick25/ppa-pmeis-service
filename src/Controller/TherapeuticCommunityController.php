@@ -317,6 +317,17 @@ class TherapeuticCommunityController extends AbstractController
     }
 
     /**
+     * @Route("/venue/{page}/{pageSize}", methods={"GET"})
+     */
+    public function getPaginatedVenues(Request $request): Response
+    {
+        return $this->json($this->venuesService->getPaginated(
+            (int) $request->get("page"),
+            (int) $request->get("pageSize")
+        ));
+    }
+
+    /**
      * @Route("/session/create", methods={"POST"})
      */
     public function createSession(Request $request): Response

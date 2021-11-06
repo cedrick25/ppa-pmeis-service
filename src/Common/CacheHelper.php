@@ -97,6 +97,11 @@ class CacheHelper
         return 'venues_all';
     }
 
+    public function getVenuesPaginatedKey(int $page, int $size): string
+    {
+        return 'venues_' . $page . '_' . $size;
+    }
+
     public function getAllSessionsKey(): string
     {
         return 'sessions_all';

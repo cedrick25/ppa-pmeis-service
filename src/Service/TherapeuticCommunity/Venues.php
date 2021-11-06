@@ -99,4 +99,19 @@ class Venues implements VenuesInterface
 
         return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_SUCCESS, $venue);
     }
+
+    public function getPaginated(int $page, int $pageSize): array
+    {
+        try {
+            $venues = $this->repository->paginated($page, $pageSize);
+
+            if (sizeof($venues) == 0) {
+                return $this->appFormatter->formatResponse(ResponseEnum::NO_DATA, null);
+            }
+
+            return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_SUCCESS, $venues);
+        } catch (CacheException|InvalidArgumentException $exception) {
+            return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_FAILED, null, ['cache' => $exception->getMessage()]);
+        }
+    }
 }
