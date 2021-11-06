@@ -478,6 +478,17 @@ class TherapeuticCommunityController extends AbstractController
     }
 
     /**
+     * @Route("/treatment-category/{page}/{pageSize}", methods={"GET"})
+     */
+    public function getPaginatedTreatmentCategories(Request $request): Response
+    {
+        return $this->json($this->treatmentCategoryService->getPaginated(
+            (int) $request->get("page"),
+            (int) $request->get("pageSize")
+        ));
+    }
+
+    /**
      * @Route("/client/create", methods={"POST"})
      */
     public function createClient(Request $request): Response

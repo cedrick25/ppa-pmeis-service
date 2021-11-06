@@ -97,4 +97,19 @@ class TreatmentCategories implements TreatmentCategoriesInterface
 
         return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_SUCCESS, $treatmentCategory);
     }
+
+    public function getPaginated(int $page, int $pageSize): array
+    {
+        try {
+            $treatmentCategories = $this->repository->paginated($page, $pageSize);
+
+            if (sizeof($treatmentCategories) == 0) {
+                return $this->appFormatter->formatResponse(ResponseEnum::NO_DATA, null);
+            }
+
+            return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_SUCCESS, $treatmentCategories);
+        } catch (CacheException|InvalidArgumentException $exception) {
+            return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_FAILED, null, ['cache' => $exception->getMessage()]);
+        }
+    }
 }
