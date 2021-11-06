@@ -108,4 +108,19 @@ class Sessions implements SessionsInterface
 
         return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_SUCCESS, $session);
     }
+
+    public function getPaginated(int $page, int $pageSize): array
+    {
+        try {
+            $sessions = $this->repository->paginated($page, $pageSize);
+
+            if (sizeof($sessions) == 0) {
+                return $this->appFormatter->formatResponse(ResponseEnum::NO_DATA, null);
+            }
+
+            return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_SUCCESS, $sessions);
+        } catch (CacheException| \Psr\Cache\InvalidArgumentException $exception) {
+            return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_FAILED, null, ['cache' => $exception->getMessage()]);
+        }
+    }
 }

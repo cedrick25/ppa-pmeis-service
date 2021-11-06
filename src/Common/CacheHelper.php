@@ -97,6 +97,11 @@ class CacheHelper
         return 'sessions_all';
     }
 
+    public function getSessionsPaginatedKey(int $page, int $size): string
+    {
+        return 'sessions_' . $page . '_' . $size;
+    }
+
     public function getAllClientTypesKey(): string
     {
         return 'client_types_all';

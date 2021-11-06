@@ -191,7 +191,31 @@ class SessionsRepository extends ServiceEntityRepository
         return ($session == null) ? false : $session;
     }
 
-    public function isExisting(SessionsModel $sessionData): bool
+    /**
+     * @param int $page
+     * @param int $pageSize
+     * @return array<string, mixed>
+     * @throws \Psr\Cache\InvalidArgumentException
+     * @throws CacheException
+     */
+    public function paginated(int $page = 1, int $pageSize = 10): array
+    {
+        $params = [
+            'cacheKey' => $this->cacheHelper->getSessionsPaginatedKey($page, $pageSize),
+            'expiration' => $this->cacheHelper->getExpirationDateTime(),
+            'cacheTag' => self::CACHE_TAG,
+            'pageSize' => $pageSize,
+            'page' => $page
+        ];
+
+        return $this->helper->createPaginatedResponse($params, function() {
+            return $this->createQueryBuilder('s')
+                ->where('s.deletedAt IS NULL')
+                ->orderBy('s.sessionId');
+        });
+    }
+
+    private function isExisting(SessionsModel $sessionData): bool
     {
         $session = $this->findOneBy([
             'quarterId' => $sessionData->getQuarterId(),
