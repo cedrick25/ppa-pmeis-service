@@ -32,6 +32,11 @@ class CacheHelper
         return 'users_all';
     }
 
+    public function getUsersPaginatedKey(int $page, int $size): string
+    {
+        return 'users_' . $page . '_' . $size;
+    }
+
     public function getAllQuartersKey(): string
     {
         return 'quarters_all';

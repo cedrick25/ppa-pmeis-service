@@ -3,9 +3,9 @@
 namespace App\Repository;
 
 use App\Common\AppDateHelper;
+use App\Common\AppFormatter;
 use App\Common\CacheHelper;
 use App\Entity\Position;
-use App\Entity\TreatmentCategories;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\ORM\ORMException;
 use Doctrine\Persistence\ManagerRegistry;

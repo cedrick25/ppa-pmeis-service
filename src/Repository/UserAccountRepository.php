@@ -5,8 +5,10 @@ declare(strict_types=1);
 namespace App\Repository;
 
 use App\Common\AppDateHelper;
+use App\Common\AppFormatter;
 use App\Common\CacheHelper;
 use App\Entity\UserAccount;
+use App\Entity\UserDetails;
 use App\Enum\Response as ResponseEnum;
 use App\Model\UserAccountWithDetails;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
@@ -14,6 +16,7 @@ use Doctrine\ORM\OptimisticLockException;
 use Doctrine\ORM\ORMException;
 use Doctrine\Persistence\ManagerRegistry;
 use Exception;
+use Psr\Cache\CacheException;
 use Psr\Cache\InvalidArgumentException;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Symfony\Contracts\Cache\ItemInterface;
@@ -35,7 +38,8 @@ class UserAccountRepository extends ServiceEntityRepository
         private CacheHelper $cacheHelper,
         private UserPasswordHasherInterface $userPasswordHasher,
         private UserDetailsRepository $userDetailsRepository,
-        private AppDateHelper $appDateHelper
+        private AppDateHelper $appDateHelper,
+        private AppFormatter $appFormatter
     ) {
         parent::__construct($registry, UserAccount::class);
     }
@@ -179,6 +183,51 @@ class UserAccountRepository extends ServiceEntityRepository
         ]);
 
         return ($user == null) ? false : $user;
+    }
+
+    /**
+     * @param int $page
+     * @param int $pageSize
+     * @return array<string, mixed>
+     * @throws InvalidArgumentException
+     * @throws CacheException
+     */
+    public function paginated(int $page = 1, int $pageSize = 10): array
+    {
+        $cacheKey = $this->cacheHelper->getUsersPaginatedKey($page, $pageSize);
+
+        return $this->cache->get($cacheKey, function (ItemInterface $item) use ($cacheKey, $page, $pageSize) {
+            $dateTimeExpiration = new \DateTime();
+            $startOffset = $pageSize * ($page-1);
+
+            $conn = $this->getEntityManager()->getConnection();
+            $sql = "SELECT ua.*, ud.*, rg.name as region_name, fe.name as field_office_name FROM user_account ua 
+                    LEFT JOIN user_details ud ON ud.user_account_id = ua.user_account_id
+                    LEFT JOIN field_offices fe ON fe.field_office_id = ua.field_office_id
+                    LEFT JOIN regions rg ON rg.region_id = fe.region_id
+                    WHERE ua.deleted_at IS NULL
+                    ORDER BY ua.user_account_id ASC
+                    LIMIT {$pageSize} OFFSET {$startOffset}";
+            $stmt = $conn->prepare($sql);
+            $query = $stmt->executeQuery();
+            $result = $query->fetchAllAssociative();
+
+            if (! $result) {
+                $dateTimeExpiration->add(new \DateInterval("PT1S"));
+                return null;
+            }
+
+            $totalItems = count($this->findBy([
+                'deletedAt' => null
+            ]));
+            $pageCount = ceil($totalItems / $pageSize);
+
+            $dateTimeExpiration->add(new \DateInterval("PT1H"));
+            $item->expiresAt($dateTimeExpiration);
+            $item->tag(self::CACHE_TAG);
+
+            return $this->appFormatter->formatPagination($totalItems, $pageCount, $result);
+        });
     }
 
     public function isExisting(string $emailAddress): bool

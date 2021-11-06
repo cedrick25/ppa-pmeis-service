@@ -81,6 +81,17 @@ class UserController extends AbstractController
     }
 
     /**
+     * @Route("/paginated/{page}/{pageSize}", methods={"GET"})
+     */
+    public function getPaginatedUsers(Request $request): Response
+    {
+        return $this->json($this->userService->getPaginated(
+            (int) $request->get("page"),
+            (int) $request->get("pageSize")
+        ));
+    }
+
+    /**
      * @Route("/position/list", methods={"GET"})
      */
     public function getAllPositions(): Response
@@ -107,7 +118,7 @@ class UserController extends AbstractController
     /**
      * @Route("/position/{page}/{pageSize}", methods={"GET"})
      */
-    public function getPositions(Request $request): Response
+    public function getPaginatedPositions(Request $request): Response
     {
         return $this->json($this->positionService->getPaginated(
             (int) $request->get("page"),
