@@ -152,6 +152,11 @@ class CacheHelper
         return 'volunteers_all';
     }
 
+    public function getVolunteersPaginatedKey(int $page, int $size): string
+    {
+        return 'volunteers_' . $page . '_' . $size;
+    }
+
     public function getAllResourceFacilitatorSessionsKey(): string
     {
         return 'resource_facilitator_session_all';

@@ -12,6 +12,7 @@ use Doctrine\ORM\ORMException;
 use Doctrine\Persistence\ManagerRegistry;
 use App\Model\Volunteer as VolunteerModel;
 use Exception;
+use Psr\Cache\CacheException;
 use Psr\Cache\InvalidArgumentException;
 use Symfony\Contracts\Cache\TagAwareCacheInterface;
 
@@ -68,7 +69,7 @@ class VolunteerRepository extends ServiceEntityRepository
 
     /**
      * @return Volunteer[]
-     * @throws \Psr\Cache\CacheException
+     * @throws CacheException
      * @throws InvalidArgumentException
      */
     public function list(): array
@@ -146,6 +147,40 @@ class VolunteerRepository extends ServiceEntityRepository
         return ResponseEnum::OK;
     }
 
+    public function isExistingById(int $id): bool | Volunteer
+    {
+        $client = $this->findOneBy([
+            'volunteerId' => $id,
+            'deletedAt' => null
+        ]);
+
+        return ($client == null) ? false : $client;
+    }
+
+    /**
+     * @param int $page
+     * @param int $pageSize
+     * @return array<string, mixed>
+     * @throws InvalidArgumentException
+     * @throws CacheException
+     */
+    public function paginated(int $page = 1, int $pageSize = 10): array
+    {
+        $params = [
+            'cacheKey' => $this->cacheHelper->getVolunteersPaginatedKey($page, $pageSize),
+            'expiration' => $this->cacheHelper->getExpirationDateTime(),
+            'cacheTag' => self::CACHE_TAG,
+            'pageSize' => $pageSize,
+            'page' => $page
+        ];
+
+        return $this->helper->createPaginatedResponse($params, function() {
+            return $this->createQueryBuilder('v')
+                ->where('v.deletedAt IS NULL')
+                ->orderBy('v.volunteerId');
+        });
+    }
+
     private function isExisting(VolunteerModel $volunteerData): bool
     {
         $client = $this->findOneBy([
@@ -156,16 +191,6 @@ class VolunteerRepository extends ServiceEntityRepository
         ]);
 
         return $client != null;
-    }
-
-    public function isExistingById(int $id): bool | Volunteer
-    {
-        $client = $this->findOneBy([
-            'volunteerId' => $id,
-            'deletedAt' => null
-        ]);
-
-        return ($client == null) ? false : $client;
     }
 
     private function isConflicted(Volunteer $fetchedVolunteer, VolunteerModel $volunteerData): bool

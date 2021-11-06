@@ -104,4 +104,19 @@ class Volunteer implements VolunteerInterface
 
         return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_SUCCESS, $volunteer);
     }
+
+    public function getPaginated(int $page, int $pageSize): array
+    {
+        try {
+            $volunteers = $this->repository->paginated($page, $pageSize);
+
+            if (sizeof($volunteers) == 0) {
+                return $this->appFormatter->formatResponse(ResponseEnum::NO_DATA, null);
+            }
+
+            return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_SUCCESS, $volunteers);
+        } catch (CacheException|InvalidArgumentException $exception) {
+            return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_FAILED, null, ['cache' => $exception->getMessage()]);
+        }
+    }
 }

@@ -696,6 +696,17 @@ class TherapeuticCommunityController extends AbstractController
     }
 
     /**
+     * @Route("/volunteer/{page}/{pageSize}", methods={"GET"})
+     */
+    public function getPaginatedVolunteers(Request $request): Response
+    {
+        return $this->json($this->volunteerService->getPaginated(
+            (int) $request->get("page"),
+            (int) $request->get("pageSize")
+        ));
+    }
+
+    /**
      * @Route("/resource-facilitator-session/create", methods={"POST"})
      */
     public function createResourceFacilitatorSession(Request $request): Response
