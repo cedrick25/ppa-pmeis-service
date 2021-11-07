@@ -3,6 +3,7 @@
 namespace App\Repository;
 
 use App\Common\AppFormatter;
+use DateInterval;
 use Doctrine\ORM\QueryBuilder;
 use Doctrine\ORM\Tools\Pagination\Paginator;
 use Psr\Cache\CacheException;
@@ -30,6 +31,33 @@ class Helper
             $item->tag($params['cacheTag']);
 
             return $getData();
+        });
+    }
+
+    /**
+     * @param array $params
+     * @param callable $getResult
+     * @return array|null
+     * @throws InvalidArgumentException|CacheException
+     */
+    public function createCachedResponseCustomQuery(array $params, Callable $getResult): ?array
+    {
+        return $this->cache->get($params['cacheKey'], function (ItemInterface $item) use ($params, $getResult) {
+            $dateTimeExpiration = new \DateTime();
+
+            /** @var array<string, mixed> $result */
+            $result = $getResult();
+
+            if (!$result) {
+                $dateTimeExpiration->add(new DateInterval("PT1S"));
+                return null;
+            }
+
+            $dateTimeExpiration->add(new DateInterval("PT24H"));
+            $item->expiresAt($dateTimeExpiration);
+            $item->tag($params['cacheTag']);
+
+            return $result;
         });
     }
 
@@ -63,6 +91,35 @@ class Helper
             }
 
             return $this->appFormatter->formatPagination($totalItems, $pageCount, $pageItems);
+        });
+    }
+
+    /**
+     * @param array $params
+     * @param callable $getResult
+     * @return array
+     * @throws InvalidArgumentException|CacheException
+     */
+    public function createPaginatedResponseCustomQuery(array $params, Callable $getResult): array
+    {
+        return $this->cache->get($params['cacheKey'], function (ItemInterface $item) use ($params, $getResult) {
+            $dateTimeExpiration = new \DateTime();
+
+            /** @var array<string, mixed> $result */
+            $result = $getResult();
+
+            if ($result['totalItems'] === 0) {
+                $dateTimeExpiration->add(new DateInterval("PT1S"));
+                return null;
+            }
+
+            $pageCount = ceil($result['totalItems'] / $params['pageSize']);
+
+            $dateTimeExpiration->add(new DateInterval("PT24H"));
+            $item->expiresAt($dateTimeExpiration);
+            $item->tag($params['cacheTag']);
+
+            return $this->appFormatter->formatPagination($result['totalItems'], $pageCount, $result['data']);
         });
     }
 }

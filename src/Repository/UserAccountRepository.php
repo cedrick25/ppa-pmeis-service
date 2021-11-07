@@ -5,10 +5,8 @@ declare(strict_types=1);
 namespace App\Repository;
 
 use App\Common\AppDateHelper;
-use App\Common\AppFormatter;
 use App\Common\CacheHelper;
 use App\Entity\UserAccount;
-use App\Entity\UserDetails;
 use App\Enum\Response as ResponseEnum;
 use App\Model\UserAccountWithDetails;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
@@ -19,7 +17,6 @@ use Exception;
 use Psr\Cache\CacheException;
 use Psr\Cache\InvalidArgumentException;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
-use Symfony\Contracts\Cache\ItemInterface;
 use Symfony\Contracts\Cache\TagAwareCacheInterface;
 
 /**
@@ -39,7 +36,7 @@ class UserAccountRepository extends ServiceEntityRepository
         private UserPasswordHasherInterface $userPasswordHasher,
         private UserDetailsRepository $userDetailsRepository,
         private AppDateHelper $appDateHelper,
-        private AppFormatter $appFormatter
+        private Helper $helper,
     ) {
         parent::__construct($registry, UserAccount::class);
     }
@@ -48,20 +45,22 @@ class UserAccountRepository extends ServiceEntityRepository
      * @param int|null $id
      * @return array<string, mixed>|null
      * @throws InvalidArgumentException
+     * @throws CacheException
      */
     public function findWithDetails(?int $id = null): array | null
     {
-        $singleUser = "";
-        $cacheKey = $this->cacheHelper->getAllUsersKey();
+        $singleUser = '';
+        $params = [
+            'cacheKey' => $this->cacheHelper->getAllUsersKey(),
+            'cacheTag' => self::CACHE_TAG
+        ];
 
         if ($id != null) {
             $singleUser = "ua.user_account_id = {$id} AND";
-            $cacheKey = $this->cacheHelper->getAccountWithDetailsKey($id);
+            $params['cacheKey'] = $this->cacheHelper->getAccountWithDetailsKey($id);
         }
 
-        return $this->cache->get($cacheKey, function (ItemInterface $item) use ($cacheKey, $id, $singleUser) {
-            $dateTimeExpiration = new \DateTime();
-
+        return $this->helper->createCachedResponseCustomQuery($params, function() use ($id, $singleUser) {
             $conn = $this->getEntityManager()->getConnection();
             $sql = "SELECT ua.*, ud.*, rg.name as region_name, fe.name as field_office_name FROM user_account ua 
                     LEFT JOIN user_details ud ON ud.user_account_id = ua.user_account_id
@@ -70,18 +69,8 @@ class UserAccountRepository extends ServiceEntityRepository
                     WHERE {$singleUser} ua.deleted_at IS NULL";
             $stmt = $conn->prepare($sql);
             $query = $stmt->executeQuery();
-            $result = ($id != null) ? $query->fetchAssociative() : $query->fetchAllAssociative();
 
-            if (! $result) {
-                $dateTimeExpiration->add(new \DateInterval("PT1S"));
-                return null;
-            }
-
-            $dateTimeExpiration->add(new \DateInterval("PT1H"));
-            $item->expiresAt($dateTimeExpiration);
-            $item->tag(self::CACHE_TAG);
-
-            return $result;
+            return ($id != null) ? $query->fetchAssociative() : $query->fetchAllAssociative();
         });
     }
 
@@ -194,11 +183,15 @@ class UserAccountRepository extends ServiceEntityRepository
      */
     public function paginated(int $page = 1, int $pageSize = 10): array
     {
-        $cacheKey = $this->cacheHelper->getUsersPaginatedKey($page, $pageSize);
+        $params = [
+            'cacheKey' => $this->cacheHelper->getUsersPaginatedKey($page, $pageSize),
+            'cacheTag' => self::CACHE_TAG,
+            'pageSize' => $pageSize
+        ];
 
-        return $this->cache->get($cacheKey, function (ItemInterface $item) use ($cacheKey, $page, $pageSize) {
-            $dateTimeExpiration = new \DateTime();
+        return $this->helper->createPaginatedResponseCustomQuery($params, function() use ($pageSize, $page) {
             $startOffset = $pageSize * ($page-1);
+            $result = [];
 
             $conn = $this->getEntityManager()->getConnection();
             $sql = "SELECT ua.*, ud.*, rg.name as region_name, fe.name as field_office_name FROM user_account ua 
@@ -210,23 +203,12 @@ class UserAccountRepository extends ServiceEntityRepository
                     LIMIT {$pageSize} OFFSET {$startOffset}";
             $stmt = $conn->prepare($sql);
             $query = $stmt->executeQuery();
-            $result = $query->fetchAllAssociative();
-
-            if (! $result) {
-                $dateTimeExpiration->add(new \DateInterval("PT1S"));
-                return null;
-            }
-
-            $totalItems = count($this->findBy([
+            $result['data'] = $query->fetchAllAssociative();
+            $result['totalItems'] = count($this->findBy([
                 'deletedAt' => null
             ]));
-            $pageCount = ceil($totalItems / $pageSize);
 
-            $dateTimeExpiration->add(new \DateInterval("PT1H"));
-            $item->expiresAt($dateTimeExpiration);
-            $item->tag(self::CACHE_TAG);
-
-            return $this->appFormatter->formatPagination($totalItems, $pageCount, $result);
+            return $result;
         });
     }
 
