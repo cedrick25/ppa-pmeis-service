@@ -345,6 +345,23 @@ class TherapeuticCommunityController extends AbstractController
     }
 
     /**
+     * @Route("/session/create-with-clients-and-facilitators", methods={"POST"})
+     */
+    public function createSessionWithClientsAndFacilitators(Request $request): Response
+    {
+        try {
+            $data = json_decode($request->getContent(), true);
+
+            /** @var SessionsModel $session */
+            $session = $this->appHydrator->convertArrayToObject($data, SessionsModel::class);
+
+            return $this->json($this->sessionService->createWithClientsAndFacilitators($session));
+        } catch (ReflectionException $exception) {
+            return $this->json($this->appFormatter->formatResponse('Creating session failed', null, ['reflection' => $exception->getMessage()]));
+        }
+    }
+
+    /**
      * @Route("/session/list", methods={"GET"})
      */
     public function getAllSessions(): Response

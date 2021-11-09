@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Repository;
 
 use App\Common\CacheHelper;
@@ -9,6 +11,7 @@ use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\ORM\ORMException;
 use Doctrine\Persistence\ManagerRegistry;
 use App\Model\ResourceFacilitatorSession as ResourceFacilitatorSessionModel;
+use Doctrine\Persistence\Mapping\MappingException;
 use Exception;
 use Psr\Cache\CacheException;
 use Psr\Cache\InvalidArgumentException;
@@ -50,12 +53,36 @@ class ResourceFacilitatorSessionRepository extends ServiceEntityRepository
         $newResourceFacilitatorSession = new ResourceFacilitatorSession();
         $newResourceFacilitatorSession->setSessionId($resourceFacilitatorSessionData->getSessionId());
         $newResourceFacilitatorSession->setResourceFacilitatorId($resourceFacilitatorSessionData->getResourceFacilitatorId());
-        $newResourceFacilitatorSession->setResourceFacilitatorType(ResourceFacilitatorType::from($resourceFacilitatorSessionData->getResourceFacilitatorType()));
+        $newResourceFacilitatorSession->setResourceFacilitatorType($resourceFacilitatorSessionData->getResourceFacilitatorType());
 
         $this->getEntityManager()->persist($newResourceFacilitatorSession);
         $this->getEntityManager()->flush();
 
         return $newResourceFacilitatorSession->getResourceFacilitatorSessionId();
+    }
+
+    /**
+     * @param int $sessionId
+     * @param array<string, int[]> $resourceFacilitatorSessionIds
+     * @throws \Doctrine\DBAL\Exception\InvalidArgumentException
+     * @throws ORMException
+     * @throws MappingException
+     */
+    public function batchCreate(int $sessionId, array $resourceFacilitatorSessionIds): void
+    {
+        foreach ($resourceFacilitatorSessionIds as $type => $resourceFacilitatorIds) {
+            foreach ($resourceFacilitatorIds as $resourceFacilitatorId) {
+                $clientSession = new ResourceFacilitatorSession();
+                $clientSession->setSessionId($sessionId);
+                $clientSession->setResourceFacilitatorId($resourceFacilitatorId);
+                $clientSession->setResourceFacilitatorType(strtoupper($type));
+
+                $this->getEntityManager()->persist($clientSession);
+            }
+        }
+
+        $this->getEntityManager()->flush();
+        $this->getEntityManager()->clear(ResourceFacilitatorSession::class);
     }
 
     /**
@@ -120,7 +147,7 @@ class ResourceFacilitatorSessionRepository extends ServiceEntityRepository
 
         $resourceFacilitatorSession->setSessionId($resourceFacilitatorSessionData->getSessionId());
         $resourceFacilitatorSession->setResourceFacilitatorId($resourceFacilitatorSessionData->getResourceFacilitatorId());
-        $resourceFacilitatorSession->setResourceFacilitatorType(ResourceFacilitatorType::from($resourceFacilitatorSessionData->getResourceFacilitatorType()));
+        $resourceFacilitatorSession->setResourceFacilitatorType($resourceFacilitatorSessionData->getResourceFacilitatorType());
 
         $this->getEntityManager()->flush();
 

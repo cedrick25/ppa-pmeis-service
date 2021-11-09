@@ -17,4 +17,6 @@ interface SessionsInterface
     public function getById(int $id): array;
 
     public function getPaginated(int $page, int $pageSize): array;
+
+    public function createWithClientsAndFacilitators(SessionsModel $sessionData): array;
 }

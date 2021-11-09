@@ -17,7 +17,6 @@ use Doctrine\ORM\ORMException;
 use Doctrine\Persistence\ManagerRegistry;
 use Exception;
 use Psr\Cache\CacheException;
-use Symfony\Contracts\Cache\ItemInterface;
 use Symfony\Contracts\Cache\TagAwareCacheInterface;
 
 /**
@@ -36,6 +35,8 @@ class SessionsRepository extends ServiceEntityRepository
         private TagAwareCacheInterface $cache,
         private CacheHelper $cacheHelper,
         private Helper $helper,
+        private ClientSessionsRepository $clientSessionsRepository,
+        private ResourceFacilitatorSessionRepository $resourceFacilitatorSessionRepository,
     ){
         parent::__construct($registry, Sessions::class);
     }
@@ -70,6 +71,43 @@ class SessionsRepository extends ServiceEntityRepository
 
         $this->getEntityManager()->persist($session);
         $this->getEntityManager()->flush();
+
+        return $session->getSessionId();
+    }
+
+    /**
+     * @throws InvalidArgumentException
+     * @throws Exception
+     * @throws \Psr\Cache\InvalidArgumentException
+     */
+    public function createWithClientsAndFacilitators(SessionsModel $sessionData): int | null
+    {
+        $isExist = $this->isExisting($sessionData);
+
+        if ($isExist) {
+            return null;
+        }
+
+        $this->cache->invalidateTags([self::CACHE_TAG]);
+
+        $session = new Sessions();
+        $session->setQuarterId($sessionData->getQuarterId());
+        $session->setFieldOfficeId($sessionData->getFieldOfficeId());
+        $session->setPhaseId($sessionData->getPhaseId());
+        $session->setSessionActivityId($sessionData->getSessionActivityId());
+        $session->setTreatmentCategoryId($sessionData->getTreatmentCategoryId());
+        $session->setDate($this->appDateHelper->convertStringToImmutableDate($sessionData->getDate()));
+        $session->setVenueId($sessionData->getVenueId());
+        $session->setPeriod($sessionData->getPeriod());
+        $session->setRemarks($sessionData->getRemarks());
+        $session->setCreatedBy($sessionData->getCreatedBy());
+        $session->setCreatedAt($this->appDateHelper->getCurrentImmutableDate());
+
+        $this->getEntityManager()->persist($session);
+        $this->getEntityManager()->flush();
+
+        $this->clientSessionsRepository->batchCreate($session->getSessionId(), $sessionData->getClientSession());
+        $this->resourceFacilitatorSessionRepository->batchCreate($session->getSessionId(), $sessionData->getResourceFacilitator());
 
         return $session->getSessionId();
     }

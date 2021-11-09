@@ -22,7 +22,9 @@ class Sessions
         private int $createdBy,
         private ?DateTimeInterface $createdAt = null,
         private ?DateTimeInterface $updatedAt = null,
-        private ?DateTimeInterface $deletedAt = null
+        private ?DateTimeInterface $deletedAt = null,
+        private ?array $clientSession = null,
+        private ?array $resourceFacilitator = null,
     ){}
 
     /**
@@ -145,5 +147,21 @@ class Sessions
     public function getDeletedAt(): ?DateTimeInterface
     {
         return $this->deletedAt;
+    }
+
+    /**
+     * @return array<string, int[]>|null
+     */
+    public function getClientSession(): ?array
+    {
+        return $this->clientSession;
+    }
+
+    /**
+     * @return array<string, int[]>|null
+     */
+    public function getResourceFacilitator(): ?array
+    {
+        return $this->resourceFacilitator;
     }
 }

@@ -1,16 +1,18 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Repository;
 
 use App\Common\CacheHelper;
 use App\Entity\ClientSessions;
-use App\Enum\ClientSessionRole;
 use App\Enum\Response as ResponseEnum;
 use App\Model\ClientSessions as ClientSessionModel;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\ORM\ORMException;
 use Doctrine\Persistence\ManagerRegistry;
+use Doctrine\Persistence\Mapping\MappingException;
 use Exception;
 use Psr\Cache\CacheException;
 use Psr\Cache\InvalidArgumentException;
@@ -52,12 +54,36 @@ class ClientSessionsRepository extends ServiceEntityRepository
         $newClientSession = new ClientSessions();
         $newClientSession->setClientId($clientSessions->getClientId());
         $newClientSession->setSessionId($clientSessions->getSessionId());
-        $newClientSession->setRole(ClientSessionRole::from($clientSessions->getRole()));
+        $newClientSession->setRole($clientSessions->getRole());
 
         $this->getEntityManager()->persist($newClientSession);
         $this->getEntityManager()->flush();
 
         return $newClientSession->getClientSessionId();
+    }
+
+    /**
+     * @param int $sessionId
+     * @param array<string, int[]> $clientSessionIds
+     * @throws \Doctrine\DBAL\Exception\InvalidArgumentException
+     * @throws ORMException
+     * @throws MappingException
+     */
+    public function batchCreate(int $sessionId, array $clientSessionIds): void
+    {
+        foreach ($clientSessionIds as $role => $clientIds) {
+            foreach ($clientIds as $clientId) {
+                $clientSession = new ClientSessions();
+                $clientSession->setSessionId($sessionId);
+                $clientSession->setClientId($clientId);
+                $clientSession->setRole(strtoupper($role));
+
+                $this->getEntityManager()->persist($clientSession);
+            }
+        }
+
+        $this->getEntityManager()->flush();
+        $this->getEntityManager()->clear(ClientSessions::class);
     }
 
     /**
@@ -121,7 +147,7 @@ class ClientSessionsRepository extends ServiceEntityRepository
 
         $clientSession->setClientId($clientSessionData->getClientId());
         $clientSession->setSessionId($clientSessionData->getSessionId());
-        $clientSession->setRole(ClientSessionRole::from($clientSessionData->getRole()));
+        $clientSession->setRole($clientSessionData->getRole());
 
         $this->getEntityManager()->persist($clientSession);
         $this->getEntityManager()->flush();

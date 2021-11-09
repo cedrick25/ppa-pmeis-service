@@ -34,7 +34,32 @@ class Sessions implements SessionsInterface
             $id = $this->repository->create($sessionData);
 
             if ($id == null) {
-                return $this->appFormatter->formatResponse(ResponseEnum::CREATING_FAILED, null, ['app' => 'Session activity already exist.']);
+                return $this->appFormatter->formatResponse(ResponseEnum::CREATING_FAILED, null, ['app' => 'Session already exist.']);
+            }
+
+            return $this->appFormatter->formatResponse(ResponseEnum::CREATING_SUCCESS, ['id' => $id]);
+        } catch (InvalidArgumentException $exception) {
+            return $this->appFormatter->formatResponse(ResponseEnum::CREATING_FAILED, null, ['orm' => $exception->getMessage()]);
+        } catch (Exception $e) {
+            return $this->appFormatter->formatResponse(ResponseEnum::CREATING_FAILED, null, ['app' => $e->getMessage()]);
+        } catch (\Psr\Cache\InvalidArgumentException $e) {
+            return $this->appFormatter->formatResponse(ResponseEnum::CREATING_FAILED, null, ['cache' => $e->getMessage()]);
+        }
+    }
+
+    public function createWithClientsAndFacilitators(SessionsModel $sessionData): array
+    {
+        try {
+            $errors = $this->validator->validate($sessionData);
+
+            if (count($errors) > 0) {
+                return $this->appFormatter->formatResponse(ResponseEnum::VALIDATING_FAILED, null, $this->appFormatter->formatErrors($errors));
+            }
+
+            $id = $this->repository->createWithClientsAndFacilitators($sessionData);
+
+            if ($id == null) {
+                return $this->appFormatter->formatResponse(ResponseEnum::CREATING_FAILED, null, ['app' => 'Session already exist.']);
             }
 
             return $this->appFormatter->formatResponse(ResponseEnum::CREATING_SUCCESS, ['id' => $id]);
