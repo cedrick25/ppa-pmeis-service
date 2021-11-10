@@ -68,6 +68,7 @@ class ClientSessionsRepository extends ServiceEntityRepository
      * @throws \Doctrine\DBAL\Exception\InvalidArgumentException
      * @throws ORMException
      * @throws MappingException
+     * @throws InvalidArgumentException
      */
     public function batchCreate(int $sessionId, array $clientSessionIds): void
     {
@@ -84,6 +85,8 @@ class ClientSessionsRepository extends ServiceEntityRepository
 
         $this->getEntityManager()->flush();
         $this->getEntityManager()->clear(ClientSessions::class);
+
+        $this->cache->invalidateTags([self::CACHE_TAG]);
     }
 
     /**
@@ -108,13 +111,49 @@ class ClientSessionsRepository extends ServiceEntityRepository
     }
 
     /**
+     * @return array<string, mixed>
+     * @throws CacheException
+     * @throws InvalidArgumentException
+     */
+    public function listBySessionId(int $id): array
+    {
+        $params = [
+            'cacheKey' => $this->cacheHelper->getAllClientSessionsBySessionIdKey($id),
+            'expiration' => $this->cacheHelper->getExpirationDateTime(),
+            'cacheTag' => self::CACHE_TAG
+        ];
+
+        return $this->helper->createCachedResponse($params, function() use ($id) {
+            $data = [];
+
+            $clientSessions = $this->createQueryBuilder('cs')
+                ->select('cs.clientSessionId, cs.role')
+                ->where('cs.sessionId = :id')
+                ->setParameter('id', $id)
+                ->orderBy('cs.clientSessionId', 'DESC')
+                ->getQuery()
+                ->getArrayResult();
+
+            foreach ($clientSessions as $clientSession) {
+                if (!isset($data[$clientSession['role']])) {
+                    $data[$clientSession['role']] = [$clientSession['clientSessionId']];
+                    continue;
+                }
+
+                array_push($data[$clientSession['role']], $clientSession['clientSessionId']);
+            }
+
+            return $data;
+        });
+    }
+
+    /**
      * @throws InvalidArgumentException
      * @throws ORMException
      */
     public function delete(int $id): bool
     {
         $clientSession = $this->isExistingById($id);
-
         if (! $clientSession) {
             return false;
         }

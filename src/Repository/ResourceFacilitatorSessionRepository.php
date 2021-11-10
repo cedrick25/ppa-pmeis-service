@@ -67,6 +67,7 @@ class ResourceFacilitatorSessionRepository extends ServiceEntityRepository
      * @throws \Doctrine\DBAL\Exception\InvalidArgumentException
      * @throws ORMException
      * @throws MappingException
+     * @throws InvalidArgumentException
      */
     public function batchCreate(int $sessionId, array $resourceFacilitatorSessionIds): void
     {
@@ -83,6 +84,8 @@ class ResourceFacilitatorSessionRepository extends ServiceEntityRepository
 
         $this->getEntityManager()->flush();
         $this->getEntityManager()->clear(ResourceFacilitatorSession::class);
+
+        $this->cache->invalidateTags([self::CACHE_TAG]);
     }
 
     /**
@@ -103,6 +106,42 @@ class ResourceFacilitatorSessionRepository extends ServiceEntityRepository
                 ->orderBy('rfs.resourceFacilitatorSessionId', 'DESC')
                 ->getQuery()
                 ->getResult();
+        });
+    }
+
+    /**
+     * @return array<string, mixed>
+     * @throws CacheException
+     * @throws InvalidArgumentException
+     */
+    public function listBySessionId(int $id): array
+    {
+        $params = [
+            'cacheKey' => $this->cacheHelper->getAllResourceFacilitatorSessionsBySessionIdKey($id),
+            'expiration' => $this->cacheHelper->getExpirationDateTime(),
+            'cacheTag' => self::CACHE_TAG
+        ];
+
+        return $this->helper->createCachedResponse($params, function() use ($id) {
+            $data = [];
+
+            $facilitators = $this->createQueryBuilder('rfs')
+                ->where('rfs.sessionId = :id')
+                ->setParameter('id', $id)
+                ->orderBy('rfs.resourceFacilitatorSessionId', 'DESC')
+                ->getQuery()
+                ->getArrayResult();
+
+            foreach ($facilitators as $facilitator) {
+                if (!isset($data[$facilitator['resourceFacilitatorType']])) {
+                    $data[$facilitator['resourceFacilitatorType']] = [$facilitator['resourceFacilitatorSessionId']];
+                    continue;
+                }
+
+                array_push($data[$facilitator['resourceFacilitatorType']], $facilitator['resourceFacilitatorSessionId']);
+            }
+
+            return $data;
         });
     }
 

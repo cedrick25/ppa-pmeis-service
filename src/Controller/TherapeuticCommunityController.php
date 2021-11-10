@@ -362,6 +362,14 @@ class TherapeuticCommunityController extends AbstractController
     }
 
     /**
+     * @Route("/session/list-with-clients-and-facilitators", methods={"GET"})
+     */
+    public function getAllSessionsWithClientsAndFacilitators(): Response
+    {
+        return $this->json($this->sessionService->getAllWithClientsAndFacilitators());
+    }
+
+    /**
      * @Route("/session/list", methods={"GET"})
      */
     public function getAllSessions(): Response

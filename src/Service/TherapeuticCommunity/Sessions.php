@@ -87,6 +87,21 @@ class Sessions implements SessionsInterface
         }
     }
 
+    public function getAllWithClientsAndFacilitators(): array
+    {
+        try {
+            $sessions = $this->repository->listWithClientsAndFacilitators();
+
+            if (sizeof($sessions) == 0) {
+                return $this->appFormatter->formatResponse(ResponseEnum::NO_DATA, null);
+            }
+
+            return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_SUCCESS, $sessions);
+        } catch (CacheException| \Psr\Cache\InvalidArgumentException $exception) {
+            return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_FAILED, null, ['cache' => $exception->getMessage()]);
+        }
+    }
+
     public function deleteById(int $id): array
     {
         try {

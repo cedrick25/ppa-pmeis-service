@@ -135,6 +135,38 @@ class SessionsRepository extends ServiceEntityRepository
     }
 
     /**
+     * @return array<string, mixed>
+     * @throws \Psr\Cache\InvalidArgumentException
+     * @throws CacheException
+     */
+    public function listWithClientsAndFacilitators(): array
+    {
+        $params = [
+            'cacheKey' => $this->cacheHelper->getAllSessionsWithClientsAndFacilitatorsKey(),
+            'expiration' => $this->cacheHelper->getExpirationDateTime(),
+            'cacheTag' => self::CACHE_TAG
+        ];
+
+        return $this->helper->createCachedResponse($params, function() {
+            $data = [];
+            $sessions = $this->createQueryBuilder('se')
+                ->andWhere('se.deletedAt IS NULL')
+                ->orderBy('se.sessionId', 'DESC')
+                ->getQuery()
+                ->getArrayResult();
+
+            foreach ($sessions as $session) {
+                $session['clientSession'] = $this->clientSessionsRepository->listBySessionId($session['sessionId']);
+                $session['resourceFacilitator'] = $this->resourceFacilitatorSessionRepository->listBySessionId($session['sessionId']);
+
+                $data = $session;
+            }
+
+            return $data;
+        });
+    }
+
+    /**
      * @throws OptimisticLockException
      * @throws \Psr\Cache\InvalidArgumentException
      * @throws ORMException

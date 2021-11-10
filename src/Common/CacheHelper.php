@@ -107,6 +107,11 @@ class CacheHelper
         return 'sessions_all';
     }
 
+    public function getAllSessionsWithClientsAndFacilitatorsKey(): string
+    {
+        return 'sessions_all_with_client_and_facilitator';
+    }
+
     public function getSessionsPaginatedKey(int $page, int $size): string
     {
         return 'sessions_' . $page . '_' . $size;
@@ -142,6 +147,11 @@ class CacheHelper
         return 'client_sessions_all';
     }
 
+    public function getAllClientSessionsBySessionIdKey(int $id): string
+    {
+        return 'client_sessions_by_session_id' . $id;
+    }
+
     public function getClientSessionsPaginatedKey(int $page, int $size): string
     {
         return 'client_sessions_' . $page . '_' . $size;
@@ -160,6 +170,11 @@ class CacheHelper
     public function getAllResourceFacilitatorSessionsKey(): string
     {
         return 'resource_facilitator_session_all';
+    }
+
+    public function getAllResourceFacilitatorSessionsBySessionIdKey(int $id): string
+    {
+        return 'resource_facilitator_session_by_session_id' . $id;
     }
 
     public function getResourceFacilitatorSessionsPaginatedKey(int $page, int $size): string
