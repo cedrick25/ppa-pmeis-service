@@ -12,10 +12,11 @@ class UserAccounts
     public function __construct(
         private string $emailAddress,
         private string $contactNumber,
-        private string $password,
         private string $userType,
         private int $status,
+        private ?int $region,
         private ?int $fieldOffice,
+        private ?string $password = null,
         private ?DateTimeInterface $createdAt = null,
         private ?DateTimeInterface $updatedAt = null,
         private ?DateTimeInterface $deletedAt = null
@@ -69,6 +70,14 @@ class UserAccounts
     public function getStatus(): int
     {
         return $this->status;
+    }
+
+    /**
+     * @return int|null
+     */
+    public function getRegion(): ?int
+    {
+        return $this->region;
     }
 
     /**

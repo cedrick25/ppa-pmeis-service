@@ -91,6 +91,7 @@ class UserAccountRepository extends ServiceEntityRepository
         $user->setContactNumber($userAccountWithDetails->getContactNumber());
         $user->setPassword($hashedPassword);
         $user->setUserType($userAccountWithDetails->getUserType());
+        $user->setRegionId($userAccountWithDetails->getRegion());
         $user->setFieldOfficeId($userAccountWithDetails->getFieldOffice());
         $user->setStatus($userAccountWithDetails->getStatus());
         $user->setCreatedAt($this->appDateHelper->getCurrentImmutableDate());
@@ -152,6 +153,7 @@ class UserAccountRepository extends ServiceEntityRepository
         $user->setEmailAddress($userAccountWithDetails->getEmailAddress());
         $user->setContactNumber($userAccountWithDetails->getContactNumber());
         $user->setUserType($userAccountWithDetails->getUserType());
+        $user->setRegionId($userAccountWithDetails->getRegion());
         $user->setFieldOfficeId($userAccountWithDetails->getFieldOffice());
         $user->setStatus($userAccountWithDetails->getStatus());
         $user->setCreatedAt($this->appDateHelper->getCurrentImmutableDate());

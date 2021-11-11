@@ -22,11 +22,11 @@ final class Version20211018203300 extends AbstractMigration
         $password = '$2y$13$2N7Gd8k0P44.5iMj3/eDgeHn3Tg0DhvitLXirTmALisOEDV.ZAyXy';
         $this->addSql(
             "INSERT INTO user_account "
-                . "(email_address, contact_number, password, user_type, field_office_id, status)"
+                . "(email_address, contact_number, password, user_type, field_office_id, region_id, status)"
             . "VALUES "
-                . "('nd@probation.gov.ph', '09884522345', '{$password}', 'ND', 1, 1),"
-                . "('rd@probation.gov.ph', '09884522345', '{$password}', 'RD', 1, 1),"
-                . "('fo@probation.gov.ph', '09884522345', '{$password}', 'FO', 1, 1)"
+                . "('nd@probation.gov.ph', '09884522345', '{$password}', 'ND', 1, 1, 1),"
+                . "('rd@probation.gov.ph', '09884522345', '{$password}', 'RD', 1, 1, 1),"
+                . "('fo@probation.gov.ph', '09884522345', '{$password}', 'FO', 1, 1, 1)"
         );
         $this->addSql(
             "INSERT INTO user_details (user_account_id, first_name, last_name, gender, date_of_birth, is_senior_citizen, is_pwd, position_id)" 

@@ -16,6 +16,7 @@ class UserAccountWithDetails
         private string $password,
         private string $userType,
         private int $status,
+        private ?int $region,
         private ?int $fieldOffice,
         private int $userAccountId,
         private string $firstName,
@@ -80,6 +81,14 @@ class UserAccountWithDetails
     public function getStatus(): int
     {
         return $this->status;
+    }
+
+    /**
+     * @return int|null
+     */
+    public function getRegion(): ?int
+    {
+        return $this->region;
     }
 
     /**
