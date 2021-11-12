@@ -144,11 +144,11 @@ class SessionsRepository extends ServiceEntityRepository
     }
 
     /**
-     * @return array<string, mixed>
+     * @return array<string, mixed> | null
      * @throws \Psr\Cache\InvalidArgumentException
      * @throws CacheException
      */
-    public function listWithClientsAndFacilitators(): array
+    public function listWithClientsAndFacilitators(): ?array
     {
         $params = [
             'cacheKey' => $this->cacheHelper->getAllSessionsWithClientsAndFacilitatorsKey(),

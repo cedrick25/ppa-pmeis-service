@@ -92,7 +92,7 @@ class Sessions implements SessionsInterface
         try {
             $sessions = $this->repository->listWithClientsAndFacilitators();
 
-            if (sizeof($sessions) == 0) {
+            if ($sessions == null) {
                 return $this->appFormatter->formatResponse(ResponseEnum::NO_DATA, null);
             }
 

@@ -23,10 +23,10 @@ class Helper
     /**
      * @param array $params
      * @param callable $getData
-     * @return array<string, mixed>
+     * @return array<string, mixed> | null
      * @throws InvalidArgumentException|CacheException
      */
-    public function createCachedResponse(array $params, Callable $getData): array
+    public function createCachedResponse(array $params, Callable $getData): ?array
     {
         return $this->cache->get($params['cacheKey'], function (ItemInterface $item) use ($params, $getData) {
             $item->expiresAt($params['expiration']);
