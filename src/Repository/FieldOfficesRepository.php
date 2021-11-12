@@ -40,16 +40,18 @@ class FieldOfficesRepository extends ServiceEntityRepository
     {
         $params = [
             'cacheKey' => $this->cacheHelper->getAllFieldOfficesKey(),
-            'expiration' => $this->cacheHelper->getExpirationDateTime(),
             'cacheTag' => self::CACHE_TAG
         ];
 
-        return $this->helper->createCachedResponse($params, function() {
-            return $this->createQueryBuilder('fo')
-                ->where('fo.deletedAt IS NULL')
-                ->orderBy('fo.fieldOfficeId', 'DESC')
-                ->getQuery()
-                ->getResult();
+        return $this->helper->createCachedResponseCustomQuery($params, function() {
+            $conn = $this->getEntityManager()->getConnection();
+            $sql = "SELECT fo.*, rg.name as region_name FROM field_offices as fo " .
+                "LEFT JOIN regions as rg ON fo.region_id = rg.region_id " .
+                "WHERE fo.deleted_at IS NULL ORDER BY fo.field_office_id DESC";
+            $stmt = $conn->prepare($sql);
+            $query = $stmt->executeQuery();
+
+            return $query->fetchAllAssociative();
         });
     }
 
@@ -70,31 +72,47 @@ class FieldOfficesRepository extends ServiceEntityRepository
             'page' => $page
         ];
 
-        return $this->helper->createPaginatedResponse($params, function() {
-            return $this->createQueryBuilder('fo')
-                ->where('fo.deletedAt IS NULL')
-                ->orderBy('fo.fieldOfficeId');
+        return $this->helper->createPaginatedResponseCustomQuery($params, function() use ($pageSize, $page) {
+            $startOffset = $pageSize * ($page-1);
+            $result = [];
+
+            $conn = $this->getEntityManager()->getConnection();
+            $sql = "SELECT fo.*, rg.name as region_name FROM field_offices as fo " .
+                "LEFT JOIN regions as rg ON fo.region_id = rg.region_id " .
+                "WHERE fo.deleted_at IS NULL ORDER BY fo.field_office_id ASC " .
+                "LIMIT {$pageSize} OFFSET {$startOffset}";
+            $stmt = $conn->prepare($sql);
+            $query = $stmt->executeQuery();
+            $result['data'] = $query->fetchAllAssociative();
+            $result['totalItems'] = count($this->findBy([
+                'deletedAt' => null
+            ]));
+
+            return $result;
         });
     }
 
     /**
-     * @return FieldOffices[]
+     * @return array<string, mixed> | null
      * @throws CacheException
      * @throws InvalidArgumentException
      */
-    public function getByRegion(int $regionId): array
+    public function getByRegion(int $regionId): ?array
     {
         $params = [
             'cacheKey' => $this->cacheHelper->getFieldOfficeByRegionKey($regionId),
-            'expiration' => $this->cacheHelper->getExpirationDateTime(),
             'cacheTag' => self::CACHE_TAG
         ];
 
-        return $this->helper->createCachedResponse($params, function() use ($regionId){
-            return $this->findBy([
-                'regionId' => $regionId,
-                'deletedAt' => null
-            ]);
+        return $this->helper->createCachedResponseCustomQuery($params, function() use ($regionId) {
+            $conn = $this->getEntityManager()->getConnection();
+            $sql = "SELECT fo.*, rg.name as region_name FROM field_offices as fo " .
+                "LEFT JOIN regions as rg ON fo.region_id = rg.region_id " .
+                "WHERE fo.region_id = {$regionId} AND fo.deleted_at IS NULL ORDER BY fo.field_office_id DESC";
+            $stmt = $conn->prepare($sql);
+            $query = $stmt->executeQuery();
+
+            return $query->fetchAllAssociative();
         });
     }
 

@@ -50,7 +50,7 @@ class FieldOffices implements FieldOfficesInterface
         try {
             $fieldOffices = $this->repository->getByRegion($regionId);
 
-            if (sizeof($fieldOffices) == 0) {
+            if ($fieldOffices == null) {
                 return $this->appFormatter->formatResponse(ResponseEnum::NO_DATA, null);
             }
 
