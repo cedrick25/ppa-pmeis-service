@@ -10,7 +10,6 @@ use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 use Psr\Cache\CacheException;
 use Psr\Cache\InvalidArgumentException;
-use Symfony\Contracts\Cache\TagAwareCacheInterface;
 
 /**
  * @method FieldOffices|null find($id, $lockMode = null, $lockVersion = null)
@@ -24,7 +23,6 @@ class FieldOfficesRepository extends ServiceEntityRepository
 
     public function __construct(
         ManagerRegistry $registry,
-        private TagAwareCacheInterface $cache,
         private CacheHelper $cacheHelper,
         private Helper $helper,
     ){
@@ -79,8 +77,8 @@ class FieldOfficesRepository extends ServiceEntityRepository
             $conn = $this->getEntityManager()->getConnection();
             $sql = "SELECT fo.*, rg.name as region_name FROM field_offices as fo " .
                 "LEFT JOIN regions as rg ON fo.region_id = rg.region_id " .
-                "WHERE fo.deleted_at IS NULL ORDER BY fo.field_office_id ASC " .
-                "LIMIT {$pageSize} OFFSET {$startOffset}";
+                "WHERE fo.deleted_at IS NULL " .
+                "LIMIT $pageSize OFFSET $startOffset";
             $stmt = $conn->prepare($sql);
             $query = $stmt->executeQuery();
             $result['data'] = $query->fetchAllAssociative();
@@ -108,7 +106,7 @@ class FieldOfficesRepository extends ServiceEntityRepository
             $conn = $this->getEntityManager()->getConnection();
             $sql = "SELECT fo.*, rg.name as region_name FROM field_offices as fo " .
                 "LEFT JOIN regions as rg ON fo.region_id = rg.region_id " .
-                "WHERE fo.region_id = {$regionId} AND fo.deleted_at IS NULL ORDER BY fo.field_office_id DESC";
+                "WHERE fo.region_id = $regionId AND fo.deleted_at IS NULL ORDER BY fo.field_office_id DESC";
             $stmt = $conn->prepare($sql);
             $query = $stmt->executeQuery();
 

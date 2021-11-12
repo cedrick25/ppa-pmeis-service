@@ -160,11 +160,11 @@ class SessionsRepository extends ServiceEntityRepository
             $conn = $this->getEntityManager()->getConnection();
             $data = [];
 
-            $sql = "SELECT se.*, q.name as quarter_name, q.year as quarter_year, fe.name as field_office_name,
+            $sql = "SELECT se.*, q.name as quarter_name, q.year as quarter_year, fo.name as field_office_name,
                     p.name as phase_name, sa.name as session_activity_name, tc.name as treatment_category_name, v.name as venue_name
                  FROM sessions as se " .
                 "LEFT JOIN quarters as q ON se.quarter_id = q.quarter_id " .
-                "LEFT JOIN field_offices as fe ON se.field_office_id = fe.field_office_id " .
+                "LEFT JOIN field_offices as fo ON se.field_office_id = fo.field_office_id " .
                 "LEFT JOIN phases as p ON se.field_office_id = p.phase_id " .
                 "LEFT JOIN session_activities as sa ON se.session_activity_id = sa.session_activity_id " .
                 "LEFT JOIN treatment_categories as tc ON se.treatment_category_id = tc.treatment_category_id " .
@@ -312,8 +312,8 @@ class SessionsRepository extends ServiceEntityRepository
                 "LEFT JOIN session_activities as sa ON se.session_activity_id = sa.session_activity_id " .
                 "LEFT JOIN treatment_categories as tc ON se.treatment_category_id = tc.treatment_category_id " .
                 "LEFT JOIN venues as v ON se.venue_id = v.venue_id " .
-                "WHERE se.deleted_at IS NULL ORDER BY se.session_id ASC " .
-                "LIMIT {$pageSize} OFFSET {$startOffset}";
+                "WHERE se.deleted_at IS NULL " .
+                "LIMIT $pageSize OFFSET $startOffset";
             $stmt = $conn->prepare($sql);
             $query = $stmt->executeQuery();
             $result['data'] = $query->fetchAllAssociative();

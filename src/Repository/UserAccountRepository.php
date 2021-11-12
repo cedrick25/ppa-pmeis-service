@@ -56,7 +56,7 @@ class UserAccountRepository extends ServiceEntityRepository
         ];
 
         if ($id != null) {
-            $singleUser = "ua.user_account_id = {$id} AND";
+            $singleUser = "ua.user_account_id = $id AND";
             $params['cacheKey'] = $this->cacheHelper->getAccountWithDetailsKey($id);
         }
 
@@ -66,7 +66,7 @@ class UserAccountRepository extends ServiceEntityRepository
                     LEFT JOIN user_details ud ON ud.user_account_id = ua.user_account_id
                     LEFT JOIN field_offices fe ON fe.field_office_id = ua.field_office_id
                     LEFT JOIN regions rg ON rg.region_id = fe.region_id
-                    WHERE {$singleUser} ua.deleted_at IS NULL";
+                    WHERE $singleUser ua.deleted_at IS NULL";
             $stmt = $conn->prepare($sql);
             $query = $stmt->executeQuery();
 
@@ -201,8 +201,7 @@ class UserAccountRepository extends ServiceEntityRepository
                     LEFT JOIN field_offices fe ON fe.field_office_id = ua.field_office_id
                     LEFT JOIN regions rg ON rg.region_id = fe.region_id
                     WHERE ua.deleted_at IS NULL
-                    ORDER BY ua.user_account_id ASC
-                    LIMIT {$pageSize} OFFSET {$startOffset}";
+                    LIMIT $pageSize OFFSET $startOffset";
             $stmt = $conn->prepare($sql);
             $query = $stmt->executeQuery();
             $result['data'] = $query->fetchAllAssociative();

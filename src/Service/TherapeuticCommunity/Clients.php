@@ -50,7 +50,7 @@ class Clients implements ClientsInterface
         try {
             $clients = $this->repository->list();
 
-            if (sizeof($clients) == 0) {
+            if ($clients == null) {
                 return $this->appFormatter->formatResponse(ResponseEnum::NO_DATA, null);
             }
 
@@ -99,7 +99,7 @@ class Clients implements ClientsInterface
         try {
             $clients = $this->repository->paginated($page, $pageSize);
 
-            if (sizeof($clients) == 0) {
+            if ($clients == null) {
                 return $this->appFormatter->formatResponse(ResponseEnum::NO_DATA, null);
             }
 

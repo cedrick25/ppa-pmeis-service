@@ -14,7 +14,6 @@ use App\Model\Clients as ClientModel;
 use Exception;
 use Psr\Cache\CacheException;
 use Psr\Cache\InvalidArgumentException;
-use Symfony\Contracts\Cache\ItemInterface;
 use Symfony\Contracts\Cache\TagAwareCacheInterface;
 
 /**
@@ -74,11 +73,11 @@ class ClientsRepository extends ServiceEntityRepository
     }
 
     /**
-     * @return Clients[]
+     * @return array<string, mixed>|null
      * @throws CacheException
      * @throws InvalidArgumentException
      */
-    public function list(): array
+    public function list(): ?array
     {
         $params = [
             'cacheKey' => $this->cacheHelper->getAllClientsKey(),
@@ -86,12 +85,19 @@ class ClientsRepository extends ServiceEntityRepository
             'cacheTag' => self::CACHE_TAG
         ];
 
-        return $this->helper->createCachedResponse($params, function() {
-            return $this->createQueryBuilder('cl')
-                ->andWhere('cl.deletedAt IS NULL')
-                ->orderBy('cl.clientId', 'DESC')
-                ->getQuery()
-                ->getResult();
+        return $this->helper->createCachedResponseCustomQuery($params, function() {
+            $conn = $this->getEntityManager()->getConnection();
+
+            $sql = "SELECT c.*, ct.code as client_type_code, ct.description as client_type_description, fo.name as field_office_name,
+                 rg.region_id, rg.name as region_name FROM clients as c " .
+                "LEFT JOIN client_types as ct ON c.client_type_id = ct.client_type_id " .
+                "LEFT JOIN field_offices as fo ON c.field_office_id = fo.field_office_id " .
+                "LEFT JOIN regions as rg ON fo.region_id = rg.region_id " .
+                "WHERE c.deleted_at IS NULL ORDER BY c.client_id DESC";
+            $stmt = $conn->prepare($sql);
+            $query = $stmt->executeQuery();
+
+            return $query->fetchAllAssociative();
         });
     }
 
@@ -193,11 +199,11 @@ class ClientsRepository extends ServiceEntityRepository
     /**
      * @param int $page
      * @param int $pageSize
-     * @return array<string, mixed>
+     * @return array<string, mixed>|null
      * @throws InvalidArgumentException
      * @throws CacheException
      */
-    public function paginated(int $page = 1, int $pageSize = 10): array
+    public function paginated(int $page = 1, int $pageSize = 10): ?array
     {
         $params = [
             'cacheKey' => $this->cacheHelper->getClientsPaginatedKey($page, $pageSize),
@@ -207,11 +213,26 @@ class ClientsRepository extends ServiceEntityRepository
             'page' => $page
         ];
 
-        return $this->helper->createPaginatedResponse($params, function() {
-            return $this->createQueryBuilder('cl')
-                ->where('cl.deletedAt IS NULL')
-                ->orderBy('cl.clientId');
+        return $this->helper->createPaginatedResponseCustomQuery($params, function() use ($pageSize, $page) {
+            $conn = $this->getEntityManager()->getConnection();
+            $startOffset = $pageSize * ($page-1);
+            $result = [];
 
+            $sql = "SELECT c.*, ct.code as client_type_code, ct.description as client_type_description, fo.name as field_office_name,
+                 rg.region_id, rg.name as region_name FROM clients as c " .
+                "LEFT JOIN client_types as ct ON c.client_type_id = ct.client_type_id " .
+                "LEFT JOIN field_offices as fo ON c.field_office_id = fo.field_office_id " .
+                "LEFT JOIN regions as rg ON fo.region_id = rg.region_id " .
+                "WHERE c.deleted_at IS NULL ORDER BY c.client_id DESC " .
+                "LIMIT $pageSize OFFSET $startOffset";
+            $stmt = $conn->prepare($sql);
+            $query = $stmt->executeQuery();
+            $result['data'] = $query->fetchAllAssociative();
+            $result['totalItems'] = count($this->findBy([
+                'deletedAt' => null
+            ]));
+
+            return $result;
         });
     }
 
