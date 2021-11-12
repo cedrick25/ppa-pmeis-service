@@ -50,7 +50,7 @@ class Volunteer implements VolunteerInterface
         try {
             $volunteers = $this->repository->list();
 
-            if (sizeof($volunteers) == 0) {
+            if ($volunteers == null) {
                 return $this->appFormatter->formatResponse(ResponseEnum::NO_DATA, null);
             }
 
@@ -110,7 +110,7 @@ class Volunteer implements VolunteerInterface
         try {
             $volunteers = $this->repository->paginated($page, $pageSize);
 
-            if (sizeof($volunteers) == 0) {
+            if ($volunteers == null) {
                 return $this->appFormatter->formatResponse(ResponseEnum::NO_DATA, null);
             }
 

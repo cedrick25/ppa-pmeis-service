@@ -81,7 +81,6 @@ class ClientsRepository extends ServiceEntityRepository
     {
         $params = [
             'cacheKey' => $this->cacheHelper->getAllClientsKey(),
-            'expiration' => $this->cacheHelper->getExpirationDateTime(),
             'cacheTag' => self::CACHE_TAG
         ];
 
@@ -207,7 +206,6 @@ class ClientsRepository extends ServiceEntityRepository
     {
         $params = [
             'cacheKey' => $this->cacheHelper->getClientsPaginatedKey($page, $pageSize),
-            'expiration' => $this->cacheHelper->getExpirationDateTime(),
             'cacheTag' => self::CACHE_TAG,
             'pageSize' => $pageSize,
             'page' => $page

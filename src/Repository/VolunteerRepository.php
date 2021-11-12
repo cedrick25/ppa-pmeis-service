@@ -68,24 +68,29 @@ class VolunteerRepository extends ServiceEntityRepository
     }
 
     /**
-     * @return Volunteer[]
+     * @return array<string, mixed>|null
      * @throws CacheException
      * @throws InvalidArgumentException
      */
-    public function list(): array
+    public function list(): ?array
     {
         $params = [
             'cacheKey' => $this->cacheHelper->getAllVolunteersKey(),
-            'expiration' => $this->cacheHelper->getExpirationDateTime(),
             'cacheTag' => self::CACHE_TAG
         ];
 
-        return $this->helper->createCachedResponse($params, function() {
-            return $this->createQueryBuilder('v')
-                ->andWhere('v.deletedAt IS NULL')
-                ->orderBy('v.volunteerId', 'DESC')
-                ->getQuery()
-                ->getResult();
+        return $this->helper->createCachedResponseCustomQuery($params, function() {
+            $conn = $this->getEntityManager()->getConnection();
+
+            $sql = "SELECT v.*, fo.name as field_office_name, rg.region_id, rg.name as region_name 
+                 FROM volunteer as v " .
+                "LEFT JOIN field_offices as fo ON v.field_office_id = fo.field_office_id " .
+                "LEFT JOIN regions as rg ON fo.region_id = rg.region_id " .
+                "WHERE v.deleted_at IS NULL ORDER BY v.volunteer_id DESC";
+            $stmt = $conn->prepare($sql);
+            $query = $stmt->executeQuery();
+
+            return $query->fetchAllAssociative();
         });
     }
 
@@ -174,10 +179,25 @@ class VolunteerRepository extends ServiceEntityRepository
             'page' => $page
         ];
 
-        return $this->helper->createPaginatedResponse($params, function() {
-            return $this->createQueryBuilder('v')
-                ->where('v.deletedAt IS NULL')
-                ->orderBy('v.volunteerId');
+        return $this->helper->createPaginatedResponseCustomQuery($params, function() use ($pageSize, $page) {
+            $conn = $this->getEntityManager()->getConnection();
+            $startOffset = $pageSize * ($page-1);
+            $result = [];
+
+            $sql = "SELECT v.*, fo.name as field_office_name, rg.region_id, rg.name as region_name 
+                 FROM volunteer as v " .
+                "LEFT JOIN field_offices as fo ON v.field_office_id = fo.field_office_id " .
+                "LEFT JOIN regions as rg ON fo.region_id = rg.region_id " .
+                "WHERE v.deleted_at IS NULL ORDER BY v.volunteer_id DESC " .
+                "LIMIT $pageSize OFFSET $startOffset";
+            $stmt = $conn->prepare($sql);
+            $query = $stmt->executeQuery();
+            $result['data'] = $query->fetchAllAssociative();
+            $result['totalItems'] = count($this->findBy([
+                'deletedAt' => null
+            ]));
+
+            return $result;
         });
     }
 
