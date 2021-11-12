@@ -52,6 +52,8 @@ class Helper
 
             if (!$result) {
                 $dateTimeExpiration->add(new DateInterval("PT1S"));
+                $item->expiresAt($dateTimeExpiration);
+                $item->tag($params['cacheTag']);
                 return null;
             }
 
@@ -99,10 +101,10 @@ class Helper
     /**
      * @param array $params
      * @param callable $getResult
-     * @return array
+     * @return array | null
      * @throws InvalidArgumentException|CacheException
      */
-    public function createPaginatedResponseCustomQuery(array $params, Callable $getResult): array
+    public function createPaginatedResponseCustomQuery(array $params, Callable $getResult): ?array
     {
         return $this->cache->get($params['cacheKey'], function (ItemInterface $item) use ($params, $getResult) {
             $dateTimeExpiration = new \DateTime();
@@ -112,6 +114,8 @@ class Helper
 
             if ($result['totalItems'] === 0) {
                 $dateTimeExpiration->add(new DateInterval("PT1S"));
+                $item->expiresAt($dateTimeExpiration);
+                $item->tag($params['cacheTag']);
                 return null;
             }
 

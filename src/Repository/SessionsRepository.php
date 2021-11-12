@@ -113,24 +113,33 @@ class SessionsRepository extends ServiceEntityRepository
     }
 
     /**
-     * @return Sessions[]
+     * @return array<string, mixed>|null
      * @throws \Psr\Cache\InvalidArgumentException
      * @throws CacheException
      */
-    public function list(): array
+    public function list(): ?array
     {
         $params = [
             'cacheKey' => $this->cacheHelper->getAllSessionsKey(),
-            'expiration' => $this->cacheHelper->getExpirationDateTime(),
             'cacheTag' => self::CACHE_TAG
         ];
 
-        return $this->helper->createCachedResponse($params, function() {
-            return $this->createQueryBuilder('se')
-                ->andWhere('se.deletedAt IS NULL')
-                ->orderBy('se.sessionId', 'DESC')
-                ->getQuery()
-                ->getResult();
+        return $this->helper->createCachedResponseCustomQuery($params, function() {
+            $conn = $this->getEntityManager()->getConnection();
+            $sql = "SELECT se.*, q.name as quarter_name, q.year as quarter_year, fe.name as field_office_name,
+                    p.name as phase_name, sa.name as session_activity_name, tc.name as treatment_category_name, v.name as venue_name
+                 FROM sessions as se " .
+                "LEFT JOIN quarters as q ON se.quarter_id = q.quarter_id " .
+                "LEFT JOIN field_offices as fe ON se.field_office_id = fe.field_office_id " .
+                "LEFT JOIN phases as p ON se.field_office_id = p.phase_id " .
+                "LEFT JOIN session_activities as sa ON se.session_activity_id = sa.session_activity_id " .
+                "LEFT JOIN treatment_categories as tc ON se.treatment_category_id = tc.treatment_category_id " .
+                "LEFT JOIN venues as v ON se.venue_id = v.venue_id " .
+                "WHERE se.deleted_at IS NULL ORDER BY se.session_id DESC";
+            $stmt = $conn->prepare($sql);
+            $query = $stmt->executeQuery();
+
+            return $query->fetchAllAssociative();
         });
     }
 
@@ -148,16 +157,27 @@ class SessionsRepository extends ServiceEntityRepository
         ];
 
         return $this->helper->createCachedResponse($params, function() {
+            $conn = $this->getEntityManager()->getConnection();
             $data = [];
-            $sessions = $this->createQueryBuilder('se')
-                ->andWhere('se.deletedAt IS NULL')
-                ->orderBy('se.sessionId', 'DESC')
-                ->getQuery()
-                ->getArrayResult();
+
+            $sql = "SELECT se.*, q.name as quarter_name, q.year as quarter_year, fe.name as field_office_name,
+                    p.name as phase_name, sa.name as session_activity_name, tc.name as treatment_category_name, v.name as venue_name
+                 FROM sessions as se " .
+                "LEFT JOIN quarters as q ON se.quarter_id = q.quarter_id " .
+                "LEFT JOIN field_offices as fe ON se.field_office_id = fe.field_office_id " .
+                "LEFT JOIN phases as p ON se.field_office_id = p.phase_id " .
+                "LEFT JOIN session_activities as sa ON se.session_activity_id = sa.session_activity_id " .
+                "LEFT JOIN treatment_categories as tc ON se.treatment_category_id = tc.treatment_category_id " .
+                "LEFT JOIN venues as v ON se.venue_id = v.venue_id " .
+                "WHERE se.deleted_at IS NULL ORDER BY se.session_id DESC";
+            $stmt = $conn->prepare($sql);
+            $query = $stmt->executeQuery();
+
+            $sessions = $query->fetchAllAssociative();
 
             foreach ($sessions as $session) {
-                $session['clientSession'] = $this->clientSessionsRepository->listBySessionId($session['sessionId']);
-                $session['resourceFacilitator'] = $this->resourceFacilitatorSessionRepository->listBySessionId($session['sessionId']);
+                $session['client_session'] = $this->clientSessionsRepository->listBySessionId((int)$session['session_id']);
+                $session['resource_facilitator'] = $this->resourceFacilitatorSessionRepository->listBySessionId((int)$session['session_id']);
 
                 $data = $session;
             }
@@ -264,11 +284,11 @@ class SessionsRepository extends ServiceEntityRepository
     /**
      * @param int $page
      * @param int $pageSize
-     * @return array<string, mixed>
+     * @return array<string, mixed>|null
      * @throws \Psr\Cache\InvalidArgumentException
      * @throws CacheException
      */
-    public function paginated(int $page = 1, int $pageSize = 10): array
+    public function paginated(int $page = 1, int $pageSize = 10): ?array
     {
         $params = [
             'cacheKey' => $this->cacheHelper->getSessionsPaginatedKey($page, $pageSize),
@@ -278,10 +298,30 @@ class SessionsRepository extends ServiceEntityRepository
             'page' => $page
         ];
 
-        return $this->helper->createPaginatedResponse($params, function() {
-            return $this->createQueryBuilder('s')
-                ->where('s.deletedAt IS NULL')
-                ->orderBy('s.sessionId');
+        return $this->helper->createPaginatedResponseCustomQuery($params, function() use ($pageSize, $page) {
+            $startOffset = $pageSize * ($page-1);
+            $result = [];
+
+            $conn = $this->getEntityManager()->getConnection();
+            $sql = "SELECT se.*, q.name as quarter_name, q.year as quarter_year, fe.name as field_office_name,
+                    p.name as phase_name, sa.name as session_activity_name, tc.name as treatment_category_name, v.name as venue_name
+                 FROM sessions as se " .
+                "LEFT JOIN quarters as q ON se.quarter_id = q.quarter_id " .
+                "LEFT JOIN field_offices as fe ON se.field_office_id = fe.field_office_id " .
+                "LEFT JOIN phases as p ON se.field_office_id = p.phase_id " .
+                "LEFT JOIN session_activities as sa ON se.session_activity_id = sa.session_activity_id " .
+                "LEFT JOIN treatment_categories as tc ON se.treatment_category_id = tc.treatment_category_id " .
+                "LEFT JOIN venues as v ON se.venue_id = v.venue_id " .
+                "WHERE se.deleted_at IS NULL ORDER BY se.session_id ASC " .
+                "LIMIT {$pageSize} OFFSET {$startOffset}";
+            $stmt = $conn->prepare($sql);
+            $query = $stmt->executeQuery();
+            $result['data'] = $query->fetchAllAssociative();
+            $result['totalItems'] = count($this->findBy([
+                'deletedAt' => null
+            ]));
+
+            return $result;
         });
     }
 

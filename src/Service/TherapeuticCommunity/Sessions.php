@@ -77,7 +77,7 @@ class Sessions implements SessionsInterface
         try {
             $sessions = $this->repository->list();
 
-            if (sizeof($sessions) == 0) {
+            if ($sessions == null) {
                 return $this->appFormatter->formatResponse(ResponseEnum::NO_DATA, null);
             }
 
@@ -154,7 +154,7 @@ class Sessions implements SessionsInterface
         try {
             $sessions = $this->repository->paginated($page, $pageSize);
 
-            if (sizeof($sessions) == 0) {
+            if ($sessions == null) {
                 return $this->appFormatter->formatResponse(ResponseEnum::NO_DATA, null);
             }
 
