@@ -165,11 +165,11 @@ class VolunteerRepository extends ServiceEntityRepository
     /**
      * @param int $page
      * @param int $pageSize
-     * @return array<string, mixed>
+     * @return array<string, mixed>|null
      * @throws InvalidArgumentException
      * @throws CacheException
      */
-    public function paginated(int $page = 1, int $pageSize = 10): array
+    public function paginated(int $page = 1, int $pageSize = 10): ?array
     {
         $params = [
             'cacheKey' => $this->cacheHelper->getVolunteersPaginatedKey($page, $pageSize),
