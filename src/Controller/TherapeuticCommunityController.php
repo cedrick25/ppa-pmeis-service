@@ -663,6 +663,16 @@ class TherapeuticCommunityController extends AbstractController
     }
 
     /**
+     * @Route("/client-session/paginated/search/{query}", methods={"GET"})
+     */
+    public function getClientSessionBySearch(Request $request): Response
+    {
+        $direction = $request->query->get("direction");
+        dd($request->get("query"));
+//        return $this->json($this->clientSessionService->getById($request->get("query")));
+    }
+
+    /**
      * @Route("/volunteer/create", methods={"POST"})
      */
     public function createVolunteer(Request $request): Response

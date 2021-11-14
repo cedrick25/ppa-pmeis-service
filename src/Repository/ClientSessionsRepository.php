@@ -223,6 +223,29 @@ class ClientSessionsRepository extends ServiceEntityRepository
         });
     }
 
+    /**
+     * @return array<string, mixed>
+     * @throws InvalidArgumentException
+     * @throws CacheException
+     */
+    public function paginatedSearch(string $query, string $order = 'ASC', int $page = 1, int $pageSize = 10): array
+    {
+        $params = [
+            'cacheKey' => $this->cacheHelper->getClientsPaginatedKey($page, $pageSize),
+            'expiration' => $this->cacheHelper->getExpirationDateTime(),
+            'cacheTag' => self::CACHE_TAG,
+            'pageSize' => $pageSize,
+            'page' => $page
+        ];
+
+        return $this->helper->createPaginatedResponse($params, function() use ($query) {
+            return $this->createQueryBuilder('cs')
+                ->where(" LIKE %:query%")
+                ->setParameter('query', $query)
+                ->orderBy('cs.clientSessionId');
+        });
+    }
+
     private function isExisting(ClientSessionModel $clientSessionData): bool
     {
         $clientSession = $this->findOneBy([

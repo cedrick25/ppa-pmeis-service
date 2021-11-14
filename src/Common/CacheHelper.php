@@ -14,12 +14,12 @@ class CacheHelper
 
     public function getAccountWithDetailsKey(int $id): string
     {
-        return "account_with_details_id:" . $id;
+        return "account_with_details_id_" . $id;
     }
 
     public function getAccountKey(int $id): string
     {
-        return "account_id:" . $id;
+        return "account_id_" . $id;
     }
 
     public function getQuarterByNameAndYearKey(string $name, string $year): string
