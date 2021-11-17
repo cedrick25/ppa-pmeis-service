@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Repository;
 
 use App\Common\AppDateHelper;
@@ -57,7 +59,7 @@ class ClientsRepository extends ServiceEntityRepository
         $newClient->setLastName($clientData->getLastName());
         $newClient->setSuffix($clientData->getSuffix());
         $newClient->setGender($clientData->getGender());
-        $newClient->setDateOfBirth($this->appDateHelper->convertStringToImmutableDate($clientData->getDateOfBirth()));
+        $newClient->setDateOfBirth($clientData->getDateOfBirth());
         $newClient->setOffenseCategory($clientData->getOffenseCategory());
         $newClient->setFieldOfficeId($clientData->getFieldOfficeId());
         $newClient->setIsSeniorCitizen($clientData->isSeniorCitizen());
@@ -171,7 +173,7 @@ class ClientsRepository extends ServiceEntityRepository
         $client->setLastName($clientData->getLastName());
         $client->setSuffix($clientData->getSuffix());
         $client->setGender($clientData->getGender());
-        $client->setDateOfBirth($this->appDateHelper->convertStringToImmutableDate($clientData->getDateOfBirth()));
+        $client->setDateOfBirth($clientData->getDateOfBirth());
         $client->setOffenseCategory($clientData->getOffenseCategory());
         $client->setFieldOfficeId($clientData->getFieldOfficeId());
         $client->setIsSeniorCitizen($clientData->isSeniorCitizen());

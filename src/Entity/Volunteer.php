@@ -47,9 +47,9 @@ class Volunteer
     private string $gender;
 
     /**
-     * @ORM\Column(type="date")
+     * @ORM\Column(type="string", length=255)
      */
-    private DateTimeInterface $dateOfBirth;
+    private string $dateOfBirth;
 
     /**
      * @ORM\Column(type="boolean", nullable=true)
@@ -146,12 +146,12 @@ class Volunteer
         return $this;
     }
 
-    public function getDateOfBirth(): ?DateTimeInterface
+    public function getDateOfBirth(): ?string
     {
         return $this->dateOfBirth;
     }
 
-    public function setDateOfBirth(DateTimeInterface $dateOfBirth): self
+    public function setDateOfBirth(string $dateOfBirth): self
     {
         $this->dateOfBirth = $dateOfBirth;
 

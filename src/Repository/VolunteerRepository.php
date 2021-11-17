@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Repository;
 
 use App\Common\AppDateHelper;
@@ -55,7 +57,7 @@ class VolunteerRepository extends ServiceEntityRepository
         $newVolunteer->setLastName($volunteerData->getLastName());
         $newVolunteer->setSuffix($volunteerData->getSuffix());
         $newVolunteer->setGender($volunteerData->getGender());
-        $newVolunteer->setDateOfBirth($this->appDateHelper->convertStringToImmutableDate($volunteerData->getDateOfBirth()));
+        $newVolunteer->setDateOfBirth($volunteerData->getDateOfBirth());
         $newVolunteer->setIsSeniorCitizen($volunteerData->getIsSeniorCitizen());
         $newVolunteer->setIsPwd($volunteerData->getIsPwd());
         $newVolunteer->setFieldOfficeId($volunteerData->getFieldOfficeId());
@@ -141,7 +143,7 @@ class VolunteerRepository extends ServiceEntityRepository
         $volunteer->setLastName($volunteerData->getLastName());
         $volunteer->setSuffix($volunteerData->getSuffix());
         $volunteer->setGender($volunteerData->getGender());
-        $volunteer->setDateOfBirth($this->appDateHelper->convertStringToImmutableDate($volunteerData->getDateOfBirth()));
+        $volunteer->setDateOfBirth($volunteerData->getDateOfBirth());
         $volunteer->setIsSeniorCitizen($volunteerData->getIsSeniorCitizen());
         $volunteer->setIsPwd($volunteerData->getIsPwd());
         $volunteer->setFieldOfficeId($volunteerData->getFieldOfficeId());

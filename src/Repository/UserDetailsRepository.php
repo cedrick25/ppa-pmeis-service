@@ -4,10 +4,8 @@ declare(strict_types=1);
 
 namespace App\Repository;
 
-use App\Common\AppDateHelper;
 use App\Entity\UserDetails;
 use App\Model\UserAccountWithDetails;
-use DateTimeImmutable;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 use Exception;
@@ -22,7 +20,6 @@ class UserDetailsRepository extends ServiceEntityRepository
 {
     public function __construct(
         ManagerRegistry $registry,
-        private AppDateHelper $appDateHelper,
     ){
         parent::__construct($registry, UserDetails::class);
     }
@@ -39,7 +36,7 @@ class UserDetailsRepository extends ServiceEntityRepository
         $userDetails->setLastName($userAccountWithDetails->getLastName());
         $userDetails->setSuffix($userAccountWithDetails->getSuffix());
         $userDetails->setGender($userAccountWithDetails->getGender());
-        $userDetails->setDateOfBirth($this->appDateHelper->convertStringToImmutableDate($userAccountWithDetails->getDateOfBirth()));
+        $userDetails->setDateOfBirth($userAccountWithDetails->getDateOfBirth());
         $userDetails->setIsSeniorCitizen($userAccountWithDetails->isSeniorCitizen());
         $userDetails->setIsPwd($userAccountWithDetails->isPwd());
         $userDetails->setPositionId($userAccountWithDetails->getPositionId());
@@ -63,7 +60,7 @@ class UserDetailsRepository extends ServiceEntityRepository
         $userDetails->setLastName($userAccountWithDetails->getLastName());
         $userDetails->setSuffix($userAccountWithDetails->getSuffix());
         $userDetails->setGender($userAccountWithDetails->getGender());
-        $userDetails->setDateOfBirth($this->appDateHelper->convertStringToImmutableDate($userAccountWithDetails->getDateOfBirth()));
+        $userDetails->setDateOfBirth($userAccountWithDetails->getDateOfBirth());
         $userDetails->setIsSeniorCitizen($userAccountWithDetails->isSeniorCitizen());
         $userDetails->setIsPwd($userAccountWithDetails->isPwd());
         $userDetails->setPositionId($userAccountWithDetails->getPositionId());

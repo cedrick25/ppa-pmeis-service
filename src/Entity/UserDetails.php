@@ -51,9 +51,9 @@ class  UserDetails
     private string $gender;
 
     /**
-     * @ORM\Column(type="date_immutable")
+     * @ORM\Column(type="string", length=255)
      */
-    private DateTimeImmutable $dateOfBirth;
+    private string $dateOfBirth;
 
     /**
      * @ORM\Column(type="boolean")
@@ -152,12 +152,12 @@ class  UserDetails
         return $this;
     }
 
-    public function getDateOfBirth(): ?DateTimeImmutable
+    public function getDateOfBirth(): ?string
     {
         return $this->dateOfBirth;
     }
 
-    public function setDateOfBirth(DateTimeImmutable $dateOfBirth): self
+    public function setDateOfBirth(string $dateOfBirth): self
     {
         $this->dateOfBirth = $dateOfBirth;
 
