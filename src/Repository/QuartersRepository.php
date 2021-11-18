@@ -162,6 +162,28 @@ class QuartersRepository extends ServiceEntityRepository
         });
     }
 
+    /**
+     * @param int $page
+     * @param int $pageSize
+     * @return array<string, mixed>
+     * @throws \Psr\Cache\InvalidArgumentException
+     * @throws CacheException
+     */
+    public function paginatedSearch(string $field, string $query, int $page = 1, int $pageSize = 10): array
+    {
+        $params = [
+            'cacheKey' => $this->cacheHelper->getQuartersPaginatedKey($page, $pageSize),
+            'expiration' => $this->cacheHelper->getExpirationDateTime(),
+            'cacheTag' => self::CACHE_TAG,
+            'pageSize' => $pageSize,
+            'page' => $page
+        ];
+
+        return $this->helper->createPaginatedResponse($params, function()  use ($field, $query) {
+            return $this->createQueryBuilder('qtr')->orderBy('qtr.quarterId');
+        });
+    }
+
     public function isExisting(QuartersModel $quarterData): bool
     {
         $quarter = $this->findOneBy([
