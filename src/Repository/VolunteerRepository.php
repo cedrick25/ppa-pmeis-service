@@ -154,6 +154,27 @@ class VolunteerRepository extends ServiceEntityRepository
         return ResponseEnum::OK;
     }
 
+    /**
+     * @param int $id
+     * @return array<string, mixed>
+     * @throws \Doctrine\DBAL\Driver\Exception
+     * @throws \Doctrine\DBAL\Exception
+     */
+    public function getById(int $id): array
+    {
+        $conn = $this->getEntityManager()->getConnection();
+
+        $sql = "SELECT v.*, fo.name as field_office_name, rg.region_id, rg.name as region_name 
+                 FROM volunteer as v " .
+            "LEFT JOIN field_offices as fo ON v.field_office_id = fo.field_office_id " .
+            "LEFT JOIN regions as rg ON fo.region_id = rg.region_id " .
+            "WHERE v.volunteer_id = $id AND v.deleted_at IS NULL ORDER BY v.volunteer_id DESC";
+        $stmt = $conn->prepare($sql);
+        $query = $stmt->executeQuery();
+
+        return $query->fetchAssociative();
+    }
+
     public function isExistingById(int $id): bool | Volunteer
     {
         $client = $this->findOneBy([

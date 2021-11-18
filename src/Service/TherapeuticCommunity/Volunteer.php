@@ -96,13 +96,17 @@ class Volunteer implements VolunteerInterface
 
     public function getById(int $id): array
     {
-        $volunteer = $this->repository->isExistingById($id);
+        try {
+            $volunteer = $this->repository->getById($id);
 
-        if (!$volunteer) {
-            return $this->appFormatter->formatResponse(ResponseEnum::NO_DATA, null);
+            if (!$volunteer) {
+                return $this->appFormatter->formatResponse(ResponseEnum::NO_DATA, null);
+            }
+
+            return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_SUCCESS, $volunteer);
+        } catch (\Doctrine\DBAL\Exception | \Doctrine\DBAL\Driver\Exception $e) {
+            return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_SUCCESS, null, ['app' => $e->getMessage()]);
         }
-
-        return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_SUCCESS, $volunteer);
     }
 
     public function getPaginated(int $page, int $pageSize): array
