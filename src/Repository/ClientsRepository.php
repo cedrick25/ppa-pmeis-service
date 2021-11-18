@@ -187,6 +187,28 @@ class ClientsRepository extends ServiceEntityRepository
         return ResponseEnum::OK;
     }
 
+    /**
+     * @param int $id
+     * @return bool|array<string, mixed>
+     * @throws \Doctrine\DBAL\Driver\Exception
+     * @throws \Doctrine\DBAL\Exception
+     */
+    public function getById(int $id): bool|array
+    {
+        $conn = $this->getEntityManager()->getConnection();
+
+        $sql = "SELECT c.*, ct.code as client_type_code, ct.description as client_type_description, fo.name as field_office_name,
+                 rg.region_id, rg.name as region_name FROM clients as c " .
+            "LEFT JOIN client_types as ct ON c.client_type_id = ct.client_type_id " .
+            "LEFT JOIN field_offices as fo ON c.field_office_id = fo.field_office_id " .
+            "LEFT JOIN regions as rg ON fo.region_id = rg.region_id " .
+            "WHERE c.client_id = $id AND c.deleted_at IS NULL ORDER BY c.client_id DESC";
+        $stmt = $conn->prepare($sql);
+        $query = $stmt->executeQuery();
+
+        return $query->fetchAssociative();
+    }
+
     public function isExistingById(int $id): bool | Clients
     {
         $client = $this->findOneBy([

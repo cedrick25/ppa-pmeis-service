@@ -156,11 +156,11 @@ class VolunteerRepository extends ServiceEntityRepository
 
     /**
      * @param int $id
-     * @return array<string, mixed>
+     * @return bool|array<string, mixed>
      * @throws \Doctrine\DBAL\Driver\Exception
      * @throws \Doctrine\DBAL\Exception
      */
-    public function getById(int $id): array
+    public function getById(int $id): bool|array
     {
         $conn = $this->getEntityManager()->getConnection();
 

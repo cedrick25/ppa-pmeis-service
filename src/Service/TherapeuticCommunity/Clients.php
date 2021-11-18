@@ -112,12 +112,17 @@ class Clients implements ClientsInterface
 
     public function getById(int $id): array
     {
-        $client = $this->repository->isExistingById($id);
+        try {
 
-        if (!$client) {
-            return $this->appFormatter->formatResponse(ResponseEnum::NO_DATA, null);
+            $client = $this->repository->getById($id);
+
+            if (!$client) {
+                return $this->appFormatter->formatResponse(ResponseEnum::NO_DATA, null);
+            }
+
+            return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_SUCCESS, $client);
+        } catch (\Doctrine\DBAL\Exception | \Doctrine\DBAL\Driver\Exception $e) {
+            return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_SUCCESS, null, ['app' => $e->getMessage()]);
         }
-
-        return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_SUCCESS, $client);
     }
 }
