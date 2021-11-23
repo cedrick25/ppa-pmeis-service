@@ -118,4 +118,19 @@ class Quarters implements QuartersInterface
 
         return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_SUCCESS, $quarter);
     }
+
+    public function searchPaginated(string $field, string $query,int $page, int $pageSize): array
+    {
+        try {
+            $phases = $this->repository->paginatedSearch($field, $query, $page, $pageSize);
+
+            if (sizeof($phases) == 0) {
+                return $this->appFormatter->formatResponse(ResponseEnum::NO_DATA, null);
+            }
+
+            return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_SUCCESS, $phases);
+        } catch (CacheException | InvalidArgumentException $exception) {
+            return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_FAILED, null, ['cache' => $exception->getMessage()]);
+        }
+    }
 }

@@ -47,6 +47,11 @@ class CacheHelper
         return 'quarters_' . $page . '_' . $size;
     }
 
+    public function getQuartersPaginatedSearchKey(string $field, string $query, int $page, int $size): string
+    {
+        return 'quarters_' . $field . '_' . $query . '_' . $page . '_' . $size;
+    }
+
     public function getAllPhasesKey(): string
     {
         return 'phases_all';

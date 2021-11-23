@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Repository;
 
 use App\Common\AppDateHelper;
-use App\Common\AppFormatter;
 use App\Common\CacheHelper;
 use App\Entity\Quarters;
 use App\Enum\Response as ResponseEnum;
@@ -17,7 +16,6 @@ use Doctrine\ORM\ORMException;
 use Doctrine\Persistence\ManagerRegistry;
 use Exception;
 use Psr\Cache\CacheException;
-use Symfony\Contracts\Cache\ItemInterface;
 use Symfony\Contracts\Cache\TagAwareCacheInterface;
 
 /**
@@ -163,16 +161,18 @@ class QuartersRepository extends ServiceEntityRepository
     }
 
     /**
+     * @param string $field
+     * @param string $query
      * @param int $page
      * @param int $pageSize
      * @return array<string, mixed>
-     * @throws \Psr\Cache\InvalidArgumentException
      * @throws CacheException
+     * @throws \Psr\Cache\InvalidArgumentException
      */
     public function paginatedSearch(string $field, string $query, int $page = 1, int $pageSize = 10): array
     {
         $params = [
-            'cacheKey' => $this->cacheHelper->getQuartersPaginatedKey($page, $pageSize),
+            'cacheKey' => $this->cacheHelper->getQuartersPaginatedSearchKey($field, $query, $page, $pageSize),
             'expiration' => $this->cacheHelper->getExpirationDateTime(),
             'cacheTag' => self::CACHE_TAG,
             'pageSize' => $pageSize,
@@ -180,7 +180,10 @@ class QuartersRepository extends ServiceEntityRepository
         ];
 
         return $this->helper->createPaginatedResponse($params, function()  use ($field, $query) {
-            return $this->createQueryBuilder('qtr')->orderBy('qtr.quarterId');
+            return $this->createQueryBuilder('qtr')
+                ->where("qtr.$field LIKE :query")
+                ->setParameter(':query', '%'. $query . '%')
+                ->orderBy('qtr.quarterId');
         });
     }
 

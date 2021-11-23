@@ -127,6 +127,21 @@ class TherapeuticCommunityController extends AbstractController
     }
 
     /**
+     * @Route("/quarter/{page}/{pageSize}", methods={"POST"})
+     */
+    public function searchPaginatedQuarters(Request $request): Response
+    {
+        $searchData = json_decode($request->getContent(), true);
+
+        return $this->json($this->quartersService->searchPaginated(
+            $searchData['field'],
+            $searchData['query'],
+            (int) $request->get("page"),
+            (int) $request->get("pageSize")
+        ));
+    }
+
+    /**
      * @Route("/quarter/by/id/{id}", methods={"GET"})
      */
     public function getQuarterById(Request $request): Response
