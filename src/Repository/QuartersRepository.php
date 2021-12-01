@@ -27,7 +27,7 @@ use Symfony\Contracts\Cache\TagAwareCacheInterface;
 class QuartersRepository extends ServiceEntityRepository
 {
     protected const CACHE_TAG = "quarters";
-    protected const SESSION_ACTIVITY_CACHE_TAG = "session_activities";
+    protected const SESSION_CACHE_TAG = "sessions";
 
     public function __construct(
         ManagerRegistry $registry,
@@ -221,7 +221,7 @@ class QuartersRepository extends ServiceEntityRepository
     {
         $params = [
             'cacheKey' => $this->cacheHelper->getQuartersTCA1Part1Key($id),
-            'cacheTag' => self::SESSION_ACTIVITY_CACHE_TAG
+            'cacheTag' => self::SESSION_CACHE_TAG
         ];
 
         return $this->helper->createCachedResponseCustomQuery($params, function() use ($id) {
