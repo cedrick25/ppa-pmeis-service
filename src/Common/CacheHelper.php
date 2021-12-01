@@ -52,6 +52,11 @@ class CacheHelper
         return 'quarters_' . $field . '_' . $query . '_' . $page . '_' . $size;
     }
 
+    public function getQuartersTCA1Part1Key(int $id): string
+    {
+        return 'quarters_tc_a1_part1_' . $id;
+    }
+
     public function getAllPhasesKey(): string
     {
         return 'phases_all';

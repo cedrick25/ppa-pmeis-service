@@ -133,4 +133,19 @@ class Quarters implements QuartersInterface
             return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_FAILED, null, ['cache' => $exception->getMessage()]);
         }
     }
+
+    public function getTCA1Part1(int $id): array
+    {
+        try {
+            $quarter = $this->repository->fetchTCA1Part1($id);
+
+            if (!$quarter) {
+                return $this->appFormatter->formatResponse(ResponseEnum::NO_DATA, null);
+            }
+
+            return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_SUCCESS, $quarter);
+        } catch (CacheException $e) {
+            return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_FAILED, null, ['cache' => $e->getMessage()]);
+        }
+    }
 }

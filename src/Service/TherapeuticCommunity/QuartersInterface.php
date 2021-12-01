@@ -19,4 +19,6 @@ interface QuartersInterface
     public function getById(int $id): array;
 
     public function searchPaginated(string $field, string $query,int $page, int $pageSize): array;
+
+    public function getTCA1Part1(int $id): array;
 }

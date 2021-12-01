@@ -212,4 +212,31 @@ class QuartersRepository extends ServiceEntityRepository
 
         return false;
     }
+
+    /**
+     * @throws CacheException
+     */
+    public function fetchTCA1Part1(int $id): array
+    {
+        $params = [
+            'cacheKey' => $this->cacheHelper->getQuartersTCA1Part1Key($id),
+            'cacheTag' => self::CACHE_TAG
+        ];
+
+        return $this->helper->createCachedResponseCustomQuery($params, function() use ($id) {
+            $conn = $this->getEntityManager()->getConnection();
+
+            $sql = "SELECT q.*, s.session_id, sa.name as session_activity_title, s.treatment_category_id,
+                      p.name as phase_name, v.name as venue, s.date, s.period FROM quarters as q " .
+                "LEFT JOIN sessions as s ON q.quarter_id = s.quarter_id " .
+                "LEFT JOIN session_activities as sa ON s.session_activity_id = sa.session_activity_id " .
+                "LEFT JOIN phases as p ON s.phase_id = p.phase_id " .
+                "LEFT JOIN venues as v ON s.venue_id = v.venue_id " .
+                "WHERE q.quarter_id = $id ORDER BY p.phase_id";
+            $stmt = $conn->prepare($sql);
+            $query = $stmt->executeQuery();
+
+            return $query->fetchAllAssociative();
+        });
+    }
 }
