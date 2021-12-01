@@ -32,6 +32,30 @@ class TreatmentCategories implements TreatmentCategoriesInterface
         }
     }
 
+    public function getHeader(): array
+    {
+        try {
+            $data = [];
+            $treatmentCategories = $this->repository->list();
+
+            if (sizeof($treatmentCategories) == 0) {
+                return $this->appFormatter->formatResponse(ResponseEnum::NO_DATA, null);
+            }
+
+            foreach ($treatmentCategories as $treatmentCategory) {
+                 $originalName = explode('-', $treatmentCategory->getName());
+                 $data[$originalName[0]] = [
+                     'id' => $treatmentCategory->getTreatmentCategoryId(),
+                     'name' => $originalName[1]
+                 ];
+            }
+
+            return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_SUCCESS, $data);
+        } catch (CacheException|InvalidArgumentException $exception) {
+            return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_FAILED, null, ['cache' => $exception->getMessage()]);
+        }
+    }
+
     public function create(string $name): array
     {
         try {

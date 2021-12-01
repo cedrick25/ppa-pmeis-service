@@ -540,6 +540,14 @@ class TherapeuticCommunityController extends AbstractController
     }
 
     /**
+     * @Route("/treatment-category/header", methods={"GET"})
+     */
+    public function getAllTreatmentCategoriesHeader(): Response
+    {
+        return $this->json($this->treatmentCategoryService->getHeader());
+    }
+
+    /**
      * @Route("/client/create", methods={"POST"})
      */
     public function createClient(Request $request): Response

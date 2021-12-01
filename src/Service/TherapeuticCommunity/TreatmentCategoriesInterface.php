@@ -15,4 +15,6 @@ interface TreatmentCategoriesInterface
     public function getById(int $id): array;
 
     public function getPaginated(int $page, int $pageSize): array;
+
+    public function getHeader(): array;
 }
