@@ -240,4 +240,35 @@ class QuartersRepository extends ServiceEntityRepository
             return $query->fetchAllAssociative();
         });
     }
+
+    /**
+     * @throws CacheException
+     */
+    public function fetchTCA1Part2(int $id): ?array
+    {
+//        $params = [
+//            'cacheKey' => $this->cacheHelper->getQuartersTCA1Part2Key($id),
+//            'cacheTag' => self::SESSION_CACHE_TAG
+//        ];
+//
+//        return $this->helper->createCachedResponseCustomQuery($params, function() use ($id) {
+            $conn = $this->getEntityManager()->getConnection();
+
+            $sql = "SELECT s.session_id,
+                        (SELECT COUNT(client_session_id) FROM client_sessions WHERE role = 'PS' AND client_sessions.session_id = s.session_id) as parolees,
+                        (SELECT COUNT(client_session_id) FROM client_sessions WHERE role = 'PR' AND client_sessions.session_id = s.session_id) as probationers,
+                        (SELECT COUNT(client_session_id) FROM client_sessions WHERE role = 'PD' AND client_sessions.session_id = s.session_id) as pardonees,
+                        (SELECT COUNT(client_session_id) FROM client_sessions WHERE role = 'JICL' AND client_sessions.session_id = s.session_id) as jicl,
+                        (SELECT COUNT(client_session_id) FROM client_sessions WHERE role = 'FTMDO' AND client_sessions.session_id = s.session_id) as ftmdo,
+                        (SELECT COUNT(client_session_id) FROM client_sessions WHERE role = 'PET' AND client_sessions.session_id = s.session_id) as petitioners,
+                        (SELECT COUNT(client_session_id) FROM client_sessions WHERE role = 'TERM' AND client_sessions.session_id = s.session_id) as `terminated`
+                        FROM quarters as q " .
+                "LEFT JOIN sessions as s ON q.quarter_id = s.quarter_id " .
+                "WHERE q.quarter_id = $id ORDER BY s.session_id";
+            $stmt = $conn->prepare($sql);
+            $query = $stmt->executeQuery();
+
+            return $query->fetchAllAssociative();
+//        });
+    }
 }

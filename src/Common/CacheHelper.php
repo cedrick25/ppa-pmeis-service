@@ -57,6 +57,11 @@ class CacheHelper
         return 'quarters_tc_a1_part1_' . $id;
     }
 
+    public function getQuartersTCA1Part2Key(int $id): string
+    {
+        return 'quarters_tc_a1_part2_' . $id;
+    }
+
     public function getAllPhasesKey(): string
     {
         return 'phases_all';
