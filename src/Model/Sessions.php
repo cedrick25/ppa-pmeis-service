@@ -13,6 +13,7 @@ class Sessions
         private int $quarterId,
         private int $fieldOfficeId,
         private int $phaseId,
+        private string $batch,
         private int $sessionActivityId,
         private int $treatmentCategoryId,
         private string $date,
@@ -55,6 +56,15 @@ class Sessions
     public function getPhaseId(): int
     {
         return $this->phaseId;
+    }
+
+    /**
+     * @Assert\NotBlank
+     * @return string
+     */
+    public function getBatch(): string
+    {
+        return $this->batch;
     }
 
     /**

@@ -60,6 +60,7 @@ class SessionsRepository extends ServiceEntityRepository
         $session->setQuarterId($sessionData->getQuarterId());
         $session->setFieldOfficeId($sessionData->getFieldOfficeId());
         $session->setPhaseId($sessionData->getPhaseId());
+        $session->setBatch($sessionData->getBatch());
         $session->setSessionActivityId($sessionData->getSessionActivityId());
         $session->setTreatmentCategoryId($sessionData->getTreatmentCategoryId());
         $session->setDate($this->appDateHelper->convertStringToImmutableDate($sessionData->getDate()));
@@ -82,9 +83,7 @@ class SessionsRepository extends ServiceEntityRepository
      */
     public function createWithClientsAndFacilitators(SessionsModel $sessionData): int | null
     {
-        $isExist = $this->isExisting($sessionData);
-
-        if ($isExist) {
+        if ($this->isExisting($sessionData)) {
             return null;
         }
 
@@ -94,6 +93,7 @@ class SessionsRepository extends ServiceEntityRepository
         $session->setQuarterId($sessionData->getQuarterId());
         $session->setFieldOfficeId($sessionData->getFieldOfficeId());
         $session->setPhaseId($sessionData->getPhaseId());
+        $session->setBatch($sessionData->getBatch());
         $session->setSessionActivityId($sessionData->getSessionActivityId());
         $session->setTreatmentCategoryId($sessionData->getTreatmentCategoryId());
         $session->setDate($this->appDateHelper->convertStringToImmutableDate($sessionData->getDate()));
@@ -256,6 +256,7 @@ class SessionsRepository extends ServiceEntityRepository
 
         $session->setQuarterId($sessionData->getQuarterId());
         $session->setPhaseId($sessionData->getPhaseId());
+        $session->setBatch($sessionData->getBatch());
         $session->setSessionActivityId($sessionData->getSessionActivityId());
         $session->setFieldOfficeId($sessionData->getFieldOfficeId());
         $session->setTreatmentCategoryId($sessionData->getTreatmentCategoryId());

@@ -217,7 +217,7 @@ class QuartersRepository extends ServiceEntityRepository
     /**
      * @throws CacheException
      */
-    public function fetchTCA1Part1(int $id): array
+    public function fetchTCA1Part1(int $id): ?array
     {
         $params = [
             'cacheKey' => $this->cacheHelper->getQuartersTCA1Part1Key($id),
@@ -228,7 +228,7 @@ class QuartersRepository extends ServiceEntityRepository
             $conn = $this->getEntityManager()->getConnection();
 
             $sql = "SELECT q.*, s.session_id, sa.name as session_activity_title, s.treatment_category_id,
-                      p.name as phase_name, v.name as venue, s.date, s.period FROM quarters as q " .
+                      p.name as phase_name, s.batch ,v.name as venue, s.date, s.period FROM quarters as q " .
                 "LEFT JOIN sessions as s ON q.quarter_id = s.quarter_id " .
                 "LEFT JOIN session_activities as sa ON s.session_activity_id = sa.session_activity_id " .
                 "LEFT JOIN phases as p ON s.phase_id = p.phase_id " .

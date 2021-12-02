@@ -39,6 +39,11 @@ class Sessions
     private int $phaseId;
 
     /**
+     * @ORM\Column(type="string", length=255)
+     */
+    private string $batch;
+
+    /**
      * @ORM\Column(type="integer")
      */
     private int $sessionActivityId;
@@ -127,6 +132,22 @@ class Sessions
         $this->phaseId = $phaseId;
 
         return $this;
+    }
+
+    /**
+     * @return string
+     */
+    public function getBatch(): string
+    {
+        return $this->batch;
+    }
+
+    /**
+     * @param string $batch
+     */
+    public function setBatch(string $batch): void
+    {
+        $this->batch = $batch;
     }
 
     public function getSessionActivityId(): ?int
