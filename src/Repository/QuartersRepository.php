@@ -246,12 +246,12 @@ class QuartersRepository extends ServiceEntityRepository
      */
     public function fetchTCA1Part2(int $id): ?array
     {
-//        $params = [
-//            'cacheKey' => $this->cacheHelper->getQuartersTCA1Part2Key($id),
-//            'cacheTag' => self::SESSION_CACHE_TAG
-//        ];
-//
-//        return $this->helper->createCachedResponseCustomQuery($params, function() use ($id) {
+        $params = [
+            'cacheKey' => $this->cacheHelper->getQuartersTCA1Part2Key($id),
+            'cacheTag' => self::SESSION_CACHE_TAG
+        ];
+
+        return $this->helper->createCachedResponseCustomQuery($params, function() use ($id) {
             $conn = $this->getEntityManager()->getConnection();
 
             $sql = "SELECT s.session_id,
@@ -267,8 +267,31 @@ class QuartersRepository extends ServiceEntityRepository
                 "WHERE q.quarter_id = $id ORDER BY s.session_id";
             $stmt = $conn->prepare($sql);
             $query = $stmt->executeQuery();
+            $data = $query->fetchAllAssociative();
+            $data['role'] = ['Facilitator'];
+            $data['resource_person'] = $this->getResourcePerson($id);
 
-            return $query->fetchAllAssociative();
-//        });
+            return $data;
+        });
+    }
+
+    /**
+     * @throws \Doctrine\DBAL\Driver\Exception
+     * @throws \Doctrine\DBAL\Exception
+     */
+    private function getResourcePerson(int $id): array
+    {
+        $conn = $this->getEntityManager()->getConnection();
+        $sql = "SELECT CONCAT(c.first_name, ' ', COALESCE(c.middle_name, ''), ' ', c.last_name) as name, rfs.resource_facilitator_type as type,
+                    cs.client_id FROM quarters as q " .
+            "LEFT JOIN sessions as s ON q.quarter_id = s.quarter_id " .
+            "LEFT JOIN client_sessions as cs ON s.session_id = cs.session_id " .
+            "LEFT JOIN clients as c ON cs.client_id = c.client_id " .
+            "LEFT JOIN resource_facilitator_session as rfs ON s.session_id = rfs.session_id " .
+            "WHERE q.quarter_id = $id ORDER BY s.session_id";
+        $stmt = $conn->prepare($sql);
+        $query = $stmt->executeQuery();
+
+        return $query->fetchAllAssociative();
     }
 }
