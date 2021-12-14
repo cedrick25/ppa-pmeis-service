@@ -140,13 +140,17 @@ class Sessions implements SessionsInterface
 
     public function getById(int $id): array
     {
-        $session = $this->repository->isExistingById($id);
+        try {
+            $session = $this->repository->fetchById($id);
 
-        if (!$session) {
-            return $this->appFormatter->formatResponse(ResponseEnum::NO_DATA, null);
+            if (!$session) {
+                return $this->appFormatter->formatResponse(ResponseEnum::NO_DATA, null);
+            }
+
+            return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_SUCCESS, $session);
+        } catch (\Psr\Cache\InvalidArgumentException | CacheException $e) {
+            return $this->appFormatter->formatResponse(ResponseEnum::UPDATING_FAILED, null, ['cache' => $e->getMessage()]);
         }
-
-        return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_SUCCESS, $session);
     }
 
     public function getPaginated(int $page, int $pageSize): array

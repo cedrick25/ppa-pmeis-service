@@ -183,7 +183,7 @@ class SessionsRepository extends ServiceEntityRepository
                 $session['client_session'] = $this->clientSessionsRepository->listBySessionId((int)$session['session_id']);
                 $session['resource_facilitator'] = $this->resourceFacilitatorSessionRepository->listBySessionId((int)$session['session_id']);
 
-                $data = $session;
+                $data[] = $session;
             }
 
             return $data;
@@ -329,6 +329,45 @@ class SessionsRepository extends ServiceEntityRepository
             ]));
 
             return $result;
+        });
+    }
+
+    /**
+     * @return array<string, mixed>|null
+     * @throws \Psr\Cache\InvalidArgumentException
+     * @throws CacheException
+     */
+    public function fetchById(int $id): ?array
+    {
+        $params = [
+            'cacheKey' => $this->cacheHelper->getSessionsById($id),
+            'cacheTag' => self::CACHE_TAG
+        ];
+
+        return $this->helper->createCachedResponseCustomQuery($params, function() use ($id) {
+            $conn = $this->getEntityManager()->getConnection();
+
+            $sql = "SELECT se.*, q.name as quarter_name, q.year as quarter_year, fe.name as field_office_name,
+                    p.name as phase_name, sa.name as session_activity_name, tc.name as treatment_category_name, v.name as venue_name,
+                    r.name
+                 FROM sessions as se " .
+                "LEFT JOIN quarters as q ON se.quarter_id = q.quarter_id " .
+                "LEFT JOIN field_offices as fe ON se.field_office_id = fe.field_office_id " .
+                "LEFT JOIN phases as p ON se.field_office_id = p.phase_id " .
+                "LEFT JOIN regions as r ON fe.region_id = r.region_id " .
+                "LEFT JOIN session_activities as sa ON se.session_activity_id = sa.session_activity_id " .
+                "LEFT JOIN treatment_categories as tc ON se.treatment_category_id = tc.treatment_category_id " .
+                "LEFT JOIN venues as v ON se.venue_id = v.venue_id " .
+                "WHERE se.session_id = $id AND se.deleted_at IS NULL ORDER BY se.session_id DESC";
+            $stmt = $conn->prepare($sql);
+            $query = $stmt->executeQuery();
+
+            $session = $query->fetchAssociative();
+
+            $session['client_session'] = $this->clientSessionsRepository->listBySessionId($id);
+            $session['resource_facilitator'] = $this->resourceFacilitatorSessionRepository->listBySessionId($id);
+
+            return $session;
         });
     }
 
