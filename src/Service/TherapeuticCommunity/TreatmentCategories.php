@@ -45,10 +45,11 @@ class TreatmentCategories implements TreatmentCategoriesInterface
             foreach ($treatmentCategories as $treatmentCategory) {
                 $originalName = explode('-', $treatmentCategory->getName());
 
-                $data[$originalName[0]] = [
+                $data[$originalName[0]][] = [
                     'id' => $treatmentCategory->getTreatmentCategoryId(),
                     'name' => $originalName[1]
                 ];
+
             }
 
             return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_SUCCESS, $data);
