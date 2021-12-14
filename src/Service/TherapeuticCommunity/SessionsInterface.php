@@ -14,6 +14,8 @@ interface SessionsInterface
 
     public function updateById(int $id, SessionsModel $sessionData):array;
 
+    public function updateByIdWithClientAndFacilitators(int $id, SessionsModel $sessionData):array;
+
     public function getById(int $id): array;
 
     public function getPaginated(int $page, int $pageSize): array;

@@ -434,6 +434,23 @@ class TherapeuticCommunityController extends AbstractController
     }
 
     /**
+     * @Route("/session/update-with-client-facilitators/{id}", methods={"POST"})
+     */
+    public function updateByIdWithClientAndFacilitators(Request $request): Response
+    {
+        try {
+            $data = json_decode($request->getContent(), true);
+
+            /** @var SessionsModel $session */
+            $session = $this->appHydrator->convertArrayToObject($data, SessionsModel::class);
+
+            return $this->json($this->sessionService->updateByIdWithClientAndFacilitators((int) $request->get("id"), $session));
+        } catch (ReflectionException $exception) {
+            return $this->json($this->appFormatter->formatResponse('Updating session failed', null, ['reflection' => $exception->getMessage()]));
+        }
+    }
+
+    /**
      * @Route("/session/by/id/{id}", methods={"GET"})
      */
     public function getSessionById(Request $request): Response

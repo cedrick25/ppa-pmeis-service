@@ -89,6 +89,18 @@ class ResourceFacilitatorSessionRepository extends ServiceEntityRepository
     }
 
     /**
+     * @throws \Doctrine\DBAL\Driver\Exception
+     * @throws \Doctrine\DBAL\Exception
+     */
+    public function deleteBySessionId(int $sessionId): void
+    {
+        $conn = $this->getEntityManager()->getConnection();
+        $sql = "DELETE FROM resource_facilitator_session WHERE session_id = $sessionId";
+        $stmt = $conn->prepare($sql);
+        $stmt->executeQuery();
+    }
+
+    /**
      * @return ResourceFacilitatorSession[]
      * @throws CacheException
      * @throws InvalidArgumentException

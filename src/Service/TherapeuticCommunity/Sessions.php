@@ -138,6 +138,25 @@ class Sessions implements SessionsInterface
         }
     }
 
+    public function updateByIdWithClientAndFacilitators(int $id, SessionsModel $sessionData):array
+    {
+        try {
+            $isUpdated = $this->repository->updateWithClientAndFacilitators($id, $sessionData);
+
+            if ($isUpdated !== ResponseEnum::OK) {
+                return $this->appFormatter->formatResponse(ResponseEnum::UPDATING_FAILED, null, ['app' => $isUpdated]);
+            }
+
+            return $this->appFormatter->formatResponse(ResponseEnum::UPDATING_SUCCESS, null);
+        } catch (\Doctrine\DBAL\Driver\Exception | ORMException $exception) {
+            return $this->appFormatter->formatResponse(ResponseEnum::UPDATING_FAILED, null, ['orm' => $exception->getMessage()]);
+        } catch (InvalidArgumentException | Exception $e) {
+            return $this->appFormatter->formatResponse(ResponseEnum::UPDATING_FAILED, null, ['app' => $e->getMessage()]);
+        } catch (\Psr\Cache\InvalidArgumentException $e) {
+            return $this->appFormatter->formatResponse(ResponseEnum::UPDATING_FAILED, null, ['cache' => $e->getMessage()]);
+        }
+    }
+
     public function getById(int $id): array
     {
         try {

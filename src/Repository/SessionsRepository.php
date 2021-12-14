@@ -278,6 +278,53 @@ class SessionsRepository extends ServiceEntityRepository
         return ResponseEnum::OK;
     }
 
+    /**
+     * @throws NonUniqueResultException
+     * @throws InvalidArgumentException
+     * @throws Exception
+     * @throws \Psr\Cache\InvalidArgumentException
+     * @throws \Doctrine\DBAL\Driver\Exception
+     */
+    public function updateWithClientAndFacilitators(int $id, SessionsModel $sessionData): string
+    {
+        $session = $this->isExistingById($id);
+
+        if (! $session) {
+            return ResponseEnum::NO_RECORD;
+        }
+
+        if ($this->isConflicted($session, $sessionData)) {
+            return ResponseEnum::CONFLICTED_INPUT;
+        }
+
+        $this->cache->invalidateTags([self::CACHE_TAG]);
+
+        $session->setQuarterId($sessionData->getQuarterId());
+        $session->setPhaseId($sessionData->getPhaseId());
+        $session->setBatch($sessionData->getBatch());
+        $session->setSessionActivityId($sessionData->getSessionActivityId());
+        $session->setFieldOfficeId($sessionData->getFieldOfficeId());
+        $session->setTreatmentCategoryId($sessionData->getTreatmentCategoryId());
+        $session->setDate($this->appDateHelper->convertStringToImmutableDate($sessionData->getDate()));
+        $session->setVenueId($sessionData->getVenueId());
+        $session->setPeriod($sessionData->getPeriod());
+        $session->setRemarks($sessionData->getRemarks());
+        $session->setFsg($sessionData->getFsg());
+        $session->setLiLo($sessionData->getLiLo());
+        $session->setCreatedBy($sessionData->getCreatedBy());
+        $session->setCreatedAt($this->appDateHelper->getCurrentImmutableDate());
+
+        $this->getEntityManager()->flush();
+
+        $this->clientSessionsRepository->deleteBySessionId($session->getSessionId());
+        $this->clientSessionsRepository->batchCreate($session->getSessionId(), $sessionData->getClientSession());
+
+        $this->resourceFacilitatorSessionRepository->deleteBySessionId($session->getSessionId());
+        $this->resourceFacilitatorSessionRepository->batchCreate($session->getSessionId(), $sessionData->getResourceFacilitator());
+
+        return ResponseEnum::OK;
+    }
+
     public function isExistingById(int $id): bool | Sessions
     {
         $session = $this->findOneBy([
