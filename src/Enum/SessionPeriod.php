@@ -14,7 +14,6 @@ use MyCLabs\Enum\Enum;
  */
 class SessionPeriod extends Enum implements Hashable
 {
-
     public const AM = "AM";
     public const PM = "PM";
 

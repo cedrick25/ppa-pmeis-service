@@ -20,6 +20,8 @@ class Sessions
         private int $venueId,
         private string $period,
         private string $remarks,
+        private int $fsg,
+        private string $liLo,
         private int $createdBy,
         private ?DateTimeInterface $createdAt = null,
         private ?DateTimeInterface $updatedAt = null,
@@ -123,6 +125,25 @@ class Sessions
     public function getRemarks(): string
     {
         return $this->remarks;
+    }
+
+    /**
+     * @Assert\NotBlank
+     * @return int
+     */
+    public function getFsg(): int
+    {
+        return $this->fsg;
+    }
+
+    /**
+     * @Assert\NotBlank
+     * @Assert\Length(2)
+     * @return string
+     */
+    public function getLiLo(): string
+    {
+        return $this->liLo;
     }
 
     /**

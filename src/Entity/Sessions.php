@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Entity;
 
+use App\Enum\LiLo;
 use App\Repository\SessionsRepository;
 use DateTimeImmutable;
 use DateTimeInterface;
@@ -72,6 +73,16 @@ class Sessions
      * @ORM\Column(type="string", length=255)
      */
     private string $remarks;
+
+    /**
+     * @ORM\Column(type="integer")
+     */
+    private int $fsg;
+
+    /**
+     * @ORM\Column(type="string", length=255, columnDefinition="enum('LI', 'LO')")
+     */
+    private string $liLo;
 
     /**
      * @ORM\Column(type="integer")
@@ -219,6 +230,43 @@ class Sessions
     public function getRemarks(): ?string
     {
         return $this->remarks;
+    }
+
+    /**
+     * @return int
+     */
+    public function getFsg(): int
+    {
+        return $this->fsg;
+    }
+
+    /**
+     * @param int $fsg
+     */
+    public function setFsg(int $fsg): void
+    {
+        $this->fsg = $fsg;
+    }
+
+    /**
+     * @return string
+     */
+    public function getLiLo(): string
+    {
+        return $this->liLo;
+    }
+
+    /**
+     * @param string $liLo
+     * @throws InvalidArgumentException
+     */
+    public function setLiLo(string $liLo): void
+    {
+        if (! LiLo::isValid($liLo)) {
+            throw new InvalidArgumentException("Invalid Session Period");
+        }
+
+        $this->liLo = $liLo;
     }
 
     public function setRemarks(string $remarks): self

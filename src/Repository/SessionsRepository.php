@@ -67,6 +67,8 @@ class SessionsRepository extends ServiceEntityRepository
         $session->setVenueId($sessionData->getVenueId());
         $session->setPeriod($sessionData->getPeriod());
         $session->setRemarks($sessionData->getRemarks());
+        $session->setFsg($sessionData->getFsg());
+        $session->setLiLo($sessionData->getLiLo());
         $session->setCreatedBy($sessionData->getCreatedBy());
         $session->setCreatedAt($this->appDateHelper->getCurrentImmutableDate());
 
@@ -100,6 +102,8 @@ class SessionsRepository extends ServiceEntityRepository
         $session->setVenueId($sessionData->getVenueId());
         $session->setPeriod($sessionData->getPeriod());
         $session->setRemarks($sessionData->getRemarks());
+        $session->setFsg($sessionData->getFsg());
+        $session->setLiLo($sessionData->getLiLo());
         $session->setCreatedBy($sessionData->getCreatedBy());
         $session->setCreatedAt($this->appDateHelper->getCurrentImmutableDate());
 
@@ -264,6 +268,8 @@ class SessionsRepository extends ServiceEntityRepository
         $session->setVenueId($sessionData->getVenueId());
         $session->setPeriod($sessionData->getPeriod());
         $session->setRemarks($sessionData->getRemarks());
+        $session->setFsg($sessionData->getFsg());
+        $session->setLiLo($sessionData->getLiLo());
         $session->setCreatedBy($sessionData->getCreatedBy());
         $session->setCreatedAt($this->appDateHelper->getCurrentImmutableDate());
 
