@@ -134,10 +134,10 @@ class Quarters implements QuartersInterface
         }
     }
 
-    public function getTCA1Part1(int $id): array
+    public function getTCA1Part1(int $id, int $fieldOfficeId): array
     {
         try {
-            $quarter = $this->repository->fetchTCA1Part1($id);
+            $quarter = $this->repository->fetchTCA1Part1($id, $fieldOfficeId);
 
             if (!$quarter) {
                 return $this->appFormatter->formatResponse(ResponseEnum::NO_DATA, null);
@@ -149,10 +149,10 @@ class Quarters implements QuartersInterface
         }
     }
 
-    public function getTCA1Part2(int $id): array
+    public function getTCA1Part2(int $id, int $fieldOfficeId): array
     {
         try {
-            $quarters = $this->repository->fetchTCA1Part2($id);
+            $quarters = $this->repository->fetchTCA1Part2($id, $fieldOfficeId);
 
             if (!$quarters) {
                 return $this->appFormatter->formatResponse(ResponseEnum::NO_DATA, null);

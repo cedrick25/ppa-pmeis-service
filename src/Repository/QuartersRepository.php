@@ -217,23 +217,23 @@ class QuartersRepository extends ServiceEntityRepository
     /**
      * @throws CacheException
      */
-    public function fetchTCA1Part1(int $id): ?array
+    public function fetchTCA1Part1(int $id, int $fieldOfficeId): ?array
     {
         $params = [
-            'cacheKey' => $this->cacheHelper->getQuartersTCA1Part1Key($id),
+            'cacheKey' => $this->cacheHelper->getQuartersTCA1Part1Key($id, $fieldOfficeId),
             'cacheTag' => self::SESSION_CACHE_TAG
         ];
 
-        return $this->helper->createCachedResponseCustomQuery($params, function() use ($id) {
+        return $this->helper->createCachedResponseCustomQuery($params, function() use ($id, $fieldOfficeId) {
             $conn = $this->getEntityManager()->getConnection();
 
-            $sql = "SELECT q.*, s.session_id, sa.name as session_activity_title, s.treatment_category_id,
-                      p.name as phase_name, s.batch ,v.name as venue, s.date, s.period FROM quarters as q " .
+            $sql = "SELECT q.*, s.session_id, sa.name as session_activity_title, s.treatment_category_id, s.fsg,
+                      s.field_office_id, p.name as phase_name, s.batch ,v.name as venue, s.date, s.period FROM quarters as q " .
                 "LEFT JOIN sessions as s ON q.quarter_id = s.quarter_id " .
                 "LEFT JOIN session_activities as sa ON s.session_activity_id = sa.session_activity_id " .
                 "LEFT JOIN phases as p ON s.phase_id = p.phase_id " .
                 "LEFT JOIN venues as v ON s.venue_id = v.venue_id " .
-                "WHERE q.quarter_id = $id ORDER BY p.phase_id";
+                "WHERE q.quarter_id = $id AND s.field_office_id = $fieldOfficeId ORDER BY p.phase_id";
             $stmt = $conn->prepare($sql);
             $query = $stmt->executeQuery();
 
@@ -244,17 +244,17 @@ class QuartersRepository extends ServiceEntityRepository
     /**
      * @throws CacheException
      */
-    public function fetchTCA1Part2(int $id): ?array
+    public function fetchTCA1Part2(int $id, int $fieldOfficeId): ?array
     {
         $params = [
-            'cacheKey' => $this->cacheHelper->getQuartersTCA1Part2Key($id),
+            'cacheKey' => $this->cacheHelper->getQuartersTCA1Part2Key($id, $fieldOfficeId),
             'cacheTag' => self::SESSION_CACHE_TAG
         ];
 
-        return $this->helper->createCachedResponseCustomQuery($params, function() use ($id) {
+        return $this->helper->createCachedResponseCustomQuery($params, function() use ($id, $fieldOfficeId) {
             $conn = $this->getEntityManager()->getConnection();
 
-            $sql = "SELECT s.session_id,
+            $sql = "SELECT s.session_id, s.field_office_id, s.li_lo,
                         (SELECT COUNT(client_session_id) FROM client_sessions WHERE role = 'PS' AND client_sessions.session_id = s.session_id) as parolees,
                         (SELECT COUNT(client_session_id) FROM client_sessions WHERE role = 'PR' AND client_sessions.session_id = s.session_id) as probationers,
                         (SELECT COUNT(client_session_id) FROM client_sessions WHERE role = 'PD' AND client_sessions.session_id = s.session_id) as pardonees,
@@ -264,10 +264,10 @@ class QuartersRepository extends ServiceEntityRepository
                         (SELECT COUNT(client_session_id) FROM client_sessions WHERE role = 'TERM' AND client_sessions.session_id = s.session_id) as `terminated`
                         FROM quarters as q " .
                 "LEFT JOIN sessions as s ON q.quarter_id = s.quarter_id " .
-                "WHERE q.quarter_id = $id ORDER BY s.session_id";
+                "WHERE q.quarter_id = $id AND s.field_office_id = $fieldOfficeId ORDER BY s.session_id";
             $stmt = $conn->prepare($sql);
             $query = $stmt->executeQuery();
-            $data = $query->fetchAllAssociative();
+            $data = $query->fetchAssociative();
             $data['role'] = ['Facilitator'];
             $data['resource_person'] = $this->getResourcePerson($id);
 

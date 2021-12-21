@@ -150,19 +150,25 @@ class TherapeuticCommunityController extends AbstractController
     }
 
     /**
-     * @Route("/quarter/tca1/part1/{id}", methods={"GET"})
+     * @Route("/quarter/tca1/part1/{id}/{field_office_id}", methods={"GET"})
      */
     public function getTCA1Part1(Request $request): Response
     {
-        return $this->json($this->quartersService->getTCA1Part1((int) $request->get("id")));
+        return $this->json($this->quartersService->getTCA1Part1(
+            (int) $request->get("id"),
+            (int) $request->get("field_office_id")
+        ));
     }
 
     /**
-     * @Route("/quarter/tca1/part2/{id}", methods={"GET"})
+     * @Route("/quarter/tca1/part2/{id}/{field_office_id}", methods={"GET"})
      */
     public function getTCA1Part2(Request $request): Response
     {
-        return $this->json($this->quartersService->getTCA1Part2((int) $request->get("id")));
+        return $this->json($this->quartersService->getTCA1Part2(
+            (int) $request->get("id"),
+            (int) $request->get("field_office_id")
+        ));
     }
 
     /**
