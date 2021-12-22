@@ -13,6 +13,7 @@ use App\Model\Sessions as SessionsModel;
 use App\Service\TherapeuticCommunity\ClientSessionsInterface;
 use App\Service\TherapeuticCommunity\ClientTypesInterface;
 use App\Service\TherapeuticCommunity\FieldOfficesInterface;
+use App\Service\TherapeuticCommunity\GenerateTableInterface;
 use App\Service\TherapeuticCommunity\PhasesInterface;
 use App\Service\TherapeuticCommunity\QuartersInterface;
 use App\Service\TherapeuticCommunity\RegionsInterface;
@@ -23,11 +24,13 @@ use App\Service\TherapeuticCommunity\TreatmentCategoriesInterface;
 use App\Service\TherapeuticCommunity\VenuesInterface;
 use App\Service\TherapeuticCommunity\ClientsInterface;
 use App\Service\TherapeuticCommunity\VolunteerInterface;
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
+use Symfony\Component\Routing\Annotation\Route;
 use ReflectionException;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\Routing\Annotation\Route;
 use App\Model\ClientTypes as ClientTypesModel;
 use App\Model\Clients as ClientModel;
 use App\Model\Volunteer as VolunteerModel;
@@ -53,6 +56,7 @@ class TherapeuticCommunityController extends AbstractController
         private VolunteerInterface $volunteerService,
         private ResourceFacilitatorSession $resourceFacilitatorSessionService,
         private RegionsInterface $regionService,
+        private GenerateTableInterface $generateTable,
     ){}
 
     /**
@@ -870,5 +874,13 @@ class TherapeuticCommunityController extends AbstractController
             (int) $request->get("page"),
             (int) $request->get("pageSize")
         ));
+    }
+
+    /**
+     * @Route("/generate-table", methods={"GET"})
+     */
+    public function generate(): Response
+    {
+        return $this->json($this->generateTable->generate());
     }
 }

@@ -25,6 +25,8 @@ class Response extends Enum implements Hashable
     public const DELETING_SUCCESS = "Deleting record success.";
     public const UPDATING_FAILED = "Updating record failed.";
     public const UPDATING_SUCCESS = "Updating record success.";
+    public const GENERATING_SUCCESS = "Generating success.";
+    public const GENERATING_FAILED = "Generating failed.";
 
     public function hash(): string
     {

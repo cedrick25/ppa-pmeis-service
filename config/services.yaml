@@ -23,3 +23,10 @@ services:
 
     # add more service definitions when explicit configuration is needed
     # please note that last definitions always *replace* previous ones
+    _instanceof:
+        App\Report\Table\Form:
+            tags: ['app.report.form']
+
+    App\Report\Report:
+        arguments:
+             $reports: !tagged_iterator { tag: app.report.form }
