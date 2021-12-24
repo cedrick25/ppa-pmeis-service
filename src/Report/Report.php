@@ -16,7 +16,7 @@ class Report
     /**
      * @param iterable<Form> $reports
      */
-    public function __construct(iterable $reports){
+    public function __construct(iterable $reports) {
         $this->reports = new Map($reports);
     }
 
