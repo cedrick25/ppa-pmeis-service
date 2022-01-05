@@ -16,9 +16,9 @@ class GenerateTable implements GenerateTableInterface
     public function generate(): array
     {
         try {
-            $this->report->create('TCIA1');
+            $filePath = $this->report->create('TCIA1');
 
-            return $this->appFormatter->formatResponse(ResponseEnum::GENERATING_SUCCESS, null);
+            return $this->appFormatter->formatResponse(ResponseEnum::GENERATING_SUCCESS, $filePath);
         } catch (\Exception $exception) {
             return $this->appFormatter->formatResponse(ResponseEnum::GENERATING_FAILED, null, ['app' => $exception->getMessage()]);
         }

@@ -20,13 +20,15 @@ class Report
         $this->reports = new Map($reports);
     }
 
-    public function create(string $tableName): void
+    public function create(string $tableName): ?string
     {
         /** @var Form $report */
         foreach ($this->reports as $report) {
             if ($report->supports($tableName)) {
-                $report->generate();
+                return $report->generate();
             }
         }
+
+        return null;
     }
 }

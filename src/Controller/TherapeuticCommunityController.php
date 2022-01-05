@@ -24,8 +24,6 @@ use App\Service\TherapeuticCommunity\TreatmentCategoriesInterface;
 use App\Service\TherapeuticCommunity\VenuesInterface;
 use App\Service\TherapeuticCommunity\ClientsInterface;
 use App\Service\TherapeuticCommunity\VolunteerInterface;
-use PhpOffice\PhpSpreadsheet\Spreadsheet;
-use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 use Symfony\Component\Routing\Annotation\Route;
 use ReflectionException;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -65,7 +63,7 @@ class TherapeuticCommunityController extends AbstractController
     public function index(): Response
     {
         return $this->json([
-            'message' => 'Welcome to nothingness',
+            'XLSX_PATH_FILE' => $_ENV['XLSX_PATH_FILE'],
         ]);
     }
 
