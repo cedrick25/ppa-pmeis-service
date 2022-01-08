@@ -13,10 +13,14 @@ class GenerateTable implements GenerateTableInterface
         private Report          $report
     ){}
 
-    public function generate(): array
+    /**
+     * @param array<string, mixed> $data
+     * @return array
+     */
+    public function generate($data): array
     {
         try {
-            $filePath = $this->report->create('TCIA1');
+            $filePath = $this->report->create($data);
 
             return $this->appFormatter->formatResponse(ResponseEnum::GENERATING_SUCCESS, $filePath);
         } catch (\Exception $exception) {

@@ -877,8 +877,10 @@ class TherapeuticCommunityController extends AbstractController
     /**
      * @Route("/generate-table", methods={"GET"})
      */
-    public function generate(): Response
+    public function generate(Request $request): Response
     {
-        return $this->json($this->generateTable->generate());
+        $data = json_decode($request->getContent(), true);
+
+        return $this->json($this->generateTable->generate($data));
     }
 }

@@ -2,6 +2,8 @@
 
 namespace App\Report\Table;
 
+use App\Repository\FieldOfficesRepository;
+use App\Repository\TreatmentCategoriesRepository;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Style\Border;
 use PhpOffice\PhpSpreadsheet\Writer\Exception;
@@ -11,8 +13,15 @@ class TCIA1 implements Form
 {
     private const TABLE_NAME = "TCIA1";
 
+    /**
+     * @param int $lastFilledOutCellY
+     * @param array<string, mixed> $data
+     */
     public function __construct(
-        private int $lastFilledOutCellY = 1
+        private FieldOfficesRepository $fieldOfficesRepository,
+        private TreatmentCategoriesRepository $treatmentCategoriesRepository,
+        private int $lastFilledOutCellY = 14,
+        private array $data = [],
     ){}
 
     public function supports(string $tableName): bool
@@ -21,10 +30,15 @@ class TCIA1 implements Form
     }
 
     /**
+     * @param array<string, mixed> $data
+     * @return string
      * @throws Exception
+     * @throws \PhpOffice\PhpSpreadsheet\Exception
      */
-    public function generate(): string
+    public function generate(array $data): string
     {
+        $this->data = $data;
+
         $spreadsheet = $this->footer();
         $writer = IOFactory::createWriter($spreadsheet, "Xlsx");
 
@@ -42,6 +56,7 @@ class TCIA1 implements Form
         $spreadsheet = $this->prepare();
 
         $spreadsheet->getActiveSheet()->getRowDimension(2)->setRowHeight(40);
+        $spreadsheet->getActiveSheet()->getStyle("AA3")->getFont()->setItalic(true);
 
         return $spreadsheet;
     }
@@ -54,10 +69,40 @@ class TCIA1 implements Form
         $spreadsheet = $this->header();
 
         $spreadsheet->getActiveSheet()->getStyle("A9:AB14")->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
+        $liLOColumn = ['LI' => 'P', 'LO' => 'Q'];
+        $treatmentCategoriesColumn = [
+            'MTCS' => [
+                'RBM' => 'D', 'AEP' => 'E', 'S' => 'F', 'CI' => 'G', 'PVS' => 'H'
+            ],
+            'RA' => [
+                'RBM' => 'I', 'AEP' => 'J', 'S' => 'K', 'CI' => 'L', 'PVS' => 'M'
+            ]
+        ];
+
+        foreach ($this->data['part1'] as $rows) {
+            $this->lastFilledOutCellY++;
+            $treatmentCategory = $this->treatmentCategoriesRepository->find($rows['treatment_category_id']);
+            $tcExplodedName = explode('-', $treatmentCategory->getName());
+
+            $spreadsheet->getActiveSheet()->setCellValue("A" . $this->lastFilledOutCellY, $rows['phase_name']);
+            $spreadsheet->getActiveSheet()->setCellValue("B" . $this->lastFilledOutCellY, $rows['batch']);
+            $spreadsheet->getActiveSheet()->setCellValue("C" . $this->lastFilledOutCellY, $rows['session_activity_title']);
+            $spreadsheet->getActiveSheet()->setCellValue(
+                $treatmentCategoriesColumn[$tcExplodedName[0]][$tcExplodedName[1]] . $this->lastFilledOutCellY, "√");
+            $spreadsheet->getActiveSheet()->setCellValue("N" . $this->lastFilledOutCellY, $rows['fsg']);
+            $spreadsheet->getActiveSheet()->setCellValue(
+                "O" . $this->lastFilledOutCellY,
+                $rows['venue'] . '/ ' . $rows['date'] . '/ ' . $rows['period'] . ' Session'
+            );
+            $spreadsheet->getActiveSheet()->getStyle("O" . $this->lastFilledOutCellY)->getAlignment()->setWrapText(true);
+        }
 
         return $spreadsheet;
     }
 
+    /**
+     * @throws \PhpOffice\PhpSpreadsheet\Exception
+     */
     public function footer(): Spreadsheet
     {
         $spreadsheet = $this->body();
@@ -72,13 +117,19 @@ class TCIA1 implements Form
     private function prepare(): Spreadsheet
     {
         $spreadsheet = new Spreadsheet();
+        $fieldOffice = $this->fieldOfficesRepository->find($this->data['part1'][0]['field_office_id']);
+        $quarters = [
+            'FIRST' => '1st',
+            'SECOND' => '2nd',
+            'THIRD' => '3rd',
+            'FOURTH' => '4th'
+        ];
 
         $textAndCoordinates = [
             'Z1' => 'FIELD OFFICE IQPR FORM  -  PPA- PLD-FR-004',
             'B2' => 'INTEGRATED QUARTERLY PERFORMANCE REPORT',
-            // To be updated with dynamic data
-            'A3' => 'FIELD OFFICE :  STA. ROSA CITY PAROLE AND PROBATION OFFICE',
-            'AA3' => '1st Quarter, CY 2020',
+            'A3' => 'FIELD OFFICE :  ' . $fieldOffice->getName(),
+            'AA3' => $quarters[$this->data['part1'][0]['name']] . ' Quarter, CY ' . $this->data['part1'][0]['year'],
             'A5' => 'I.  PROGRAM  IMPLEMENTATION',
             'A7' => 'A.  THERAPEUTIC COMMUNITY LADDERIZED PROGRAM (TCLP)',
             'A8' => "Table I.A.1 - CLIENTS' / FSG INVOLVEMENT BY PHASE/ SESSION/ ACTIVITY/TREATMENT CATEGORY",
@@ -142,7 +193,7 @@ class TCIA1 implements Form
         ];
 
         $boldCoordinates = [
-            "Z1", "B2:AB2", "A3", "A5", "A7", "A8", "A10", "P10", "B10", "D11:H11", "I11:M11", "N11", "O11", "A12:B12", "C12", "D12:M12"
+            "Z1", "B2:AB2", "A3", "A5", "A7", "A8", "D9:N10", "A10", "P10", "B10", "D11:H11", "I11:M11", "N11", "O11", "A12:B12", "C12", "D12:M12"
         ];
 
         $verticalAlignedCoordinates = [
@@ -154,16 +205,21 @@ class TCIA1 implements Form
 
         $horizontalAlignedCoordinates = [
             "B2:AB2"  => "center", "D9:N10"  => "center", "R9:Y9"  => "center", "Z9:AA9"  => "center", "AB9"  => "center",
-            "X10:Y10"  => "center", "D11:H11"  => "center", "D11:D12"  => "center", "E11:E12"  => "center", "F11:F12"  => "center",
-            "G11:G12"  => "center", "H11:H12"  => "center", "I11:I12"  => "center", "J11:J12"  => "center", "K11:K12"  => "center",
-            "L11:L12"  => "center", "M11:M12"  => "center", "I11:M11"  => "center", "N11"  => "center", "R11:R13"  => "center",
-            "S11:S13"  => "center", "T11:T13"  => "center", "U11:U13"  => "center", "V11:V13"  => "center", "W11:W13"  => "center",
-            "X11:X13"  => "center", "Y11:Y13"  => "center",
+            "X10:Y10"  => "center", "A10:C10"  => "center", "C11"  => "center", "D11:H11"  => "center", "D11:D12"  => "center",
+            "E11:E12"  => "center", "F11:F12"  => "center", "G11:G12"  => "center", "H11:H12"  => "center", "I11:I12"  => "center",
+            "J11:J12"  => "center", "K11:K12"  => "center", "L11:L12"  => "center", "M11:M12"  => "center", "I11:M11"  => "center",
+            "N11"  => "center", "R11:R13"  => "center", "S11:S13"  => "center", "T11:T13"  => "center", "U11:U13"  => "center",
+            "V11:V13"  => "center", "W11:W13"  => "center", "X11:X13"  => "center", "Y11:Y13"  => "center", "A12:C12"  => "center",
         ];
 
         $fontSizeAndCoordinates = [
-            "B2:AB2" => 16, "R11:R13" => 9, "S11:S13" => 9, "T11:T13" => 9, "U11:U13" => 9, "V11:V13" => 9, "W11:W13" => 9,
-            "X11:X13" => 9, "Y11:Y13" => 9
+            "Z1" => 10, "A3" => 10, "AA3" => 10, "B2:AB2" => 16, "P9:Q9" => 9, "N12:N13" => 9, "R11:R13" => 9, "S11:S13" => 9, "T11:T13" => 9, "U11:U13" => 9, "V11:V13" => 9,
+            "W11:W13" => 9, "X11:X13" => 9, "Y11:Y13" => 9,
+        ];
+
+        $adjustedColumnWidthCoordinates = [
+            'C' => 35, 'N' => 15, 'P' => 3, 'Q' => 3, 'R' => 4, 'S' => 4, 'T' => 4, 'U' => 4,
+            'V' => 5, 'W' => 4, 'X' => 4, 'Y' => 4, 'Z' => 20, 'AA' => 15, 'AB' => 25
         ];
 
         foreach ($textAndCoordinates as $coordinate=>$text) {
@@ -188,6 +244,10 @@ class TCIA1 implements Form
 
         foreach ($fontSizeAndCoordinates as $coordinate=>$fontSize) {
             $spreadsheet->getActiveSheet()->getStyle($coordinate)->getFont()->setSize($fontSize);
+        }
+
+        foreach ($adjustedColumnWidthCoordinates as $coordinate => $width) {
+            $spreadsheet->getActiveSheet()->getColumnDimension($coordinate)->setWidth($width);
         }
 
         return $spreadsheet;

@@ -8,7 +8,7 @@ interface Form
 {
     public function supports(string $tableName): bool;
 
-    public function generate(): string;
+    public function generate(array $data): string;
 
     public function header(): Spreadsheet;
 
