@@ -79,7 +79,7 @@ class TCIA1 implements Form
             ]
         ];
 
-        foreach ($this->data['part1'] as $rows) {
+        foreach ($this->data['part1'] as $index=>$rows) {
             $this->lastFilledOutCellY++;
             $treatmentCategory = $this->treatmentCategoriesRepository->find($rows['treatment_category_id']);
             $tcExplodedName = explode('-', $treatmentCategory->getName());
@@ -95,6 +95,38 @@ class TCIA1 implements Form
                 $rows['venue'] . '/ ' . $rows['date'] . '/ ' . $rows['period'] . ' Session'
             );
             $spreadsheet->getActiveSheet()->getStyle("O" . $this->lastFilledOutCellY)->getAlignment()->setWrapText(true);
+
+            $part2Row = $this->data['part2'][$index];
+            $spreadsheet->getActiveSheet()->setCellValue($liLOColumn[$part2Row['li_lo']] . $this->lastFilledOutCellY,"√");
+            $spreadsheet->getActiveSheet()->setCellValue("R" . $this->lastFilledOutCellY, $part2Row['parolees']);
+            $spreadsheet->getActiveSheet()->setCellValue("S" . $this->lastFilledOutCellY, $part2Row['probationers']);
+            $spreadsheet->getActiveSheet()->setCellValue("T" . $this->lastFilledOutCellY, $part2Row['pardonees']);
+            $spreadsheet->getActiveSheet()->setCellValue("U" . $this->lastFilledOutCellY, $part2Row['jicl']);
+            $spreadsheet->getActiveSheet()->setCellValue("V" . $this->lastFilledOutCellY, $part2Row['ftmdo']);
+            $total = intval($part2Row['parolees']) + intval($part2Row['probationers']) + intval($part2Row['pardonees']) + intval($part2Row['jicl']) + intval($part2Row['ftmdo']);
+            $spreadsheet->getActiveSheet()->setCellValue("W" . $this->lastFilledOutCellY, $total);
+            $spreadsheet->getActiveSheet()->setCellValue("X" . $this->lastFilledOutCellY, $part2Row['petitioners']);
+            $spreadsheet->getActiveSheet()->setCellValue("Y" . $this->lastFilledOutCellY, $part2Row['terminated']);
+
+            $resourcePerson = '';
+
+            foreach ($part2Row['resource_person'] as $resource) {
+                if ($resource['name'] != null) {
+                    $resourcePerson .=  $resource['name'] . ',';
+                }
+            }
+            $spreadsheet->getActiveSheet()->setCellValue("Z" . $this->lastFilledOutCellY, rtrim($resourcePerson, ','));
+
+            $roles = '';
+            foreach ($part2Row['role'] as $role) {
+                $roles .=  $role . ',';
+            }
+            $spreadsheet->getActiveSheet()->setCellValue("AA" . $this->lastFilledOutCellY, rtrim($roles, ','));
+
+            $spreadsheet->getActiveSheet()->getStyle("AA" . $this->lastFilledOutCellY)->getAlignment()->setWrapText(true);
+            $spreadsheet->getActiveSheet()->setCellValue("AB" . $this->lastFilledOutCellY, $part2Row['remarks']);
+
+            $spreadsheet->getActiveSheet()->getStyle("A". $this->lastFilledOutCellY .":AB" . $this->lastFilledOutCellY)->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
         }
 
         return $spreadsheet;
