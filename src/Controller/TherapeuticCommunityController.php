@@ -875,9 +875,9 @@ class TherapeuticCommunityController extends AbstractController
     }
 
     /**
-     * @Route("/generate-table", methods={"GET"})
+     * @Route("/generate-table/TCIA1", methods={"GET"})
      */
-    public function generate(Request $request): Response
+    public function generateTCIA1(Request $request): Response
     {
         $data = json_decode($request->getContent(), true);
 

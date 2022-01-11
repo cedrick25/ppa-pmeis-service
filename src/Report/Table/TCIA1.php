@@ -138,7 +138,29 @@ class TCIA1 implements Form
     public function footer(): Spreadsheet
     {
         $spreadsheet = $this->body();
+        $this->lastFilledOutCellY++;
+
         $spreadsheet->getActiveSheet()->setCellValue('X' . $this->lastFilledOutCellY + 1, 'Total Number of:   1)  VPAs involved (Headcount)');
+        $spreadsheet->getActiveSheet()->setCellValue('Z' . $this->lastFilledOutCellY + 2, '2)  Frequency of VPAs Involvement');
+        $spreadsheet->getActiveSheet()->setCellValue('Z' . $this->lastFilledOutCellY + 3, '3)  Trees Planted');
+        $spreadsheet->getActiveSheet()->setCellValue('Z' . $this->lastFilledOutCellY + 4, '4)  Clients Involved in Tree Planting');
+        $spreadsheet->getActiveSheet()->setCellValue('Z' . $this->lastFilledOutCellY + 5, '5)  Community Services and Other Related Activities');
+        $spreadsheet->getActiveSheet()->setCellValue('Z' . $this->lastFilledOutCellY + 6, '6) Coop./ Self-Help Asso.');
+
+        $spreadsheet->getActiveSheet()->setCellValue('AB' . $this->lastFilledOutCellY + 1, $this->data['footer']['vpa_headcount']);
+        $spreadsheet->getActiveSheet()->setCellValue('AB' . $this->lastFilledOutCellY + 2, $this->data['footer']['frequency_of_vpa_involvement']);
+        $spreadsheet->getActiveSheet()->setCellValue('AB' . $this->lastFilledOutCellY + 3, $this->data['footer']['trees_planted']);
+        $spreadsheet->getActiveSheet()->setCellValue('AB' . $this->lastFilledOutCellY + 4, $this->data['footer']['clients_involve_in_tree_planting']);
+        $spreadsheet->getActiveSheet()->setCellValue('AB' . $this->lastFilledOutCellY + 5, $this->data['footer']['community_services_and_other']);
+        $spreadsheet->getActiveSheet()->setCellValue('AB' . $this->lastFilledOutCellY + 6, $this->data['footer']['coop_or_self_help']);
+
+        $spreadsheet->getActiveSheet()->getStyle('AB' . $this->lastFilledOutCellY + 1)->getBorders()->getBottom()->setBorderStyle(Border::BORDER_THIN);
+        $spreadsheet->getActiveSheet()->getStyle('AB' . $this->lastFilledOutCellY + 2)->getBorders()->getBottom()->setBorderStyle(Border::BORDER_THIN);
+        $spreadsheet->getActiveSheet()->getStyle('AB' . $this->lastFilledOutCellY + 3)->getBorders()->getBottom()->setBorderStyle(Border::BORDER_THIN);
+        $spreadsheet->getActiveSheet()->getStyle('AB' . $this->lastFilledOutCellY + 4)->getBorders()->getBottom()->setBorderStyle(Border::BORDER_THIN);
+        $spreadsheet->getActiveSheet()->getStyle('AB' . $this->lastFilledOutCellY + 5)->getBorders()->getBottom()->setBorderStyle(Border::BORDER_THIN);
+        $spreadsheet->getActiveSheet()->getStyle('AB' . $this->lastFilledOutCellY + 6)->getBorders()->getBottom()->setBorderStyle(Border::BORDER_THIN);
+        $spreadsheet->getActiveSheet()->getStyle('A' . $this->lastFilledOutCellY + 7 . ':AB' . $this->lastFilledOutCellY + 7)->getBorders()->getBottom()->setBorderStyle(Border::BORDER_MEDIUM);
 
         return $spreadsheet;
     }
@@ -245,8 +267,8 @@ class TCIA1 implements Form
         ];
 
         $fontSizeAndCoordinates = [
-            "Z1" => 10, "A3" => 10, "AA3" => 10, "B2:AB2" => 16, "P9:Q9" => 9, "N12:N13" => 9, "R11:R13" => 9, "S11:S13" => 9, "T11:T13" => 9, "U11:U13" => 9, "V11:V13" => 9,
-            "W11:W13" => 9, "X11:X13" => 9, "Y11:Y13" => 9,
+            "Z1" => 10, "A3" => 10, "AA3" => 10, "B2:AB2" => 16, "P9:Q9" => 9, "N12:N13" => 9, "R11:R13" => 9, "S11:S13" => 9, "T11:T13" => 9,
+            "U11:U13" => 9, "V11:V13" => 9, "W11:W13" => 9, "X11:X13" => 9, "Y11:Y13" => 9,
         ];
 
         $adjustedColumnWidthCoordinates = [
