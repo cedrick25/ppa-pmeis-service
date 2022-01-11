@@ -8,6 +8,7 @@ use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Style\Border;
 use PhpOffice\PhpSpreadsheet\Writer\Exception;
 use \PhpOffice\PhpSpreadsheet\IOFactory;
+use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
 class TCIA1 implements Form
 {
@@ -31,11 +32,11 @@ class TCIA1 implements Form
 
     /**
      * @param array<string, mixed> $data
-     * @return string
+     * @return BinaryFileResponse
      * @throws Exception
      * @throws \PhpOffice\PhpSpreadsheet\Exception
      */
-    public function generate(array $data): string
+    public function generate(array $data): BinaryFileResponse
     {
         $this->data = $data;
 
@@ -45,7 +46,7 @@ class TCIA1 implements Form
         $filePath = $_ENV['XLSX_PATH_FILE'] . self::TABLE_NAME . "-" . time() .".xlsx";
         $writer->save($filePath);
 
-        return $filePath;
+        return new BinaryFileResponse($filePath);
     }
 
     /**

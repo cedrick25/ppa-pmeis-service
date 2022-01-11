@@ -4,6 +4,7 @@ namespace App\Report;
 
 use App\Report\Table\Form;
 use Ds\Map;
+use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
 class Report
 {
@@ -22,9 +23,9 @@ class Report
 
     /**
      * @param array<string, mixed> $data
-     * @return string|null
+     * @return BinaryFileResponse|null
      */
-    public function create(array $data): ?string
+    public function create(array $data): ?BinaryFileResponse
     {
         /** @var Form $report */
         foreach ($this->reports as $report) {

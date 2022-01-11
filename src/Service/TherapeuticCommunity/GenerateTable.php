@@ -20,9 +20,9 @@ class GenerateTable implements GenerateTableInterface
     public function generate($data): array
     {
         try {
-            $filePath = $this->report->create($data);
+            $fileData = $this->report->create($data);
 
-            return $this->appFormatter->formatResponse(ResponseEnum::GENERATING_SUCCESS, $filePath);
+            return $this->appFormatter->formatResponse(ResponseEnum::GENERATING_SUCCESS, $fileData);
         } catch (\Exception $exception) {
             return $this->appFormatter->formatResponse(ResponseEnum::GENERATING_FAILED, null, ['app' => $exception->getMessage()]);
         }
