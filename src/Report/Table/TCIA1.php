@@ -15,6 +15,8 @@ class TCIA1 implements Form
     private const TABLE_NAME = "TCIA1";
 
     /**
+     * @param FieldOfficesRepository $fieldOfficesRepository
+     * @param TreatmentCategoriesRepository $treatmentCategoriesRepository
      * @param int $lastFilledOutCellY
      * @param array<string, mixed> $data
      */

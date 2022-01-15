@@ -2,6 +2,7 @@
 
 namespace App\Common;
 
+use DateTime;
 use DateTimeImmutable;
 use Exception;
 
@@ -24,5 +25,14 @@ class AppDateHelper
         $date->format("Y-m-d");
 
         return $date;
+    }
+
+    public function getFirstLetterOfMonthFromDateString(string $date): string
+    {
+        $time = strtotime($date);
+        $month = date("m",$time);
+        $dt = DateTime::createFromFormat('!m', $month);
+
+        return substr($dt->format('F'), 0, 1);
     }
 }

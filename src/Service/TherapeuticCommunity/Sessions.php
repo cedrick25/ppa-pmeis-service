@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Service\TherapeuticCommunity;
 
+use App\Common\AppDateHelper;
 use App\Common\AppFormatter;
 use App\Enum\Response as ResponseEnum;
 use App\Model\Sessions as SessionsModel;
@@ -20,6 +21,7 @@ class Sessions implements SessionsInterface
         private AppFormatter       $appFormatter,
         private SessionsRepository $repository,
         private ValidatorInterface $validator,
+        private AppDateHelper $appDateHelper,
     ){}
 
     public function create(SessionsModel $sessionData): array
@@ -184,6 +186,38 @@ class Sessions implements SessionsInterface
             return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_SUCCESS, $sessions);
         } catch (CacheException| \Psr\Cache\InvalidArgumentException $exception) {
             return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_FAILED, null, ['cache' => $exception->getMessage()]);
+        }
+    }
+
+    public function getTCIA2(int $quarterId, string $role): array
+    {
+        try {
+            $sessions = $this->repository->fetchTCIA2($quarterId, $role);
+
+            if ($sessions == null) {
+                return $this->appFormatter->formatResponse(ResponseEnum::NO_DATA, null);
+            }
+
+            $rows = [];
+
+            foreach ($sessions as $session) {
+                $middleInitial = $session['middle_name'] != null ? substr($session['middle_name'], 0, 1) : '';
+                $fullName = $session['last_name'] . '_' . $session['first_name'] . '_' . $middleInitial;
+                $monthInitial = $this->appDateHelper->getFirstLetterOfMonthFromDateString($session['date']);
+                $rowIdentifier = $fullName . '_' . $session['phase'];
+                $monthIdentifier = $session['quarter'] . '_' . $monthInitial;
+
+                if (! isset($rows[$rowIdentifier])) {
+                    $session[$monthIdentifier] = 1;
+                    $rows[$rowIdentifier] = $session;
+                } else {
+                    $rows[$rowIdentifier][$monthIdentifier] = 1;
+                }
+            }
+
+            return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_SUCCESS, $rows);
+        } catch (\Doctrine\DBAL\Exception | \Doctrine\DBAL\Driver\Exception $e) {
+            return $this->appFormatter->formatResponse(ResponseEnum::UPDATING_FAILED, null, ['orm' => $e->getMessage()]);
         }
     }
 }

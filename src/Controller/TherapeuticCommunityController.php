@@ -478,6 +478,17 @@ class TherapeuticCommunityController extends AbstractController
     }
 
     /**
+     * @Route("/session/tca2/full/{quarterId}/{role}", methods={"GET"})
+     */
+    public function getTCIA2(Request $request): Response
+    {
+        return $this->json($this->sessionService->getTCIA2(
+            (int) $request->get("quarterId"),
+            (string) $request->get("role")
+        ));
+    }
+
+    /**
      * @Route("/client-type/create", methods={"POST"})
      */
     public function createClientType(Request $request): Response
@@ -875,9 +886,9 @@ class TherapeuticCommunityController extends AbstractController
     }
 
     /**
-     * @Route("/generate-table/TCIA1", methods={"GET"})
+     * @Route("/generate-table", methods={"GET"})
      */
-    public function generateTCIA1(Request $request): Response
+    public function generate(Request $request): Response
     {
         $data = json_decode($request->getContent(), true);
 

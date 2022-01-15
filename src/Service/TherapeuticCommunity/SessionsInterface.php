@@ -23,4 +23,6 @@ interface SessionsInterface
     public function createWithClientsAndFacilitators(SessionsModel $sessionData): array;
 
     public function getAllWithClientsAndFacilitators(): array;
+
+    public function getTCIA2(int $quarterId, string $role): array;
 }

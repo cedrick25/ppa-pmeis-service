@@ -13,5 +13,7 @@ interface Form
 
     public function header(): Spreadsheet;
 
+    public function body(): Spreadsheet;
+
     public function footer(): Spreadsheet;
 }

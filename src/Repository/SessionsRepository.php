@@ -37,6 +37,7 @@ class SessionsRepository extends ServiceEntityRepository
         private Helper $helper,
         private ClientSessionsRepository $clientSessionsRepository,
         private ResourceFacilitatorSessionRepository $resourceFacilitatorSessionRepository,
+        private QuartersRepository $quartersRepository,
     ){
         parent::__construct($registry, Sessions::class);
     }
@@ -416,6 +417,42 @@ class SessionsRepository extends ServiceEntityRepository
 
             return $session;
         });
+    }
+
+    /**
+     * @throws \Doctrine\DBAL\Driver\Exception
+     * @throws \Doctrine\DBAL\Exception
+     */
+    public function fetchTCIA2(int $quarterId, string $role): ?array
+    {
+        $conn = $this->getEntityManager()->getConnection();
+
+        $quarterIds = [$quarterId];
+
+        $quarterData = $this->quartersRepository->find($quarterId);
+
+        $previousQuarters = $this->quartersRepository
+            ->fetchPreviousQuartersByNameAndYear($quarterData->getName(), $quarterData->getYear());
+
+        foreach ($previousQuarters as $quarter) {
+            $quarterIds[] = $quarter->getQuarterId();
+        }
+
+        $quarterIdsString = implode(',', $quarterIds);
+
+        $sql = "SELECT c.last_name, c.first_name, c.middle_name, c.suffix, c.gender, c.is_pwd, c.is_senior_citizen, c.date_of_birth,
+                c.offense_category, c.supervision_start, c.supervision_end, p.name as phase, se.date, q.name as quarter
+                FROM sessions as se " .
+            "LEFT JOIN quarters as q ON se.quarter_id = q.quarter_id ".
+            "LEFT JOIN client_sessions as cs ON se.session_id = cs.session_id ".
+            "LEFT JOIN clients as c ON cs.client_id = c.client_id ".
+            "LEFT JOIN phases as p ON se.phase_id = p.phase_id ".
+            "WHERE se.quarter_id IN ($quarterIdsString) AND cs.role = '$role' AND c.client_id IS NOT NULL";
+
+        $stmt = $conn->prepare($sql);
+        $query = $stmt->executeQuery();
+
+        return $query->fetchAllAssociative();
     }
 
     private function isExisting(SessionsModel $sessionData): bool

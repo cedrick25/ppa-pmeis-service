@@ -276,6 +276,39 @@ class QuartersRepository extends ServiceEntityRepository
     }
 
     /**
+     * @param string $name
+     * @param string $year
+     * @return Quarters[]
+     */
+    public function fetchPreviousQuartersByNameAndYear(string $name, string $year): array
+    {
+        $quarters = [];
+        $convertedNumberQuarters = ['FIRST', 'SECOND', 'THIRD', 'FOURTH'];
+        $convertedNameQuarters = [
+            'FIRST' => 1, 'SECOND' => 2, 'THIRD' => 3, 'FOURTH' => 4
+        ];
+
+        if ($convertedNameQuarters[$name] > 1) {
+            for ($quarterId = $convertedNameQuarters[$name] - 1; $quarterId > 0 ; $quarterId--) {
+                $quarter = $this->fetchByNameAndYear($convertedNumberQuarters[$quarterId-1], $year);
+                if ($quarter != null) {
+                    $quarters[] = $quarter;
+                }
+            }
+        }
+
+        return $quarters;
+    }
+
+    public function fetchByNameAndYear(string $name, string $year): ?Quarters
+    {
+        return $this->findOneBy([
+            'name' => $name,
+            'year' => $year
+        ]);
+    }
+
+    /**
      * @throws \Doctrine\DBAL\Driver\Exception
      * @throws \Doctrine\DBAL\Exception
      */
