@@ -7,9 +7,9 @@ use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Writer\Exception;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
-class TCIA2 implements Form
+class Template implements Form
 {
-    private const TABLE_NAME = "TCIA2";
+    private const TABLE_NAME = "Template";
 
 
     public function __construct(

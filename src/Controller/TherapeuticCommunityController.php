@@ -886,7 +886,7 @@ class TherapeuticCommunityController extends AbstractController
     }
 
     /**
-     * @Route("/generate-table", methods={"GET"})
+     * @Route("/generate-table", methods={"POST"})
      */
     public function generate(Request $request): Response
     {

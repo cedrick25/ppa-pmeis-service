@@ -208,10 +208,10 @@ class Sessions implements SessionsInterface
                 $monthIdentifier = $session['quarter'] . '_' . $monthInitial;
 
                 if (! isset($rows[$rowIdentifier])) {
-                    $session[$monthIdentifier] = 1;
+                    $session["month_quarter"] = [$monthIdentifier];
                     $rows[$rowIdentifier] = $session;
                 } else {
-                    $rows[$rowIdentifier][$monthIdentifier] = 1;
+                    $rows[$rowIdentifier]["month_quarter"][] = $monthIdentifier;
                 }
             }
 
