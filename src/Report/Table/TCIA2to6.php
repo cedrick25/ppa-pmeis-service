@@ -18,6 +18,7 @@ class TCIA2to6 implements Form
         private AppDateHelper $appDateHelper,
         private int $lastFilledOutCellY = 8,
         private array $data = [],
+        private array $summaryData = [],
     ){}
 
     public function supports(string $tableName): bool
@@ -32,11 +33,18 @@ class TCIA2to6 implements Form
     public function generate(array $data): BinaryFileResponse
     {
         $this->data = $data;
+        $clientTypesTable = [
+            'PROBATIONERS' => 'TC.I.A.2',
+            'PAROLEES' => 'TC.I.A.3',
+            'PARDONEES' => 'TC.I.A.4',
+            'JICLs' => 'TC.I.A.5',
+            'FTMDOs' => 'TC.I.A.6'
+        ];
 
         $spreadsheet = $this->footer();
         $writer = IOFactory::createWriter($spreadsheet, "Xlsx");
 
-        $filePath = $_ENV['XLSX_PATH_FILE'] . self::TABLE_NAME . "-" . time() .".xlsx";
+        $filePath = $_ENV['XLSX_PATH_FILE'] . $clientTypesTable[$data['client_type']] . "-" . time() .".xlsx";
         $writer->save($filePath);
 
         return new BinaryFileResponse($filePath);
@@ -126,6 +134,12 @@ class TCIA2to6 implements Form
 
             $spreadsheet->getActiveSheet()->getStyle("A". $this->lastFilledOutCellY .":AF" . $this->lastFilledOutCellY)->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
 
+            if (! isset($this->summaryData[$row['quarter']][$row['phase']])) {
+                $this->summaryData[$row['quarter']][$row['phase']] = 1;
+            } else {
+                $this->summaryData[$row['quarter']][$row['phase']]++;
+            }
+
             $rowNumber++;
         }
 
@@ -152,6 +166,30 @@ class TCIA2to6 implements Form
         $currentRowNumber12 = $currentRowNumber + 11;
         $currentRowNumber13 = $currentRowNumber + 12;
 
+
+        $summaryCoordinates = [
+            'FIRST' => [
+                'I' => "C$currentRowNumber5", 'II' => "C$currentRowNumber6",
+                'III' => "C$currentRowNumber7", 'IV' => "C$currentRowNumber8",
+                'TOTAL' => "C$currentRowNumber10",
+            ],
+            'SECOND' => [
+                'I' => "H$currentRowNumber5", 'II' => "H$currentRowNumber6",
+                'III' => "H$currentRowNumber7", 'IV' => "H$currentRowNumber8",
+                'TOTAL' => "H$currentRowNumber10",
+            ],
+            'THIRD' => [
+                'I' => "L$currentRowNumber5", 'II' => "L$currentRowNumber6",
+                'III' => "L$currentRowNumber7", 'IV' => "L$currentRowNumber8",
+                'TOTAL' => "L$currentRowNumber10",
+            ],
+            'FOURTH' => [
+                'I' => "Q$currentRowNumber5", 'II' => "Q$currentRowNumber6",
+                'III' => "Q$currentRowNumber7", 'IV' => "Q$currentRowNumber8",
+                'TOTAL' => "Q$currentRowNumber10",
+            ]
+        ];
+
         $textAndCoordinates = [
             "A$currentRowNumber" => 'S     U     M     M     A     R     Y', "X$currentRowNumber" => 'No. of PS under the following circumstances AND HAVE NOT attended',
             "A$currentRowNumber2" => 'PHASES', "C$currentRowNumber2" => 'NO. OF CLIENTS PER PHASE', "X$currentRowNumber2" => 'any TCLP session/ activity for the ENTIRE quarter.',
@@ -163,7 +201,7 @@ class TCIA2to6 implements Form
             "A$currentRowNumber8" => 'IV - On-going', "Y$currentRowNumber8" => 'On Travel Abroad (with permit)',
             "A$currentRowNumber9" => 'Completed', "Y$currentRowNumber9" => 'Supervision cases dropped (Terminated, ',
             "A$currentRowNumber10" => 'TOTAL', "Y$currentRowNumber10" => 'Revoked, Transferred)',
-            "Y$currentRowNumber11" => 'Case/ s pending in Court', "Y$currentRowNumber12" => 'Others', "Y$currentRowNumber13" => 'Others',
+            "Y$currentRowNumber11" => 'Case/ s pending in Court', "Y$currentRowNumber12" => 'Others', "Y$currentRowNumber13" => 'TOTAL',
         ];
 
         $boldCoordinates = [
@@ -202,11 +240,30 @@ class TCIA2to6 implements Form
             $spreadsheet->getActiveSheet()->mergeCells($coordinate);
         }
 
-        // TODO: Get sum of all clients by quarter and phases
+        foreach ($this->summaryData as $quarter=>$row) {
+            foreach ($row as $phase=>$score) {
+                $spreadsheet->getActiveSheet()->setCellValue($summaryCoordinates[$quarter][$phase], $score);
+            }
+
+            $spreadsheet->getActiveSheet()->setCellValue($summaryCoordinates[$quarter]['TOTAL'], array_sum($row));
+        }
+
+        $spreadsheet->getActiveSheet()->setCellValue('AF' . $currentRowNumber3, $this->data['footer']['cs_to_other_field']);
+        $spreadsheet->getActiveSheet()->setCellValue('AF' . $currentRowNumber4, $this->data['footer']['died_with_no_report']);
+        $spreadsheet->getActiveSheet()->setCellValue('AF' . $currentRowNumber5, $this->data['footer']['absconded_with_no_report']);
+        $spreadsheet->getActiveSheet()->setCellValue('AF' . $currentRowNumber6, $this->data['footer']['in_jail_with_no_report']);
+        $spreadsheet->getActiveSheet()->setCellValue('AF' . $currentRowNumber7, $this->data['footer']['with_serious_ailment']);
+        $spreadsheet->getActiveSheet()->setCellValue('AF' . $currentRowNumber8, $this->data['footer']['on_travel_abroad']);
+        $spreadsheet->getActiveSheet()->setCellValue('AF' . $currentRowNumber9, $this->data['footer']['supervision_cases_dropped']);
+        $spreadsheet->getActiveSheet()->setCellValue('AF' . $currentRowNumber11, $this->data['footer']['cases_pending_in_court']);
+        $spreadsheet->getActiveSheet()->setCellValue('AF' . $currentRowNumber12, $this->data['footer']['others']);
+        $spreadsheet->getActiveSheet()->setCellValue('AF' . $currentRowNumber13, array_sum($this->data['footer']));
 
         $spreadsheet->getActiveSheet()->getStyle("A$currentRowNumber:T$currentRowNumber")->getAlignment()->setHorizontal('center');
 
         $spreadsheet->getActiveSheet()->getStyle("A". $currentRowNumber .":T" . $currentRowNumber10)->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
+
+        $spreadsheet->getActiveSheet()->getStyle("A". $currentRowNumber13 + 1 .":AF" . $currentRowNumber13 + 1)->getBorders()->getBottom()->setBorderStyle(Border::BORDER_MEDIUM);
 
         return $spreadsheet;
     }
