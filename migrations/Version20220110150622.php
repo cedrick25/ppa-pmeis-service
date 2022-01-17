@@ -15,8 +15,8 @@ final class Version20220110150622 extends AbstractMigration
     public function up(Schema $schema): void
     {
         $this->addSql("INSERT INTO client_types (code, description) VALUES "
-            . "('PR', 'Parolees'),"
             . "('PS', 'Probationers'),"
+            . "('PR', 'Parolees'),"
             . "('PD', 'Pardonees'),"
             . "('JICL', 'JICLs'),"
             . "('FTMDC', 'FTMDOs'),"
