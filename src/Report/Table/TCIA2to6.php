@@ -37,14 +37,14 @@ class TCIA2to6 implements Form
             'PROBATIONERS' => 'TC.I.A.2',
             'PAROLEES' => 'TC.I.A.3',
             'PARDONEES' => 'TC.I.A.4',
-            'JICLs' => 'TC.I.A.5',
-            'FTMDOs' => 'TC.I.A.6'
+            'JICLS' => 'TC.I.A.5',
+            'FTMDOS' => 'TC.I.A.6'
         ];
 
         $spreadsheet = $this->footer();
         $writer = IOFactory::createWriter($spreadsheet, "Xlsx");
 
-        $filePath = $_ENV['XLSX_PATH_FILE'] . $clientTypesTable[$data['client_type']] . "-" . time() .".xlsx";
+        $filePath = $_ENV['XLSX_PATH_FILE'] . $clientTypesTable[strtoupper($data['client_type'])] . "-" . time() .".xlsx";
         $writer->save($filePath);
 
         return new BinaryFileResponse($filePath);
