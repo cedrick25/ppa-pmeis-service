@@ -3,6 +3,7 @@
 namespace App\Report\Table;
 
 use App\Common\AppDateHelper;
+use App\Common\AppReportHelper;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Style\Border;
@@ -16,7 +17,8 @@ class TCIA8 implements Form
 
     public function __construct(
         private AppDateHelper $appDateHelper,
-        private int $lastFilledOutCellY = 8,
+        private AppReportHelper $appReportHelper,
+        private int $lastFilledOutCellY = 9,
         private array $data = [],
         private array $summaryData = [],
     ){}
@@ -33,13 +35,6 @@ class TCIA8 implements Form
     public function generate(array $data): BinaryFileResponse
     {
         $this->data = $data;
-        $clientTypesTable = [
-            'PROBATIONERS' => 'TC.I.A.2',
-            'PAROLEES' => 'TC.I.A.3',
-            'PARDONEES' => 'TC.I.A.4',
-            'JICLS' => 'TC.I.A.5',
-            'FTMDOS' => 'TC.I.A.6'
-        ];
 
         $spreadsheet = $this->footer();
         $writer = IOFactory::createWriter($spreadsheet, "Xlsx");
@@ -58,16 +53,19 @@ class TCIA8 implements Form
         $spreadsheet = $this->prepare();
 
         $thinBorders = [
-            "A3:A8", "B3:B8", "C3:D5", "C6:C8", "D6:D8", "E3:E8", "F3:F8", "G3:G5", "G6:G8", "H3:I5", "H6:H8", "I6:I8", "J3:K5", "J6:J8", "K6:K8",
-            "L3:AE3", "L4:P4", "Q4:U4", "V4:Z4", "AA4:AE4", "L5:L8", "M5:M8", "N5:N8", "O5:O8", "P5:P8", "Q5:Q8", "R5:T8", "S5:S8", "T5:T8", "U5:U8",
-            "V5:V8", "W5:W8", "X5:X8", "Y5:Y8", "Z5:Z8", "AA5:AA8", "AB5:AB8", "AC5:AC8", "AD5:AD8", "AE5:AE8", "AF3:AF8"
+            "A3:A8", "B3:B8", "D3:E5", "F6:F8", "D6:D8", "E6:E8", "F3:F8", "G3:G8", "G6:G8", "H3:I5", "H6:H8", "I6:I8", "J3:AC3", "J4:N4", "O4:S4",
+            "T4:X4", "Y4:AC4", "J5:J8", "L5:L8", "M5:M8", "N5:N8", "O5:O8", "P5:P8", "Q5:Q8", "R5:R8", "S5:S8", "T5:T8", "U5:U8", "V5:J8", "V5:J8",
+            "W5:W8", "X5:X8", "Y5:Y8", "Z5:Z8", "AA5:AA8", "AB5:AB8", "AC5:AC8", "AD5:AD8"
         ];
 
         foreach ($thinBorders as $coordinate) {
             $spreadsheet->getActiveSheet()->getStyle($coordinate)->getBorders()->getOutline()->setBorderStyle(Border::BORDER_THIN);
         }
 
-        $spreadsheet->getActiveSheet()->getStyle("A3:AF8")->getBorders()->getOutline()->setBorderStyle(Border::BORDER_MEDIUM);
+        $spreadsheet->getActiveSheet()->getStyle("A9:AD9")->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
+        $spreadsheet->getActiveSheet()->getStyle("A3:AD8")->getBorders()->getOutline()->setBorderStyle(Border::BORDER_MEDIUM);
+        $spreadsheet->getActiveSheet()->getStyle("A1:A2")->getAlignment()->setHorizontal('left');
+        $spreadsheet->getActiveSheet()->getStyle("A9")->getAlignment()->setHorizontal('left');
 
         return $spreadsheet;
     }
@@ -79,69 +77,176 @@ class TCIA8 implements Form
     public function body(): Spreadsheet
     {
         $spreadsheet = $this->header();
-//        $this->lastFilledOutCellY++;
-//
-//        $phaseCoordinates = [
-//            'FIRST' => 'L', 'SECOND' => 'Q', 'THIRD' => 'V', 'FOURTH' => 'AA'
-//        ];
-//
-//        $quarterMonthCoordinates = [
-//            'FIRST_J' => 'M', 'FIRST_F' => 'N', 'FIRST_M' => 'O',
-//            'SECOND_A' => 'R', 'SECOND_M' => 'S', 'SECOND_J' => 'T',
-//            'THIRD_J' => 'W', 'THIRD_A' => 'X', 'THIRD_S' => 'Y',
-//            'FOURTH_O' => 'AB', 'FOURTH_N' => 'AC', 'FOURTH_D' => 'AD',
-//        ];
-//
-//        $fsiCoordinates = [
-//            'FIRST' => 'P', 'SECOND' => 'U', 'THIRD' => 'Z', 'FOURTH' => 'AE'
-//        ];
-//
-//        $rowNumber = 1;
-//        foreach ($this->data['rows'] as $row) {
-//            $middleInitial = $row['middle_name'] != null ? substr($row['middle_name'], 0, 1)  . '.': '';
-//            $fullName = $row['last_name'] . ', ' . $row['first_name'] . ' ' . $middleInitial;
-//            $genderCoordinate = ($row['gender'] === 'F') ? 'C' : 'D';
-//            $offenseCoordinate = ($row['offense_category'] === 'DO') ? 'H' : 'I';
-//            $dateOfBirth = $this->appDateHelper->convertStringToImmutableDate($row['date_of_birth']);
-//            $supervisionStart = $this->appDateHelper->convertStringToImmutableDate($row['supervision_start']);
-//            $supervisionEnd = $this->appDateHelper->convertStringToImmutableDate($row['supervision_end']);
-//
-//            $spreadsheet->getActiveSheet()->setCellValue("A" . $this->lastFilledOutCellY, $rowNumber);
-//            $spreadsheet->getActiveSheet()->setCellValue("B" . $this->lastFilledOutCellY, $fullName);
-//            $spreadsheet->getActiveSheet()->setCellValue($genderCoordinate . $this->lastFilledOutCellY, '∕');
-//            if ($row['is_pwd'] !== '0') {
-//                $spreadsheet->getActiveSheet()->setCellValue('E' . $this->lastFilledOutCellY, '∕');
-//            }
-//            if ($row['is_senior_citizen'] !== '0') {
-//                $spreadsheet->getActiveSheet()->setCellValue('F' . $this->lastFilledOutCellY, '∕');
-//            }
-//            $spreadsheet->getActiveSheet()->setCellValue("G" . $this->lastFilledOutCellY, $dateOfBirth->format('d-M-y'));
-//            $spreadsheet->getActiveSheet()->setCellValue($offenseCoordinate . $this->lastFilledOutCellY, '∕');
-//            $spreadsheet->getActiveSheet()->setCellValue("J" . $this->lastFilledOutCellY, $supervisionStart->format('d-M-y'));
-//            $spreadsheet->getActiveSheet()->setCellValue("K" . $this->lastFilledOutCellY, $supervisionEnd->format('d-M-y'));
-//
-//            $spreadsheet->getActiveSheet()->setCellValue($phaseCoordinates[$row['quarter']] . $this->lastFilledOutCellY, $row['phase']);
-//
-//            foreach ($row['month_quarter'] as $monthQuarter) {
-//                $spreadsheet->getActiveSheet()->setCellValue($quarterMonthCoordinates[$monthQuarter] . $this->lastFilledOutCellY, '1');
-//            }
-//
-//            foreach ($row['month_quarter_fsi'] as $monthQuarter) {
-//                $spreadsheet->getActiveSheet()->setCellValue($fsiCoordinates[$monthQuarter] . $this->lastFilledOutCellY, '√');
-//            }
-//
-//            $spreadsheet->getActiveSheet()->setCellValue("AF" . $this->lastFilledOutCellY, $row['remarks']);
-//
-//            $spreadsheet->getActiveSheet()->getStyle("A". $this->lastFilledOutCellY .":AF" . $this->lastFilledOutCellY)->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
-//
-//            if (! isset($this->summaryData[$row['quarter']][$row['phase']])) {
-//                $this->summaryData[$row['quarter']][$row['phase']] = 1;
-//            } else {
-//                $this->summaryData[$row['quarter']][$row['phase']]++;
-//            }
-//
-//            $rowNumber++;
-//        }
+
+        $phaseCoordinates = [
+            'FIRST' => 'J', 'SECOND' => 'O', 'THIRD' => 'T', 'FOURTH' => 'Y'
+        ];
+
+        $quarterMonthCoordinates = [
+            'FIRST_J' => 'K', 'FIRST_F' => 'L', 'FIRST_M' => 'M',
+            'SECOND_A' => 'P', 'SECOND_M' => 'Q', 'SECOND_J' => 'R',
+            'THIRD_J' => 'U', 'THIRD_A' => 'V', 'THIRD_S' => 'W',
+            'FOURTH_O' => 'Z', 'FOURTH_N' => 'AA', 'FOURTH_D' => 'AB',
+        ];
+
+        $fsiCoordinates = [
+            'FIRST' => 'N', 'SECOND' => 'S', 'THIRD' => 'X', 'FOURTH' => 'AC'
+        ];
+
+        $totalData['female'] = 0;
+        $totalData['male'] = 0;
+        $totalData['pwd'] = 0;
+        $totalData['senior_citizen'] = 0;
+        $totalData['do'] = 0;
+        $totalData['ndo'] = 0;
+        $monthlyTotal = [];$rowNumber = 1;
+        $rows = $this->data['rows'];
+
+        ksort($rows);
+
+        $isTermShowed = false;
+        foreach ($rows as $row) {
+            $this->lastFilledOutCellY++;
+
+            if (! $isTermShowed && $row['client_type'] === 'Term') {
+                $spreadsheet->getActiveSheet()->setCellValue('A' . $this->lastFilledOutCellY, 'TERMINATED');
+                $spreadsheet->getActiveSheet()->getStyle('A' . $this->lastFilledOutCellY)->getFont()->setBold(true);
+                $isTermShowed = true;
+            }
+
+            $this->lastFilledOutCellY++;
+
+            $middleInitial = $row['middle_name'] != null ? substr($row['middle_name'], 0, 1)  . '.': '';
+            $fullName = $row['last_name'] . ', ' . $row['first_name'] . ' ' . $middleInitial;
+
+            $spreadsheet->getActiveSheet()->setCellValue("A" . $this->lastFilledOutCellY, $rowNumber);
+            $spreadsheet->getActiveSheet()->setCellValue("B" . $this->lastFilledOutCellY, $row['docket_number']);
+            $spreadsheet->getActiveSheet()->setCellValue("C" . $this->lastFilledOutCellY, $fullName);
+
+            if ($row['gender'] === 'F') {
+                $spreadsheet->getActiveSheet()->setCellValue('D' . $this->lastFilledOutCellY, '∕');
+                $totalData['female']++;
+            } else {
+                $spreadsheet->getActiveSheet()->setCellValue('E' . $this->lastFilledOutCellY, '∕');
+                $totalData['male']++;
+            }
+
+            if ($row['is_pwd'] !== '0') {
+                $spreadsheet->getActiveSheet()->setCellValue('F' . $this->lastFilledOutCellY, '∕');
+                $totalData['pwd']++;
+            }
+            if ($row['is_senior_citizen'] !== '0') {
+                $spreadsheet->getActiveSheet()->setCellValue('G' . $this->lastFilledOutCellY, '∕');
+                $totalData['senior_citizen']++;
+            }
+
+            if ($row['offense_category'] === 'DO') {
+                $spreadsheet->getActiveSheet()->setCellValue('H' . $this->lastFilledOutCellY, '∕');
+                $totalData['do']++;
+            } else {
+                $spreadsheet->getActiveSheet()->setCellValue('I' . $this->lastFilledOutCellY, '∕');
+                $totalData['ndo']++;
+            }
+
+            $spreadsheet->getActiveSheet()->setCellValue($phaseCoordinates[$row['quarter']] . $this->lastFilledOutCellY, $row['phase']);
+
+            foreach ($row['month_quarter'] as $monthQuarter) {
+                $spreadsheet->getActiveSheet()->setCellValue($quarterMonthCoordinates[$monthQuarter] . $this->lastFilledOutCellY, '1');
+                $monthInitial = explode('_', $monthQuarter)[1];
+                if (! isset($monthlyTotal[$row['quarter']][$monthInitial])) {
+                    $monthlyTotal[$row['quarter']][$monthInitial] = 1;
+                } else {
+                    $monthlyTotal[$row['quarter']][$monthInitial]++;
+                }
+            }
+
+            foreach ($row['month_quarter_fsi'] as $monthQuarter) {
+                $spreadsheet->getActiveSheet()->setCellValue($fsiCoordinates[$monthQuarter] . $this->lastFilledOutCellY, '√');
+                $quarter = explode('_', $monthQuarter)[0];
+                if (! isset($monthlyTotal[$quarter]['FSI'])) {
+                    $monthlyTotal[$quarter]['FSI'] = 1;
+                } else {
+                    $monthlyTotal[$quarter]['FSI']++;
+                }
+            }
+
+            $spreadsheet->getActiveSheet()->setCellValue("AD" . $this->lastFilledOutCellY, $row['remarks']);
+            $spreadsheet->getActiveSheet()
+                ->getStyle("A". $this->lastFilledOutCellY .":AD" . $this->lastFilledOutCellY)
+                ->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
+
+            if (! isset($this->summaryData[$row['quarter']][$row['phase']]['client_type'])) {
+                $this->summaryData[$row['quarter']][$row['phase']]['client_type'] = 1;
+            } else {
+                $this->summaryData[$row['quarter']][$row['phase']]['client_type']++;
+            }
+
+            $rowNumber++;
+        }
+
+
+        $this->lastFilledOutCellY++;
+        $spreadsheet->getActiveSheet()->setCellValue('C' . $this->lastFilledOutCellY, 'TOTAL');
+        $spreadsheet->getActiveSheet()->setCellValue('D' . $this->lastFilledOutCellY, $totalData['female']);
+        $spreadsheet->getActiveSheet()->setCellValue('E' . $this->lastFilledOutCellY, $totalData['male']);
+        $spreadsheet->getActiveSheet()->setCellValue('F' . $this->lastFilledOutCellY, $totalData['pwd']);
+        $spreadsheet->getActiveSheet()->setCellValue('G' . $this->lastFilledOutCellY, $totalData['senior_citizen']);
+        $spreadsheet->getActiveSheet()->setCellValue('H' . $this->lastFilledOutCellY, $totalData['do']);
+        $spreadsheet->getActiveSheet()->setCellValue('I' . $this->lastFilledOutCellY, $totalData['ndo']);
+        $spreadsheet->getActiveSheet()->getStyle('A' . $this->lastFilledOutCellY . ':' . 'AC' . $this->lastFilledOutCellY)->getFont()->setBold(true);
+        $spreadsheet->getActiveSheet()
+            ->getStyle("A". $this->lastFilledOutCellY .":AD" . $this->lastFilledOutCellY)
+            ->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
+        $spreadsheet->getActiveSheet()
+            ->getStyle("D". $this->lastFilledOutCellY .":I" . $this->lastFilledOutCellY)
+            ->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_MEDIUM);
+
+
+        $this->lastFilledOutCellY++;
+        $quarterMonthTotalCoordinates = [
+            'FIRST' => [
+                'J' => 'K', 'F' => 'L', 'M' => 'M', 'FSI' => 'N'
+            ],
+            'SECOND' => [
+                'A' => 'P', 'M' => 'Q', 'J' => 'R', 'FSI' => 'S'
+            ],
+            'THIRD' => [
+                'J' => 'U', 'A' => 'V', 'S' => 'W', 'FSI' => 'X'
+            ],
+            'FOURTH' => [
+                'O' => 'Z', 'N' => 'AA', 'D' => 'AB', 'FSI' => 'AC'
+            ]
+        ];
+
+        $spreadsheet->getActiveSheet()->setCellValue('B' . $this->lastFilledOutCellY, 'Total # of clients attending TC');
+        $spreadsheet->getActiveSheet()->setCellValue('J' . $this->lastFilledOutCellY, 'TOTAL');
+        $spreadsheet->getActiveSheet()->setCellValue('O' . $this->lastFilledOutCellY, 'TOTAL');
+        $spreadsheet->getActiveSheet()->setCellValue('T' . $this->lastFilledOutCellY, 'TOTAL');
+        $spreadsheet->getActiveSheet()->setCellValue('Y' . $this->lastFilledOutCellY, 'TOTAL');
+        $spreadsheet->getActiveSheet()->getStyle('A' . $this->lastFilledOutCellY . ':' . 'AC' . $this->lastFilledOutCellY)->getFont()->setBold(true);
+        $spreadsheet->getActiveSheet()
+            ->getStyle("A". $this->lastFilledOutCellY .":AD" . $this->lastFilledOutCellY)
+            ->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
+        $spreadsheet->getActiveSheet()
+            ->getStyle("K". $this->lastFilledOutCellY .":N" . $this->lastFilledOutCellY)
+            ->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_MEDIUM);
+        $spreadsheet->getActiveSheet()
+            ->getStyle("P". $this->lastFilledOutCellY .":S" . $this->lastFilledOutCellY)
+            ->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_MEDIUM);
+        $spreadsheet->getActiveSheet()
+            ->getStyle("U". $this->lastFilledOutCellY .":X" . $this->lastFilledOutCellY)
+            ->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_MEDIUM);
+        $spreadsheet->getActiveSheet()
+            ->getStyle("Z". $this->lastFilledOutCellY .":AC" . $this->lastFilledOutCellY)
+            ->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_MEDIUM);
+;
+        foreach ($monthlyTotal as $quarter=>$row) {
+            foreach ($row as $monthFsi=>$score) {;
+                $spreadsheet->getActiveSheet()->setCellValue($quarterMonthTotalCoordinates[$quarter][$monthFsi] . $this->lastFilledOutCellY, $score);
+            }
+        }
+
+        $spreadsheet->getActiveSheet()->getStyle('D9:AD' . $this->lastFilledOutCellY )->getAlignment()->setHorizontal('center');
 
         return $spreadsheet;
     }
@@ -152,6 +257,66 @@ class TCIA8 implements Form
     public function footer(): Spreadsheet
     {
         $spreadsheet = $this->body();
+        $this->lastFilledOutCellY++;
+
+        $texts = [
+            'C_1' => 'SUMMARY', 'C_2' => 'PHASES', 'D_2' => 'NO. OF CLIENTS PER PHASE', 'D_3' => '1ST QTR', 'H_3' => '2ND QTR',
+            'K_3' => '3RD QTR', 'N_3' => '4TH QTR', 'D_4' => 'PET.', 'F_4' => 'TERM', 'H_4' => 'PET.', 'J_4' => 'TERM.',
+            'K_4' => 'PET.', 'M_4' => 'TERM.', 'N_4' => 'PET.', 'O_4' => 'TERM.', 'C_5' => 'Preparatory', 'C_6' => 'I',
+            'C_7' => 'II', 'C_8' => 'III', 'C_9' => 'IV- On-going', 'C_10' => 'Completed', 'C_11' => 'TOTAL', 'A_13' => 'INSTRUCTIONS',
+            'A_15' => 'TABLE 1.A.8 OTHERS - PETITIONERS AND TERMINATED CLIENTS WHO CONTINUE TO PARTICIPATE IN THE TC PROGRAM',
+            'A_17' => 'COLUMN 2', 'A_18' => 'Indicate appropriate docket number per client', 'A_20' => 'COLUMN NO. 7', 'A_21' => 'Mark check (√ ):',
+            'A_22' => 'DO- if client is convicted of Drug Offense', 'A_23' => 'NDO- if client is convicted of Non-Drug Offense', 'A_25' => 'NOTE:',
+            'A_26' => '1.  Other columns -  same instructions as Table 1.A.2 to 1.A.6', 'A_27' => "2.  Group clients' names if Petitioner or Terminated",
+            'A_29' => 'NOTE:  ONLY PETITIONERS WHO WERE RECOMMENDED FOR GRANT CAN JOIN THE  TC LADDERIZED PROGRAM'
+        ];
+
+        $boldTexts = [
+            'C_1:O_4', 'C_5:C_11', 'A_13:A_17', 'A_20', 'A_25', 'A_29'
+        ];
+
+        $merges = [
+            'C_1:O_1', 'C_2:C_4', 'D_2:O_2', 'D_3:G_3', 'H_3:J_3', 'K_3:M_3', 'N_3:O_3', 'D_4:E_4', 'F_4:G_4', 'H_4:I_4', 'K_4:L_4', 'A_13:AC_13'
+        ];
+
+        $outlineBorders = [
+            'C_1:O_1', 'C_2:C_4', 'D_2:O_2'
+        ];
+
+        $allBorders = [
+            'D_3:O_11', 'C_5:C_11'
+        ];
+
+        foreach ($texts as $coordinates=>$text) {
+            $coordinate = $this->appReportHelper->buildCoordinate($coordinates, $this->lastFilledOutCellY);
+            $spreadsheet->getActiveSheet()->setCellValue($coordinate, $text);
+        }
+
+        foreach ($boldTexts as $coordinates) {
+            $coordinate = $this->appReportHelper->buildCoordinate($coordinates, $this->lastFilledOutCellY);
+            $spreadsheet->getActiveSheet()->getStyle($coordinate)->getFont()->setBold(true);
+        }
+
+        foreach ($merges as $coordinates) {
+            $coordinate = $this->appReportHelper->buildCoordinate($coordinates, $this->lastFilledOutCellY);
+            $spreadsheet->getActiveSheet()->mergeCells($coordinate);
+        }
+
+        foreach ($outlineBorders as $coordinates) {
+            $coordinate = $this->appReportHelper->buildCoordinate($coordinates, $this->lastFilledOutCellY);
+            $spreadsheet->getActiveSheet()->getStyle($coordinate)->getBorders()->getOutline()->setBorderStyle(Border::BORDER_THIN);
+        }
+
+        foreach ($allBorders as $coordinates) {
+            $coordinate = $this->appReportHelper->buildCoordinate($coordinates, $this->lastFilledOutCellY);
+            $spreadsheet->getActiveSheet()->getStyle($coordinate)->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
+        }
+
+        $spreadsheet->getActiveSheet()->getStyle('C' . $this->lastFilledOutCellY + 1)->getAlignment()->setHorizontal('center');
+        $spreadsheet->getActiveSheet()->getStyle('C' . $this->lastFilledOutCellY + 2)->getAlignment()->setHorizontal('center');
+        $spreadsheet->getActiveSheet()->getStyle('D' . $this->lastFilledOutCellY + 2 . ':O' . $this->lastFilledOutCellY + 11)->getAlignment()->setHorizontal('center');
+
+        $spreadsheet->getActiveSheet()->getStyle('C' . $this->lastFilledOutCellY + 2)->getAlignment()->setVertical('center');
 
         return $spreadsheet;
     }
@@ -163,106 +328,96 @@ class TCIA8 implements Form
     {
         $spreadsheet = new Spreadsheet();
         $textAndCoordinates = [
-            'A1' => 'ACTIVE SUPERVISION',
-            'C1' => '(per Form 5)',
-            'AF1' => 'PPA- PLD-FR-004',
-            'A2' => 'Table I.A.2 - PROBATIONERS',
-            'C3' => 'Sex',
-            'G3' => 'Date',
-            'H3' => 'Offense',
-            'J3' => 'Supervision',
-            'L3' => 'PHASE (Preparatory, I, II, III, IV)  (9)',
-            'AF3' => '(10)',
-            'A4' => 'No.',
-            'C4' => '(3)',
-            'E4' => 'P',
-            'F4' => 'S',
-            'G4' => 'of Birth',
-            'H4' => 'Category',
-            'J4' => 'Period',
-            'L4' => '1st Quarter',
-            'Q4' => '2nd Quarter',
-            'V4' => '3rd Quarter',
-            'AA4' => '4th Quarter',
-            'AF4' => 'Remarks',
-            'A5' => '(1)',
-            'B5' => 'Name',
-            'E5' => 'W',
-            'F5' => 'C',
-            'G5' => '(6)',
-            'H5' => '(7)',
-            'J5' => '(8)',
-            'P5' => 'FSI',
-            'U5' => 'FSI',
-            'Z5' => 'FSI',
-            'AE5' => 'FSI',
-            'AF5' => 'Ex.  w/ FR/VR, Terminated,',
-            'B6' => '(2)',
-            'C6' => 'F',
-            'D6' => 'M',
-            'E6' => 'D',
-            'G6' => 'mm /dd /',
-            'L6' => 'Prep./',
-            'Q6' => 'Prep./',
-            'V6' => 'Prep./',
-            'AA6' => 'Prep./',
-            'AF6' => 'Revoked, on CS, Transferred,',
-            'G7' => 'yyyy',
+            'A1' => 'OTHERS',
+            'AD1' => 'PPA- PLD-FR-004',
+            'A2' => 'Table I.A.8 – PETITIONERS AND TERMINATED CLIENTS WHO CONTINUE TO PARTICIPATE IN THE TC PROGRAM',
+            'D3' => 'Sex',
+            'H3' => 'Supervision',
+            'J3' => 'PHASE (Preparatory, I, II, III, IV)  (9)',
+            'AD3' => 'Remarks (9)',
+            'D4' => '(4)',
+            'F4' => 'P',
+            'G4' => 'S',
+            'H4' => 'Offense',
+            'J4' => '1st Quarter',
+            'O4' => '2nd Quarter',
+            'T4' => '3rd Quarter',
+            'Y4' => '4th Quarter',
+            'AD4' => '(Date of Termination / PSIR',
+            'A5' => 'No.',
+            'B5' => 'Docket',
+            'C5' => 'Name',
+            'F5' => 'W',
+            'G5' => 'C',
+            'H5' => 'Category',
+            'N5' => 'FSI',
+            'S5' => 'FSI',
+            'X5' => 'FSI',
+            'AC5' => 'FSI',
+            'AD5' => 'Submitted)',
+            'A6' => '(1)',
+            'B6' => 'Number',
+            'C6' => '(3)',
+            'D6' => 'F',
+            'E6' => 'M',
+            'F6' => 'D',
+            'J6' => 'Prep./',
+            'O6' => 'Prep./',
+            'T6' => 'Prep./',
+            'Y6' => 'Prep./',
+            'AD6' => 'For Petitioners, include',
+            'B7' => '(2)',
             'H7' => 'DO',
             'I7' => 'NDO',
-            'J7' => 'Start',
-            'K7' => 'End',
-            'L7' => 'Phase',
-            'M7' => 'J',
-            'N7' => 'F',
-            'O7' => 'M',
-            'P7' => 'Mark',
-            'Q7' => 'Phase',
-            'R7' => 'A',
-            'S7' => 'M',
-            'T7' => 'J',
-            'U7' => 'Mark',
-            'V7' => 'Phase',
-            'W7' => 'J',
-            'X7' => 'A',
-            'Y7' => 'S',
-            'Z7' => 'Mark',
-            'AA7' => 'Phase',
-            'AB7' => 'O',
-            'AC7' => 'N',
-            'AD7' => 'D',
-            'AE7' => 'Mark',
-            'AF7' => 'Absconded, Died, Others',
-            'E8' => '(4)',
+            'J7' => 'Phase',
+            'K7' => 'J',
+            'L7' => 'F',
+            'M7' => 'M',
+            'N7' => 'Mark',
+            'O7' => 'Phase',
+            'P7' => 'A',
+            'Q7' => 'M',
+            'R7' => 'J',
+            'S7' => 'Mark',
+            'T7' => 'Phase',
+            'U7' => 'J',
+            'V7' => 'A',
+            'W7' => 'S',
+            'X7' => 'Mark',
+            'Y7' => 'Phase',
+            'Z7' => 'O',
+            'AA7' => 'N',
+            'AB7' => 'D',
+            'AC7' => 'Mark',
+            'AD7' => 'activities conducted during the',
             'F8' => '(5)',
-            'P8' => '√',
-            'U8' => '√',
-            'Z8' => '√',
-            'AE8' => '√',
-            'AF8' => '(Indicate dates if  Applicable)',
+            'G8' => '(6)',
+            'N8' => '√',
+            'S8' => '√',
+            'X8' => '√',
+            'AC8' => '√',
+            'AD8' => 'Preparatory stage (TCLP)',
+            'A9' => 'PETITIONERS',
         ];
 
         $mergesCoordinates = [
-            "L3:AE3", "C3:D3", "C4:D4","H4:I4","J4:K4","L4:P4","Q4:U4","V4:Z4","AA4:AE4","J5:K5","C6:C8","D6:D8"
+            "D3:E3", "H3:I3", "J3:AC3", "D4:E4", "H4:I4", "J4:N4", "O4:S4", "T4:X4", "Y4:AC4", "H5:I5"
         ];
 
         $boldCoordinates = [
-            "A1","C1","AF1","A2","AF3","C4","A5","G5","H5","J5","B6","E8","F8"
+            "A1","A2", "D4", "AD1", "F3:F8","G3:G8","A9"
         ];
 
         $verticalAlignedCoordinates = [
-            "A" => "center",
-            "B5:B6" => "center",
-            "C:AF" => "center"
+            "A1:AD9" => "center",
         ];
 
         $horizontalAlignedCoordinates = [
-            "B5:B6" => "center",
-            "C:AF" => "center"
+            "A1:AD9" => "center",
         ];
 
         $adjustedColumnWidthCoordinates = [
-            'A' => 3, 'B' => 20, 'C' => 3, 'D' => 3, 'E' => 4, 'F' => 4, 'G' => 15, 'J' => 25, 'K' => 25, 'AF' => 25
+            'A' => 3, 'B' => 10, 'C' => 20, 'D' => 3, 'E' => 3, 'F' => 3, 'G' => 3, 'AD' => 25
         ];
 
         foreach ($textAndCoordinates as $coordinate=>$text) {
@@ -288,6 +443,9 @@ class TCIA8 implements Form
         foreach ($adjustedColumnWidthCoordinates as $coordinate => $width) {
             $spreadsheet->getActiveSheet()->getColumnDimension($coordinate)->setWidth($width);
         }
+
+        $spreadsheet->getActiveSheet()->getStyle("AD4:AD8")->getFont()->setItalic(true);
+        $spreadsheet->getActiveSheet()->getStyle("AD4:AD8")->getFont()->setSize(9);
 
          return $spreadsheet;
     }

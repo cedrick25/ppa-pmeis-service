@@ -79,7 +79,6 @@ class TCIA2to6 implements Form
     public function body(): Spreadsheet
     {
         $spreadsheet = $this->header();
-        $this->lastFilledOutCellY++;
 
         $phaseCoordinates = [
             'FIRST' => 'L', 'SECOND' => 'Q', 'THIRD' => 'V', 'FOURTH' => 'AA'
@@ -98,6 +97,7 @@ class TCIA2to6 implements Form
 
         $rowNumber = 1;
         foreach ($this->data['rows'] as $row) {
+            $this->lastFilledOutCellY++;
             $middleInitial = $row['middle_name'] != null ? substr($row['middle_name'], 0, 1)  . '.': '';
             $fullName = $row['last_name'] . ', ' . $row['first_name'] . ' ' . $middleInitial;
             $genderCoordinate = ($row['gender'] === 'F') ? 'C' : 'D';

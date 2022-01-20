@@ -204,7 +204,10 @@ class Sessions implements SessionsInterface
                 $middleInitial = $session['middle_name'] != null ? substr($session['middle_name'], 0, 1) : '';
                 $fullName = $session['last_name'] . '_' . $session['first_name'] . '_' . $middleInitial;
                 $monthInitial = $this->appDateHelper->getFirstLetterOfMonthFromDateString($session['date']);
-                $rowIdentifier = $fullName . '_' . $session['phase'];
+                // The only criteria needed is the fullName and client type (for sorting)
+                // Because if we add phase and quarter then the whenever there is new quarter or phase with the same name
+                // it will produce another row with same name
+                $rowIdentifier = $session['client_type'] . '_' . $fullName;
                 $monthIdentifier = $session['quarter'] . '_' . $monthInitial;
 
                 if (! isset($rows[$rowIdentifier])) {
