@@ -175,10 +175,10 @@ class TCIA8 implements Form
                 ->getStyle("A". $this->lastFilledOutCellY .":AD" . $this->lastFilledOutCellY)
                 ->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
 
-            if (! isset($this->summaryData[$row['quarter']][$row['phase']]['client_type'])) {
-                $this->summaryData[$row['quarter']][$row['phase']]['client_type'] = 1;
+            if (! isset($this->summaryData[$row['quarter']][$row['phase']][$row['client_type']])) {
+                $this->summaryData[$row['quarter']][$row['phase']][$row['client_type']] = 1;
             } else {
-                $this->summaryData[$row['quarter']][$row['phase']]['client_type']++;
+                $this->summaryData[$row['quarter']][$row['phase']][$row['client_type']]++;
             }
 
             $rowNumber++;
@@ -317,6 +317,57 @@ class TCIA8 implements Form
         $spreadsheet->getActiveSheet()->getStyle('D' . $this->lastFilledOutCellY + 2 . ':O' . $this->lastFilledOutCellY + 11)->getAlignment()->setHorizontal('center');
 
         $spreadsheet->getActiveSheet()->getStyle('C' . $this->lastFilledOutCellY + 2)->getAlignment()->setVertical('center');
+
+        $summaryCoordinates = [
+            'FIRST' => [
+                'I' => ['Pet' => 'D_6', 'Term' => 'F_6'],
+                'II' => ['Pet' => 'D_7', 'Term' => 'F_7'],
+                'III' => ['Pet' => 'D_8', 'Term' => 'F_8'],
+                'IV' => ['Pet' => 'D_9', 'Term' => 'F_9 '],
+                'TOTAL' => ['Pet' => 'D_11', 'Term' => 'F_11'],
+            ],
+            'SECOND' => [
+                'I' => ['Pet' => 'H_6', 'Term' => 'J_6'],
+                'II' => ['Pet' => 'H_7', 'Term' => 'J_7'],
+                'III' => ['Pet' => 'H_8', 'Term' => 'J_8'],
+                'IV' => ['Pet' => 'H_9', 'Term' => 'J_9'] ,
+                'TOTAL' => ['Pet' => 'H_11', 'Term' => 'J_11'],
+            ],
+            'THIRD' => [
+                'I' => ['Pet' => 'K_6', 'Term' => 'M_6'],
+                'II' => ['Pet' => 'K_7', 'Term' => 'M_7'],
+                'III' => ['Pet' => 'K_8', 'Term' => 'M_8'],
+                'IV' => ['Pet' => 'K_9', 'Term' => 'M_9'],
+                'TOTAL' => ['Pet' => 'K_11', 'Term' => 'M_11'],
+            ],
+            'FOURTH' => [
+                'I' => ['Pet' => 'N_6', 'Term' => 'O_6'],
+                'II' => ['Pet' => 'N_7', 'Term' => 'O_7'],
+                'III' => ['Pet' => 'N_8', 'Term' => 'O_8'],
+                'IV' => ['Pet' => 'N_9', 'Term' => 'O_9'],
+                'TOTAL' => ['Pet' => 'N_11', 'Term' => 'O_11'],
+            ]
+        ];
+
+        foreach ($this->summaryData as $quarter=>$row) {
+            $quarterScore[$quarter] = [
+                'Pet' => 0,
+                'Term' => 0
+            ];
+
+            foreach ($row as $phase=>$typeData) {
+                foreach ($typeData as $type=>$score) {
+                    $coordinate = $this->appReportHelper->buildCoordinate($summaryCoordinates[$quarter][$phase][$type], $this->lastFilledOutCellY);
+                    $spreadsheet->getActiveSheet()->setCellValue($coordinate, $score);
+                    $quarterScore[$quarter][$type] += $score;
+                }
+            }
+
+            $petCoordinate = $this->appReportHelper->buildCoordinate($summaryCoordinates[$quarter]['TOTAL']['Pet'], $this->lastFilledOutCellY);
+            $termCoordinate = $this->appReportHelper->buildCoordinate($summaryCoordinates[$quarter]['TOTAL']['Term'], $this->lastFilledOutCellY);
+            $spreadsheet->getActiveSheet()->setCellValue($petCoordinate, $quarterScore[$quarter]['Pet']);
+            $spreadsheet->getActiveSheet()->setCellValue($termCoordinate, $quarterScore[$quarter]['Term']);
+        }
 
         return $spreadsheet;
     }
