@@ -480,9 +480,9 @@ class TherapeuticCommunityController extends AbstractController
     /**
      * @Route("/session/tca2-6-8/full/{quarterId}/{role}", methods={"GET"})
      */
-    public function getTCIA2to6And8(Request $request): Response
+    public function getTCIA2(Request $request): Response
     {
-        return $this->json($this->sessionService->getTCIA2to6And8(
+        return $this->json($this->sessionService->getTCIA2(
             (int) $request->get("quarterId"),
             (string) $request->get("role")
         ));

@@ -24,5 +24,5 @@ interface SessionsInterface
 
     public function getAllWithClientsAndFacilitators(): array;
 
-    public function getTCIA2to6And8(int $quarterId, string $role): array;
+    public function getTCIA2(int $quarterId, string $role): array;
 }

@@ -162,6 +162,8 @@ class TCIA3 implements Form
 
         $spreadsheet->getActiveSheet()->getStyle("A" . $currentRowNumber13 + 1 . ":AF" . $currentRowNumber13 + 1)->getBorders()->getBottom()->setBorderStyle(Border::BORDER_MEDIUM);
 
+        $spreadsheet->getActiveSheet()->getStyle("X$currentRowNumber:AF$currentRowNumber13")->getAlignment()->setHorizontal('left');
+
         return $spreadsheet;
     }
 
@@ -269,12 +271,12 @@ class TCIA3 implements Form
         $spreadsheet = new Spreadsheet();
         $textAndCoordinates = [
             'A1' => 'ACTIVE SUPERVISION',
-            'C1' => '(per Form 5)',
+            'G1' => '(per Form 21)',
             'AF1' => 'PPA- PLD-FR-004',
-            'A2' => 'Table I.A.2 - PROBATIONERS',
+            'A2' => 'Table I.A.3 - PAROLEES',
             'C3' => 'Sex',
             'G3' => 'Date',
-            'H3' => 'Offense',
+            'H3' => '(7)',
             'J3' => 'Supervision',
             'L3' => 'PHASE (Preparatory, I, II, III, IV)  (9)',
             'AF3' => '(10)',
@@ -283,7 +285,7 @@ class TCIA3 implements Form
             'E4' => 'P',
             'F4' => 'S',
             'G4' => 'of Birth',
-            'H4' => 'Category',
+            'H4' => 'Offense',
             'J4' => 'Period',
             'L4' => '1st Quarter',
             'Q4' => '2nd Quarter',
@@ -295,13 +297,13 @@ class TCIA3 implements Form
             'E5' => 'W',
             'F5' => 'C',
             'G5' => '(6)',
-            'H5' => '(7)',
+            'H5' => 'Category',
             'J5' => '(8)',
             'P5' => 'FSI',
             'U5' => 'FSI',
             'Z5' => 'FSI',
             'AE5' => 'FSI',
-            'AF5' => 'Ex.  w/ FR/VR, Terminated,',
+            'AF5' => 'Ex.  w/ SR/IR, Discharged,',
             'B6' => '(2)',
             'C6' => 'F',
             'D6' => 'M',
@@ -311,7 +313,7 @@ class TCIA3 implements Form
             'Q6' => 'Prep./',
             'V6' => 'Prep./',
             'AA6' => 'Prep./',
-            'AF6' => 'Revoked, on CS, Transferred,',
+            'AF6' => 'Recommitted, on CS, Transferred,',
             'G7' => 'yyyy',
             'H7' => 'DO',
             'I7' => 'NDO',
@@ -344,7 +346,7 @@ class TCIA3 implements Form
             'U8' => '√',
             'Z8' => '√',
             'AE8' => '√',
-            'AF8' => '(Indicate dates if  Applicable)',
+            'AF8' => '(Indicate dates)',
         ];
 
         $mergesCoordinates = [
@@ -352,7 +354,7 @@ class TCIA3 implements Form
         ];
 
         $boldCoordinates = [
-            "A1", "C1", "AF1", "A2", "AF3", "C4", "A5", "G5", "H5", "J5", "B6", "E8", "F8"
+            "A1", "G1", "AF1", "A2", "AF3", "H3", "C4", "A5", "G5", "J5", "B6", "E8", "F8"
         ];
 
         $verticalAlignedCoordinates = [
@@ -389,10 +391,13 @@ class TCIA3 implements Form
         foreach ($horizontalAlignedCoordinates as $coordinate => $alignment) {
             $spreadsheet->getActiveSheet()->getStyle($coordinate)->getAlignment()->setHorizontal($alignment);
         }
+        $spreadsheet->getActiveSheet()->getStyle('C1')->getAlignment()->setHorizontal('left');
 
         foreach ($adjustedColumnWidthCoordinates as $coordinate => $width) {
             $spreadsheet->getActiveSheet()->getColumnDimension($coordinate)->setWidth($width);
         }
+
+        $spreadsheet->getActiveSheet()->getStyle("AF5:AF8")->getFont()->setSize(9);
 
         return $spreadsheet;
     }

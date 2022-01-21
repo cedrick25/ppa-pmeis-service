@@ -162,6 +162,8 @@ class TCIA2 implements Form
 
         $spreadsheet->getActiveSheet()->getStyle("A" . $currentRowNumber13 + 1 . ":AF" . $currentRowNumber13 + 1)->getBorders()->getBottom()->setBorderStyle(Border::BORDER_MEDIUM);
 
+        $spreadsheet->getActiveSheet()->getStyle("X$currentRowNumber:AF$currentRowNumber13")->getAlignment()->setHorizontal('left');
+
         return $spreadsheet;
     }
 

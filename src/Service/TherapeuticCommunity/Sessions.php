@@ -189,7 +189,7 @@ class Sessions implements SessionsInterface
         }
     }
 
-    public function getTCIA2to6And8(int $quarterId, string $role): array
+    public function getTCIA2(int $quarterId, string $role): array
     {
         try {
             $sessions = $this->repository->fetchTCIA2($quarterId, $role);
