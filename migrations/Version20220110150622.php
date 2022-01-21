@@ -29,4 +29,9 @@ final class Version20220110150622 extends AbstractMigration
     {
         $this->addSql("TRUNCATE TABLE client_types");
     }
+
+    public function isTransactional(): bool
+    {
+        return false;
+    }
 }

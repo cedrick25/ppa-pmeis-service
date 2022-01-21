@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Report\Table;
 
 use PhpOffice\PhpSpreadsheet\IOFactory;
@@ -61,7 +63,6 @@ class RJIB1 implements Form
     }
 
     /**
-     * @throws \PhpOffice\PhpSpreadsheet\Exception
      */
     private function prepare(): Spreadsheet
     {
