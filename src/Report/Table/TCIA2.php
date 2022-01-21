@@ -228,10 +228,10 @@ class TCIA2 implements Form
             $spreadsheet->getActiveSheet()->getStyle("A" . $this->lastFilledOutCellY . ":AF" . $this->lastFilledOutCellY)->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
 
             if (!isset($this->summaryData[$row['quarter']][$row['phase']])) {
-                $this->summaryData[$row['quarter']][$row['phase']] = 1;
-            } else {
-                $this->summaryData[$row['quarter']][$row['phase']]++;
+                $this->summaryData[$row['quarter']][$row['phase']] = 0;
             }
+
+            $this->summaryData[$row['quarter']][$row['phase']]++;
 
             $rowNumber++;
         }
@@ -389,6 +389,7 @@ class TCIA2 implements Form
         foreach ($horizontalAlignedCoordinates as $coordinate => $alignment) {
             $spreadsheet->getActiveSheet()->getStyle($coordinate)->getAlignment()->setHorizontal($alignment);
         }
+        $spreadsheet->getActiveSheet()->getStyle('C1')->getAlignment()->setHorizontal('left');
 
         foreach ($adjustedColumnWidthCoordinates as $coordinate => $width) {
             $spreadsheet->getActiveSheet()->getColumnDimension($coordinate)->setWidth($width);

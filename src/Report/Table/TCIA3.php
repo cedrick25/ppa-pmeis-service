@@ -228,10 +228,10 @@ class TCIA3 implements Form
             $spreadsheet->getActiveSheet()->getStyle("A" . $this->lastFilledOutCellY . ":AF" . $this->lastFilledOutCellY)->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
 
             if (!isset($this->summaryData[$row['quarter']][$row['phase']])) {
-                $this->summaryData[$row['quarter']][$row['phase']] = 1;
-            } else {
-                $this->summaryData[$row['quarter']][$row['phase']]++;
+                $this->summaryData[$row['quarter']][$row['phase']] = 0;
             }
+
+            $this->summaryData[$row['quarter']][$row['phase']]++;
 
             $rowNumber++;
         }

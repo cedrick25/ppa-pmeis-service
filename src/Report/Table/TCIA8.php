@@ -249,20 +249,20 @@ class TCIA8 implements Form
                 $spreadsheet->getActiveSheet()->setCellValue($quarterMonthCoordinates[$monthQuarter] . $this->lastFilledOutCellY, '1');
                 $monthInitial = explode('_', $monthQuarter)[1];
                 if (!isset($monthlyTotal[$row['quarter']][$monthInitial])) {
-                    $monthlyTotal[$row['quarter']][$monthInitial] = 1;
-                } else {
-                    $monthlyTotal[$row['quarter']][$monthInitial]++;
+                    $monthlyTotal[$row['quarter']][$monthInitial] = 0;
                 }
+
+                $monthlyTotal[$row['quarter']][$monthInitial]++;
             }
 
             foreach ($row['month_quarter_fsi'] as $monthQuarter) {
                 $spreadsheet->getActiveSheet()->setCellValue($fsiCoordinates[$monthQuarter] . $this->lastFilledOutCellY, '√');
                 $quarter = explode('_', $monthQuarter)[0];
                 if (!isset($monthlyTotal[$quarter]['FSI'])) {
-                    $monthlyTotal[$quarter]['FSI'] = 1;
-                } else {
-                    $monthlyTotal[$quarter]['FSI']++;
+                    $monthlyTotal[$quarter]['FSI'] = 0;
                 }
+
+                $monthlyTotal[$quarter]['FSI']++;
             }
 
             $spreadsheet->getActiveSheet()->setCellValue("AD" . $this->lastFilledOutCellY, $row['remarks']);
@@ -271,10 +271,10 @@ class TCIA8 implements Form
                 ->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
 
             if (!isset($this->summaryData[$row['quarter']][$row['phase']][$row['client_type']])) {
-                $this->summaryData[$row['quarter']][$row['phase']][$row['client_type']] = 1;
-            } else {
-                $this->summaryData[$row['quarter']][$row['phase']][$row['client_type']]++;
+                $this->summaryData[$row['quarter']][$row['phase']][$row['client_type']] = 0;
             }
+
+            $this->summaryData[$row['quarter']][$row['phase']][$row['client_type']]++;
 
             $rowNumber++;
         }
