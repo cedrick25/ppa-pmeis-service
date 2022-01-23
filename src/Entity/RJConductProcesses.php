@@ -4,9 +4,11 @@ declare(strict_types=1);
 
 namespace App\Entity;
 
+use App\Enum\RJGroup;
 use App\Repository\RJConductProcessesRepository;
 use DateTimeImmutable;
 use DateTimeInterface;
+use Doctrine\DBAL\Exception\InvalidArgumentException;
 use Doctrine\ORM\Mapping as ORM;
 
 /**
@@ -209,8 +211,14 @@ class RJConductProcesses
         return $this->rjGroup;
     }
 
+    /**
+     * @throws InvalidArgumentException
+     */
     public function setRjGroup(string $rjGroup): self
     {
+        if (! RJGroup::isValid($rjGroup)) {
+            throw new InvalidArgumentException("Invalid RJ Group");
+        }
         $this->rjGroup = $rjGroup;
 
         return $this;

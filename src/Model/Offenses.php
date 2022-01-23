@@ -1,0 +1,59 @@
+<?php
+
+namespace App\Model;
+
+use DateTimeImmutable;
+use Symfony\Component\Validator\Constraints as Assert;
+
+class Offenses
+{
+    public function __construct(
+        private string $name,
+        private string $type,
+        private DateTimeImmutable $createdAt,
+        private ?DateTimeImmutable $updatedAt = null,
+        private ?DateTimeImmutable $deletedAt = null,
+    ){}
+
+    /**
+     * @Assert\GreaterThan(0)
+     * @return string
+     */
+    public function getName(): string
+    {
+        return $this->name;
+    }
+
+    /**
+     * @return string
+     */
+    public function getType(): string
+    {
+        return $this->type;
+    }
+
+    /**
+     * @return DateTimeImmutable
+     */
+    public function getCreatedAt(): DateTimeImmutable
+    {
+        return $this->createdAt;
+    }
+
+    /**
+     * @return DateTimeImmutable|null
+     */
+    public function getUpdatedAt(): ?DateTimeImmutable
+    {
+        return $this->updatedAt;
+    }
+
+    /**
+     * @return DateTimeImmutable|null
+     */
+    public function getDeletedAt(): ?DateTimeImmutable
+    {
+        return $this->deletedAt;
+    }
+
+}
