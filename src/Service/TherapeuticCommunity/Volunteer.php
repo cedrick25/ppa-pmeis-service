@@ -5,7 +5,7 @@ namespace App\Service\TherapeuticCommunity;
 use App\Common\AppFormatter;
 use App\Enum\Response as ResponseEnum;
 use App\Repository\VolunteerRepository;
-use Doctrine\ORM\ORMException;
+use Doctrine\ORM\Exception\ORMException;
 use Exception;
 use Psr\Cache\CacheException;
 use Psr\Cache\InvalidArgumentException;

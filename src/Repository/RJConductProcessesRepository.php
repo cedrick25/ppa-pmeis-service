@@ -7,6 +7,7 @@ use App\Common\CacheHelper;
 use App\Model\RJConductProcesses as RJConductProcessesModel;
 use App\Entity\RJConductProcesses;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
+use Doctrine\ORM\OptimisticLockException;
 use Doctrine\ORM\ORMException;
 use Doctrine\Persistence\ManagerRegistry;
 use Psr\Cache\CacheException;
@@ -105,6 +106,30 @@ class RJConductProcessesRepository extends ServiceEntityRepository
         $this->cache->invalidateTags([self::CACHE_TAG]);
 
         $this->getEntityManager()->remove($RJConductProcesses);
+        $this->getEntityManager()->flush();
+
+        return true;
+    }
+
+    /**
+     * @throws OptimisticLockException
+     * @throws ORMException
+     * @throws InvalidArgumentException
+     */
+    public function softDelete(int $id): bool
+    {
+        $RJConductProcesses =$this->isExistingById($id);
+
+        if ($RJConductProcesses == null) {
+            return false;
+        }
+
+        // TODO: Check table constraints
+
+        $this->cache->invalidateTags([self::CACHE_TAG]);
+
+        $RJConductProcesses->setDeletedAt($this->appDateHelper->getCurrentImmutableDate());
+
         $this->getEntityManager()->flush();
 
         return true;
