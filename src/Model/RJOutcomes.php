@@ -1,16 +1,14 @@
 <?php
 
-declare(strict_types=1);
-
 namespace App\Model;
 
 use DateTimeImmutable;
 use Symfony\Component\Validator\Constraints as Assert;
-
-class RJProcessStatus
+class RJOutcomes
 {
     public function __construct(
         private string $name,
+        private string $code,
         private ?DateTimeImmutable $createdAt = null,
         private ?DateTimeImmutable $updatedAt = null,
         private ?DateTimeImmutable $deletedAt = null,
@@ -23,6 +21,15 @@ class RJProcessStatus
     public function getName(): string
     {
         return $this->name;
+    }
+
+    /**
+     * @Assert\NotBlank
+     * @return string
+     */
+    public function getCode(): string
+    {
+        return $this->code;
     }
 
     /**

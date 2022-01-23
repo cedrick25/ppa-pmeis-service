@@ -11,13 +11,13 @@ class RJProcess
 {
     public function __construct(
         private string $name,
-        private DateTimeImmutable $createdAt,
+        private ?DateTimeImmutable $createdAt = null,
         private ?DateTimeImmutable $updatedAt = null,
         private ?DateTimeImmutable $deletedAt = null,
     ){}
 
     /**
-     * @Assert\GreaterThan(0)
+     * @Assert\NotBlank
      * @return string
      */
     public function getName(): string
@@ -26,9 +26,9 @@ class RJProcess
     }
 
     /**
-     * @return DateTimeImmutable
+     * @return DateTimeImmutable|null
      */
-    public function getCreatedAt(): DateTimeImmutable
+    public function getCreatedAt(): ?DateTimeImmutable
     {
         return $this->createdAt;
     }

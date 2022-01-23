@@ -2,9 +2,16 @@
 
 namespace App\Repository;
 
+use App\Common\AppDateHelper;
+use App\Common\CacheHelper;
+use App\Model\RJConductProcesses as RJConductProcessesModel;
 use App\Entity\RJConductProcesses;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
+use Doctrine\ORM\ORMException;
 use Doctrine\Persistence\ManagerRegistry;
+use Psr\Cache\CacheException;
+use Psr\Cache\InvalidArgumentException;
+use Symfony\Contracts\Cache\TagAwareCacheInterface;
 
 /**
  * @method RJConductProcesses|null find($id, $lockMode = null, $lockVersion = null)
@@ -14,9 +21,145 @@ use Doctrine\Persistence\ManagerRegistry;
  */
 class RJConductProcessesRepository extends ServiceEntityRepository
 {
-    public function __construct(ManagerRegistry $registry)
-    {
+    protected const CACHE_TAG = "rj_conduct_processes";
+
+    public function __construct(
+        ManagerRegistry $registry,
+        private TagAwareCacheInterface $cache,
+        private CacheHelper $cacheHelper,
+        private Helper $helper,
+        private AppDateHelper $appDateHelper,
+    ){
         parent::__construct($registry, RJConductProcesses::class);
     }
 
+    /**
+     * @return RJConductProcesses[]
+     * @throws CacheException
+     * @throws InvalidArgumentException
+     */
+    public function list(): array
+    {
+        $params = [
+            'cacheKey' => $this->cacheHelper->getAllRJConductProcessesKey(),
+            'expiration' => $this->cacheHelper->getExpirationDateTime(),
+            'cacheTag' => self::CACHE_TAG
+        ];
+
+        return $this->helper->createCachedResponse($params, function() {
+            return $this->createQueryBuilder('p')
+                ->where('p.deletedAt IS NULL')
+                ->orderBy('p.rjConductProcessId', 'DESC')
+                ->getQuery()
+                ->getResult();
+        });
+    }
+
+    /**
+     * @throws InvalidArgumentException
+     * @throws ORMException
+     * @throws \Doctrine\DBAL\Exception\InvalidArgumentException
+     */
+    public function create(RJConductProcessesModel $data): int | null
+    {
+        if ($this->isExisting($data)) {
+            return null;
+        }
+
+        $this->cache->invalidateTags([self::CACHE_TAG]);
+
+        $newRJConductProcesses = new RJConductProcesses();
+
+        $newRJConductProcesses->setClientId($data->getClientId());
+        $newRJConductProcesses->setQuarterId($data->getQuarterId());
+        $newRJConductProcesses->setFieldOfficeId($data->getFieldOfficeId());
+        $newRJConductProcesses->setOffenseId($data->getOffenseId());
+        $newRJConductProcesses->setPeVenueId($data->getPeVenueId());
+        $newRJConductProcesses->setPeActivity($data->getPeActivity());
+        $newRJConductProcesses->setRjpDate($data->getRjpDate());
+        $newRJConductProcesses->setRjpId($data->getRjpId());
+        $newRJConductProcesses->setRjpVenueId($data->getRjpVenueId());
+        $newRJConductProcesses->setRjpsId($data->getRjpsId());
+        $newRJConductProcesses->setRjoId($data->getRjoId());
+        $newRJConductProcesses->setRjGroup($data->getRjGroup());
+        $newRJConductProcesses->setPlannerId($data->getPlannerId());
+        $newRJConductProcesses->setCreatedAt($this->appDateHelper->getCurrentImmutableDate());
+
+        $this->getEntityManager()->persist($newRJConductProcesses);
+        $this->getEntityManager()->flush();
+
+        return $newRJConductProcesses->getRJConductProcessId();
+    }
+
+    /**
+     * @throws InvalidArgumentException
+     * @throws ORMException
+     */
+    public function delete(int $id): bool
+    {
+        $RJConductProcesses = $this->isExistingById($id);
+        if (! $RJConductProcesses) {
+            return false;
+        }
+
+        $this->cache->invalidateTags([self::CACHE_TAG]);
+
+        $this->getEntityManager()->remove($RJConductProcesses);
+        $this->getEntityManager()->flush();
+
+        return true;
+    }
+
+    public function isExistingById(int $id): bool | RJConductProcesses
+    {
+        $RJConductProcesses = $this->findOneBy([
+            'rjConductProcessId' => $id
+        ]);
+
+        return ($RJConductProcesses == null) ? false : $RJConductProcesses;
+    }
+
+    /**
+     * @throws CacheException
+     * @throws InvalidArgumentException
+     */
+    public function getRJIB1Data(int $clientId, int $quarterId, int $fieldOfficeId): array
+    {
+        $params = [
+            'cacheKey' => $this->cacheHelper->getRJIB1Key($clientId, $quarterId, $fieldOfficeId),
+            'cacheTag' => self::CACHE_TAG
+        ];
+
+        return $this->helper->createCachedResponseCustomQuery($params, function($clientId, $quarterId, $fieldOfficeId) {
+            $conn = $this->getEntityManager()->getConnection();
+            $sql = "SELECT rjcp.*, c.first_name, c.middle_name, c.last_name, c.gender, c.is_pwd, c.is_senior_citizen,
+                    o.name as offense, rjcp.pe_date, (SELECT name FROM venues WHERE venues.venue_id = rjcp.pe_venue_id) as pe_venue,
+                    rjcp.pe_activity, rjcp.pe_date, (SELECT name FROM venues WHERE venues.venue_id = rjcp.rjp_venue_id) as rjp_venue,
+                    rjp.name as rjp_type, ud.first_name as planner_fn, ud.middle_name as planner_mn, ud.last_name as planner_ln,
+                    rjps.name as rjp_status, ro.name as rj_outcome_name, ro.code as rj_outcome_code
+                    FROM rjconduct_processes as rjcp " .
+                "LEFT JOIN clients as c ON rjcp.client_id = c.client_id " .
+                "LEFT JOIN offenses as o ON rjcp.offense_id = o.offenses_id " .
+                "LEFT JOIN rjprocesses as rjp ON rjcp.rjp_id = rjp.id_rjprocesses " .
+                "LEFT JOIN user_details as ud ON rjcp.planner_id = ud.user_account_id " .
+                "LEFT JOIN rjprocess_status as rjps ON rjcp.rjps_id = rjps.id_rjprocess_status " .
+                "LEFT JOIN rjoutcomes as ro ON rjcp.rjo_id = ro.rj_outcome_id " .
+                "WHERE rjcp.client_id = $clientId AND rjcp.quarter_id = $quarterId AND rjcp.field_office_id = $fieldOfficeId ".
+                "AND rjcp.deleted_at IS NULL ORDER BY rjcp.rj_conduct_process_id DESC";
+            $stmt = $conn->prepare($sql);
+            $query = $stmt->executeQuery();
+
+            return $query->fetchAllAssociative();
+        });
+    }
+
+    private function isExisting(RJConductProcessesModel $data) {
+        $RJConductProcesses = $this->findOneBy([
+            'clientId' => $data->getClientId(),
+            'quarterId' => $data->getQuarterId(),
+            'fieldOfficeId' => $data->getFieldOfficeId()
+        ]);
+
+        return ($RJConductProcesses == null) ? false : $RJConductProcesses;
+    }
 }

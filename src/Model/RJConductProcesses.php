@@ -15,14 +15,17 @@ class RJConductProcesses
         private int $quarterId,
         private int $fieldOfficeId,
         private int $offenseId,
-        private DateTimeInterface $peDate,
         private int $peVenueId,
         private string $peActivity,
+        private int $rjpId,
+        private int $rjpVenueId,
         private int $rjpsId,
         private int $rjoId,
         private string $rjGroup,
         private int $plannerId,
-        private DateTimeImmutable $createdAt,
+        private ?DateTimeInterface $peDate = null,
+        private ?DateTimeInterface $rjpDate = null,
+        private ?DateTimeImmutable $createdAt = null,
         private ?DateTimeImmutable $updatedAt = null,
         private ?DateTimeImmutable $deletedAt = null,
     ){}
@@ -69,9 +72,9 @@ class RJConductProcesses
 
     /**
      * @Assert\NotBlank
-     * @return DateTimeInterface
+     * @return DateTimeInterface|null
      */
-    public function getPeDate(): DateTimeInterface
+    public function getPeDate(): ?DateTimeInterface
     {
         return $this->peDate;
     }
@@ -93,6 +96,34 @@ class RJConductProcesses
     public function getPeActivity(): string
     {
         return $this->peActivity;
+    }
+
+    /**
+     * @return DateTimeInterface|null
+     */
+    public function getRjpDate(): ?DateTimeInterface
+    {
+        return $this->rjpDate;
+    }
+
+    /**
+     * @Assert\NotBlank
+     * @Assert\GreaterThan(0)
+     * @return int
+     */
+    public function getRjpId(): int
+    {
+        return $this->rjpId;
+    }
+
+    /**
+     * @Assert\NotBlank
+     * @Assert\GreaterThan(0)
+     * @return int
+     */
+    public function getRjpVenueId(): int
+    {
+        return $this->rjpVenueId;
     }
 
     /**
@@ -136,9 +167,9 @@ class RJConductProcesses
 
     /**
      * @Assert\NotBlank
-     * @return DateTimeImmutable
+     * @return DateTimeImmutable|null
      */
-    public function getCreatedAt(): DateTimeImmutable
+    public function getCreatedAt(): ?DateTimeImmutable
     {
         return $this->createdAt;
     }

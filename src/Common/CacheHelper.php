@@ -212,4 +212,17 @@ class CacheHelper
         return 'positions_' . $page . '_' . $size;
     }
 
+    public function getAllRJConductProcessesKey(): string
+    {
+        return 'rj_conduct_processes_all';
+    }
+
+    public function getRJIB1Key(
+        int $clientId,
+        int $quarterId,
+        int $fieldOffice
+    ): string
+    {
+        return 'rjib1_' . $clientId . '_' . $quarterId . '_' . $fieldOffice;
+    }
 }

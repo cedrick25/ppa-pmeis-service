@@ -59,6 +59,21 @@ class RJConductProcesses
     private string $peActivity;
 
     /**
+     * @ORM\Column(type="date")
+     */
+    private DateTimeInterface $rjpDate;
+
+    /**
+     * @ORM\Column(type="integer")
+     */
+    private int $rjpId;
+
+    /**
+     * @ORM\Column(type="integer")
+     */
+    private int $rjpVenueId;
+
+    /**
      * @ORM\Column(type="integer")
      */
     private int $rjpsId;
@@ -180,6 +195,54 @@ class RJConductProcesses
         $this->peActivity = $peActivity;
 
         return $this;
+    }
+
+    /**
+     * @return DateTimeInterface
+     */
+    public function getRjpDate(): DateTimeInterface
+    {
+        return $this->rjpDate;
+    }
+
+    /**
+     * @param DateTimeInterface $rjpDate
+     */
+    public function setRjpDate(DateTimeInterface $rjpDate): void
+    {
+        $this->rjpDate = $rjpDate;
+    }
+
+    /**
+     * @return int
+     */
+    public function getRjpId(): int
+    {
+        return $this->rjpId;
+    }
+
+    /**
+     * @param int $rjpId
+     */
+    public function setRjpId(int $rjpId): void
+    {
+        $this->rjpId = $rjpId;
+    }
+
+    /**
+     * @return int
+     */
+    public function getRjpVenueId(): int
+    {
+        return $this->rjpVenueId;
+    }
+
+    /**
+     * @param int $rjpVenueId
+     */
+    public function setRjpVenueId(int $rjpVenueId): void
+    {
+        $this->rjpVenueId = $rjpVenueId;
     }
 
     public function getRjpsId(): ?int
