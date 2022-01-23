@@ -12,8 +12,8 @@ use MyCLabs\Enum\Enum;
  */
 class RJGroup extends Enum implements Hashable
 {
-    public const ACTIVE_SUPERVISION = "ACTIVE_SUPERVISION.";
-    public const PETITIONER = "PETITIONER.";
+    public const ACTIVE_SUPERVISION = "ACTIVE_SUPERVISION";
+    public const PETITIONER = "PETITIONER";
 
     public function hash(): string
     {

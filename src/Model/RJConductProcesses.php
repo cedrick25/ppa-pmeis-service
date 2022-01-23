@@ -16,15 +16,15 @@ class RJConductProcesses
         private int $fieldOfficeId,
         private int $offenseId,
         private int $peVenueId,
+        private string $peDate,
         private string $peActivity,
+        private string $rjpDate,
         private int $rjpId,
         private int $rjpVenueId,
         private int $rjpsId,
         private int $rjoId,
         private string $rjGroup,
         private int $plannerId,
-        private ?DateTimeInterface $peDate = null,
-        private ?DateTimeInterface $rjpDate = null,
         private ?DateTimeImmutable $createdAt = null,
         private ?DateTimeImmutable $updatedAt = null,
         private ?DateTimeImmutable $deletedAt = null,
@@ -72,9 +72,9 @@ class RJConductProcesses
 
     /**
      * @Assert\NotBlank
-     * @return DateTimeInterface|null
+     * @return string
      */
-    public function getPeDate(): ?DateTimeInterface
+    public function getPeDate(): string
     {
         return $this->peDate;
     }
@@ -99,9 +99,9 @@ class RJConductProcesses
     }
 
     /**
-     * @return DateTimeInterface|null
+     * @return string
      */
-    public function getRjpDate(): ?DateTimeInterface
+    public function getRjpDate(): string
     {
         return $this->rjpDate;
     }
@@ -166,7 +166,6 @@ class RJConductProcesses
     }
 
     /**
-     * @Assert\NotBlank
      * @return DateTimeImmutable|null
      */
     public function getCreatedAt(): ?DateTimeImmutable

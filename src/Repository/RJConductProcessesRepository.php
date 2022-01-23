@@ -10,6 +10,7 @@ use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\ORM\OptimisticLockException;
 use Doctrine\ORM\ORMException;
 use Doctrine\Persistence\ManagerRegistry;
+use Exception;
 use Psr\Cache\CacheException;
 use Psr\Cache\InvalidArgumentException;
 use Symfony\Contracts\Cache\TagAwareCacheInterface;
@@ -60,6 +61,7 @@ class RJConductProcessesRepository extends ServiceEntityRepository
      * @throws InvalidArgumentException
      * @throws ORMException
      * @throws \Doctrine\DBAL\Exception\InvalidArgumentException
+     * @throws Exception
      */
     public function create(RJConductProcessesModel $data): int | null
     {
@@ -76,8 +78,9 @@ class RJConductProcessesRepository extends ServiceEntityRepository
         $newRJConductProcesses->setFieldOfficeId($data->getFieldOfficeId());
         $newRJConductProcesses->setOffenseId($data->getOffenseId());
         $newRJConductProcesses->setPeVenueId($data->getPeVenueId());
+        $newRJConductProcesses->setPeDate($this->appDateHelper->convertStringToImmutableDate($data->getPeDate()));
         $newRJConductProcesses->setPeActivity($data->getPeActivity());
-        $newRJConductProcesses->setRjpDate($data->getRjpDate());
+        $newRJConductProcesses->setRjpDate($this->appDateHelper->convertStringToImmutableDate($data->getRjpDate()));
         $newRJConductProcesses->setRjpId($data->getRjpId());
         $newRJConductProcesses->setRjpVenueId($data->getRjpVenueId());
         $newRJConductProcesses->setRjpsId($data->getRjpsId());
@@ -138,7 +141,8 @@ class RJConductProcessesRepository extends ServiceEntityRepository
     public function isExistingById(int $id): bool | RJConductProcesses
     {
         $RJConductProcesses = $this->findOneBy([
-            'rjConductProcessId' => $id
+            'rjConductProcessId' => $id,
+            'deletedAt' => null
         ]);
 
         return ($RJConductProcesses == null) ? false : $RJConductProcesses;
@@ -155,7 +159,7 @@ class RJConductProcessesRepository extends ServiceEntityRepository
             'cacheTag' => self::CACHE_TAG
         ];
 
-        return $this->helper->createCachedResponseCustomQuery($params, function($clientId, $quarterId, $fieldOfficeId) {
+        return $this->helper->createCachedResponseCustomQuery($params, function() use($clientId, $quarterId, $fieldOfficeId) {
             $conn = $this->getEntityManager()->getConnection();
             $sql = "SELECT rjcp.*, c.first_name, c.middle_name, c.last_name, c.gender, c.is_pwd, c.is_senior_citizen,
                     o.name as offense, rjcp.pe_date, (SELECT name FROM venues WHERE venues.venue_id = rjcp.pe_venue_id) as pe_venue,
@@ -182,7 +186,8 @@ class RJConductProcessesRepository extends ServiceEntityRepository
         $RJConductProcesses = $this->findOneBy([
             'clientId' => $data->getClientId(),
             'quarterId' => $data->getQuarterId(),
-            'fieldOfficeId' => $data->getFieldOfficeId()
+            'fieldOfficeId' => $data->getFieldOfficeId(),
+            'deletedAt' => null
         ]);
 
         return ($RJConductProcesses == null) ? false : $RJConductProcesses;

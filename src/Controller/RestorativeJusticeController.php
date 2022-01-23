@@ -49,6 +49,14 @@ class RestorativeJusticeController extends AbstractController
     }
 
     /**
+     * @Route("/conduct-process/by/id/{id}", methods={"GET"})
+     */
+    public function getRJConductProcessById(Request $request): Response
+    {
+        return $this->json($this->conductProcessesService->getById((int) $request->get("id")));
+    }
+
+    /**
      * @Route("/conduct-process/delete/{id}", methods={"GET"})
      */
     public function deleteRJConductProcessById(Request $request): Response

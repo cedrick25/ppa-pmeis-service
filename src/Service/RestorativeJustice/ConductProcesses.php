@@ -10,6 +10,7 @@ use Doctrine\ORM\Exception\ORMException;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 use Psr\Cache\CacheException;
 use Psr\Cache\InvalidArgumentException;
+use Exception;
 
 class ConductProcesses implements ConductProcessesInterface
 {
@@ -39,7 +40,7 @@ class ConductProcesses implements ConductProcessesInterface
             return $this->appFormatter->formatResponse(ResponseEnum::CREATING_FAILED, null, ['cache' => $exception->getMessage()]);
         } catch (ORMException $exception) {
             return $this->appFormatter->formatResponse(ResponseEnum::CREATING_FAILED, null, ['orm' => $exception->getMessage()]);
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             return $this->appFormatter->formatResponse(ResponseEnum::CREATING_FAILED, null, ['app' => $e->getMessage()]);
         }
     }
@@ -57,6 +58,17 @@ class ConductProcesses implements ConductProcessesInterface
         } catch (CacheException|InvalidArgumentException $exception) {
             return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_FAILED, null, ['cache' => $exception->getMessage()]);
         }
+    }
+
+    public function getById(int $id): array
+    {
+        $RJConductProcess = $this->repository->isExistingById($id);
+
+        if (!$RJConductProcess) {
+            return $this->appFormatter->formatResponse(ResponseEnum::NO_DATA, null);
+        }
+
+        return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_SUCCESS, $RJConductProcess);
     }
 
     public function deleteById(int $id): array
