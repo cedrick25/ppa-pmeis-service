@@ -189,12 +189,14 @@ class TCIA8 implements Form
             'FIRST' => 'N', 'SECOND' => 'S', 'THIRD' => 'X', 'FOURTH' => 'AC'
         ];
 
-        $totalData['female'] = 0;
-        $totalData['male'] = 0;
-        $totalData['pwd'] = 0;
-        $totalData['senior_citizen'] = 0;
-        $totalData['do'] = 0;
-        $totalData['ndo'] = 0;
+        $totalData = [
+            'female' => 0,
+            'male' => 0,
+            'pwd' => 0,
+            'senior_citizen' => 0,
+            'do' => 0,
+            'ndo' => 0,
+        ];
         $monthlyTotal = [];
         $rowNumber = 1;
         $rows = $this->data['rows'];
@@ -250,6 +252,7 @@ class TCIA8 implements Form
             foreach ($row['month_quarter'] as $monthQuarter) {
                 $spreadsheet->getActiveSheet()->setCellValue($quarterMonthCoordinates[$monthQuarter] . $this->lastFilledOutCellY, '1');
                 $monthInitial = explode('_', $monthQuarter)[1];
+
                 if (!isset($monthlyTotal[$row['quarter']][$monthInitial])) {
                     $monthlyTotal[$row['quarter']][$monthInitial] = 0;
                 }
@@ -260,6 +263,7 @@ class TCIA8 implements Form
             foreach ($row['month_quarter_fsi'] as $monthQuarter) {
                 $spreadsheet->getActiveSheet()->setCellValue($fsiCoordinates[$monthQuarter] . $this->lastFilledOutCellY, '√');
                 $quarter = explode('_', $monthQuarter)[0];
+
                 if (!isset($monthlyTotal[$quarter]['FSI'])) {
                     $monthlyTotal[$quarter]['FSI'] = 0;
                 }
