@@ -13,9 +13,8 @@ class RJIB1 implements Form
 {
     private const TABLE_NAME = "RJIB1";
 
-
     public function __construct(
-        private int $lastFilledOutCellY = 14,
+        private int   $lastFilledOutCellY = 14,
         private array $data = [],
     ){}
 
@@ -34,15 +33,16 @@ class RJIB1 implements Form
         $spreadsheet = $this->footer();
         $writer = IOFactory::createWriter($spreadsheet, "Xlsx");
 
-        $filePath = $_ENV['XLSX_PATH_FILE'] . self::TABLE_NAME . "-" . time() .".xlsx";
+        $filePath = $_ENV['XLSX_PATH_FILE'] . self::TABLE_NAME . "-" . time() . ".xlsx";
         $writer->save($filePath);
 
         return new BinaryFileResponse($filePath);
     }
 
-    public function header(): Spreadsheet
+    public function footer(): Spreadsheet
     {
-        $spreadsheet = $this->prepare();
+        $spreadsheet = $this->body();
+        $this->lastFilledOutCellY++;
 
         return $spreadsheet;
     }
@@ -54,20 +54,20 @@ class RJIB1 implements Form
         return $spreadsheet;
     }
 
-    public function footer(): Spreadsheet
+    public function header(): Spreadsheet
     {
-        $spreadsheet = $this->body();
-        $this->lastFilledOutCellY++;
+        $spreadsheet = $this->prepare();
 
         return $spreadsheet;
     }
 
     /**
+     * @throws \PhpOffice\PhpSpreadsheet\Exception
      */
     private function prepare(): Spreadsheet
     {
         $spreadsheet = new Spreadsheet();
 
-         return $spreadsheet;
+        return $spreadsheet;
     }
 }

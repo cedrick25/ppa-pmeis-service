@@ -174,7 +174,7 @@ class RJConductProcessesRepository extends ServiceEntityRepository
                 "LEFT JOIN rjprocess_status as rjps ON rjcp.rjps_id = rjps.id_rjprocess_status " .
                 "LEFT JOIN rjoutcomes as ro ON rjcp.rjo_id = ro.rj_outcome_id " .
                 "WHERE rjcp.client_id = $clientId AND rjcp.quarter_id = $quarterId AND rjcp.field_office_id = $fieldOfficeId ".
-                "AND rjcp.deleted_at IS NULL ORDER BY rjcp.rj_conduct_process_id DESC";
+                "AND rjcp.deleted_at IS NULL ORDER BY rjcp.rj_group";
             $stmt = $conn->prepare($sql);
             $query = $stmt->executeQuery();
 
