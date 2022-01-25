@@ -192,28 +192,51 @@ class TCIA2 implements Form
             'FIRST' => 'P', 'SECOND' => 'U', 'THIRD' => 'Z', 'FOURTH' => 'AE'
         ];
 
+        $totalData = [
+            'female' => 0,
+            'male' => 0,
+            'pwd' => 0,
+            'senior_citizen' => 0,
+            'do' => 0,
+            'ndo' => 0,
+        ];
+        $monthlyTotal = [];
         $rowNumber = 1;
         foreach ($this->data['rows'] as $row) {
             $this->lastFilledOutCellY++;
             $middleInitial = $row['middle_name'] != null ? substr($row['middle_name'], 0, 1) . '.' : '';
             $fullName = $row['last_name'] . ', ' . $row['first_name'] . ' ' . $middleInitial;
-            $genderCoordinate = ($row['gender'] === 'F') ? 'C' : 'D';
-            $offenseCoordinate = ($row['offense_category'] === 'DO') ? 'H' : 'I';
             $dateOfBirth = $this->appDateHelper->convertStringToImmutableDate($row['date_of_birth']);
             $supervisionStart = $this->appDateHelper->convertStringToImmutableDate($row['supervision_start']);
             $supervisionEnd = $this->appDateHelper->convertStringToImmutableDate($row['supervision_end']);
 
             $spreadsheet->getActiveSheet()->setCellValue("A" . $this->lastFilledOutCellY, $rowNumber);
             $spreadsheet->getActiveSheet()->setCellValue("B" . $this->lastFilledOutCellY, $fullName);
-            $spreadsheet->getActiveSheet()->setCellValue($genderCoordinate . $this->lastFilledOutCellY, '∕');
+
+            if ($row['gender'] === 'F') {
+                $spreadsheet->getActiveSheet()->setCellValue('C' . $this->lastFilledOutCellY, '∕');
+                $totalData['female']++;
+            } else {
+                $spreadsheet->getActiveSheet()->setCellValue('D' . $this->lastFilledOutCellY, '∕');
+                $totalData['male']++;
+            }
+
             if ($row['is_pwd'] !== '0') {
                 $spreadsheet->getActiveSheet()->setCellValue('E' . $this->lastFilledOutCellY, '∕');
             }
             if ($row['is_senior_citizen'] !== '0') {
                 $spreadsheet->getActiveSheet()->setCellValue('F' . $this->lastFilledOutCellY, '∕');
             }
+
+            if ($row['offense_category'] === 'DO') {
+                $spreadsheet->getActiveSheet()->setCellValue('H' . $this->lastFilledOutCellY, '∕');
+                $totalData['do']++;
+            } else {
+                $spreadsheet->getActiveSheet()->setCellValue('I' . $this->lastFilledOutCellY, '∕');
+                $totalData['ndo']++;
+            }
+
             $spreadsheet->getActiveSheet()->setCellValue("G" . $this->lastFilledOutCellY, $dateOfBirth->format('d-M-y'));
-            $spreadsheet->getActiveSheet()->setCellValue($offenseCoordinate . $this->lastFilledOutCellY, '∕');
             $spreadsheet->getActiveSheet()->setCellValue("J" . $this->lastFilledOutCellY, $supervisionStart->format('d-M-y'));
             $spreadsheet->getActiveSheet()->setCellValue("K" . $this->lastFilledOutCellY, $supervisionEnd->format('d-M-y'));
 
@@ -221,14 +244,27 @@ class TCIA2 implements Form
 
             foreach ($row['month_quarter'] as $monthQuarter) {
                 $spreadsheet->getActiveSheet()->setCellValue($quarterMonthCoordinates[$monthQuarter] . $this->lastFilledOutCellY, '1');
+                $monthInitial = explode('_', $monthQuarter)[1];
+
+                if (!isset($monthlyTotal[$row['quarter']][$monthInitial])) {
+                    $monthlyTotal[$row['quarter']][$monthInitial] = 0;
+                }
+
+                $monthlyTotal[$row['quarter']][$monthInitial]++;
             }
 
             foreach ($row['month_quarter_fsi'] as $monthQuarter) {
                 $spreadsheet->getActiveSheet()->setCellValue($fsiCoordinates[$monthQuarter] . $this->lastFilledOutCellY, '√');
+                $quarter = explode('_', $monthQuarter)[0];
+
+                if (!isset($monthlyTotal[$quarter]['FSI'])) {
+                    $monthlyTotal[$quarter]['FSI'] = 0;
+                }
+
+                $monthlyTotal[$quarter]['FSI']++;
             }
 
             $spreadsheet->getActiveSheet()->setCellValue("AF" . $this->lastFilledOutCellY, $row['remarks']);
-
             $spreadsheet->getActiveSheet()->getStyle("A" . $this->lastFilledOutCellY . ":AF" . $this->lastFilledOutCellY)->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
 
             if (!isset($this->summaryData[$row['quarter']][$row['phase']])) {
@@ -239,6 +275,79 @@ class TCIA2 implements Form
 
             $rowNumber++;
         }
+
+        $this->lastFilledOutCellY += 2;
+        $spreadsheet->getActiveSheet()
+            ->getStyle("A" . $this->lastFilledOutCellY . ":AF" . $this->lastFilledOutCellY)
+            ->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
+
+        $this->lastFilledOutCellY++;
+        $spreadsheet->getActiveSheet()->setCellValue('B' . $this->lastFilledOutCellY, 'TOTAL');
+        $spreadsheet->getActiveSheet()->setCellValue('C' . $this->lastFilledOutCellY, $totalData['female']);
+        $spreadsheet->getActiveSheet()->setCellValue('D' . $this->lastFilledOutCellY, $totalData['male']);
+        $spreadsheet->getActiveSheet()->setCellValue('E' . $this->lastFilledOutCellY, $totalData['pwd']);
+        $spreadsheet->getActiveSheet()->setCellValue('F' . $this->lastFilledOutCellY, $totalData['senior_citizen']);
+        $spreadsheet->getActiveSheet()->setCellValue('G' . $this->lastFilledOutCellY, 'TOTAL');
+        $spreadsheet->getActiveSheet()->setCellValue('H' . $this->lastFilledOutCellY, $totalData['do']);
+        $spreadsheet->getActiveSheet()->setCellValue('I' . $this->lastFilledOutCellY, $totalData['ndo']);
+        $spreadsheet->getActiveSheet()->getStyle('A' . $this->lastFilledOutCellY . ':' . 'AE' . $this->lastFilledOutCellY)->getFont()->setBold(true);
+        $spreadsheet->getActiveSheet()
+            ->getStyle("A" . $this->lastFilledOutCellY . ":AF" . $this->lastFilledOutCellY)
+            ->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
+        $spreadsheet->getActiveSheet()
+            ->getStyle("C" . $this->lastFilledOutCellY . ":F" . $this->lastFilledOutCellY)
+            ->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_MEDIUM);
+        $spreadsheet->getActiveSheet()
+            ->getStyle("H" . $this->lastFilledOutCellY . ":I" . $this->lastFilledOutCellY)
+            ->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_MEDIUM);
+
+        $this->lastFilledOutCellY++;
+        $quarterMonthTotalCoordinates = [
+            'FIRST' => [
+                'J' => 'M', 'F' => 'N', 'M' => 'O', 'FSI' => 'P'
+            ],
+            'SECOND' => [
+                'A' => 'R', 'M' => 'S', 'J' => 'T', 'FSI' => 'U'
+            ],
+            'THIRD' => [
+                'J' => 'W', 'A' => 'X', 'S' => 'Y', 'FSI' => 'Z'
+            ],
+            'FOURTH' => [
+                'O' => 'AB', 'N' => 'AC', 'D' => 'AD', 'FSI' => 'AE'
+            ]
+        ];
+
+        $spreadsheet->getActiveSheet()->setCellValue('B' . $this->lastFilledOutCellY, 'Total # of clients attending TC');
+        $spreadsheet->getActiveSheet()->mergeCells('B' . $this->lastFilledOutCellY . ':K' . $this->lastFilledOutCellY);
+        $spreadsheet->getActiveSheet()->getStyle('B' . $this->lastFilledOutCellY . ':K' . $this->lastFilledOutCellY)->getAlignment()->setHorizontal('center');
+        $spreadsheet->getActiveSheet()->setCellValue('L' . $this->lastFilledOutCellY, 'TOTAL');
+        $spreadsheet->getActiveSheet()->setCellValue('Q' . $this->lastFilledOutCellY, 'TOTAL');
+        $spreadsheet->getActiveSheet()->setCellValue('V' . $this->lastFilledOutCellY, 'TOTAL');
+        $spreadsheet->getActiveSheet()->setCellValue('AA' . $this->lastFilledOutCellY, 'TOTAL');
+        $spreadsheet->getActiveSheet()->getStyle('A' . $this->lastFilledOutCellY . ':' . 'AE' . $this->lastFilledOutCellY)->getFont()->setBold(true);
+        $spreadsheet->getActiveSheet()
+            ->getStyle("A" . $this->lastFilledOutCellY . ":AF" . $this->lastFilledOutCellY)
+            ->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
+        $spreadsheet->getActiveSheet()
+            ->getStyle("M" . $this->lastFilledOutCellY . ":P" . $this->lastFilledOutCellY)
+            ->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_MEDIUM);
+        $spreadsheet->getActiveSheet()
+            ->getStyle("R" . $this->lastFilledOutCellY . ":U" . $this->lastFilledOutCellY)
+            ->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_MEDIUM);
+        $spreadsheet->getActiveSheet()
+            ->getStyle("W" . $this->lastFilledOutCellY . ":Z" . $this->lastFilledOutCellY)
+            ->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_MEDIUM);
+        $spreadsheet->getActiveSheet()
+            ->getStyle("AB" . $this->lastFilledOutCellY . ":AE" . $this->lastFilledOutCellY)
+            ->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_MEDIUM);
+
+        foreach ($monthlyTotal as $quarter => $row) {
+            foreach ($row as $monthFsi => $score) {
+                $spreadsheet->getActiveSheet()->setCellValue($quarterMonthTotalCoordinates[$quarter][$monthFsi] . $this->lastFilledOutCellY, $score);
+            }
+        }
+
+        $spreadsheet->getActiveSheet()->getStyle('C9:AF' . $this->lastFilledOutCellY)->getAlignment()->setHorizontal('center');
 
         return $spreadsheet;
     }

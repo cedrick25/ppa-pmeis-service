@@ -258,7 +258,6 @@ class TCIA4 implements Form
 
             foreach ($row['month_quarter_fsi'] as $monthQuarter) {
                 $spreadsheet->getActiveSheet()->setCellValue($fsiCoordinates[$monthQuarter] . $this->lastFilledOutCellY, '√');
-
                 $quarter = explode('_', $monthQuarter)[0];
 
                 if (!isset($monthlyTotal[$quarter]['FSI'])) {

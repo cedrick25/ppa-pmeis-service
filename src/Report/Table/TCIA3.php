@@ -258,7 +258,6 @@ class TCIA3 implements Form
 
             foreach ($row['month_quarter_fsi'] as $monthQuarter) {
                 $spreadsheet->getActiveSheet()->setCellValue($fsiCoordinates[$monthQuarter] . $this->lastFilledOutCellY, '√');
-
                 $quarter = explode('_', $monthQuarter)[0];
 
                 if (!isset($monthlyTotal[$quarter]['FSI'])) {
@@ -269,7 +268,6 @@ class TCIA3 implements Form
             }
 
             $spreadsheet->getActiveSheet()->setCellValue("AF" . $this->lastFilledOutCellY, $row['remarks']);
-
             $spreadsheet->getActiveSheet()->getStyle("A" . $this->lastFilledOutCellY . ":AF" . $this->lastFilledOutCellY)->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
 
             if (!isset($this->summaryData[$row['quarter']][$row['phase']])) {
