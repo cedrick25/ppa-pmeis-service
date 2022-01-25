@@ -235,4 +235,14 @@ class CacheHelper
     {
         return 'rj_process_all';
     }
+
+    public function getAllRJProcessStatusKey(): string
+    {
+        return 'rj_process_status_all';
+    }
+
+    public function getAllRJOutcomesKey(): string
+    {
+        return 'rj_outcomes_all';
+    }
 }

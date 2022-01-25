@@ -9,7 +9,9 @@ use App\Common\AppHydrator;
 use App\Model\RJConductProcesses as RJConductProcessesModel;
 use App\Service\RestorativeJustice\ConductProcessesInterface;
 use App\Service\RestorativeJustice\OffensesInterface;
+use App\Service\RestorativeJustice\RJOutcomesInterface;
 use App\Service\RestorativeJustice\RJProcessesInterface;
+use App\Service\RestorativeJustice\RJProcessStatusInterface;
 use ReflectionException;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -27,6 +29,8 @@ class RestorativeJusticeController extends AbstractController
         private ConductProcessesInterface $conductProcessesService,
         private OffensesInterface $offensesService,
         private RJProcessesInterface $rjProcessesService,
+        private RJProcessStatusInterface $rjProcessStatusService,
+        private RJOutcomesInterface $rjOutcomesService,
     ){}
 
     /**
@@ -143,5 +147,37 @@ class RestorativeJusticeController extends AbstractController
     public function getRJProcessById(Request $request): Response
     {
         return $this->json($this->rjProcessesService->getById((int) $request->get("id")));
+    }
+
+    /**
+     * @Route("/rj-process-status/list", methods={"GET"})
+     */
+    public function getAllRJProcessesStatus(): Response
+    {
+        return $this->json($this->rjProcessStatusService->getAll());
+    }
+
+    /**
+     * @Route("/rj-process-status/by/id/{id}", methods={"GET"})
+     */
+    public function getRJProcessStatusById(Request $request): Response
+    {
+        return $this->json($this->rjProcessStatusService->getById((int) $request->get("id")));
+    }
+
+    /**
+     * @Route("/rj-outcomes/list", methods={"GET"})
+     */
+    public function getAllRJOutcomes(): Response
+    {
+        return $this->json($this->rjOutcomesService->getAll());
+    }
+
+    /**
+     * @Route("/rj-outcomes/by/id/{id}", methods={"GET"})
+     */
+    public function getRJOutcomeById(Request $request): Response
+    {
+        return $this->json($this->rjOutcomesService->getById((int) $request->get("id")));
     }
 }

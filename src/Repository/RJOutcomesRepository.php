@@ -2,9 +2,12 @@
 
 namespace App\Repository;
 
+use App\Common\CacheHelper;
 use App\Entity\RJOutcomes;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
+use Psr\Cache\CacheException;
+use Psr\Cache\InvalidArgumentException;
 
 /**
  * @method RJOutcomes|null find($id, $lockMode = null, $lockVersion = null)
@@ -14,37 +17,45 @@ use Doctrine\Persistence\ManagerRegistry;
  */
 class RJOutcomesRepository extends ServiceEntityRepository
 {
-    public function __construct(ManagerRegistry $registry)
-    {
+    protected const CACHE_TAG = "rj_outcomes";
+
+    public function __construct(
+        ManagerRegistry $registry,
+        private CacheHelper $cacheHelper,
+        private Helper $helper,
+    ){
         parent::__construct($registry, RJOutcomes::class);
     }
 
-    // /**
-    //  * @return RJOutcomes[] Returns an array of RJOutcomes objects
-    //  */
-    /*
-    public function findByExampleField($value)
+    /**
+     * @throws CacheException
+     * @throws InvalidArgumentException
+     * @return RJOutcomes[]
+     */
+    public function list(): array
     {
-        return $this->createQueryBuilder('r')
-            ->andWhere('r.exampleField = :val')
-            ->setParameter('val', $value)
-            ->orderBy('r.id', 'ASC')
-            ->setMaxResults(10)
-            ->getQuery()
-            ->getResult()
-        ;
-    }
-    */
+        $params = [
+            'cacheKey' => $this->cacheHelper->getAllRJOutcomesKey(),
+            'expiration' => $this->cacheHelper->getExpirationDateTime(),
+            'cacheTag' => self::CACHE_TAG
+        ];
 
-    /*
-    public function findOneBySomeField($value): ?RJOutcomes
-    {
-        return $this->createQueryBuilder('r')
-            ->andWhere('r.exampleField = :val')
-            ->setParameter('val', $value)
-            ->getQuery()
-            ->getOneOrNullResult()
-        ;
+        return $this->helper->createCachedResponse($params, function() {
+            return $this->createQueryBuilder('ro')
+                ->where('ro.deletedAt IS NULL')
+                ->orderBy('ro.rjOutcomeId', 'DESC')
+                ->getQuery()
+                ->getResult();
+        });
     }
-    */
+
+    public function isExistingById(int $id): bool | RJOutcomes
+    {
+        $RJOutcome = $this->findOneBy([
+            'rjOutcomeId' => $id,
+            'deletedAt' => null
+        ]);
+
+        return ($RJOutcome == null) ? false : $RJOutcome;
+    }
 }
