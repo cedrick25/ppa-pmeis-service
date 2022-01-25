@@ -6,6 +6,7 @@ use App\Common\AppFormatter;
 use App\Common\AppHydrator;
 use App\Model\RJConductProcesses as RJConductProcessesModel;
 use App\Service\RestorativeJustice\ConductProcessesInterface;
+use App\Service\RestorativeJustice\OffensesInterface;
 use ReflectionException;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -21,6 +22,7 @@ class RestorativeJusticeController extends AbstractController
         private AppHydrator $appHydrator,
         private AppFormatter $appFormatter,
         private ConductProcessesInterface $conductProcessesService,
+        private OffensesInterface $offensesService,
     ){}
 
     /**
@@ -76,4 +78,50 @@ class RestorativeJusticeController extends AbstractController
         ));
     }
 
+    /**
+     * @Route("/offense/create/{name}/{type}", methods={"GET"})
+     */
+    public function createOffense(Request $request): Response
+    {
+        return $this->json($this->offensesService->create(
+            $request->get("name"),
+            $request->get("type"))
+        );
+    }
+
+    /**
+     * @Route("/offense/list", methods={"GET"})
+     */
+    public function getAllOffenses(): Response
+    {
+        return $this->json($this->offensesService->getAll());
+    }
+
+    /**
+     * @Route("/offense/by/id/{id}", methods={"GET"})
+     */
+    public function getOffenseById(Request $request): Response
+    {
+        return $this->json($this->offensesService->getById((int) $request->get("id")));
+    }
+
+    /**
+     * @Route("/offense/update/{id}/{name}/{type}", methods={"GET"})
+     */
+    public function updateOffenseById(Request $request): Response
+    {
+        return $this->json($this->offensesService->updateById(
+            (int) $request->get("id"),
+            $request->get("name"),
+            $request->get("type"))
+        );
+    }
+
+    /**
+     * @Route("/offense/delete/{id}", methods={"GET"})
+     */
+    public function deleteOffenseById(Request $request): Response
+    {
+        return $this->json($this->offensesService->deleteById((int) $request->get("id")));
+    }
 }
