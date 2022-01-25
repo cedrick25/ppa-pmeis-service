@@ -388,7 +388,7 @@ class TCIA4 implements Form
             'A1' => 'ACTIVE SUPERVISION',
             'G1' => '(per Form 21)',
             'AF1' => 'PPA- PLD-FR-004',
-            'A2' => 'Table I.A.3 - PAROLEES',
+            'A2' => 'Table I.A.4 - PARDONEES',
             'C3' => 'Sex',
             'G3' => 'Date',
             'H3' => '(7)',
