@@ -1,10 +1,16 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Repository;
 
+use App\Common\CacheHelper;
 use App\Entity\RJProcesses;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
+use Psr\Cache\CacheException;
+use Psr\Cache\InvalidArgumentException;
+use Symfony\Contracts\Cache\TagAwareCacheInterface;
 
 /**
  * @method RJProcesses|null find($id, $lockMode = null, $lockVersion = null)
@@ -14,37 +20,45 @@ use Doctrine\Persistence\ManagerRegistry;
  */
 class RJProcessesRepository extends ServiceEntityRepository
 {
-    public function __construct(ManagerRegistry $registry)
-    {
+    protected const CACHE_TAG = "rj_process";
+
+    public function __construct(
+        ManagerRegistry $registry,
+        private CacheHelper $cacheHelper,
+        private Helper $helper,
+    ){
         parent::__construct($registry, RJProcesses::class);
     }
 
-    // /**
-    //  * @return RJProcesses[] Returns an array of RJProcesses objects
-    //  */
-    /*
-    public function findByExampleField($value)
+    /**
+     * @throws CacheException
+     * @throws InvalidArgumentException
+     * @return RJProcesses[]
+     */
+    public function list(): array
     {
-        return $this->createQueryBuilder('r')
-            ->andWhere('r.exampleField = :val')
-            ->setParameter('val', $value)
-            ->orderBy('r.id', 'ASC')
-            ->setMaxResults(10)
-            ->getQuery()
-            ->getResult()
-        ;
-    }
-    */
+        $params = [
+            'cacheKey' => $this->cacheHelper->getAllRJProcessKey(),
+            'expiration' => $this->cacheHelper->getExpirationDateTime(),
+            'cacheTag' => self::CACHE_TAG
+        ];
 
-    /*
-    public function findOneBySomeField($value): ?RJProcesses
-    {
-        return $this->createQueryBuilder('r')
-            ->andWhere('r.exampleField = :val')
-            ->setParameter('val', $value)
-            ->getQuery()
-            ->getOneOrNullResult()
-        ;
+        return $this->helper->createCachedResponse($params, function() {
+            return $this->createQueryBuilder('rp')
+                ->where('rp.deletedAt IS NULL')
+                ->orderBy('rp.idRJProcesses', 'DESC')
+                ->getQuery()
+                ->getResult();
+        });
     }
-    */
+
+    public function isExistingById(int $id): bool | RJProcesses
+    {
+        $RJProcess = $this->findOneBy([
+            'idRJProcesses' => $id,
+            'deletedAt' => null
+        ]);
+
+        return ($RJProcess == null) ? false : $RJProcess;
+    }
 }

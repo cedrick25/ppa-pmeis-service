@@ -44,7 +44,7 @@ class OffensesRepository extends ServiceEntityRepository
     public function list(): array
     {
         $params = [
-            'cacheKey' => $this->cacheHelper->getAllPositionsKey(),
+            'cacheKey' => $this->cacheHelper->getAllOffensesKey(),
             'expiration' => $this->cacheHelper->getExpirationDateTime(),
             'cacheTag' => self::CACHE_TAG
         ];

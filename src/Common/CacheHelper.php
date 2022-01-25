@@ -225,4 +225,14 @@ class CacheHelper
     {
         return 'rjib1_' . $clientId . '_' . $quarterId . '_' . $fieldOffice;
     }
+
+    public function getAllOffensesKey(): string
+    {
+        return 'offenses_all';
+    }
+
+    public function getAllRJProcessKey(): string
+    {
+        return 'rj_process_all';
+    }
 }

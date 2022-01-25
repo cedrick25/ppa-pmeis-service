@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Controller;
 
 use App\Common\AppFormatter;
@@ -7,6 +9,7 @@ use App\Common\AppHydrator;
 use App\Model\RJConductProcesses as RJConductProcessesModel;
 use App\Service\RestorativeJustice\ConductProcessesInterface;
 use App\Service\RestorativeJustice\OffensesInterface;
+use App\Service\RestorativeJustice\RJProcessesInterface;
 use ReflectionException;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -23,6 +26,7 @@ class RestorativeJusticeController extends AbstractController
         private AppFormatter $appFormatter,
         private ConductProcessesInterface $conductProcessesService,
         private OffensesInterface $offensesService,
+        private RJProcessesInterface $rjProcessesService,
     ){}
 
     /**
@@ -123,5 +127,21 @@ class RestorativeJusticeController extends AbstractController
     public function deleteOffenseById(Request $request): Response
     {
         return $this->json($this->offensesService->deleteById((int) $request->get("id")));
+    }
+
+    /**
+     * @Route("/rj-process/list", methods={"GET"})
+     */
+    public function getAllRJProcesses(): Response
+    {
+        return $this->json($this->rjProcessesService->getAll());
+    }
+
+    /**
+     * @Route("/rj-process/by/id/{id}", methods={"GET"})
+     */
+    public function getRJProcessById(Request $request): Response
+    {
+        return $this->json($this->rjProcessesService->getById((int) $request->get("id")));
     }
 }
