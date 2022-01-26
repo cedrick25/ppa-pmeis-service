@@ -211,9 +211,8 @@ class TCIA8 implements Form
                 $spreadsheet->getActiveSheet()->setCellValue('A' . $this->lastFilledOutCellY, 'TERMINATED');
                 $spreadsheet->getActiveSheet()->getStyle('A' . $this->lastFilledOutCellY)->getFont()->setBold(true);
                 $isTermShowed = true;
+                $this->lastFilledOutCellY++;
             }
-
-            $this->lastFilledOutCellY++;
 
             $middleInitial = $row['middle_name'] != null ? substr($row['middle_name'], 0, 1) . '.' : '';
             $fullName = $row['last_name'] . ', ' . $row['first_name'] . ' ' . $middleInitial;

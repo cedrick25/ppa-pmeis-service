@@ -7,6 +7,8 @@ namespace App\Report\Table;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Style\Border;
+use PhpOffice\PhpSpreadsheet\Style\Color;
+use PhpOffice\PhpSpreadsheet\Style\Fill;
 use PhpOffice\PhpSpreadsheet\Writer\Exception;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
@@ -15,7 +17,7 @@ class RJIB1 implements Form
     private const TABLE_NAME = "RJIB1";
 
     public function __construct(
-        private int   $lastFilledOutCellY = 14,
+        private int   $lastFilledOutCellY = 11,
         private array $data = [],
     ){}
 
@@ -48,9 +50,35 @@ class RJIB1 implements Form
         return $spreadsheet;
     }
 
+    /**
+     * @throws \PhpOffice\PhpSpreadsheet\Exception
+     */
     public function body(): Spreadsheet
     {
         $spreadsheet = $this->header();
+        $rows = ['PETITIONER' => [], 'ACTIVE_SUPERVISION' => []];
+
+        foreach ($this->data['rows'] as $row) {
+            $rows[$row['rj_group']][] = $row;
+        }
+
+        $spreadsheet = $this->buildBody($spreadsheet, $rows['ACTIVE_SUPERVISION'], 'ACTIVE_SUPERVISION');
+
+        $this->lastFilledOutCellY++;
+        $savedPetLastFilledOutCellY = $this->lastFilledOutCellY;
+        $spreadsheet->getActiveSheet()->setCellValue('A' . $this->lastFilledOutCellY, 'II. PETITIONERS');
+        $spreadsheet->getActiveSheet()->getStyle('A' . $this->lastFilledOutCellY)->getFont()->setBold(true);
+        $spreadsheet->getActiveSheet()
+            ->getStyle("A" . $this->lastFilledOutCellY . ":Q" . $this->lastFilledOutCellY)
+            ->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
+
+        $spreadsheet = $this->buildBody($spreadsheet, $rows['PETITIONER'], 'PETITIONER');
+
+        $spreadsheet->getActiveSheet()->getStyle('A' . $savedPetLastFilledOutCellY .':Q' . $savedPetLastFilledOutCellY)->getAlignment()->setWrapText(false);
+        $spreadsheet->getActiveSheet()->getStyle('A' . $savedPetLastFilledOutCellY .':Q' . $savedPetLastFilledOutCellY)->getAlignment()->setHorizontal('left');
+
+        $this->lastFilledOutCellY++;
+        // Footer
 
         return $spreadsheet;
     }
@@ -127,7 +155,7 @@ class RJIB1 implements Form
         $horizontalAlignedCoordinates = ["A5:Q9" => "center"];
 
         $adjustedColumnWidthCoordinates = [
-            'C' => 3, 'D' => 3, 'E' => 3, 'F' => 7, 'G' => 10, 'H' => 8, 'I' => 10, 'J' => 12, 'K' => 8, 'L' => 10, 'M' => 10, 'N' => 9, 'O' => 35, 'P' => 35, 'Q' => 35
+            'C' => 3, 'D' => 3, 'E' => 3, 'F' => 7, 'G' => 10, 'H' => 8, 'I' => 20, 'J' => 12, 'K' => 8, 'L' => 20, 'M' => 10, 'N' => 9, 'O' => 35, 'P' => 35, 'Q' => 35
         ];
 
         $outlineBorderThinCoordinates = [
@@ -172,6 +200,158 @@ class RJIB1 implements Form
 
         $spreadsheet->getActiveSheet()->getStyle("D10:Q10")->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
         $spreadsheet->getActiveSheet()->getStyle("A11:Q11")->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
+
+        return $spreadsheet;
+    }
+
+    /**
+     * @param Spreadsheet $spreadsheet
+     * @param array<string, mixed> $rows
+     * @param string $groupType
+     * @return Spreadsheet
+     * @throws \PhpOffice\PhpSpreadsheet\Exception
+     */
+    private function buildBody(Spreadsheet $spreadsheet, array $rows, string $groupType): Spreadsheet
+    {
+        $rjpStatusResolvedCriteria = ['Completed', 'Agreement Reached'];
+
+        $totalData = [
+            'ACTIVE_SUPERVISION' => [
+                'female' => 0,
+                'male' => 0,
+                'pwd' => 0,
+                'senior_citizen' => 0,
+                'rjp_type' => 0,
+                'rjp_status' => [
+                    'resolved' => 0,
+                    'unresolved' => 0
+                ],
+                'rj_outcome' => [
+                    'R' => 0,
+                    'CWS' => 0,
+                    'RR' => 0,
+                    'O' => 0
+                ]
+            ],
+            'PETITIONER' => [
+                'female' => 0,
+                'male' => 0,
+                'pwd' => 0,
+                'senior_citizen' => 0,
+                'rjp_type' => 0,
+                'rjp_status' => [
+                    'resolved' => 0,
+                    'unresolved' => 0
+                ],
+                'rj_outcome' => [
+                    'R' => 0,
+                    'CWS' => 0,
+                    'RR' => 0,
+                    'O' => 0
+                ]
+            ]
+        ];
+
+        foreach ($rows as $row) {
+            $this->lastFilledOutCellY++;
+            $fullName = $row['first_name'] . ' ' . $row['middle_name'] . ' ' . $row['last_name'];
+
+            $spreadsheet->getActiveSheet()->getRowDimension($this->lastFilledOutCellY)->setRowHeight(70);
+
+            $spreadsheet->getActiveSheet()->setCellValue("A" . $this->lastFilledOutCellY, $fullName);
+
+            if ($row['gender'] === 'F') {
+                $spreadsheet->getActiveSheet()->setCellValue("C" . $this->lastFilledOutCellY, '∕');
+                $totalData[$row['rj_group']]['female']++;
+            } else {
+                $spreadsheet->getActiveSheet()->setCellValue('D' . $this->lastFilledOutCellY, '∕');
+                $totalData[$row['rj_group']]['male']++;
+            }
+
+            if ($row['is_pwd'] !== '0') {
+                $spreadsheet->getActiveSheet()->setCellValue('E' . $this->lastFilledOutCellY, '∕');
+                $totalData[$row['rj_group']]['pwd']++;
+            }
+
+            if ($row['is_senior_citizen'] !== '0') {
+                $spreadsheet->getActiveSheet()->setCellValue('F' . $this->lastFilledOutCellY, '∕');
+                $totalData[$row['rj_group']]['senior_citizen']++;
+            }
+
+            $spreadsheet->getActiveSheet()->setCellValue('G' . $this->lastFilledOutCellY, $row['offense']);
+            $spreadsheet->getActiveSheet()->setCellValue('H' . $this->lastFilledOutCellY, $row['pe_date']);
+            $spreadsheet->getActiveSheet()->setCellValue('I' . $this->lastFilledOutCellY, $row['pe_venue']);
+            $spreadsheet->getActiveSheet()->setCellValue('J' . $this->lastFilledOutCellY, $row['pe_activity']);
+            $spreadsheet->getActiveSheet()->setCellValue('K' . $this->lastFilledOutCellY, $row['rjp_date']);
+            $spreadsheet->getActiveSheet()->setCellValue('L' . $this->lastFilledOutCellY, $row['rjp_venue']);
+            $spreadsheet->getActiveSheet()->setCellValue('M' . $this->lastFilledOutCellY, $row['rjp_type']);
+            $totalData[$row['rj_group']]['rjp_type']++;
+
+            $rjpFullName = $row['planner_fn'] . ' ' . $row['planner_mn'] . ' ' . $row['planner_ln'];
+            $spreadsheet->getActiveSheet()->setCellValue('N' . $this->lastFilledOutCellY, $rjpFullName);
+            $spreadsheet->getActiveSheet()->setCellValue('O' . $this->lastFilledOutCellY, $row['stakeholders']);
+            $spreadsheet->getActiveSheet()->setCellValue('P' . $this->lastFilledOutCellY, $row['rjp_status']);
+            if (\in_array($row['rjp_status'], $rjpStatusResolvedCriteria)) {
+                $totalData[$row['rj_group']]['rjp_status']['resolved']++;
+            } else {
+                $totalData[$row['rj_group']]['rjp_status']['unresolved']++;
+            }
+
+            $spreadsheet->getActiveSheet()->setCellValue('Q' . $this->lastFilledOutCellY, $row['rj_outcome_name']);
+            $totalData[$row['rj_group']]['rj_outcome'][$row['rj_outcome_code']]++;
+
+            $spreadsheet->getActiveSheet()
+                ->getStyle("A" . $this->lastFilledOutCellY . ":Q" . $this->lastFilledOutCellY)
+                ->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
+        }
+
+        $spreadsheet->getActiveSheet()->getStyle('A12:Q' . $this->lastFilledOutCellY)->getAlignment()->setWrapText(true);
+        $spreadsheet->getActiveSheet()->getStyle('A12:Q' . $this->lastFilledOutCellY)->getAlignment()->setVertical('center');
+        $spreadsheet->getActiveSheet()->getStyle('A12:Q' . $this->lastFilledOutCellY)->getAlignment()->setHorizontal('center');
+
+        $this->lastFilledOutCellY++;
+        $spreadsheet->getActiveSheet()->setCellValue('A' . $this->lastFilledOutCellY, 'TOTAL');
+        $spreadsheet->getActiveSheet()->setCellValue('L' . $this->lastFilledOutCellY, 'TOTAL');
+        $spreadsheet->getActiveSheet()->setCellValue('C' . $this->lastFilledOutCellY, $totalData[$groupType]['female']);
+        $spreadsheet->getActiveSheet()->setCellValue('D' . $this->lastFilledOutCellY, $totalData[$groupType]['male']);
+        $spreadsheet->getActiveSheet()->setCellValue('E' . $this->lastFilledOutCellY, $totalData[$groupType]['pwd']);
+        $spreadsheet->getActiveSheet()->setCellValue('F' . $this->lastFilledOutCellY, $totalData[$groupType]['senior_citizen']);
+        $spreadsheet->getActiveSheet()->setCellValue('M' . $this->lastFilledOutCellY, $totalData[$groupType]['rjp_type']);
+        $spreadsheet->getActiveSheet()->setCellValue(
+            'P' . $this->lastFilledOutCellY,
+            'Resolved:' . $totalData[$groupType]['rjp_status']['resolved'] .
+            ' Unresolved:' . $totalData[$groupType]['rjp_status']['unresolved']
+        );
+        $spreadsheet->getActiveSheet()->setCellValue(
+            'Q' . $this->lastFilledOutCellY,
+            'R:' . $totalData[$groupType]['rj_outcome']['R'] .
+            ' CWS:' . $totalData[$groupType]['rj_outcome']['CWS'] .
+            ' RR:' . $totalData[$groupType]['rj_outcome']['RR'] .
+            ' O:' . $totalData[$groupType]['rj_outcome']['O']
+        );
+        $spreadsheet->getActiveSheet()->getStyle('A' . $this->lastFilledOutCellY . ':Q' . $this->lastFilledOutCellY)->getFont()->setBold(true);
+        $spreadsheet->getActiveSheet()
+            ->getStyle("A" . $this->lastFilledOutCellY . ":Q" . $this->lastFilledOutCellY)
+            ->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
+        $spreadsheet->getActiveSheet()
+            ->getStyle("G" . $this->lastFilledOutCellY . ":K" . $this->lastFilledOutCellY)
+            ->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setARGB('80808080');
+        $spreadsheet->getActiveSheet()
+            ->getStyle("N" . $this->lastFilledOutCellY . ":O" . $this->lastFilledOutCellY)
+            ->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setARGB('80808080');
+
+        $spreadsheet->getActiveSheet()->getStyle('A' . $this->lastFilledOutCellY . ':Q' . $this->lastFilledOutCellY)->getAlignment()->setVertical('center');
+        $spreadsheet->getActiveSheet()->getStyle('A' . $this->lastFilledOutCellY . ':Q' . $this->lastFilledOutCellY)->getAlignment()->setHorizontal('center');
+
+        if ($groupType === 'ACTIVE_SUPERVISION') {
+            $this->lastFilledOutCellY++;
+            $spreadsheet->getActiveSheet()
+                ->getStyle("A" . $this->lastFilledOutCellY . ":Q" . $this->lastFilledOutCellY)
+                ->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
+            $spreadsheet->getActiveSheet()
+                ->getStyle("A" . $this->lastFilledOutCellY . ":Q" . $this->lastFilledOutCellY)
+                ->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setARGB('80808080');
+        }
 
         return $spreadsheet;
     }
