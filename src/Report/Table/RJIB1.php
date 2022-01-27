@@ -7,7 +7,6 @@ namespace App\Report\Table;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Style\Border;
-use PhpOffice\PhpSpreadsheet\Style\Color;
 use PhpOffice\PhpSpreadsheet\Style\Fill;
 use PhpOffice\PhpSpreadsheet\Writer\Exception;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
@@ -45,7 +44,55 @@ class RJIB1 implements Form
     public function footer(): Spreadsheet
     {
         $spreadsheet = $this->body();
+
         $this->lastFilledOutCellY++;
+        $footerHeadRowNumber = $this->lastFilledOutCellY;
+        $spreadsheet->getActiveSheet()->setCellValue('A' . $this->lastFilledOutCellY,'a.  TOTAL ADJUSTED SUPERVISION CASELOAD (Refer to Table I.A.7 Supervision Caseload)');
+        $spreadsheet->getActiveSheet()->setCellValue('K' . $this->lastFilledOutCellY,$this->data['footer']['adjusted_supervision_caseload']);
+        $spreadsheet->getActiveSheet()->getStyle('K' . $this->lastFilledOutCellY)->getBorders()->getBottom()->setBorderStyle(Border::BORDER_THIN);
+        $spreadsheet->getActiveSheet()->getStyle('K' . $this->lastFilledOutCellY)->getAlignment()->setHorizontal('center');
+
+        $this->lastFilledOutCellY++;
+        $spreadsheet->getActiveSheet()->setCellValue('A' . $this->lastFilledOutCellY,'b.  TOTAL NUMBER OF CLIENTS WHO HAVE UNDERGONE RJ PROCESS  (Col. 7)');
+        $spreadsheet->getActiveSheet()->setCellValue('J' . $this->lastFilledOutCellY,$this->data['footer']['clients_undergone_rj_process']);
+        $spreadsheet->getActiveSheet()->getStyle('J' . $this->lastFilledOutCellY)->getBorders()->getBottom()->setBorderStyle(Border::BORDER_THIN);
+        $spreadsheet->getActiveSheet()->getStyle('J' . $this->lastFilledOutCellY)->getAlignment()->setHorizontal('center');
+
+        $this->lastFilledOutCellY++;
+        $spreadsheet->getActiveSheet()->setCellValue('C' . $this->lastFilledOutCellY,'- Active Supervision');
+        $spreadsheet->getActiveSheet()->setCellValue('H' . $this->lastFilledOutCellY,$this->data['footer']['active_supervision']);
+        $spreadsheet->getActiveSheet()->getStyle('H' . $this->lastFilledOutCellY)->getBorders()->getBottom()->setBorderStyle(Border::BORDER_THIN);
+        $spreadsheet->getActiveSheet()->getStyle('H' . $this->lastFilledOutCellY)->getAlignment()->setHorizontal('center');
+
+        $this->lastFilledOutCellY++;
+        $spreadsheet->getActiveSheet()->setCellValue('C' . $this->lastFilledOutCellY,'- Petitioners');
+        $spreadsheet->getActiveSheet()->setCellValue('H' . $this->lastFilledOutCellY,$this->data['footer']['petitioners']);
+        $spreadsheet->getActiveSheet()->getStyle('H' . $this->lastFilledOutCellY)->getBorders()->getBottom()->setBorderStyle(Border::BORDER_THIN);
+        $spreadsheet->getActiveSheet()->getStyle('H' . $this->lastFilledOutCellY)->getAlignment()->setHorizontal('center');
+
+        $this->lastFilledOutCellY++;
+        $this->lastFilledOutCellY++;
+        $spreadsheet->getActiveSheet()->setCellValue(
+            'C' . $this->lastFilledOutCellY,
+            "Indicate before client's  name if PS, PR, PD, JICL, FTMDO. (Ex.  PS-Juan dela Cruz); PI  (in accordance with Memo on RJ Guidelines)");
+
+        $this->lastFilledOutCellY++;
+        $spreadsheet->getActiveSheet()->setCellValue('C' . $this->lastFilledOutCellY,'RJ PROCESSES:');
+
+        $this->lastFilledOutCellY++;
+        $spreadsheet->getActiveSheet()->setCellValue('D' . $this->lastFilledOutCellY,'1. Mediation');
+        $spreadsheet->getActiveSheet()->setCellValue('L' . $this->lastFilledOutCellY,'3.  Circle of Support');
+
+        $this->lastFilledOutCellY++;
+        $spreadsheet->getActiveSheet()->setCellValue('D' . $this->lastFilledOutCellY,'2. Conferencing');
+        $spreadsheet->getActiveSheet()->setCellValue('L' . $this->lastFilledOutCellY,'4. Others (Indigenous Practices, etc.)');
+
+        $this->lastFilledOutCellY++;
+        $this->lastFilledOutCellY++;
+        $spreadsheet->getActiveSheet()->setCellValue('B' . $this->lastFilledOutCellY,'NOTE:');
+        $spreadsheet->getActiveSheet()->setCellValue('D' . $this->lastFilledOutCellY,'ATTACH ONE (1) COPY OF ATTENDANCE SHEETS OF ALL ACTIVITIES');
+
+        $spreadsheet->getActiveSheet()->getStyle('A' . $footerHeadRowNumber . ':Q' . $this->lastFilledOutCellY)->getFont()->setBold(true);
 
         return $spreadsheet;
     }
@@ -76,9 +123,6 @@ class RJIB1 implements Form
 
         $spreadsheet->getActiveSheet()->getStyle('A' . $savedPetLastFilledOutCellY .':Q' . $savedPetLastFilledOutCellY)->getAlignment()->setWrapText(false);
         $spreadsheet->getActiveSheet()->getStyle('A' . $savedPetLastFilledOutCellY .':Q' . $savedPetLastFilledOutCellY)->getAlignment()->setHorizontal('left');
-
-        $this->lastFilledOutCellY++;
-        // Footer
 
         return $spreadsheet;
     }
@@ -259,6 +303,7 @@ class RJIB1 implements Form
             $spreadsheet->getActiveSheet()->getRowDimension($this->lastFilledOutCellY)->setRowHeight(70);
 
             $spreadsheet->getActiveSheet()->setCellValue("A" . $this->lastFilledOutCellY, $fullName);
+            $spreadsheet->getActiveSheet()->mergeCells("A" . $this->lastFilledOutCellY . ':B' . $this->lastFilledOutCellY);
 
             if ($row['gender'] === 'F') {
                 $spreadsheet->getActiveSheet()->setCellValue("C" . $this->lastFilledOutCellY, '∕');
