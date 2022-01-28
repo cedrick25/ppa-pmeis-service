@@ -20,13 +20,13 @@ class Processes implements ProcessesInterface
     public function getAll(): array
     {
         try {
-            $RJProcesses = $this->repository->list();
+            $processes = $this->repository->list();
 
-            if ($RJProcesses == null) {
+            if ($processes == null) {
                 return $this->appFormatter->formatResponse(ResponseEnum::NO_DATA, null);
             }
 
-            return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_SUCCESS, $RJProcesses);
+            return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_SUCCESS, $processes);
         } catch (CacheException|InvalidArgumentException $exception) {
             return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_FAILED, null, ['cache' => $exception->getMessage()]);
         }
@@ -34,12 +34,12 @@ class Processes implements ProcessesInterface
 
     public function getById(int $id): array
     {
-        $RJProcess = $this->repository->isExistingById($id);
+        $process = $this->repository->isExistingById($id);
 
-        if (!$RJProcess) {
+        if (!$process) {
             return $this->appFormatter->formatResponse(ResponseEnum::NO_DATA, null);
         }
 
-        return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_SUCCESS, $RJProcess);
+        return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_SUCCESS, $process);
     }
 }

@@ -18,13 +18,13 @@ class Outcomes implements OutcomesInterface
     public function getAll(): array
     {
         try {
-            $RJOutcomes = $this->repository->list();
+            $outcomes = $this->repository->list();
 
-            if ($RJOutcomes == null) {
+            if ($outcomes == null) {
                 return $this->appFormatter->formatResponse(ResponseEnum::NO_DATA, null);
             }
 
-            return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_SUCCESS, $RJOutcomes);
+            return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_SUCCESS, $outcomes);
         } catch (CacheException|InvalidArgumentException $exception) {
             return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_FAILED, null, ['cache' => $exception->getMessage()]);
         }
@@ -32,12 +32,12 @@ class Outcomes implements OutcomesInterface
 
     public function getById(int $id): array
     {
-        $RJOutcome = $this->repository->isExistingById($id);
+        $outcome = $this->repository->isExistingById($id);
 
-        if (!$RJOutcome) {
+        if (!$outcome) {
             return $this->appFormatter->formatResponse(ResponseEnum::NO_DATA, null);
         }
 
-        return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_SUCCESS, $RJOutcome);
+        return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_SUCCESS, $outcome);
     }
 }

@@ -6,12 +6,14 @@ namespace App\Controller;
 
 use App\Common\AppFormatter;
 use App\Common\AppHydrator;
-use App\Model\RJConductProcesses as RJConductProcessesModel;
+use App\Model\RJConductProcesses as ConductProcessesModel;
+use App\Model\RJRelatedActivities as RelatedActivitiesModel;
 use App\Service\RestorativeJustice\ConductProcessesInterface;
 use App\Service\RestorativeJustice\OffensesInterface;
 use App\Service\RestorativeJustice\OutcomesInterface;
 use App\Service\RestorativeJustice\ProcessesInterface;
 use App\Service\RestorativeJustice\ProcessStatusInterface;
+use App\Service\RestorativeJustice\RelatedActivitiesInterface;
 use ReflectionException;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -24,27 +26,28 @@ use Symfony\Component\Routing\Annotation\Route;
 class RestorativeJusticeController extends AbstractController
 {
     public function __construct(
-        private AppHydrator               $appHydrator,
-        private AppFormatter              $appFormatter,
-        private ConductProcessesInterface $conductProcessesService,
-        private OffensesInterface         $offensesService,
-        private ProcessesInterface        $processesService,
-        private ProcessStatusInterface    $processStatusService,
-        private OutcomesInterface         $outcomesService,
+        private AppHydrator                $appHydrator,
+        private AppFormatter               $appFormatter,
+        private ConductProcessesInterface  $conductProcessesService,
+        private OffensesInterface          $offensesService,
+        private ProcessesInterface         $processesService,
+        private ProcessStatusInterface     $processStatusService,
+        private OutcomesInterface          $outcomesService,
+        private RelatedActivitiesInterface $relatedActivitiesService,
     ){}
 
     /**
      * @Route("/conduct-process/create", methods={"POST"})
      */
-    public function createRJConductProcess(Request $request): Response
+    public function createConductProcess(Request $request): Response
     {
         try {
             $data = json_decode($request->getContent(), true);
 
-            /** @var RJConductProcessesModel $RJConductProcesses */
-            $RJConductProcesses = $this->appHydrator->convertArrayToObject($data, RJConductProcessesModel::class);
+            /** @var ConductProcessesModel $conductProcesses */
+            $conductProcesses = $this->appHydrator->convertArrayToObject($data, ConductProcessesModel::class);
 
-            return $this->json($this->conductProcessesService->create($RJConductProcesses));
+            return $this->json($this->conductProcessesService->create($conductProcesses));
         } catch (ReflectionException $exception) {
             return $this->json($this->appFormatter->formatResponse('Creating RJ conduct processes failed', null, ['reflection' => $exception->getMessage()]));
         }
@@ -53,7 +56,7 @@ class RestorativeJusticeController extends AbstractController
     /**
      * @Route("/conduct-process/list", methods={"GET"})
      */
-    public function getAllRJConductProcess(): Response
+    public function getAllConductProcess(): Response
     {
         return $this->json($this->conductProcessesService->getAll());
     }
@@ -61,7 +64,7 @@ class RestorativeJusticeController extends AbstractController
     /**
      * @Route("/conduct-process/by/id/{id}", methods={"GET"})
      */
-    public function getRJConductProcessById(Request $request): Response
+    public function getConductProcessById(Request $request): Response
     {
         return $this->json($this->conductProcessesService->getById((int) $request->get("id")));
     }
@@ -69,7 +72,7 @@ class RestorativeJusticeController extends AbstractController
     /**
      * @Route("/conduct-process/delete/{id}", methods={"GET"})
      */
-    public function deleteRJConductProcessById(Request $request): Response
+    public function deleteConductProcessById(Request $request): Response
     {
         return $this->json($this->conductProcessesService->deleteById((int) $request->get("id")));
     }
@@ -134,50 +137,92 @@ class RestorativeJusticeController extends AbstractController
     }
 
     /**
-     * @Route("/rj-process/list", methods={"GET"})
+     * @Route("/process/list", methods={"GET"})
      */
-    public function getAllRJProcesses(): Response
+    public function getAllProcesses(): Response
     {
         return $this->json($this->processesService->getAll());
     }
 
     /**
-     * @Route("/rj-process/by/id/{id}", methods={"GET"})
+     * @Route("/process/by/id/{id}", methods={"GET"})
      */
-    public function getRJProcessById(Request $request): Response
+    public function getProcessById(Request $request): Response
     {
         return $this->json($this->processesService->getById((int) $request->get("id")));
     }
 
     /**
-     * @Route("/rj-process-status/list", methods={"GET"})
+     * @Route("/process-status/list", methods={"GET"})
      */
-    public function getAllRJProcessesStatus(): Response
+    public function getAllProcessesStatus(): Response
     {
         return $this->json($this->processStatusService->getAll());
     }
 
     /**
-     * @Route("/rj-process-status/by/id/{id}", methods={"GET"})
+     * @Route("/process-status/by/id/{id}", methods={"GET"})
      */
-    public function getRJProcessStatusById(Request $request): Response
+    public function getProcessStatusById(Request $request): Response
     {
         return $this->json($this->processStatusService->getById((int) $request->get("id")));
     }
 
     /**
-     * @Route("/rj-outcomes/list", methods={"GET"})
+     * @Route("/outcomes/list", methods={"GET"})
      */
-    public function getAllRJOutcomes(): Response
+    public function getAllOutcomes(): Response
     {
         return $this->json($this->outcomesService->getAll());
     }
 
     /**
-     * @Route("/rj-outcomes/by/id/{id}", methods={"GET"})
+     * @Route("/outcomes/by/id/{id}", methods={"GET"})
      */
     public function getRJOutcomeById(Request $request): Response
     {
         return $this->json($this->outcomesService->getById((int) $request->get("id")));
+    }
+
+
+    /**
+     * @Route("/related-activities/create", methods={"POST"})
+     */
+    public function createRelatedActivities(Request $request): Response
+    {
+        try {
+            $data = json_decode($request->getContent(), true);
+
+            /** @var RelatedActivitiesModel $relatedActivities */
+            $relatedActivities = $this->appHydrator->convertArrayToObject($data, RelatedActivitiesModel::class);
+
+            return $this->json($this->relatedActivitiesService->create($relatedActivities));
+        } catch (ReflectionException $exception) {
+            return $this->json($this->appFormatter->formatResponse('Creating RJ conduct processes failed', null, ['reflection' => $exception->getMessage()]));
+        }
+    }
+
+    /**
+     * @Route("/related-activities/list", methods={"GET"})
+     */
+    public function getAllRelatedActivities(): Response
+    {
+        return $this->json($this->relatedActivitiesService->getAll());
+    }
+
+    /**
+     * @Route("/related-activities/by/id/{id}", methods={"GET"})
+     */
+    public function getRelatedActivity(Request $request): Response
+    {
+        return $this->json($this->relatedActivitiesService->getById((int) $request->get("id")));
+    }
+
+    /**
+     * @Route("/related-activities/delete/{id}", methods={"GET"})
+     */
+    public function deleteRelatedActivityById(Request $request): Response
+    {
+        return $this->json($this->relatedActivitiesService->deleteById((int) $request->get("id")));
     }
 }

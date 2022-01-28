@@ -6,7 +6,7 @@ namespace App\Service\RestorativeJustice;
 
 use App\Common\AppFormatter;
 use App\Enum\Response as ResponseEnum;
-use App\Model\RJConductProcesses as RJConductProcessesModel;
+use App\Model\RJConductProcesses as ConductProcessesModel;
 use App\Repository\RJConductProcessesRepository;
 use Doctrine\ORM\Exception\ORMException;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
@@ -22,16 +22,16 @@ class ConductProcesses implements ConductProcessesInterface
         private RJConductProcessesRepository $repository,
     ){}
 
-    public function create(RJConductProcessesModel $RJConductProcessData): array
+    public function create(ConductProcessesModel $conductProcessData): array
     {
         try {
-            $errors = $this->validator->validate($RJConductProcessData);
+            $errors = $this->validator->validate($conductProcessData);
 
             if (count($errors) > 0) {
                 return $this->appFormatter->formatResponse(ResponseEnum::VALIDATING_FAILED, null, $this->appFormatter->formatErrors($errors));
             }
 
-            $id = $this->repository->create($RJConductProcessData);
+            $id = $this->repository->create($conductProcessData);
 
             if ($id == null) {
                 return $this->appFormatter->formatResponse(ResponseEnum::CREATING_FAILED, null, ['app' => 'RJ conduct process already exist']);
@@ -50,13 +50,13 @@ class ConductProcesses implements ConductProcessesInterface
     public function getAll(): array
     {
         try {
-            $RJConductProcesses = $this->repository->list();
+            $conductProcesses = $this->repository->list();
 
-            if ($RJConductProcesses == null) {
+            if ($conductProcesses == null) {
                 return $this->appFormatter->formatResponse(ResponseEnum::NO_DATA, null);
             }
 
-            return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_SUCCESS, $RJConductProcesses);
+            return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_SUCCESS, $conductProcesses);
         } catch (CacheException|InvalidArgumentException $exception) {
             return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_FAILED, null, ['cache' => $exception->getMessage()]);
         }
@@ -64,13 +64,13 @@ class ConductProcesses implements ConductProcessesInterface
 
     public function getById(int $id): array
     {
-        $RJConductProcess = $this->repository->isExistingById($id);
+        $conductProcess = $this->repository->isExistingById($id);
 
-        if (!$RJConductProcess) {
+        if (!$conductProcess) {
             return $this->appFormatter->formatResponse(ResponseEnum::NO_DATA, null);
         }
 
-        return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_SUCCESS, $RJConductProcess);
+        return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_SUCCESS, $conductProcess);
     }
 
     public function deleteById(int $id): array
@@ -93,13 +93,13 @@ class ConductProcesses implements ConductProcessesInterface
     public function getRJIB1(int $clientId, int $quarterId, int $fieldOfficeId): array
     {
         try {
-            $RJConductProcesses = $this->repository->getRJIB1Data($clientId, $quarterId, $fieldOfficeId);
+            $conductProcesses = $this->repository->getRJIB1Data($clientId, $quarterId, $fieldOfficeId);
 
-            if ($RJConductProcesses == null) {
+            if ($conductProcesses == null) {
                 return $this->appFormatter->formatResponse(ResponseEnum::NO_DATA, null);
             }
 
-            return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_SUCCESS, $RJConductProcesses);
+            return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_SUCCESS, $conductProcesses);
         } catch (InvalidArgumentException | CacheException  $e) {
             return $this->appFormatter->formatResponse(ResponseEnum::UPDATING_FAILED, null, ['cache' => $e->getMessage()]);
         }

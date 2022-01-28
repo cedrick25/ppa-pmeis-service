@@ -265,30 +265,6 @@ class RJRelatedActivities
         return $this;
     }
 
-    public function getPeActivity(): ?string
-    {
-        return $this->peActivity;
-    }
-
-    public function setPeActivity(string $peActivity): self
-    {
-        $this->peActivity = $peActivity;
-
-        return $this;
-    }
-
-    public function getPlannerId(): ?int
-    {
-        return $this->plannerId;
-    }
-
-    public function setPlannerId(int $plannerId): self
-    {
-        $this->plannerId = $plannerId;
-
-        return $this;
-    }
-
     public function getCreatedAt(): ?\DateTimeImmutable
     {
         return $this->createdAt;

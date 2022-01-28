@@ -115,6 +115,30 @@ class RJRelatedActivitiesRepository extends ServiceEntityRepository
         return true;
     }
 
+    /**
+     * @throws OptimisticLockException
+     * @throws ORMException
+     * @throws InvalidArgumentException
+     */
+    public function softDelete(int $id): bool
+    {
+        $RJRelatedActivity =$this->isExistingById($id);
+
+        if ($RJRelatedActivity == null) {
+            return false;
+        }
+
+        // TODO: Check table constraints
+
+        $this->cache->invalidateTags([self::CACHE_TAG]);
+
+        $RJRelatedActivity->setDeletedAt($this->appDateHelper->getCurrentImmutableDate());
+
+        $this->getEntityManager()->flush();
+
+        return true;
+    }
+
     public function isExistingById(int $id): bool | RJRelatedActivities
     {
         $RJRelatedActivities = $this->findOneBy([

@@ -6,7 +6,7 @@ use App\Model\RJConductProcesses as RJConductProcessesModel;
 
 interface ConductProcessesInterface
 {
-    public function create(RJConductProcessesModel $RJConductProcessData): array;
+    public function create(RJConductProcessesModel $conductProcessData): array;
 
     public function getAll(): array;
 

@@ -1,11 +1,13 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Service\RestorativeJustice;
 
 use App\Common\AppFormatter;
 use App\Enum\Response as ResponseEnum;
 use App\Repository\RJRelatedActivitiesRepository;
-use App\Model\RJRelatedActivities as RJRelatedActivitiesModel;
+use App\Model\RJRelatedActivities as RelatedActivitiesModel;
 use Doctrine\ORM\Exception\ORMException;
 use Exception;
 use Psr\Cache\CacheException;
@@ -20,7 +22,7 @@ class RelatedActivities implements RelatedActivitiesInterface
         private RJRelatedActivitiesRepository $repository,
     ){}
 
-    public function create(RJRelatedActivitiesModel $activities): array
+    public function create(RelatedActivitiesModel $activities): array
     {
         try {
             $errors = $this->validator->validate($activities);
@@ -48,15 +50,43 @@ class RelatedActivities implements RelatedActivitiesInterface
     public function getAll(): array
     {
         try {
-            $RJRelatedActivities = $this->repository->list();
+            $relatedActivities = $this->repository->list();
 
-            if ($RJRelatedActivities == null) {
+            if ($relatedActivities == null) {
                 return $this->appFormatter->formatResponse(ResponseEnum::NO_DATA, null);
             }
 
-            return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_SUCCESS, $RJRelatedActivities);
+            return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_SUCCESS, $relatedActivities);
         } catch (CacheException|InvalidArgumentException $exception) {
             return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_FAILED, null, ['cache' => $exception->getMessage()]);
+        }
+    }
+
+    public function getById(int $id): array
+    {
+        $relatedActivity = $this->repository->isExistingById($id);
+
+        if (!$relatedActivity) {
+            return $this->appFormatter->formatResponse(ResponseEnum::NO_DATA, null);
+        }
+
+        return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_SUCCESS, $relatedActivity);
+    }
+
+    public function deleteById(int $id): array
+    {
+        try {
+            $isDeleted = $this->repository->softDelete($id);
+
+            if (! $isDeleted) {
+                return $this->appFormatter->formatResponse(ResponseEnum::DELETING_FAILED, null, ['app' => ResponseEnum::NO_DATA]);
+            }
+
+            return $this->appFormatter->formatResponse(ResponseEnum::DELETING_SUCCESS, null);
+        } catch (InvalidArgumentException $exception) {
+            return $this->appFormatter->formatResponse(ResponseEnum::DELETING_FAILED, null, ['cache' => $exception->getMessage()]);
+        } catch (\Doctrine\ORM\ORMException | ORMException $exception) {
+            return $this->appFormatter->formatResponse(ResponseEnum::DELETING_FAILED, null, ['orm' => $exception->getMessage()]);
         }
     }
 }
