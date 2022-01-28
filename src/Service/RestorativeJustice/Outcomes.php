@@ -4,27 +4,27 @@ namespace App\Service\RestorativeJustice;
 
 use App\Common\AppFormatter;
 use App\Enum\Response as ResponseEnum;
-use App\Repository\RJProcessStatusRepository;
+use App\Repository\RJOutcomesRepository;
 use Psr\Cache\CacheException;
 use Psr\Cache\InvalidArgumentException;
 
-class RJProcessStatus implements RJProcessStatusInterface
+class Outcomes implements OutcomesInterface
 {
     public function __construct(
-        private AppFormatter              $appFormatter,
-        private RJProcessStatusRepository $repository,
+        private AppFormatter         $appFormatter,
+        private RJOutcomesRepository $repository,
     ){}
 
     public function getAll(): array
     {
         try {
-            $RJProcessesStatus = $this->repository->list();
+            $RJOutcomes = $this->repository->list();
 
-            if ($RJProcessesStatus == null) {
+            if ($RJOutcomes == null) {
                 return $this->appFormatter->formatResponse(ResponseEnum::NO_DATA, null);
             }
 
-            return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_SUCCESS, $RJProcessesStatus);
+            return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_SUCCESS, $RJOutcomes);
         } catch (CacheException|InvalidArgumentException $exception) {
             return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_FAILED, null, ['cache' => $exception->getMessage()]);
         }
@@ -32,12 +32,12 @@ class RJProcessStatus implements RJProcessStatusInterface
 
     public function getById(int $id): array
     {
-        $RJProcessStatus = $this->repository->isExistingById($id);
+        $RJOutcome = $this->repository->isExistingById($id);
 
-        if (!$RJProcessStatus) {
+        if (!$RJOutcome) {
             return $this->appFormatter->formatResponse(ResponseEnum::NO_DATA, null);
         }
 
-        return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_SUCCESS, $RJProcessStatus);
+        return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_SUCCESS, $RJOutcome);
     }
 }

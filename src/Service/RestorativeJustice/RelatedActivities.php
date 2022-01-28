@@ -1,0 +1,62 @@
+<?php
+
+namespace App\Service\RestorativeJustice;
+
+use App\Common\AppFormatter;
+use App\Enum\Response as ResponseEnum;
+use App\Repository\RJRelatedActivitiesRepository;
+use App\Model\RJRelatedActivities as RJRelatedActivitiesModel;
+use Doctrine\ORM\Exception\ORMException;
+use Exception;
+use Psr\Cache\CacheException;
+use Psr\Cache\InvalidArgumentException;
+use Symfony\Component\Validator\Validator\ValidatorInterface;
+
+class RelatedActivities implements RelatedActivitiesInterface
+{
+    public function __construct(
+        private ValidatorInterface            $validator,
+        private AppFormatter                  $appFormatter,
+        private RJRelatedActivitiesRepository $repository,
+    ){}
+
+    public function create(RJRelatedActivitiesModel $activities): array
+    {
+        try {
+            $errors = $this->validator->validate($activities);
+
+            if (count($errors) > 0) {
+                return $this->appFormatter->formatResponse(ResponseEnum::VALIDATING_FAILED, null, $this->appFormatter->formatErrors($errors));
+            }
+
+            $id = $this->repository->create($activities);
+
+            if ($id == null) {
+                return $this->appFormatter->formatResponse(ResponseEnum::CREATING_FAILED, null, ['app' => 'RJ related activities already exist']);
+            }
+
+            return $this->appFormatter->formatResponse(ResponseEnum::CREATING_SUCCESS, ['id' => $id]);
+        } catch (InvalidArgumentException $exception) {
+            return $this->appFormatter->formatResponse(ResponseEnum::CREATING_FAILED, null, ['cache' => $exception->getMessage()]);
+        } catch (ORMException $exception) {
+            return $this->appFormatter->formatResponse(ResponseEnum::CREATING_FAILED, null, ['orm' => $exception->getMessage()]);
+        } catch (Exception $e) {
+            return $this->appFormatter->formatResponse(ResponseEnum::CREATING_FAILED, null, ['app' => $e->getMessage()]);
+        }
+    }
+
+    public function getAll(): array
+    {
+        try {
+            $RJRelatedActivities = $this->repository->list();
+
+            if ($RJRelatedActivities == null) {
+                return $this->appFormatter->formatResponse(ResponseEnum::NO_DATA, null);
+            }
+
+            return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_SUCCESS, $RJRelatedActivities);
+        } catch (CacheException|InvalidArgumentException $exception) {
+            return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_FAILED, null, ['cache' => $exception->getMessage()]);
+        }
+    }
+}

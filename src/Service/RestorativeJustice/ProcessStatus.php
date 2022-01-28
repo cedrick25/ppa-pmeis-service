@@ -4,27 +4,27 @@ namespace App\Service\RestorativeJustice;
 
 use App\Common\AppFormatter;
 use App\Enum\Response as ResponseEnum;
-use App\Repository\RJOutcomesRepository;
+use App\Repository\RJProcessStatusRepository;
 use Psr\Cache\CacheException;
 use Psr\Cache\InvalidArgumentException;
 
-class RJOutcomes implements RJOutcomesInterface
+class ProcessStatus implements ProcessStatusInterface
 {
     public function __construct(
-        private AppFormatter         $appFormatter,
-        private RJOutcomesRepository $repository,
+        private AppFormatter              $appFormatter,
+        private RJProcessStatusRepository $repository,
     ){}
 
     public function getAll(): array
     {
         try {
-            $RJOutcomes = $this->repository->list();
+            $RJProcessesStatus = $this->repository->list();
 
-            if ($RJOutcomes == null) {
+            if ($RJProcessesStatus == null) {
                 return $this->appFormatter->formatResponse(ResponseEnum::NO_DATA, null);
             }
 
-            return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_SUCCESS, $RJOutcomes);
+            return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_SUCCESS, $RJProcessesStatus);
         } catch (CacheException|InvalidArgumentException $exception) {
             return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_FAILED, null, ['cache' => $exception->getMessage()]);
         }
@@ -32,12 +32,12 @@ class RJOutcomes implements RJOutcomesInterface
 
     public function getById(int $id): array
     {
-        $RJOutcome = $this->repository->isExistingById($id);
+        $RJProcessStatus = $this->repository->isExistingById($id);
 
-        if (!$RJOutcome) {
+        if (!$RJProcessStatus) {
             return $this->appFormatter->formatResponse(ResponseEnum::NO_DATA, null);
         }
 
-        return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_SUCCESS, $RJOutcome);
+        return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_SUCCESS, $RJProcessStatus);
     }
 }

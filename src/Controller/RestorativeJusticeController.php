@@ -9,9 +9,9 @@ use App\Common\AppHydrator;
 use App\Model\RJConductProcesses as RJConductProcessesModel;
 use App\Service\RestorativeJustice\ConductProcessesInterface;
 use App\Service\RestorativeJustice\OffensesInterface;
-use App\Service\RestorativeJustice\RJOutcomesInterface;
-use App\Service\RestorativeJustice\RJProcessesInterface;
-use App\Service\RestorativeJustice\RJProcessStatusInterface;
+use App\Service\RestorativeJustice\OutcomesInterface;
+use App\Service\RestorativeJustice\ProcessesInterface;
+use App\Service\RestorativeJustice\ProcessStatusInterface;
 use ReflectionException;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -24,13 +24,13 @@ use Symfony\Component\Routing\Annotation\Route;
 class RestorativeJusticeController extends AbstractController
 {
     public function __construct(
-        private AppHydrator $appHydrator,
-        private AppFormatter $appFormatter,
+        private AppHydrator               $appHydrator,
+        private AppFormatter              $appFormatter,
         private ConductProcessesInterface $conductProcessesService,
-        private OffensesInterface $offensesService,
-        private RJProcessesInterface $rjProcessesService,
-        private RJProcessStatusInterface $rjProcessStatusService,
-        private RJOutcomesInterface $rjOutcomesService,
+        private OffensesInterface         $offensesService,
+        private ProcessesInterface        $processesService,
+        private ProcessStatusInterface    $processStatusService,
+        private OutcomesInterface         $outcomesService,
     ){}
 
     /**
@@ -138,7 +138,7 @@ class RestorativeJusticeController extends AbstractController
      */
     public function getAllRJProcesses(): Response
     {
-        return $this->json($this->rjProcessesService->getAll());
+        return $this->json($this->processesService->getAll());
     }
 
     /**
@@ -146,7 +146,7 @@ class RestorativeJusticeController extends AbstractController
      */
     public function getRJProcessById(Request $request): Response
     {
-        return $this->json($this->rjProcessesService->getById((int) $request->get("id")));
+        return $this->json($this->processesService->getById((int) $request->get("id")));
     }
 
     /**
@@ -154,7 +154,7 @@ class RestorativeJusticeController extends AbstractController
      */
     public function getAllRJProcessesStatus(): Response
     {
-        return $this->json($this->rjProcessStatusService->getAll());
+        return $this->json($this->processStatusService->getAll());
     }
 
     /**
@@ -162,7 +162,7 @@ class RestorativeJusticeController extends AbstractController
      */
     public function getRJProcessStatusById(Request $request): Response
     {
-        return $this->json($this->rjProcessStatusService->getById((int) $request->get("id")));
+        return $this->json($this->processStatusService->getById((int) $request->get("id")));
     }
 
     /**
@@ -170,7 +170,7 @@ class RestorativeJusticeController extends AbstractController
      */
     public function getAllRJOutcomes(): Response
     {
-        return $this->json($this->rjOutcomesService->getAll());
+        return $this->json($this->outcomesService->getAll());
     }
 
     /**
@@ -178,6 +178,6 @@ class RestorativeJusticeController extends AbstractController
      */
     public function getRJOutcomeById(Request $request): Response
     {
-        return $this->json($this->rjOutcomesService->getById((int) $request->get("id")));
+        return $this->json($this->outcomesService->getById((int) $request->get("id")));
     }
 }

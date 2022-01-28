@@ -10,7 +10,7 @@ use App\Repository\RJProcessesRepository;
 use Psr\Cache\CacheException;
 use Psr\Cache\InvalidArgumentException;
 
-class RJProcesses implements RJProcessesInterface
+class Processes implements ProcessesInterface
 {
     public function __construct(
         private AppFormatter           $appFormatter,

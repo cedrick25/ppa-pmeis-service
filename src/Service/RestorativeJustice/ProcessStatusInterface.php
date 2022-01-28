@@ -2,7 +2,7 @@
 
 namespace App\Service\RestorativeJustice;
 
-interface RJProcessStatusInterface
+interface ProcessStatusInterface
 {
     public function getAll(): array;
 
