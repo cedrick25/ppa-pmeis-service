@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Repository;
 
 use App\Common\AppDateHelper;
@@ -182,7 +184,8 @@ class RJConductProcessesRepository extends ServiceEntityRepository
         });
     }
 
-    private function isExisting(RJConductProcessesModel $data) {
+    private function isExisting(RJConductProcessesModel $data): bool | RJConductProcesses
+    {
         $RJConductProcesses = $this->findOneBy([
             'clientId' => $data->getClientId(),
             'quarterId' => $data->getQuarterId(),

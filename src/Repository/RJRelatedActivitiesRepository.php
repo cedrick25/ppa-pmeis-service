@@ -1,0 +1,162 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Repository;
+
+use App\Common\AppDateHelper;
+use App\Common\CacheHelper;
+use App\Entity\RJRelatedActivities;
+use App\Model\RJRelatedActivities as RJRelatedActivitiesModel;
+use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
+use Doctrine\ORM\OptimisticLockException;
+use Doctrine\ORM\ORMException;
+use Doctrine\Persistence\ManagerRegistry;
+use Exception;
+use Psr\Cache\CacheException;
+use Psr\Cache\InvalidArgumentException;
+use Symfony\Contracts\Cache\TagAwareCacheInterface;
+
+/**
+ * @method RJRelatedActivities|null find($id, $lockMode = null, $lockVersion = null)
+ * @method RJRelatedActivities|null findOneBy(array $criteria, array $orderBy = null)
+ * @method RJRelatedActivities[]    findAll()
+ * @method RJRelatedActivities[]    findBy(array $criteria, array $orderBy = null, $limit = null, $offset = null)
+ */
+class RJRelatedActivitiesRepository extends ServiceEntityRepository
+{
+    protected const CACHE_TAG = "rj_related_activities";
+
+    public function __construct(
+        ManagerRegistry $registry,
+        private TagAwareCacheInterface $cache,
+        private CacheHelper $cacheHelper,
+        private Helper $helper,
+        private AppDateHelper $appDateHelper,
+    ){
+        parent::__construct($registry, RJRelatedActivities::class);
+    }
+
+    /**
+     * @return RJRelatedActivities[]
+     * @throws CacheException
+     * @throws InvalidArgumentException
+     */
+    public function list(): array
+    {
+        $params = [
+            'cacheKey' => $this->cacheHelper->getAllRJRelatedActivitiesKey(),
+            'expiration' => $this->cacheHelper->getExpirationDateTime(),
+            'cacheTag' => self::CACHE_TAG
+        ];
+
+        return $this->helper->createCachedResponse($params, function() {
+            return $this->createQueryBuilder('rjra')
+                ->where('rjra.deletedAt IS NULL')
+                ->orderBy('rjra.rjRelatedActivityId', 'DESC')
+                ->getQuery()
+                ->getResult();
+        });
+    }
+
+    /**
+     * @param RJRelatedActivitiesModel $data
+     * @return int|null
+     * @throws InvalidArgumentException
+     * @throws \Doctrine\DBAL\Exception\InvalidArgumentException
+     * @throws ORMException
+     * @throws OptimisticLockException
+     * @throws Exception
+     */
+    public function create(RJRelatedActivitiesModel $data): int | null
+    {
+        if ($this->isExisting($data)) {
+            return null;
+        }
+
+        $this->cache->invalidateTags([self::CACHE_TAG]);
+
+        $newRjRelatedActivity = new RJRelatedActivities();
+        $newRjRelatedActivity->setQuarterId($data->getQuarterId());
+        $newRjRelatedActivity->setFieldOfficeId($data->getFieldOfficeId());
+        $newRjRelatedActivity->setClientId($data->getClientId());
+        $newRjRelatedActivity->setOffenseId($data->getOffenseId());
+        $newRjRelatedActivity->setPeDate($this->appDateHelper->convertStringToImmutableDate($data->getPeDate()));
+        $newRjRelatedActivity->setPeVenueId($data->getPeVenueId());
+        $newRjRelatedActivity->setVenueId($data->getVenueId());
+        $newRjRelatedActivity->setVictims($data->getVictims());
+        $newRjRelatedActivity->setRjpId($data->getRjpId());
+        $newRjRelatedActivity->setRjoId($data->getRjoId());
+        $newRjRelatedActivity->setRjGroup($data->getRjGroup());
+        $newRjRelatedActivity->setCreatedAt($this->appDateHelper->getCurrentImmutableDate());
+
+        $this->getEntityManager()->persist($newRjRelatedActivity);
+        $this->getEntityManager()->flush();
+
+        return $newRjRelatedActivity->getRjRelatedActivityId();
+    }
+
+    /**
+     * @throws InvalidArgumentException
+     * @throws ORMException
+     */
+    public function delete(int $id): bool
+    {
+        $RJRelatedActivities = $this->isExistingById($id);
+        if (! $RJRelatedActivities) {
+            return false;
+        }
+
+        $this->cache->invalidateTags([self::CACHE_TAG]);
+
+        $this->getEntityManager()->remove($RJRelatedActivities);
+        $this->getEntityManager()->flush();
+
+        return true;
+    }
+
+    public function isExistingById(int $id): bool | RJRelatedActivities
+    {
+        $RJRelatedActivities = $this->findOneBy([
+            'rjRelatedActivityId' => $id,
+            'deletedAt' => null
+        ]);
+
+        return ($RJRelatedActivities == null) ? false : $RJRelatedActivities;
+    }
+
+    public function getRJIB2Data(int $clientId, int $quarterId, int $fieldOfficeId): array
+    {
+        $params = [
+            'cacheKey' => $this->cacheHelper->getRJIB2Key($clientId, $quarterId, $fieldOfficeId),
+            'cacheTag' => self::CACHE_TAG
+        ];
+
+        return $this->helper->createCachedResponseCustomQuery($params, function() use($clientId, $quarterId, $fieldOfficeId) {
+            $conn = $this->getEntityManager()->getConnection();
+            $sql = "SELECT *
+                    FROM rjrelated_activities as rjcp " .
+                "LEFT JOIN clients as c ON rjcp.client_id = c.client_id " .
+                "LEFT JOIN offenses as o ON rjcp.offense_id = o.offenses_id " .
+                "LEFT JOIN rjprocesses as rjp ON rjcp.rjp_id = rjp.id_rjprocesses " .
+                "WHERE rjcp.client_id = $clientId AND rjcp.quarter_id = $quarterId AND rjcp.field_office_id = $fieldOfficeId ".
+                "AND rjcp.deleted_at IS NULL ORDER BY rjcp.rj_group";
+            $stmt = $conn->prepare($sql);
+            $query = $stmt->executeQuery();
+
+            return $query->fetchAllAssociative();
+        });
+    }
+
+    private function isExisting(RJRelatedActivitiesModel $data): bool | RJRelatedActivities
+    {
+        $RJRelatedActivities = $this->findOneBy([
+            'clientId' => $data->getClientId(),
+            'quarterId' => $data->getQuarterId(),
+            'fieldOfficeId' => $data->getFieldOfficeId(),
+            'deletedAt' => null
+        ]);
+
+        return ($RJRelatedActivities == null) ? false : $RJRelatedActivities;
+    }
+}

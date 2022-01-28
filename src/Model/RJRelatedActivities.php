@@ -7,37 +7,24 @@ namespace App\Model;
 use DateTimeImmutable;
 use Symfony\Component\Validator\Constraints as Assert;
 
-class RJConductProcesses
+class RJRelatedActivities
 {
     public function __construct(
-        private int $clientId,
         private int $quarterId,
         private int $fieldOfficeId,
+        private int $clientId,
         private int $offenseId,
-        private int $peVenueId,
         private string $peDate,
-        private string $peActivity,
-        private string $rjpDate,
+        private int $peVenueId,
+        private int $venueId,
+        private string $victims,
         private int $rjpId,
-        private int $rjpVenueId,
-        private int $rjpsId,
         private int $rjoId,
         private string $rjGroup,
-        private int $plannerId,
         private ?DateTimeImmutable $createdAt = null,
         private ?DateTimeImmutable $updatedAt = null,
         private ?DateTimeImmutable $deletedAt = null,
     ){}
-
-    /**
-     * @Assert\NotBlank
-     * @Assert\GreaterThan(0)
-     * @return int
-     */
-    public function getClientId(): int
-    {
-        return $this->clientId;
-    }
 
     /**
      * @Assert\NotBlank
@@ -57,6 +44,16 @@ class RJConductProcesses
     public function getFieldOfficeId(): int
     {
         return $this->fieldOfficeId;
+    }
+
+    /**
+     * @Assert\NotBlank
+     * @Assert\GreaterThan(0)
+     * @return int
+     */
+    public function getClientId(): int
+    {
+        return $this->clientId;
     }
 
     /**
@@ -90,19 +87,21 @@ class RJConductProcesses
 
     /**
      * @Assert\NotBlank
-     * @return string
+     * @Assert\GreaterThan(0)
+     * @return int
      */
-    public function getPeActivity(): string
+    public function getVenueId(): int
     {
-        return $this->peActivity;
+        return $this->venueId;
     }
 
     /**
+     * @Assert\NotBlank
      * @return string
      */
-    public function getRjpDate(): string
+    public function getVictims(): string
     {
-        return $this->rjpDate;
+        return $this->victims;
     }
 
     /**
@@ -113,26 +112,6 @@ class RJConductProcesses
     public function getRjpId(): int
     {
         return $this->rjpId;
-    }
-
-    /**
-     * @Assert\NotBlank
-     * @Assert\GreaterThan(0)
-     * @return int
-     */
-    public function getRjpVenueId(): int
-    {
-        return $this->rjpVenueId;
-    }
-
-    /**
-     * @Assert\NotBlank
-     * @Assert\GreaterThan(0)
-     * @return int
-     */
-    public function getRjpsId(): int
-    {
-        return $this->rjpsId;
     }
 
     /**
@@ -152,16 +131,6 @@ class RJConductProcesses
     public function getRjGroup(): string
     {
         return $this->rjGroup;
-    }
-
-    /**
-     * @Assert\NotBlank
-     * @Assert\GreaterThan(0)
-     * @return int
-     */
-    public function getPlannerId(): int
-    {
-        return $this->plannerId;
     }
 
     /**

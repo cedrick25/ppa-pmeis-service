@@ -245,4 +245,18 @@ class CacheHelper
     {
         return 'rj_outcomes_all';
     }
+
+    public function getAllRJRelatedActivitiesKey(): string
+    {
+        return 'rj_related_activities_all';
+    }
+
+    public function getRJIB2Key(
+        int $clientId,
+        int $quarterId,
+        int $fieldOffice
+    ): string
+    {
+        return 'rjib2_' . $clientId . '_' . $quarterId . '_' . $fieldOffice;
+    }
 }
