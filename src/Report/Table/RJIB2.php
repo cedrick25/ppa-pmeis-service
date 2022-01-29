@@ -166,8 +166,6 @@ class RJIB2 implements Form
      */
     private function buildBody(Spreadsheet $spreadsheet, array $rows, string $groupType): Spreadsheet
     {
-        $rjpStatusResolvedCriteria = ['Completed', 'Agreement Reached'];
-
         $totalData[$groupType] = [
             'female' => 0,
             'male' => 0,
