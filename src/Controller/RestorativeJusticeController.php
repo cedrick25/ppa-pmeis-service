@@ -11,6 +11,8 @@ use App\Model\RJRelatedActivities as RelatedActivitiesModel;
 use App\Service\RestorativeJustice\ConductProcessesInterface;
 use App\Service\RestorativeJustice\OffensesInterface;
 use App\Service\RestorativeJustice\OutcomesInterface;
+use App\Service\RestorativeJustice\PaymentFormsInterface;
+use App\Service\RestorativeJustice\PaymentModesInterface;
 use App\Service\RestorativeJustice\ProcessesInterface;
 use App\Service\RestorativeJustice\ProcessStatusInterface;
 use App\Service\RestorativeJustice\RelatedActivitiesInterface;
@@ -34,6 +36,8 @@ class RestorativeJusticeController extends AbstractController
         private ProcessStatusInterface     $processStatusService,
         private OutcomesInterface          $outcomesService,
         private RelatedActivitiesInterface $relatedActivitiesService,
+        private PaymentFormsInterface      $paymentFormsService,
+        private PaymentModesInterface      $paymentModesService,
     ){}
 
     /**
@@ -236,5 +240,37 @@ class RestorativeJusticeController extends AbstractController
             (int) $request->get("quarterId"),
             (int) $request->get("fieldOfficeId"),
         ));
+    }
+
+    /**
+     * @Route("/payment-forms/list", methods={"GET"})
+     */
+    public function getAllPaymentForms(): Response
+    {
+        return $this->json($this->paymentFormsService->getAll());
+    }
+
+    /**
+     * @Route("/payment-forms/by/id/{id}", methods={"GET"})
+     */
+    public function getPaymentFormById(Request $request): Response
+    {
+        return $this->json($this->paymentFormsService->getById((int) $request->get("id")));
+    }
+
+    /**
+     * @Route("/payment-modes/list", methods={"GET"})
+     */
+    public function getAllPaymentModes(): Response
+    {
+        return $this->json($this->paymentModesService->getAll());
+    }
+
+    /**
+     * @Route("/payment-modes/by/id/{id}", methods={"GET"})
+     */
+    public function getPaymentModeById(Request $request): Response
+    {
+        return $this->json($this->paymentModesService->getById((int) $request->get("id")));
     }
 }

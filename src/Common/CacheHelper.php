@@ -259,4 +259,14 @@ class CacheHelper
     {
         return 'rjib2_' . $clientId . '_' . $quarterId . '_' . $fieldOffice;
     }
+
+    public function getAllPaymentFormsKey(): string
+    {
+        return 'payment_forms_all';
+    }
+
+    public function getAllPaymentModesKey(): string
+    {
+        return 'payment_modes_all';
+    }
 }

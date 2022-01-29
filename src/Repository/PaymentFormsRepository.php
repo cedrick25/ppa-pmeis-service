@@ -2,9 +2,12 @@
 
 namespace App\Repository;
 
+use App\Common\CacheHelper;
 use App\Entity\PaymentForms;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
+use Psr\Cache\CacheException;
+use Psr\Cache\InvalidArgumentException;
 
 /**
  * @method PaymentForms|null find($id, $lockMode = null, $lockVersion = null)
@@ -14,37 +17,45 @@ use Doctrine\Persistence\ManagerRegistry;
  */
 class PaymentFormsRepository extends ServiceEntityRepository
 {
-    public function __construct(ManagerRegistry $registry)
-    {
+    protected const CACHE_TAG = "payment_forms";
+
+    public function __construct(
+        ManagerRegistry $registry,
+        private CacheHelper $cacheHelper,
+        private Helper $helper,
+    ){
         parent::__construct($registry, PaymentForms::class);
     }
 
-    // /**
-    //  * @return PaymentForms[] Returns an array of PaymentForms objects
-    //  */
-    /*
-    public function findByExampleField($value)
+    /**
+     * @throws CacheException
+     * @throws InvalidArgumentException
+     * @return PaymentForms[]
+     */
+    public function list(): array
     {
-        return $this->createQueryBuilder('p')
-            ->andWhere('p.exampleField = :val')
-            ->setParameter('val', $value)
-            ->orderBy('p.id', 'ASC')
-            ->setMaxResults(10)
-            ->getQuery()
-            ->getResult()
-        ;
-    }
-    */
+        $params = [
+            'cacheKey' => $this->cacheHelper->getAllPaymentFormsKey(),
+            'expiration' => $this->cacheHelper->getExpirationDateTime(),
+            'cacheTag' => self::CACHE_TAG
+        ];
 
-    /*
-    public function findOneBySomeField($value): ?PaymentForms
-    {
-        return $this->createQueryBuilder('p')
-            ->andWhere('p.exampleField = :val')
-            ->setParameter('val', $value)
-            ->getQuery()
-            ->getOneOrNullResult()
-        ;
+        return $this->helper->createCachedResponse($params, function() {
+            return $this->createQueryBuilder('pf')
+                ->where('pf.deletedAt IS NULL')
+                ->orderBy('pf.paymentFormId', 'DESC')
+                ->getQuery()
+                ->getResult();
+        });
     }
-    */
+
+    public function isExistingById(int $id): bool | PaymentForms
+    {
+        $paymentForm = $this->findOneBy([
+            'paymentFormId' => $id,
+            'deletedAt' => null
+        ]);
+
+        return ($paymentForm == null) ? false : $paymentForm;
+    }
 }
