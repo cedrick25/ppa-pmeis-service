@@ -7,6 +7,7 @@ namespace App\Report\Table;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Style\Border;
+use PhpOffice\PhpSpreadsheet\Style\Fill;
 use PhpOffice\PhpSpreadsheet\Writer\Exception;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
@@ -48,6 +49,9 @@ class RJIB2 implements Form
         return $spreadsheet;
     }
 
+    /**
+     * @throws \PhpOffice\PhpSpreadsheet\Exception
+     */
     public function body(): Spreadsheet
     {
         $spreadsheet = $this->header();
@@ -57,8 +61,21 @@ class RJIB2 implements Form
             $rows[$row['rj_group']][] = $row;
         }
 
+        $spreadsheet = $this->buildBody($spreadsheet, $rows['ACTIVE_SUPERVISION'], 'ACTIVE_SUPERVISION');
 
-        return $spreadsheet;
+        $this->lastFilledOutCellY++;
+        $spreadsheet->getActiveSheet()->setCellValue('A' . $this->lastFilledOutCellY, 'II. PETITIONERS');
+        $spreadsheet->getActiveSheet()->getStyle('A' . $this->lastFilledOutCellY)->getFont()->setBold(true);
+        $spreadsheet->getActiveSheet()
+            ->getStyle("A" . $this->lastFilledOutCellY . ":K" . $this->lastFilledOutCellY)
+            ->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
+
+        $this->lastFilledOutCellY++;
+        $spreadsheet->getActiveSheet()
+            ->getStyle("A" . $this->lastFilledOutCellY . ":K" . $this->lastFilledOutCellY)
+            ->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
+
+        return $this->buildBody($spreadsheet, $rows['PETITIONER'], 'PETITIONER');
     }
 
     public function header(): Spreadsheet
@@ -136,6 +153,96 @@ class RJIB2 implements Form
         }
 
         $spreadsheet->getActiveSheet()->getStyle("A8:K9")->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
+
+        return $spreadsheet;
+    }
+
+    /**
+     * @param Spreadsheet $spreadsheet
+     * @param array<string, mixed> $rows
+     * @param string $groupType
+     * @return Spreadsheet
+     * @throws \PhpOffice\PhpSpreadsheet\Exception
+     */
+    private function buildBody(Spreadsheet $spreadsheet, array $rows, string $groupType): Spreadsheet
+    {
+        $rjpStatusResolvedCriteria = ['Completed', 'Agreement Reached'];
+
+        $totalData[$groupType] = [
+            'female' => 0,
+            'male' => 0,
+            'pwd' => 0,
+            'senior_citizen' => 0,
+            'rjp_process' => 0
+        ];
+
+        foreach ($rows as $row) {
+            $this->lastFilledOutCellY++;
+            $fullName = $row['first_name'] . ' ' . $row['middle_name'] . ' ' . $row['last_name'];
+
+            $spreadsheet->getActiveSheet()->getRowDimension($this->lastFilledOutCellY)->setRowHeight(70);
+            $spreadsheet->getActiveSheet()->setCellValue("A" . $this->lastFilledOutCellY, $fullName);
+
+            if ($row['gender'] === 'F') {
+                $spreadsheet->getActiveSheet()->setCellValue("B" . $this->lastFilledOutCellY, '∕');
+                $totalData[$row['rj_group']]['female']++;
+            } else {
+                $spreadsheet->getActiveSheet()->setCellValue('C' . $this->lastFilledOutCellY, '∕');
+                $totalData[$row['rj_group']]['male']++;
+            }
+
+            if ($row['is_pwd'] !== '0') {
+                $spreadsheet->getActiveSheet()->setCellValue('D' . $this->lastFilledOutCellY, '∕');
+                $totalData[$row['rj_group']]['pwd']++;
+            }
+
+            if ($row['is_senior_citizen'] !== '0') {
+                $spreadsheet->getActiveSheet()->setCellValue('E' . $this->lastFilledOutCellY, '∕');
+                $totalData[$row['rj_group']]['senior_citizen']++;
+            }
+
+            $spreadsheet->getActiveSheet()->setCellValue('F' . $this->lastFilledOutCellY, $row['offense']);
+            $spreadsheet->getActiveSheet()->setCellValue('G' . $this->lastFilledOutCellY, $row['victims']);
+            $spreadsheet->getActiveSheet()->setCellValue('H' . $this->lastFilledOutCellY, $row['rj_process']);
+            $totalData[$row['rj_group']]['rjp_process']++;
+
+            $spreadsheet->getActiveSheet()->setCellValue('H' . $this->lastFilledOutCellY, $row['venue_date'] . '/' . $row['venue']);
+            $spreadsheet->getActiveSheet()->setCellValue('H' . $this->lastFilledOutCellY, $row['stakeholders']);
+            $spreadsheet->getActiveSheet()->setCellValue('H' . $this->lastFilledOutCellY, $row['outcome']);
+            $spreadsheet->getActiveSheet()
+                ->getStyle("A" . $this->lastFilledOutCellY . ":K" . $this->lastFilledOutCellY)
+                ->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
+        }
+
+        $spreadsheet->getActiveSheet()->getStyle('A10:K' . $this->lastFilledOutCellY)->getAlignment()->setWrapText(true);
+        $spreadsheet->getActiveSheet()->getStyle('A10:K' . $this->lastFilledOutCellY)->getAlignment()->setVertical('center');
+        $spreadsheet->getActiveSheet()->getStyle('A10:K' . $this->lastFilledOutCellY)->getAlignment()->setHorizontal('center');
+
+        $this->lastFilledOutCellY++;
+        $spreadsheet->getActiveSheet()->setCellValue('A' . $this->lastFilledOutCellY, 'TOTAL');
+        $spreadsheet->getActiveSheet()->setCellValue('G' . $this->lastFilledOutCellY, 'TOTAL');
+        $spreadsheet->getActiveSheet()->setCellValue('B' . $this->lastFilledOutCellY, $totalData[$groupType]['female']);
+        $spreadsheet->getActiveSheet()->setCellValue('C' . $this->lastFilledOutCellY, $totalData[$groupType]['male']);
+        $spreadsheet->getActiveSheet()->setCellValue('D' . $this->lastFilledOutCellY, $totalData[$groupType]['pwd']);
+        $spreadsheet->getActiveSheet()->setCellValue('E' . $this->lastFilledOutCellY, $totalData[$groupType]['senior_citizen']);
+        $spreadsheet->getActiveSheet()->setCellValue('H' . $this->lastFilledOutCellY, $totalData[$groupType]['rjp_process']);
+
+        $spreadsheet->getActiveSheet()->getStyle('A' . $this->lastFilledOutCellY . ':K' . $this->lastFilledOutCellY)->getFont()->setBold(true);
+        $spreadsheet->getActiveSheet()
+            ->getStyle("A" . $this->lastFilledOutCellY . ":K" . $this->lastFilledOutCellY)
+            ->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
+        $spreadsheet->getActiveSheet()
+            ->getStyle("F" . $this->lastFilledOutCellY)
+            ->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setARGB('80808080');
+        $spreadsheet->getActiveSheet()
+            ->getStyle("I" . $this->lastFilledOutCellY)
+            ->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setARGB('80808080');
+        $spreadsheet->getActiveSheet()
+            ->getStyle("K" . $this->lastFilledOutCellY)
+            ->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setARGB('80808080');
+        $spreadsheet->getActiveSheet()->getStyle('A' . $this->lastFilledOutCellY . ':K' . $this->lastFilledOutCellY)->getAlignment()->setVertical('center');
+        $spreadsheet->getActiveSheet()->getStyle('A' . $this->lastFilledOutCellY . ':K' . $this->lastFilledOutCellY)->getAlignment()->setHorizontal('center');
+
 
         return $spreadsheet;
     }

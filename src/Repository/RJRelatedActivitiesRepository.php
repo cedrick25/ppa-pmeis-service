@@ -161,7 +161,7 @@ class RJRelatedActivitiesRepository extends ServiceEntityRepository
 
         return $this->helper->createCachedResponseCustomQuery($params, function() use($clientId, $quarterId, $fieldOfficeId) {
             $conn = $this->getEntityManager()->getConnection();
-            $sql = "SELECT rjra.*, o.name as offense, rjp.name as rj_process, v.name as venue, rjo.name as outcome
+            $sql = "SELECT rjra.*, c.first_name, c.middle_name, c.last_name, c.gender, c.is_pwd, c.is_senior_citizen ,o.name as offense, rjp.name as rj_process, v.name as venue, rjo.name as outcome
                     FROM rjrelated_activities as rjra " .
                 "LEFT JOIN clients as c ON rjra.client_id = c.client_id " .
                 "LEFT JOIN offenses as o ON rjra.offense_id = o.offenses_id " .

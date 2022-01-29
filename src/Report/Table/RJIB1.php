@@ -112,7 +112,7 @@ class RJIB1 implements Form
         $spreadsheet = $this->buildBody($spreadsheet, $rows['ACTIVE_SUPERVISION'], 'ACTIVE_SUPERVISION');
 
         $this->lastFilledOutCellY++;
-        $savedPetLastFilledOutCellY = $this->lastFilledOutCellY;
+        $savedAsLastFilledOutCellY = $this->lastFilledOutCellY;
         $spreadsheet->getActiveSheet()->setCellValue('A' . $this->lastFilledOutCellY, 'II. PETITIONERS');
         $spreadsheet->getActiveSheet()->getStyle('A' . $this->lastFilledOutCellY)->getFont()->setBold(true);
         $spreadsheet->getActiveSheet()
@@ -121,8 +121,8 @@ class RJIB1 implements Form
 
         $spreadsheet = $this->buildBody($spreadsheet, $rows['PETITIONER'], 'PETITIONER');
 
-        $spreadsheet->getActiveSheet()->getStyle('A' . $savedPetLastFilledOutCellY .':Q' . $savedPetLastFilledOutCellY)->getAlignment()->setWrapText(false);
-        $spreadsheet->getActiveSheet()->getStyle('A' . $savedPetLastFilledOutCellY .':Q' . $savedPetLastFilledOutCellY)->getAlignment()->setHorizontal('left');
+        $spreadsheet->getActiveSheet()->getStyle('A' . $savedAsLastFilledOutCellY .':Q' . $savedAsLastFilledOutCellY)->getAlignment()->setWrapText(false);
+        $spreadsheet->getActiveSheet()->getStyle('A' . $savedAsLastFilledOutCellY .':Q' . $savedAsLastFilledOutCellY)->getAlignment()->setHorizontal('left');
 
         return $spreadsheet;
     }
@@ -259,40 +259,21 @@ class RJIB1 implements Form
     {
         $rjpStatusResolvedCriteria = ['Completed', 'Agreement Reached'];
 
-        $totalData = [
-            'ACTIVE_SUPERVISION' => [
-                'female' => 0,
-                'male' => 0,
-                'pwd' => 0,
-                'senior_citizen' => 0,
-                'rjp_type' => 0,
-                'rjp_status' => [
-                    'resolved' => 0,
-                    'unresolved' => 0
-                ],
-                'rj_outcome' => [
-                    'R' => 0,
-                    'CWS' => 0,
-                    'RR' => 0,
-                    'O' => 0
-                ]
+        $totalData[$groupType] = [
+            'female' => 0,
+            'male' => 0,
+            'pwd' => 0,
+            'senior_citizen' => 0,
+            'rjp_type' => 0,
+            'rjp_status' => [
+                'resolved' => 0,
+                'unresolved' => 0
             ],
-            'PETITIONER' => [
-                'female' => 0,
-                'male' => 0,
-                'pwd' => 0,
-                'senior_citizen' => 0,
-                'rjp_type' => 0,
-                'rjp_status' => [
-                    'resolved' => 0,
-                    'unresolved' => 0
-                ],
-                'rj_outcome' => [
-                    'R' => 0,
-                    'CWS' => 0,
-                    'RR' => 0,
-                    'O' => 0
-                ]
+            'rj_outcome' => [
+                'R' => 0,
+                'CWS' => 0,
+                'RR' => 0,
+                'O' => 0
             ]
         ];
 
