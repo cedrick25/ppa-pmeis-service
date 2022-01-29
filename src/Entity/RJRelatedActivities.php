@@ -46,12 +46,7 @@ class RJRelatedActivities
     /**
      * @ORM\Column(type="date")
      */
-    private DateTimeInterface $peDate;
-
-    /**
-     * @ORM\Column(type="integer")
-     */
-    private int $peVenueId;
+    private DateTimeInterface $venueDate;
 
     /**
      * @ORM\Column(type="string", length=255)
@@ -146,26 +141,14 @@ class RJRelatedActivities
         return $this;
     }
 
-    public function getPeDate(): ?\DateTimeInterface
+    public function getVenueDate(): ?DateTimeInterface
     {
-        return $this->peDate;
+        return $this->venueDate;
     }
 
-    public function setPeDate(\DateTimeInterface $peDate): self
+    public function setVenueDate(DateTimeInterface $venueDate): self
     {
-        $this->peDate = $peDate;
-
-        return $this;
-    }
-
-    public function getPeVenueId(): ?int
-    {
-        return $this->peVenueId;
-    }
-
-    public function setPeVenueId(int $peVenueId): self
-    {
-        $this->peVenueId = $peVenueId;
+        $this->venueDate = $venueDate;
 
         return $this;
     }

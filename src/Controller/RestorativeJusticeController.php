@@ -225,4 +225,16 @@ class RestorativeJusticeController extends AbstractController
     {
         return $this->json($this->relatedActivitiesService->deleteById((int) $request->get("id")));
     }
+
+    /**
+     * @Route("/related-activities/rjib2/full/{clientId}/{quarterId}/{fieldOfficeId}", methods={"GET"})
+     */
+    public function getRJIB2(Request $request): Response
+    {
+        return $this->json($this->relatedActivitiesService->getRJIB2Data(
+            (int) $request->get("clientId"),
+            (int) $request->get("quarterId"),
+            (int) $request->get("fieldOfficeId"),
+        ));
+    }
 }

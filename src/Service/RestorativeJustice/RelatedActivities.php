@@ -89,4 +89,19 @@ class RelatedActivities implements RelatedActivitiesInterface
             return $this->appFormatter->formatResponse(ResponseEnum::DELETING_FAILED, null, ['orm' => $exception->getMessage()]);
         }
     }
+
+    public function getRJIB2Data(int $clientId, int $quarterId, int $fieldOfficeId): array
+    {
+        try {
+            $relatedActivities = $this->repository->getRJIB2Data($clientId, $quarterId, $fieldOfficeId);
+
+            if ($relatedActivities == null) {
+                return $this->appFormatter->formatResponse(ResponseEnum::NO_DATA, null);
+            }
+
+            return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_SUCCESS, $relatedActivities);
+        } catch (InvalidArgumentException | CacheException  $e) {
+            return $this->appFormatter->formatResponse(ResponseEnum::UPDATING_FAILED, null, ['cache' => $e->getMessage()]);
+        }
+    }
 }

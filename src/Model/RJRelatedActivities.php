@@ -14,8 +14,7 @@ class RJRelatedActivities
         private int $fieldOfficeId,
         private int $clientId,
         private int $offenseId,
-        private string $peDate,
-        private int $peVenueId,
+        private string $venueDate,
         private int $venueId,
         private string $victims,
         private int $rjpId,
@@ -70,19 +69,9 @@ class RJRelatedActivities
      * @Assert\NotBlank
      * @return string
      */
-    public function getPeDate(): string
+    public function getVenueDate(): string
     {
-        return $this->peDate;
-    }
-
-    /**
-     * @Assert\NotBlank
-     * @Assert\GreaterThan(0)
-     * @return int
-     */
-    public function getPeVenueId(): int
-    {
-        return $this->peVenueId;
+        return $this->venueDate;
     }
 
     /**

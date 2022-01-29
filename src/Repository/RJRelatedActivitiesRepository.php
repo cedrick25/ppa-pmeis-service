@@ -81,8 +81,7 @@ class RJRelatedActivitiesRepository extends ServiceEntityRepository
         $newRjRelatedActivity->setFieldOfficeId($data->getFieldOfficeId());
         $newRjRelatedActivity->setClientId($data->getClientId());
         $newRjRelatedActivity->setOffenseId($data->getOffenseId());
-        $newRjRelatedActivity->setPeDate($this->appDateHelper->convertStringToImmutableDate($data->getPeDate()));
-        $newRjRelatedActivity->setPeVenueId($data->getPeVenueId());
+        $newRjRelatedActivity->setVenueDate($this->appDateHelper->convertStringToImmutableDate($data->getVenueDate()));
         $newRjRelatedActivity->setVenueId($data->getVenueId());
         $newRjRelatedActivity->setVictims($data->getVictims());
         $newRjRelatedActivity->setRjpId($data->getRjpId());
@@ -149,6 +148,10 @@ class RJRelatedActivitiesRepository extends ServiceEntityRepository
         return ($RJRelatedActivities == null) ? false : $RJRelatedActivities;
     }
 
+    /**
+     * @throws CacheException
+     * @throws InvalidArgumentException
+     */
     public function getRJIB2Data(int $clientId, int $quarterId, int $fieldOfficeId): array
     {
         $params = [
@@ -158,13 +161,15 @@ class RJRelatedActivitiesRepository extends ServiceEntityRepository
 
         return $this->helper->createCachedResponseCustomQuery($params, function() use($clientId, $quarterId, $fieldOfficeId) {
             $conn = $this->getEntityManager()->getConnection();
-            $sql = "SELECT *
-                    FROM rjrelated_activities as rjcp " .
-                "LEFT JOIN clients as c ON rjcp.client_id = c.client_id " .
-                "LEFT JOIN offenses as o ON rjcp.offense_id = o.offenses_id " .
-                "LEFT JOIN rjprocesses as rjp ON rjcp.rjp_id = rjp.id_rjprocesses " .
-                "WHERE rjcp.client_id = $clientId AND rjcp.quarter_id = $quarterId AND rjcp.field_office_id = $fieldOfficeId ".
-                "AND rjcp.deleted_at IS NULL ORDER BY rjcp.rj_group";
+            $sql = "SELECT rjra.*, o.name as offense, rjp.name as rj_process, v.name as venue, rjo.name as outcome
+                    FROM rjrelated_activities as rjra " .
+                "LEFT JOIN clients as c ON rjra.client_id = c.client_id " .
+                "LEFT JOIN offenses as o ON rjra.offense_id = o.offenses_id " .
+                "LEFT JOIN rjprocesses as rjp ON rjra.rjp_id = rjp.id_rjprocesses " .
+                "LEFT JOIN rjoutcomes as rjo ON rjra.rjo_id = rjo.rj_outcome_id " .
+                "LEFT JOIN venues as v ON rjra.venue_id = v.venue_id " .
+                "WHERE rjra.client_id = $clientId AND rjra.quarter_id = $quarterId AND rjra.field_office_id = $fieldOfficeId ".
+                "AND rjra.deleted_at IS NULL ORDER BY rjra.rj_group";
             $stmt = $conn->prepare($sql);
             $query = $stmt->executeQuery();
 
