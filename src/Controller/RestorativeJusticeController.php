@@ -8,6 +8,7 @@ use App\Common\AppFormatter;
 use App\Common\AppHydrator;
 use App\Model\RJConductProcesses as ConductProcessesModel;
 use App\Model\RJRelatedActivities as RelatedActivitiesModel;
+use App\Model\RjRelatedRestitutions as RelatedRestitutionsModel;
 use App\Service\RestorativeJustice\ConductProcessesInterface;
 use App\Service\RestorativeJustice\OffensesInterface;
 use App\Service\RestorativeJustice\OutcomesInterface;
@@ -16,6 +17,7 @@ use App\Service\RestorativeJustice\PaymentModesInterface;
 use App\Service\RestorativeJustice\ProcessesInterface;
 use App\Service\RestorativeJustice\ProcessStatusInterface;
 use App\Service\RestorativeJustice\RelatedActivitiesInterface;
+use App\Service\RestorativeJustice\RelatedRestitutionsInterface;
 use ReflectionException;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -28,16 +30,17 @@ use Symfony\Component\Routing\Annotation\Route;
 class RestorativeJusticeController extends AbstractController
 {
     public function __construct(
-        private AppHydrator                $appHydrator,
-        private AppFormatter               $appFormatter,
-        private ConductProcessesInterface  $conductProcessesService,
-        private OffensesInterface          $offensesService,
-        private ProcessesInterface         $processesService,
-        private ProcessStatusInterface     $processStatusService,
-        private OutcomesInterface          $outcomesService,
-        private RelatedActivitiesInterface $relatedActivitiesService,
-        private PaymentFormsInterface      $paymentFormsService,
-        private PaymentModesInterface      $paymentModesService,
+        private AppHydrator                  $appHydrator,
+        private AppFormatter                 $appFormatter,
+        private ConductProcessesInterface    $conductProcessesService,
+        private OffensesInterface            $offensesService,
+        private ProcessesInterface           $processesService,
+        private ProcessStatusInterface       $processStatusService,
+        private OutcomesInterface            $outcomesService,
+        private RelatedActivitiesInterface   $relatedActivitiesService,
+        private PaymentFormsInterface        $paymentFormsService,
+        private PaymentModesInterface        $paymentModesService,
+        private RelatedRestitutionsInterface $relatedRestitutionsService,
     ){}
 
     /**
@@ -188,7 +191,6 @@ class RestorativeJusticeController extends AbstractController
         return $this->json($this->outcomesService->getById((int) $request->get("id")));
     }
 
-
     /**
      * @Route("/related-activities/create", methods={"POST"})
      */
@@ -272,5 +274,46 @@ class RestorativeJusticeController extends AbstractController
     public function getPaymentModeById(Request $request): Response
     {
         return $this->json($this->paymentModesService->getById((int) $request->get("id")));
+    }
+
+    /**
+     * @Route("/related-restitutions/create", methods={"POST"})
+     */
+    public function createRelatedRestitution(Request $request): Response
+    {
+        try {
+            $data = json_decode($request->getContent(), true);
+
+            /** @var RelatedRestitutionsModel $relatedRestitutions */
+            $relatedRestitutions = $this->appHydrator->convertArrayToObject($data, RelatedRestitutionsModel::class);
+
+            return $this->json($this->relatedRestitutionsService->create($relatedRestitutions));
+        } catch (ReflectionException $exception) {
+            return $this->json($this->appFormatter->formatResponse('Creating RJ related restitutions failed', null, ['reflection' => $exception->getMessage()]));
+        }
+    }
+
+    /**
+     * @Route("/related-restitutions/list", methods={"GET"})
+     */
+    public function getAllRelatedRestitutions(): Response
+    {
+        return $this->json($this->relatedRestitutionsService->getAll());
+    }
+
+    /**
+     * @Route("/related-restitutions/by/id/{id}", methods={"GET"})
+     */
+    public function getRelatedRestitution(Request $request): Response
+    {
+        return $this->json($this->relatedRestitutionsService->getById((int) $request->get("id")));
+    }
+
+    /**
+     * @Route("/related-restitutions/delete/{id}", methods={"GET"})
+     */
+    public function deleteRelatedRestitutionById(Request $request): Response
+    {
+        return $this->json($this->relatedRestitutionsService->deleteById((int) $request->get("id")));
     }
 }

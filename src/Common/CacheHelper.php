@@ -269,4 +269,9 @@ class CacheHelper
     {
         return 'payment_modes_all';
     }
+
+    public function getAllRJRelatedRestitutionsKey(): string
+    {
+        return 'rj_related_restitutions_all';
+    }
 }

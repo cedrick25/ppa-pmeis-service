@@ -1,0 +1,89 @@
+<?php
+
+namespace App\Service\RestorativeJustice;
+
+use App\Common\AppFormatter;
+use App\Enum\Response as ResponseEnum;
+use App\Model\RjRelatedRestitutions as RjRelatedRestitutionsModel;
+use App\Repository\RjRelatedRestitutionsRepository;
+use Doctrine\ORM\Exception\ORMException;
+use Psr\Cache\CacheException;
+use Psr\Cache\InvalidArgumentException;
+use Symfony\Component\Validator\Validator\ValidatorInterface;
+
+class RelatedRestitutions implements RelatedRestitutionsInterface
+{
+    public function __construct(
+        private ValidatorInterface              $validator,
+        private AppFormatter                    $appFormatter,
+        private RjRelatedRestitutionsRepository $repository,
+    ){}
+
+    public function create(RjRelatedRestitutionsModel $restitutions): array
+    {
+        try {
+            $errors = $this->validator->validate($restitutions);
+
+            if (count($errors) > 0) {
+                return $this->appFormatter->formatResponse(ResponseEnum::VALIDATING_FAILED, null, $this->appFormatter->formatErrors($errors));
+            }
+
+            $id = $this->repository->create($restitutions);
+
+            if ($id == null) {
+                return $this->appFormatter->formatResponse(ResponseEnum::CREATING_FAILED, null, ['app' => 'RJ related restitution already exist']);
+            }
+
+            return $this->appFormatter->formatResponse(ResponseEnum::CREATING_SUCCESS, ['id' => $id]);
+        } catch (InvalidArgumentException $exception) {
+            return $this->appFormatter->formatResponse(ResponseEnum::CREATING_FAILED, null, ['cache' => $exception->getMessage()]);
+        } catch (ORMException $exception) {
+            return $this->appFormatter->formatResponse(ResponseEnum::CREATING_FAILED, null, ['orm' => $exception->getMessage()]);
+        } catch (\Exception $e) {
+            return $this->appFormatter->formatResponse(ResponseEnum::CREATING_FAILED, null, ['app' => $e->getMessage()]);
+        }
+    }
+
+    public function getAll(): array
+    {
+        try {
+            $relatedRestitutions = $this->repository->list();
+
+            if ($relatedRestitutions == null) {
+                return $this->appFormatter->formatResponse(ResponseEnum::NO_DATA, null);
+            }
+
+            return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_SUCCESS, $relatedRestitutions);
+        } catch (CacheException|InvalidArgumentException $exception) {
+            return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_FAILED, null, ['cache' => $exception->getMessage()]);
+        }
+    }
+
+    public function getById(int $id): array
+    {
+        $relatedRestitution = $this->repository->isExistingById($id);
+
+        if (!$relatedRestitution) {
+            return $this->appFormatter->formatResponse(ResponseEnum::NO_DATA, null);
+        }
+
+        return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_SUCCESS, $relatedRestitution);
+    }
+
+    public function deleteById(int $id): array
+    {
+        try {
+            $isDeleted = $this->repository->softDelete($id);
+
+            if (! $isDeleted) {
+                return $this->appFormatter->formatResponse(ResponseEnum::DELETING_FAILED, null, ['app' => ResponseEnum::NO_DATA]);
+            }
+
+            return $this->appFormatter->formatResponse(ResponseEnum::DELETING_SUCCESS, null);
+        } catch (InvalidArgumentException $exception) {
+            return $this->appFormatter->formatResponse(ResponseEnum::DELETING_FAILED, null, ['cache' => $exception->getMessage()]);
+        } catch (\Doctrine\ORM\ORMException | ORMException $exception) {
+            return $this->appFormatter->formatResponse(ResponseEnum::DELETING_FAILED, null, ['orm' => $exception->getMessage()]);
+        }
+    }
+}
