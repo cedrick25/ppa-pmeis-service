@@ -274,4 +274,13 @@ class CacheHelper
     {
         return 'rj_related_restitutions_all';
     }
+
+    public function getRJIB3Key(
+        int $clientId,
+        int $quarterId,
+        int $fieldOffice
+    ): string
+    {
+        return 'rjib3_' . $clientId . '_' . $quarterId . '_' . $fieldOffice;
+    }
 }

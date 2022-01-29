@@ -86,4 +86,19 @@ class RelatedRestitutions implements RelatedRestitutionsInterface
             return $this->appFormatter->formatResponse(ResponseEnum::DELETING_FAILED, null, ['orm' => $exception->getMessage()]);
         }
     }
+
+    public function getRJIB3Data(int $clientId, int $quarterId, int $fieldOfficeId): array
+    {
+        try {
+            $relatedRestitutions = $this->repository->getRJIB3Data($clientId, $quarterId, $fieldOfficeId);
+
+            if ($relatedRestitutions == null) {
+                return $this->appFormatter->formatResponse(ResponseEnum::NO_DATA, null);
+            }
+
+            return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_SUCCESS, $relatedRestitutions);
+        } catch (InvalidArgumentException | CacheException  $e) {
+            return $this->appFormatter->formatResponse(ResponseEnum::UPDATING_FAILED, null, ['cache' => $e->getMessage()]);
+        }
+    }
 }
