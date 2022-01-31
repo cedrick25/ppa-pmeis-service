@@ -14,7 +14,44 @@ final class Version20211031152652 extends AbstractMigration
 {
     public function up(Schema $schema): void
     {
-        $this->addSql('CREATE TABLE volunteer (volunteer_id INT AUTO_INCREMENT NOT NULL, first_name VARCHAR(255) NOT NULL, middle_name VARCHAR(255) DEFAULT NULL, last_name VARCHAR(255) NOT NULL, suffix VARCHAR(5) DEFAULT NULL, gender VARCHAR(1) NOT NULL, date_of_birth VARCHAR(255) NOT NULL, is_senior_citizen TINYINT(1) DEFAULT NULL, is_pwd TINYINT(1) DEFAULT NULL, field_office_id INT DEFAULT NULL, created_at DATETIME NOT NULL COMMENT \'(DC2Type:datetime_immutable)\', updated_at DATETIME DEFAULT NULL COMMENT \'(DC2Type:datetime_immutable)\', deleted_at DATETIME DEFAULT NULL COMMENT \'(DC2Type:datetime_immutable)\', PRIMARY KEY(volunteer_id)) DEFAULT CHARACTER SET utf8mb4 COLLATE `utf8mb4_unicode_ci` ENGINE = InnoDB');
+        $this->addSql('CREATE TABLE volunteer (
+            volunteer_id INT AUTO_INCREMENT NOT NULL, 
+            first_name VARCHAR(255) NOT NULL, 
+            middle_name VARCHAR(255) DEFAULT NULL, 
+            last_name VARCHAR(255) NOT NULL, 
+            suffix VARCHAR(5) DEFAULT NULL, 
+            gender VARCHAR(1) NOT NULL, 
+            date_of_birth VARCHAR(255) NOT NULL, 
+            is_senior_citizen TINYINT(1) DEFAULT NULL, 
+            is_pwd TINYINT(1) DEFAULT NULL, 
+            field_office_id INT DEFAULT NULL,
+            date_recruited DATETIME NOT NULL COMMENT \'(DC2Type:datetime_immutable)\',
+            recruiting_officer VARCHAR(255) NOT NULL,
+            age INT DEFAULT NULL,
+            birth_place VARCHAR(255) NOT NULL,
+            civil_status VARCHAR(255) NOT NULL,
+            religion VARCHAR(255) NOT NULL,
+            present_address VARCHAR(255) NOT NULL,
+            height DOUBLE PRECISION NOT NULL,
+            weight DOUBLE PRECISION NOT NULL,
+            blood_type VARCHAR(255) NOT NULL,
+            occupation VARCHAR(255) NOT NULL,
+            education_attainment VARCHAR(255) NOT NULL,
+            contact_number VARCHAR(255) NOT NULL,
+            email_address VARCHAR(255) NOT NULL,
+            domestic_partner VARCHAR(255) NULL,
+            special_skill VARCHAR(255) NOT NULL,
+            emergency_name VARCHAR(255) NOT NULL,
+            emergency_number VARCHAR(255) NOT NULL,
+            image VARCHAR(255) NOT NULL,
+            applicant_signature VARCHAR(255) NOT NULL,
+            date_accomplished DATETIME NOT NULL COMMENT \'(DC2Type:datetime_immutable)\',
+            officer_signature VARCHAR(255) NOT NULL,
+            date_signed DATETIME NOT NULL COMMENT \'(DC2Type:datetime_immutable)\',
+            created_at DATETIME NOT NULL COMMENT \'(DC2Type:datetime_immutable)\', 
+            updated_at DATETIME DEFAULT NULL COMMENT \'(DC2Type:datetime_immutable)\', 
+            deleted_at DATETIME DEFAULT NULL COMMENT \'(DC2Type:datetime_immutable)\', 
+            PRIMARY KEY(volunteer_id)) DEFAULT CHARACTER SET utf8mb4 COLLATE `utf8mb4_unicode_ci` ENGINE = InnoDB');
     }
 
     public function down(Schema $schema): void
