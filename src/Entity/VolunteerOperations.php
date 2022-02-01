@@ -40,9 +40,9 @@ class VolunteerOperations
     private ?string $reason;
 
     /**
-     * @ORM\Column(type="integer")
+     * @ORM\Column(type="integer", nullable=true)
      */
-    private int $droppedBy;
+    private ?int $droppedBy;
 
     public function getVolunteerOperationId(): ?int
     {
@@ -108,7 +108,7 @@ class VolunteerOperations
         return $this->droppedBy;
     }
 
-    public function setDroppedBy(int $droppedBy): self
+    public function setDroppedBy(?int $droppedBy): self
     {
         $this->droppedBy = $droppedBy;
 

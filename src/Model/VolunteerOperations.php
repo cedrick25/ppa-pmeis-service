@@ -12,8 +12,8 @@ class VolunteerOperations
         private int $volunteerId,
         private string $date,
         private string $status,
-        private int $droppedBy,
         private ?string $reason = null,
+        private ?int $droppedBy = null,
     ){}
 
     /**
@@ -53,9 +53,9 @@ class VolunteerOperations
 
     /**
      * @Assert\NotBlank
-     * @return int
+     * @return int|null
      */
-    public function getDroppedBy(): int
+    public function getDroppedBy(): ?int
     {
         return $this->droppedBy;
     }

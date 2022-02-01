@@ -137,7 +137,7 @@ class Volunteer
     private string $emailAddress;
 
     /**
-     * @ORM\Column(type="string", length=255)
+     * @ORM\Column(type="string", length=255, nullable=true)
      */
     private ?string $domesticPartner;
 
@@ -562,9 +562,9 @@ class Volunteer
     }
 
     /**
-     * @return string
+     * @return string|null
      */
-    public function getDomesticPartner(): string
+    public function getDomesticPartner(): ?string
     {
         return $this->domesticPartner;
     }
