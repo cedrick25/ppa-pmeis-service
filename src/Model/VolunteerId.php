@@ -12,6 +12,7 @@ class VolunteerId
         private string $idNo,
         private int $volunteerId,
         private string $adminName,
+        private string $image,
     ){}
 
     /**
@@ -39,5 +40,14 @@ class VolunteerId
     public function getAdminName(): string
     {
         return $this->adminName;
+    }
+
+    /**
+     * @Assert\NotBlank
+     * @return string
+     */
+    public function getImage(): string
+    {
+        return $this->image;
     }
 }

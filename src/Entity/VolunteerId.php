@@ -29,6 +29,11 @@ class VolunteerId
      */
     private string $adminName;
 
+    /**
+     * @ORM\Column(type="string", length=255)
+     */
+    private string $image;
+
     public function getIdNo(): ?string
     {
         return $this->idNo;
@@ -62,6 +67,24 @@ class VolunteerId
     {
         $this->adminName = $adminName;
 
+        return $this;
+    }
+
+    /**
+     * @return string
+     */
+    public function getImage(): string
+    {
+        return $this->image;
+    }
+
+    /**
+     * @param string $image
+     * @return VolunteerId
+     */
+    public function setImage(string $image): VolunteerId
+    {
+        $this->image = $image;
         return $this;
     }
 }
