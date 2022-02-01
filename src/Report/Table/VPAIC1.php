@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Report\Table;
 
+use App\Common\AppDateHelper;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Style\Border;
@@ -15,8 +16,9 @@ class VPAIC1 implements Form
     private const TABLE_NAME = "VPAIC1";
     
     public function __construct(
-        private int   $lastFilledOutCellY = 14,
-        private array $data = [],
+        private AppDateHelper $appDateHelper,
+        private int           $lastFilledOutCellY = 6,
+        private array         $data = [],
     ){}
 
     public function supports(string $tableName): bool
@@ -44,14 +46,51 @@ class VPAIC1 implements Form
     {
         $spreadsheet = $this->body();
         $this->lastFilledOutCellY++;
+        $spreadsheet->getActiveSheet()->getStyle('B' . $this->lastFilledOutCellY)->getFont()->setBold(true);
+        $spreadsheet->getActiveSheet()->setCellValue(
+            'B' . $this->lastFilledOutCellY,
+            'Recruit:  Has passed screening by the CPPO,  and recommended to the Regional Office/Regional VPA Coordinator');
+
+        $this->lastFilledOutCellY++;
+        $spreadsheet->getActiveSheet()->getStyle('B' . $this->lastFilledOutCellY)->getFont()->setBold(true);
+        $spreadsheet->getActiveSheet()->setCellValue(
+            'B' . $this->lastFilledOutCellY,
+            'Date Recruited:  Date complete requirements submitted to the Regional VPA Coordinator / Regional Office');
 
         return $spreadsheet;
     }
 
+    /**
+     * @throws \Exception
+     */
     public function body(): Spreadsheet
     {
         $spreadsheet = $this->header();
 
+        $rowNumber = 1;
+        foreach ($this->data['rows'] as $row) {
+            $this->lastFilledOutCellY++;
+            $middleInitial = $row['middleName'] != null ? substr($row['middleName'], 0, 1) . '.' : '';
+            $nameOfRecruit = $row['lastName'] . ', ' . $row['firstName'] . ' ' . $middleInitial;
+            $dateOfBirth = $this->appDateHelper->convertStringToImmutableDate($row['dateOfBirth']);
+            $dateRecruited = $this->appDateHelper->convertStringToImmutableDate($row['dateRecruited']);
+
+            $spreadsheet->getActiveSheet()->setCellValue("A" . $this->lastFilledOutCellY, $rowNumber);
+            $spreadsheet->getActiveSheet()->setCellValue("B" . $this->lastFilledOutCellY, $nameOfRecruit);
+            if ($row['gender'] === 'F') {
+                $spreadsheet->getActiveSheet()->setCellValue('C' . $this->lastFilledOutCellY, '∕');
+            } else {
+                $spreadsheet->getActiveSheet()->setCellValue('D' . $this->lastFilledOutCellY, '∕');
+            }
+            $spreadsheet->getActiveSheet()->setCellValue("E" . $this->lastFilledOutCellY, $dateOfBirth->format('d-M-y'));
+            $spreadsheet->getActiveSheet()->setCellValue("F" . $this->lastFilledOutCellY, $dateRecruited->format('d-M-y'));
+            $spreadsheet->getActiveSheet()->setCellValue("G" . $this->lastFilledOutCellY, $row['recruitingOfficer']);
+            $spreadsheet->getActiveSheet()->getStyle("A" . $this->lastFilledOutCellY . ":G" . $this->lastFilledOutCellY)->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
+
+            $rowNumber++;
+        }
+
+        $spreadsheet->getActiveSheet()->getStyle('A7:G' . $this->lastFilledOutCellY)->getAlignment()->setHorizontal('center');
 
         return $spreadsheet;
     }
