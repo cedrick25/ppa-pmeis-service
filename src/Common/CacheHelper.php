@@ -283,4 +283,9 @@ class CacheHelper
     {
         return 'rjib3_' . $clientId . '_' . $quarterId . '_' . $fieldOffice;
     }
+
+    public function getAllVolunteerOperationsKey(): string
+    {
+        return 'volunteer_operations_all';
+    }
 }

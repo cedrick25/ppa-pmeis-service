@@ -37,14 +37,14 @@ class VolunteerOperations
     /**
      * @ORM\Column(type="string", length=255, nullable=true)
      */
-    private string $reason;
+    private ?string $reason;
 
     /**
      * @ORM\Column(type="integer")
      */
     private int $droppedBy;
 
-    public function getId(): ?int
+    public function getVolunteerOperationId(): ?int
     {
         return $this->volunteerOperationId;
     }

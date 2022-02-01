@@ -2,9 +2,16 @@
 
 namespace App\Repository;
 
+use App\Common\AppDateHelper;
+use App\Common\CacheHelper;
 use App\Entity\VolunteerOperations;
+use App\Model\VolunteerOperations as VolunteerOperationsModel;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
+use Doctrine\ORM\ORMException;
 use Doctrine\Persistence\ManagerRegistry;
+use Psr\Cache\CacheException;
+use Psr\Cache\InvalidArgumentException;
+use Symfony\Contracts\Cache\TagAwareCacheInterface;
 
 /**
  * @method VolunteerOperations|null find($id, $lockMode = null, $lockVersion = null)
@@ -14,37 +21,68 @@ use Doctrine\Persistence\ManagerRegistry;
  */
 class VolunteerOperationsRepository extends ServiceEntityRepository
 {
-    public function __construct(ManagerRegistry $registry)
-    {
+    protected const CACHE_TAG = "volunteer_operations";
+
+    public function __construct(
+        ManagerRegistry $registry,
+        private TagAwareCacheInterface $cache,
+        private CacheHelper $cacheHelper,
+        private Helper $helper,
+        private AppDateHelper $appDateHelper,
+    ){
         parent::__construct($registry, VolunteerOperations::class);
     }
 
-    // /**
-    //  * @return VolunteerOperations[] Returns an array of VolunteerOperations objects
-    //  */
-    /*
-    public function findByExampleField($value)
+    /**
+     * @return VolunteerOperations[]
+     * @throws CacheException
+     * @throws InvalidArgumentException
+     */
+    public function list(): array
     {
-        return $this->createQueryBuilder('v')
-            ->andWhere('v.exampleField = :val')
-            ->setParameter('val', $value)
-            ->orderBy('v.id', 'ASC')
-            ->setMaxResults(10)
-            ->getQuery()
-            ->getResult()
-        ;
-    }
-    */
+        $params = [
+            'cacheKey' => $this->cacheHelper->getAllVolunteerOperationsKey(),
+            'expiration' => $this->cacheHelper->getExpirationDateTime(),
+            'cacheTag' => self::CACHE_TAG
+        ];
 
-    /*
-    public function findOneBySomeField($value): ?VolunteerOperations
-    {
-        return $this->createQueryBuilder('v')
-            ->andWhere('v.exampleField = :val')
-            ->setParameter('val', $value)
-            ->getQuery()
-            ->getOneOrNullResult()
-        ;
+        return $this->helper->createCachedResponse($params, function() {
+            return $this->createQueryBuilder('vo')
+                ->orderBy('vo.volunteerOperationId', 'DESC')
+                ->getQuery()
+                ->getResult();
+        });
     }
-    */
+
+    /**
+     * @throws InvalidArgumentException
+     * @throws ORMException
+     * @throws \Doctrine\DBAL\Exception\InvalidArgumentException
+     * @throws \Exception
+     */
+    public function create(VolunteerOperationsModel $data): int | null
+    {
+        $this->cache->invalidateTags([self::CACHE_TAG]);
+
+        $newVolunteerOperations = new VolunteerOperations();
+        $newVolunteerOperations->setVolunteerId($data->getVolunteerId());
+        $newVolunteerOperations->setStatus($data->getStatus());
+        $newVolunteerOperations->setDate($this->appDateHelper->convertStringToImmutableDate($data->getDate()));
+        $newVolunteerOperations->setReason($data->getReason());
+        $newVolunteerOperations->setDroppedBy($data->getDroppedBy());
+
+        $this->getEntityManager()->persist($newVolunteerOperations);
+        $this->getEntityManager()->flush();
+
+        return $newVolunteerOperations->getVolunteerId();
+    }
+
+    public function isExistingById(int $id): bool | VolunteerOperations
+    {
+        $volunteerOperation = $this->findOneBy([
+            'volunteerOperationId' => $id
+        ]);
+
+        return ($volunteerOperation == null) ? false : $volunteerOperation;
+    }
 }

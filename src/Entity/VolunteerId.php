@@ -12,8 +12,8 @@ class VolunteerId
 {
     /**
      * @ORM\Id
-     * @ORM\GeneratedValue
-     * @ORM\Column(type="integer")
+     * @ORM\Column(type="string", length=255, nullable=false)
+     * @ORM\GeneratedValue(strategy="NONE")
      */
     private int $idNo;
 
