@@ -9,6 +9,7 @@ use App\Common\CacheHelper;
 use App\Entity\Volunteer;
 use App\Enum\Response as ResponseEnum;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
+use Doctrine\DBAL\Connection;
 use Doctrine\ORM\OptimisticLockException;
 use Doctrine\ORM\ORMException;
 use Doctrine\Persistence\ManagerRegistry;
@@ -29,11 +30,11 @@ class VolunteerRepository extends ServiceEntityRepository
     protected const CACHE_TAG = "volunteers";
 
     public function __construct(
-        ManagerRegistry $registry,
+        ManagerRegistry                $registry,
         private TagAwareCacheInterface $cache,
-        private CacheHelper $cacheHelper,
-        private AppDateHelper $appDateHelper,
-        private Helper $helper,
+        private CacheHelper            $cacheHelper,
+        private AppDateHelper          $appDateHelper,
+        private Helper                 $helper,
     ){
         parent::__construct($registry, Volunteer::class);
     }
@@ -270,16 +271,35 @@ class VolunteerRepository extends ServiceEntityRepository
         });
     }
 
+    /**
+     * @param int $fieldOfficeId
+     * @param int $year
+     * @param int[] $months
+     * @return bool|array<string, mixed>
+     */
+    public function findByFieldOfficeAndMonthRange(int $fieldOfficeId, int $year, array $months): bool|array
+    {
+        return $this->createQueryBuilder('v')
+            ->where('v.fieldOfficeId = :fieldOfficeId')
+            ->andWhere('YEAR(v.dateRecruited) = :year')
+            ->andWhere('MONTH(v.dateRecruited) IN (:months)')
+            ->setParameter('fieldOfficeId', $fieldOfficeId)
+            ->setParameter('year', $year)
+            ->setParameter('months', $months, Connection::PARAM_INT_ARRAY)
+            ->getQuery()
+            ->getResult();
+    }
+
     private function isExisting(VolunteerModel $volunteerData): bool
     {
-        $client = $this->findOneBy([
+        $volunteer = $this->findOneBy([
             'firstName' => $volunteerData->getFirstName(),
             'middleName' => $volunteerData->getMiddleName(),
             'lastName' => $volunteerData->getLastName(),
             'deletedAt' => null
         ]);
 
-        return $client != null;
+        return $volunteer != null;
     }
 
     private function isConflicted(Volunteer $fetchedVolunteer, VolunteerModel $volunteerData): bool

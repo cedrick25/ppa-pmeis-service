@@ -2,8 +2,10 @@
 
 namespace App\Service\TherapeuticCommunity;
 
+use App\Common\AppDateHelper;
 use App\Common\AppFormatter;
 use App\Enum\Response as ResponseEnum;
+use App\Repository\QuartersRepository;
 use App\Repository\VolunteerRepository;
 use Doctrine\ORM\Exception\ORMException;
 use Exception;
@@ -15,9 +17,11 @@ use \App\Model\Volunteer as VolunteerModel;
 class Volunteer implements VolunteerInterface
 {
     public function __construct(
-        private ValidatorInterface    $validator,
-        private AppFormatter          $appFormatter,
-        private VolunteerRepository      $repository,
+        private ValidatorInterface  $validator,
+        private AppFormatter        $appFormatter,
+        private VolunteerRepository $repository,
+        private QuartersRepository  $quartersRepository,
+        private AppDateHelper       $appDateHelper,
     ){}
 
     public function create(VolunteerModel $volunteerData): array
@@ -72,7 +76,7 @@ class Volunteer implements VolunteerInterface
             return $this->appFormatter->formatResponse(ResponseEnum::DELETING_SUCCESS, null);
         } catch (InvalidArgumentException $exception) {
             return $this->appFormatter->formatResponse(ResponseEnum::DELETING_FAILED, null, ['cache' => $exception->getMessage()]);
-        } catch (ORMException $exception) {
+        } catch (\Doctrine\ORM\ORMException $exception) {
             return $this->appFormatter->formatResponse(ResponseEnum::DELETING_FAILED, null, ['orm' => $exception->getMessage()]);
         }
     }
@@ -121,6 +125,23 @@ class Volunteer implements VolunteerInterface
             return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_SUCCESS, $volunteers);
         } catch (CacheException|InvalidArgumentException $exception) {
             return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_FAILED, null, ['cache' => $exception->getMessage()]);
+        }
+    }
+
+    public function getByFieldOfficeAndMonthRange(int $fieldOfficeId, int $quarterId): array
+    {
+        try {
+            $quarter = $this->quartersRepository->find($quarterId);
+            $months = $this->appDateHelper->getMonthsByQuarterString($quarter->getName());
+            $volunteers = $this->repository->findByFieldOfficeAndMonthRange($fieldOfficeId, intval($quarter->getYear()), $months);
+
+            if (sizeof($volunteers) <= 0) {
+                return $this->appFormatter->formatResponse(ResponseEnum::NO_DATA, null);
+            }
+
+            return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_SUCCESS, $volunteers);
+        } catch (\Exception $e) {
+            return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_SUCCESS, null, ['app' => $e->getMessage()]);
         }
     }
 }

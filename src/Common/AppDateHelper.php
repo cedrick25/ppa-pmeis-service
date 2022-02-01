@@ -35,4 +35,20 @@ class AppDateHelper
 
         return substr($dt->format('F'), 0, 1);
     }
+
+    /**
+     * @param string $quarter
+     * @return int[]
+     */
+    public function getMonthsByQuarterString(string $quarter): array
+    {
+        $data = [
+            'FIRST' => [1,2,3],
+            'SECOND' => [4,5,6],
+            'THIRD' => [7,8,9],
+            'FOURTH' => [10,11,12]
+        ];
+
+        return $data[$quarter];
+    }
 }

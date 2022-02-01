@@ -187,6 +187,11 @@ class CacheHelper
         return 'volunteers_' . $page . '_' . $size;
     }
 
+    public function getVolunteersByQuarterAndFieldOfficeKey(int $quarterId, int $fieldOfficeId): string
+    {
+        return 'volunteers_quarter_field_office_' . $quarterId . '_' . $fieldOfficeId;
+    }
+
     public function getAllResourceFacilitatorSessionsKey(): string
     {
         return 'resource_facilitator_session_all';
