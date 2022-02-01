@@ -52,7 +52,6 @@ class VolunteerOperations
     }
 
     /**
-     * @Assert\NotBlank
      * @return int|null
      */
     public function getDroppedBy(): ?int
