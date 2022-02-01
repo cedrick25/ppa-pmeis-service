@@ -6,7 +6,7 @@ use App\Model\VolunteerOperations as VolunteerOperationsModel;
 
 interface OperationsInterface
 {
-    public function create(VolunteerOperationsModel $operations): array;
+    public function create(VolunteerOperationsModel $operation): array;
 
     public function getAll(): array;
 

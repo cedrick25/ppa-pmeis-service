@@ -288,4 +288,9 @@ class CacheHelper
     {
         return 'volunteer_operations_all';
     }
+
+    public function getAllVolunteerIdsKey(): string
+    {
+        return 'volunteer_ids_all';
+    }
 }
