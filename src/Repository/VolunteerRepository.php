@@ -30,11 +30,13 @@ class VolunteerRepository extends ServiceEntityRepository
     protected const CACHE_TAG = "volunteers";
 
     public function __construct(
-        ManagerRegistry                $registry,
-        private TagAwareCacheInterface $cache,
-        private CacheHelper            $cacheHelper,
-        private AppDateHelper          $appDateHelper,
-        private Helper                 $helper,
+        ManagerRegistry                              $registry,
+        private TagAwareCacheInterface               $cache,
+        private CacheHelper                          $cacheHelper,
+        private AppDateHelper                        $appDateHelper,
+        private Helper                               $helper,
+        private ResourceFacilitatorSessionRepository $resourceFacilitatorSessionRepository,
+        private VolunteerOperationsRepository        $volunteerOperationsRepository,
     ){
         parent::__construct($registry, Volunteer::class);
     }
@@ -286,6 +288,43 @@ class VolunteerRepository extends ServiceEntityRepository
             ->setParameter('fieldOfficeId', $fieldOfficeId)
             ->setParameter('year', $year)
             ->setParameter('months', $months, Connection::PARAM_INT_ARRAY)
+            ->getQuery()
+            ->getResult();
+    }
+
+    /**
+     * @param int $fieldOfficeId
+     * @param int $quarterId
+     * @return Volunteer[]
+     */
+    public function findInactiveVolunteersByFieldOfficeAndMonthRange(
+        int $fieldOfficeId,
+        int $quarterId,
+        int $year,
+        array $months
+    ): array {
+        $volunteerIds = $this->resourceFacilitatorSessionRepository->getVolunteerIdsByQuarterAndFieldOfficeId($fieldOfficeId, $quarterId);
+        $droppedVolunteerIds = $this->volunteerOperationsRepository->findVolunteerIdsByFieldOfficeAndMonthRange($year, $months, 'DROPPED');
+        $inActiveVolunteerIds = [];
+
+        foreach ($volunteerIds as $volunteerId) {
+            $isHit = false;
+            foreach ($droppedVolunteerIds as $droppedVolunteerId) {
+                if (intval($volunteerId['resource_facilitator_id']) === intval($droppedVolunteerId['volunteer_id'])) {
+                    $isHit = true;
+                    break;
+                }
+            }
+
+            if (!$isHit) {
+                $inActiveVolunteerIds[] = intval($volunteerId['resource_facilitator_id']);
+            }
+        }
+
+
+        return $this->createQueryBuilder('v')
+            ->where('v.fieldOfficeId IN (:inActiveVolunteerIds)')
+            ->setParameter('inActiveVolunteerIds', $inActiveVolunteerIds, Connection::PARAM_INT_ARRAY)
             ->getQuery()
             ->getResult();
     }

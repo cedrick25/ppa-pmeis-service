@@ -815,7 +815,7 @@ class TherapeuticCommunityController extends AbstractController
             (int) $request->get("pageSize")
         ));
     }
-    //getByFieldOfficeAndMonthRange
+
     /**
      * @Route("/volunteer/by/{fieldOfficeId}/{quarterId}", methods={"GET"})
      */

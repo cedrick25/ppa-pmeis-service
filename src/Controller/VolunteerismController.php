@@ -61,6 +61,17 @@ class VolunteerismController extends AbstractController
     }
 
     /**
+     * @Route("/by/field-office-quarter/{fieldOfficeId}/{quarterId}", methods={"GET"})
+     */
+    public function getVolunteerOperationsByFieldOfficeAndMonthRange(Request $request): Response
+    {
+        return $this->json($this->operationService->getByFieldOfficeAndMonthRange(
+            (int) $request->get("fieldOfficeId"),
+            (int) $request->get("quarterId")
+        ));
+    }
+
+    /**
      * @Route("/id/create", methods={"POST"})
      */
     public function createId(Request $request): Response

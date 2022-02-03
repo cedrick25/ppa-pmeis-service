@@ -248,6 +248,20 @@ class ResourceFacilitatorSessionRepository extends ServiceEntityRepository
         return ($client == null) ? false : $client;
     }
 
+    public function getVolunteerIdsByQuarterAndFieldOfficeId(int $fieldOfficeId, int $quarterId)
+    {
+        $conn = $this->getEntityManager()->getConnection();
+        $sql = "SELECT rfs.resource_facilitator_id, rfs.resource_facilitator_type FROM sessions as s " .
+            "LEFT JOIN resource_facilitator_session as rfs ON s.session_id = rfs.session_id " .
+            "WHERE s.field_office_id = $fieldOfficeId AND s.quarter_id = $quarterId AND rfs.resource_facilitator_type = 'VPA'";
+
+        $stmt = $conn->prepare($sql);
+        $query = $stmt->executeQuery();
+
+        return $query->fetchAllAssociative();
+
+    }
+
     private function isConflicted(
         ResourceFacilitatorSession $fetchedResourceFacilitatorSession,
         ResourceFacilitatorSessionModel $resourceFacilitatorSessionData): bool

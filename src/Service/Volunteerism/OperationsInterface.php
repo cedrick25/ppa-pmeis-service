@@ -11,4 +11,6 @@ interface OperationsInterface
     public function getAll(): array;
 
     public function getById(int $id): array;
+
+    public function getByFieldOfficeAndMonthRange(int $fieldOfficeId, int $quarterId): array;
 }
