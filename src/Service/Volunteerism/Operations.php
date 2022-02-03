@@ -122,10 +122,13 @@ class Operations implements OperationsInterface
         );
 
         foreach ($volunteers as $volunteer) {
-            $volunteer = $this->volunteerRepository->find($volunteer['volunteer_id']);
+            $currentVolunteer = $this->volunteerRepository->find($volunteer['volunteer_id']);
 
-            if ($volunteer->getFieldOfficeId() === $fieldOfficeId) {
-                $volunteerList[] = $volunteer;
+            if ($currentVolunteer->getFieldOfficeId() === $fieldOfficeId) {
+                $volunteerList[] = [
+                    'date' => $volunteer['date'],
+                    'volunteer' => $currentVolunteer
+                ];
             }
         }
 
@@ -150,10 +153,13 @@ class Operations implements OperationsInterface
         );
 
         foreach ($volunteers as $volunteer) {
-            $volunteer = $this->volunteerRepository->find($volunteer['volunteer_id']);
+            $currentVolunteer = $this->volunteerRepository->find($volunteer['volunteer_id']);
 
-            if ($volunteer->getFieldOfficeId() === $fieldOfficeId) {
-                $volunteerList[] = $volunteer;
+            if ($currentVolunteer->getFieldOfficeId() === $fieldOfficeId) {
+                $volunteerList[] = [
+                    'date' => $volunteer['date'],
+                    'volunteer' => $currentVolunteer
+                ];
             }
         }
 
@@ -178,7 +184,6 @@ class Operations implements OperationsInterface
             $months,
             'DROPPED'
         );
-
 
         foreach ($inactive as $inactiveVolunteer) {
             $inactiveVolunteerIds[] = $inactiveVolunteer->getVolunteerId();
