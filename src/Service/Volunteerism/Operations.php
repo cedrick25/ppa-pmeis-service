@@ -10,7 +10,6 @@ use App\Entity\Volunteer;
 use App\Enum\Response as ResponseEnum;
 use App\Model\VolunteerOperations as VolunteerOperationsModel;
 use App\Repository\QuartersRepository;
-use App\Repository\ResourceFacilitatorSessionRepository;
 use App\Repository\VolunteerOperationsRepository;
 use App\Repository\VolunteerRepository;
 use Doctrine\DBAL\Driver\Exception;
@@ -28,7 +27,6 @@ class Operations implements OperationsInterface
         private QuartersRepository                   $quartersRepository,
         private AppDateHelper                        $appDateHelper,
         private VolunteerRepository                  $volunteerRepository,
-        private ResourceFacilitatorSessionRepository $resourceFacilitatorSessionRepository,
     ){}
 
     public function create(VolunteerOperationsModel $operation): array
@@ -116,18 +114,22 @@ class Operations implements OperationsInterface
      */
     private function getAppointedVolunteers(int $fieldOfficeId, int $year, array $months): array
     {
-        $appointedVolunteerIds = [];
-        $appointedVolunteers = $this->repository->findVolunteerIdsByMonthRange(
+        $volunteerList = [];
+        $volunteers = $this->repository->findVolunteerIdsByMonthRange(
             $year,
             $months,
             'APPOINTED'
         );
 
-        foreach ($appointedVolunteers as $appointedVolunteer) {
-            $appointedVolunteerIds[] = $appointedVolunteer['volunteer_id'];
+        foreach ($volunteers as $volunteer) {
+            $volunteer = $this->volunteerRepository->find($volunteer['volunteer_id']);
+
+            if ($volunteer->getFieldOfficeId() === $fieldOfficeId) {
+                $volunteerList[] = $volunteer;
+            }
         }
 
-        return $this->volunteerRepository->findVolunteersByIds($appointedVolunteerIds);
+        return $volunteerList;
     }
 
     /**
@@ -140,18 +142,22 @@ class Operations implements OperationsInterface
      */
     private function getReAppointedVolunteers(int $fieldOfficeId, int $year, array $months): array
     {
-        $appointedVolunteerIds = [];
-        $appointedVolunteers = $this->repository->findVolunteerIdsByMonthRange(
+        $volunteerList = [];
+        $volunteers = $this->repository->findVolunteerIdsByMonthRange(
             $year,
             $months,
             'REAPPOINTED'
         );
 
-        foreach ($appointedVolunteers as $appointedVolunteer) {
-            $appointedVolunteerIds[] = $appointedVolunteer['volunteer_id'];
+        foreach ($volunteers as $volunteer) {
+            $volunteer = $this->volunteerRepository->find($volunteer['volunteer_id']);
+
+            if ($volunteer->getFieldOfficeId() === $fieldOfficeId) {
+                $volunteerList[] = $volunteer;
+            }
         }
 
-        return $this->volunteerRepository->findVolunteersByIds($appointedVolunteerIds);
+        return $volunteerList;
     }
 
     /**
@@ -183,16 +189,21 @@ class Operations implements OperationsInterface
                 continue;
             }
             $volunteerList[$volunteer['volunteer_id']] = [
-                'volunteer' => $this->volunteerRepository->find($volunteer['volunteer_id']),
                 'reason' => $volunteer['reason'],
                 'date' => $volunteer['date'],
             ];
         }
 
-        // Removed inactive in dropped list
-        // Find a way to filter by field office
-        dd($volunteerList);
+        $droppedVolunteers = [];
+        foreach ($volunteerList as $volunteerId=> $volunteerData) {
+            $volunteer = $this->volunteerRepository->find($volunteerId);
 
-        return $volunteerList;
+            if ($volunteer->getFieldOfficeId() === $fieldOfficeId) {
+                $volunteerData['volunteer'] = $volunteer;
+                $droppedVolunteers[] = $volunteerData;
+            }
+        }
+
+        return $droppedVolunteers;
     }
 }
