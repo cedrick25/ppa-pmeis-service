@@ -303,28 +303,37 @@ class VolunteerRepository extends ServiceEntityRepository
         int $year,
         array $months
     ): array {
-        $volunteerIds = $this->resourceFacilitatorSessionRepository->getVolunteerIdsByQuarterAndFieldOfficeId($fieldOfficeId, $quarterId);
-        $droppedVolunteerIds = $this->volunteerOperationsRepository->findVolunteerIdsByFieldOfficeAndMonthRange($year, $months, 'DROPPED');
+        $activeVolunteers = $this->resourceFacilitatorSessionRepository->getVolunteerIdsByQuarterAndFieldOfficeId($fieldOfficeId, $quarterId);
+        $droppedVolunteerIds = $this->volunteerOperationsRepository->findVolunteerIdsByMonthRange($year, $months, 'DROPPED');
         $inActiveVolunteerIds = [];
+        $activeVolunteerIds = [];
 
-        foreach ($volunteerIds as $volunteerId) {
-            $isHit = false;
-            foreach ($droppedVolunteerIds as $droppedVolunteerId) {
-                if (intval($volunteerId['resource_facilitator_id']) === intval($droppedVolunteerId['volunteer_id'])) {
-                    $isHit = true;
-                    break;
-                }
-            }
+        foreach ($activeVolunteers as $activeVolunteer) {
+            $activeVolunteerIds[] = $activeVolunteer['resource_facilitator_id'];
+        };
 
-            if (!$isHit) {
-                $inActiveVolunteerIds[] = intval($volunteerId['resource_facilitator_id']);
+        foreach ($droppedVolunteerIds as $droppedVolunteerId) {
+            if (! in_array(intval($droppedVolunteerId['volunteer_id']), $activeVolunteerIds)) {
+                $inActiveVolunteerIds[] = intval($droppedVolunteerId['volunteer_id']);
             }
         }
 
-
         return $this->createQueryBuilder('v')
-            ->where('v.fieldOfficeId IN (:inActiveVolunteerIds)')
+            ->where('v.volunteerId IN (:inActiveVolunteerIds)')
             ->setParameter('inActiveVolunteerIds', $inActiveVolunteerIds, Connection::PARAM_INT_ARRAY)
+            ->getQuery()
+            ->getResult();
+    }
+
+    /**
+     * @param int[] $ids
+     * @return Volunteer[]
+     */
+    public function findVolunteersByIds(array $ids): array
+    {
+        return $this->createQueryBuilder('v')
+            ->where('v.volunteerId IN (:ids)')
+            ->setParameter('ids', $ids, Connection::PARAM_INT_ARRAY)
             ->getQuery()
             ->getResult();
     }

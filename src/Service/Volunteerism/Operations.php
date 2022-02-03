@@ -6,9 +6,11 @@ namespace App\Service\Volunteerism;
 
 use App\Common\AppDateHelper;
 use App\Common\AppFormatter;
+use App\Entity\Volunteer;
 use App\Enum\Response as ResponseEnum;
 use App\Model\VolunteerOperations as VolunteerOperationsModel;
 use App\Repository\QuartersRepository;
+use App\Repository\ResourceFacilitatorSessionRepository;
 use App\Repository\VolunteerOperationsRepository;
 use App\Repository\VolunteerRepository;
 use Doctrine\DBAL\Driver\Exception;
@@ -20,12 +22,13 @@ use Symfony\Component\Validator\Validator\ValidatorInterface;
 class Operations implements OperationsInterface
 {
     public function __construct(
-        private ValidatorInterface            $validator,
-        private AppFormatter                  $appFormatter,
-        private VolunteerOperationsRepository $repository,
-        private QuartersRepository            $quartersRepository,
-        private AppDateHelper                 $appDateHelper,
-        private VolunteerRepository           $volunteerRepository,
+        private ValidatorInterface                   $validator,
+        private AppFormatter                         $appFormatter,
+        private VolunteerOperationsRepository        $repository,
+        private QuartersRepository                   $quartersRepository,
+        private AppDateHelper                        $appDateHelper,
+        private VolunteerRepository                  $volunteerRepository,
+        private ResourceFacilitatorSessionRepository $resourceFacilitatorSessionRepository,
     ){}
 
     public function create(VolunteerOperationsModel $operation): array
@@ -85,39 +88,111 @@ class Operations implements OperationsInterface
             $quarter = $this->quartersRepository->find($quarterId);
             $months = $this->appDateHelper->getMonthsByQuarterString($quarter->getName());
 
-            $inactiveVolunteers = $this->volunteerRepository->findInactiveVolunteersByFieldOfficeAndMonthRange(
-                $fieldOfficeId, $quarterId, intval($quarter->getYear()), $months
-            );
+            $inactive = $this->volunteerRepository
+                ->findInactiveVolunteersByFieldOfficeAndMonthRange($fieldOfficeId, $quarterId, intval($quarter->getYear()), $months);
 
-            // get the latest status cross-check to volunteer list
-
-            $appointedVolunteers = $this->repository->findByFieldOfficeAndMonthRange(
-                $fieldOfficeId,
-                intval($quarter->getYear()),
-                $months,
-                'APPOINTED'
-            );
-            $reappointedVolunteers = $this->repository->findByFieldOfficeAndMonthRange(
-                $fieldOfficeId,
-                intval($quarter->getYear()),
-                $months,
-                'REAPPOINTED'
-            );
-            $droppedVolunteers = $this->repository->findByFieldOfficeAndMonthRange(
-                $fieldOfficeId,
-                intval($quarter->getYear()),
-                $months,
-                'DROPPED'
-            );
+            $appointed = $this->getAppointedVolunteers($fieldOfficeId, intval($quarter->getYear()), $months);
+            $reAppointed = $this->getReAppointedVolunteers($fieldOfficeId, intval($quarter->getYear()), $months);
+            $dropped = $this->getDroppedVolunteers($fieldOfficeId, intval($quarter->getYear()), $months, $inactive);
 
             return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_SUCCESS, [
-                'APPOINTED' => $appointedVolunteers,
-                'REAPPOINTED' => $reappointedVolunteers,
-                'INACTIVE' => $inactiveVolunteers,
-                'DROPPED' => $droppedVolunteers
+                'APPOINTED' => $appointed,
+                'REAPPOINTED' => $reAppointed,
+                'INACTIVE' => $inactive,
+                'DROPPED' => $dropped
             ]);
         } catch (\Exception | Exception $e) {
             return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_SUCCESS, null, ['app' => $e->getMessage()]);
         }
+    }
+
+    /**
+     * @param int $fieldOfficeId
+     * @param int $year
+     * @param int[] $months
+     * @return Volunteer[]
+     * @throws Exception
+     * @throws \Doctrine\DBAL\Exception
+     */
+    private function getAppointedVolunteers(int $fieldOfficeId, int $year, array $months): array
+    {
+        $appointedVolunteerIds = [];
+        $appointedVolunteers = $this->repository->findVolunteerIdsByMonthRange(
+            $year,
+            $months,
+            'APPOINTED'
+        );
+
+        foreach ($appointedVolunteers as $appointedVolunteer) {
+            $appointedVolunteerIds[] = $appointedVolunteer['volunteer_id'];
+        }
+
+        return $this->volunteerRepository->findVolunteersByIds($appointedVolunteerIds);
+    }
+
+    /**
+     * @param int $fieldOfficeId
+     * @param int $year
+     * @param int[] $months
+     * @return Volunteer[]
+     * @throws Exception
+     * @throws \Doctrine\DBAL\Exception
+     */
+    private function getReAppointedVolunteers(int $fieldOfficeId, int $year, array $months): array
+    {
+        $appointedVolunteerIds = [];
+        $appointedVolunteers = $this->repository->findVolunteerIdsByMonthRange(
+            $year,
+            $months,
+            'REAPPOINTED'
+        );
+
+        foreach ($appointedVolunteers as $appointedVolunteer) {
+            $appointedVolunteerIds[] = $appointedVolunteer['volunteer_id'];
+        }
+
+        return $this->volunteerRepository->findVolunteersByIds($appointedVolunteerIds);
+    }
+
+    /**
+     * @param int $fieldOfficeId
+     * @param int $year
+     * @param int[] $months
+     * @param Volunteer[] $inactive
+     * @return Volunteer[]
+     * @throws Exception
+     * @throws \Doctrine\DBAL\Exception
+     */
+    private function getDroppedVolunteers(int $fieldOfficeId, int $year, array $months, array $inactive): array
+    {
+        $volunteerList = [];
+        $inactiveVolunteerIds = [];
+        $volunteers = $this->repository->findVolunteerIdsByMonthRange(
+            $year,
+            $months,
+            'DROPPED'
+        );
+
+
+        foreach ($inactive as $inactiveVolunteer) {
+            $inactiveVolunteerIds[] = $inactiveVolunteer->getVolunteerId();
+        }
+
+        foreach ($volunteers as $volunteer) {
+            if (in_array(intval($volunteer['volunteer_id']), $inactiveVolunteerIds)) {
+                continue;
+            }
+            $volunteerList[$volunteer['volunteer_id']] = [
+                'volunteer' => $this->volunteerRepository->find($volunteer['volunteer_id']),
+                'reason' => $volunteer['reason'],
+                'date' => $volunteer['date'],
+            ];
+        }
+
+        // Removed inactive in dropped list
+        // Find a way to filter by field office
+        dd($volunteerList);
+
+        return $volunteerList;
     }
 }

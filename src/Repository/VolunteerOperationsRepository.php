@@ -99,8 +99,9 @@ class VolunteerOperationsRepository extends ServiceEntityRepository
         $sql = "SELECT vo.*, v.first_name, v.middle_name, v.last_name, v.gender, v.is_pwd, v.is_senior_citizen  
                 FROM volunteer_operations as vo " .
             "LEFT JOIN volunteer as v ON vo.volunteer_id = v.volunteer_id " .
-            "WHERE v.field_office_id = $fieldOfficeId AND YEAR(v.date_recruited) = $year 
-            AND MONTH(v.date_recruited) IN ($months) AND vo.status = $status ORDER BY vo.date DESC";
+            "WHERE v.field_office_id = $fieldOfficeId AND YEAR(vo.date) = $year 
+            AND MONTH(vo.date) IN ($months) AND vo.status = '$status' ORDER BY vo.date DESC";
+        dd($sql);
 
         $stmt = $conn->prepare($sql);
         $query = $stmt->executeQuery();
@@ -112,11 +113,11 @@ class VolunteerOperationsRepository extends ServiceEntityRepository
      * @throws \Doctrine\DBAL\Exception
      * @throws \Doctrine\DBAL\Driver\Exception
      */
-    public function findVolunteerIdsByFieldOfficeAndMonthRange(int $year, array $months, string $status): array
+    public function findVolunteerIdsByMonthRange(int $year, array $months, string $status): array
     {
         $months = implode(',', $months);
         $conn = $this->getEntityManager()->getConnection();
-        $sql = "SELECT volunteer_id from volunteer_operations WHERE volunteer_operation_id IN
+        $sql = "SELECT volunteer_id, date, reason from volunteer_operations WHERE volunteer_operation_id IN
                 (SELECT MAX(volunteer_operation_id) FROM volunteer_operations GROUP BY volunteer_id) AND
                 YEAR(date) = $year AND MONTH(date) IN ($months) AND status = '$status'";
 
