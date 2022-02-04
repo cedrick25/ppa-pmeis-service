@@ -17,7 +17,7 @@ use App\Service\TherapeuticCommunity\GenerateTableInterface;
 use App\Service\TherapeuticCommunity\PhasesInterface;
 use App\Service\TherapeuticCommunity\QuartersInterface;
 use App\Service\TherapeuticCommunity\RegionsInterface;
-use App\Service\TherapeuticCommunity\ResourceFacilitatorSession;
+use App\Service\TherapeuticCommunity\ResourceFacilitatorSessionInterface;
 use App\Service\TherapeuticCommunity\SessionActivitiesInterface;
 use App\Service\TherapeuticCommunity\SessionsInterface;
 use App\Service\TherapeuticCommunity\TreatmentCategoriesInterface;
@@ -52,7 +52,7 @@ class TherapeuticCommunityController extends AbstractController
         private ClientsInterface $clientService,
         private ClientSessionsInterface $clientSessionService,
         private VolunteerInterface $volunteerService,
-        private ResourceFacilitatorSession $resourceFacilitatorSessionService,
+        private ResourceFacilitatorSessionInterface $resourceFacilitatorSessionService,
         private RegionsInterface $regionService,
         private GenerateTableInterface $generateTable,
     ){}
@@ -893,6 +893,17 @@ class TherapeuticCommunityController extends AbstractController
         return $this->json($this->resourceFacilitatorSessionService->getPaginated(
             (int) $request->get("page"),
             (int) $request->get("pageSize")
+        ));
+    }
+
+    /**
+     * @Route("/resource-facilitator-session/vpa3/full/{fieldOfficeId}/{quarterId}", methods={"GET"})
+     */
+    public function getVP3(Request $request): Response
+    {
+        return $this->json($this->resourceFacilitatorSessionService->getVPA3(
+            (int) $request->get("fieldOfficeId"),
+            (int) $request->get("quarterId"),
         ));
     }
 

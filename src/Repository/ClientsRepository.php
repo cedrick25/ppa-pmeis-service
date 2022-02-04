@@ -9,6 +9,7 @@ use App\Common\CacheHelper;
 use App\Entity\Clients;
 use App\Enum\Response as ResponseEnum;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
+use Doctrine\DBAL\Connection;
 use Doctrine\ORM\OptimisticLockException;
 use Doctrine\ORM\ORMException;
 use Doctrine\Persistence\ManagerRegistry;
@@ -256,6 +257,20 @@ class ClientsRepository extends ServiceEntityRepository
 
             return $result;
         });
+    }
+
+    /**
+     * @param array $ids
+     * @return Clients[]
+     */
+    public function findByIds(array $ids): array
+    {
+        return $this->createQueryBuilder('c')
+            ->where('c.clientId IN (:ids)')
+            ->setParameter('ids', $ids, Connection::PARAM_INT_ARRAY)
+            ->getQuery()
+            ->getResult();
+
     }
 
     private function isExisting(ClientModel $clientData): bool

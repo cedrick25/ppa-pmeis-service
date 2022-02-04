@@ -5,7 +5,10 @@ namespace App\Service\TherapeuticCommunity;
 use App\Common\AppFormatter;
 use App\Enum\Response as ResponseEnum;
 use App\Model\ResourceFacilitatorSession as ResourceFacilitatorSessionModel;
+use App\Repository\ClientSessionsRepository;
+use App\Repository\ClientsRepository;
 use App\Repository\ResourceFacilitatorSessionRepository;
+use App\Repository\VolunteerRepository;
 use Doctrine\ORM\ORMException;
 use Exception;
 use Psr\Cache\CacheException;
@@ -15,9 +18,12 @@ use Symfony\Component\Validator\Validator\ValidatorInterface;
 class ResourceFacilitatorSession implements ResourceFacilitatorSessionInterface
 {
     public function __construct(
-        private ValidatorInterface    $validator,
-        private AppFormatter          $appFormatter,
+        private ValidatorInterface                        $validator,
+        private AppFormatter                              $appFormatter,
         private ResourceFacilitatorSessionRepository      $repository,
+        private VolunteerRepository                       $volunteerRepository,
+        private ClientSessionsRepository                  $clientSessionsRepository,
+        private ClientsRepository                         $clientsRepository,
     ){}
 
     public function create(ResourceFacilitatorSessionModel $resourceFacilitatorSessionData): array
@@ -120,8 +126,42 @@ class ResourceFacilitatorSession implements ResourceFacilitatorSessionInterface
         }
     }
 
-    public function getVPA3()
+    public function getVPA3(int $fieldOfficeId, int $quarterId): array
     {
+        try {
+            $activeVolunteers = $this->repository->getVolunteerIdsByQuarterAndFieldOfficeId($fieldOfficeId, $quarterId);
+            $volunteerIds = [];
+            $sessionIds = [];
+            $clientIds = [];
+            $data = [];
 
+            foreach ($activeVolunteers as $volunteer) {
+                $volunteerIds[] = $volunteer['resource_facilitator_id'];
+                $sessionIds[] = $volunteer['session_id'];
+
+                $data[$volunteer['resource_facilitator_id']] = [
+                    'volunteers' => [],
+                    'clients' => [],
+                ];
+            }
+
+            $volunteers = $this->volunteerRepository->findByIds($volunteerIds);
+            $clientsByClientSessions = $this->clientSessionsRepository->findBySessionIds($sessionIds); // to be updated
+
+//            foreach ($clientSessions as $clientSession) {
+//                $clientIds[] = $clientSession->getClientId();
+//            }
+//
+//            $clients = $this->clientsRepository->findByIds($clientIds);
+//            dd($clients);
+
+            // foreach
+                // $data[$volunteer_id] =
+                    // [ volunteer data
+                    //   client data ]
+
+        } catch (\Exception $e) {
+            return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_SUCCESS, null, ['app' => $e->getMessage()]);
+        }
     }
 }

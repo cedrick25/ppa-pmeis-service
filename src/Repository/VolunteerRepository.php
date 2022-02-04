@@ -329,7 +329,7 @@ class VolunteerRepository extends ServiceEntityRepository
      * @param int[] $ids
      * @return Volunteer[]
      */
-    public function findVolunteersByIds(array $ids): array
+    public function findByIds(array $ids): array
     {
         return $this->createQueryBuilder('v')
             ->where('v.volunteerId IN (:ids)')

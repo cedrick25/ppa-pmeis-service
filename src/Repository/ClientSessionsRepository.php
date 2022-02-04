@@ -9,6 +9,7 @@ use App\Entity\ClientSessions;
 use App\Enum\Response as ResponseEnum;
 use App\Model\ClientSessions as ClientSessionModel;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
+use Doctrine\DBAL\Connection;
 use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\ORM\ORMException;
 use Doctrine\Persistence\ManagerRegistry;
@@ -256,6 +257,19 @@ class ClientSessionsRepository extends ServiceEntityRepository
                 ->setParameter('query', $query)
                 ->orderBy('cs.clientSessionId');
         });
+    }
+
+    /**
+     * @param array $ids
+     * @return ClientSessions[]
+     */
+    public function findBySessionIds(array $ids): array
+    {
+        return $this->createQueryBuilder('cs')
+            ->where('cs.sessionId IN (:ids)')
+            ->setParameter('ids', $ids, Connection::PARAM_INT_ARRAY)
+            ->getQuery()
+            ->getResult();
     }
 
     private function isExisting(ClientSessionModel $clientSessionData): bool
