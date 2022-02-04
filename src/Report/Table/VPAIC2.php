@@ -207,7 +207,6 @@ class VPAIC2 implements Form
             ->getStyle("AB" . $this->lastFilledOutCellY . ":AC" . $this->lastFilledOutCellY)
             ->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setARGB('80808080');
 
-
         $spreadsheet->getActiveSheet()->getStyle('A8:AC' . $this->lastFilledOutCellY)->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
         $spreadsheet->getActiveSheet()->getStyle('A8:AC' . $this->lastFilledOutCellY)->getAlignment()->setHorizontal('center');
         $spreadsheet->getActiveSheet()->getStyle('A8:AC' . $this->lastFilledOutCellY)->getAlignment()->setVertical('center');

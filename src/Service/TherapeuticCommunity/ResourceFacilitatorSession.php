@@ -119,4 +119,9 @@ class ResourceFacilitatorSession implements ResourceFacilitatorSessionInterface
             return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_FAILED, null, ['cache' => $exception->getMessage()]);
         }
     }
+
+    public function getVPA3()
+    {
+
+    }
 }
