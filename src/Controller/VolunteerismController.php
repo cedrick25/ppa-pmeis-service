@@ -10,6 +10,7 @@ use App\Model\VolunteerOperations as VolunteerOperationsModel;
 use App\Model\VolunteerId as VolunteerIdModel;
 use App\Service\Volunteerism\IdInterface;
 use App\Service\Volunteerism\OperationsInterface;
+use App\Service\Volunteerism\ServicesRenderedInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -21,10 +22,11 @@ use Symfony\Component\Routing\Annotation\Route;
 class VolunteerismController extends AbstractController
 {
     public function __construct(
-        private AppHydrator         $appHydrator,
-        private AppFormatter        $appFormatter,
-        private OperationsInterface $operationService,
-        private IdInterface         $idService,
+        private AppHydrator                 $appHydrator,
+        private AppFormatter                $appFormatter,
+        private OperationsInterface         $operationService,
+        private IdInterface                 $idService,
+        private ServicesRenderedInterface   $servicesRenderedService,
     ){}
 
     /**
@@ -102,5 +104,21 @@ class VolunteerismController extends AbstractController
     public function getIdById(Request $request): Response
     {
         return $this->json($this->idService->getById($request->get("id")));
+    }
+
+    /**
+     * @Route("/services-rendered/list", methods={"GET"})
+     */
+    public function getAllServicesRendered(): Response
+    {
+        return $this->json($this->servicesRenderedService->getAll());
+    }
+
+    /**
+     * @Route("/services-rendered/by/id/{id}", methods={"GET"})
+     */
+    public function getgetAllServiceRenderedById(Request $request): Response
+    {
+        return $this->json($this->servicesRenderedService->getById((int) $request->get("id")));
     }
 }
