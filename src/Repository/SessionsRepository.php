@@ -397,7 +397,7 @@ class SessionsRepository extends ServiceEntityRepository
 
             $sql = "SELECT se.*, q.name as quarter_name, q.year as quarter_year, fe.name as field_office_name,
                     p.name as phase_name, sa.name as session_activity_name, tc.name as treatment_category_name, v.name as venue_name,
-                    r.name
+                    r.name, r.region_id
                  FROM sessions as se " .
                 "LEFT JOIN quarters as q ON se.quarter_id = q.quarter_id " .
                 "LEFT JOIN field_offices as fe ON se.field_office_id = fe.field_office_id " .

@@ -139,7 +139,7 @@ class ClientSessionsRepository extends ServiceEntityRepository
             $data = [];
 
             $clientSessions = $this->createQueryBuilder('cs')
-                ->select('cs.clientSessionId, cs.role')
+                ->select('cs.clientSessionId, cs.role, cs.clientId')
                 ->where('cs.sessionId = :id')
                 ->setParameter('id', $id)
                 ->orderBy('cs.clientSessionId', 'DESC')
@@ -148,11 +148,11 @@ class ClientSessionsRepository extends ServiceEntityRepository
 
             foreach ($clientSessions as $clientSession) {
                 if (!isset($data[$clientSession['role']])) {
-                    $data[$clientSession['role']] = [$clientSession['clientSessionId']];
+                    $data[$clientSession['role']] = [$clientSession['clientId']];
                     continue;
                 }
 
-                array_push($data[$clientSession['role']], $clientSession['clientSessionId']);
+                array_push($data[$clientSession['role']], $clientSession['clientId']);
             }
 
             return $data;
