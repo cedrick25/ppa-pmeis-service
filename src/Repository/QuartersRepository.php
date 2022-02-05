@@ -252,38 +252,13 @@ class QuartersRepository extends ServiceEntityRepository
         ];
 
         return $this->helper->createCachedResponseCustomQuery($params, function() use ($id, $fieldOfficeId) {
-            $conn = $this->getEntityManager()->getConnection();
-
-            $sql = "SELECT s.session_id, s.field_office_id, s.li_lo,
-                        (SELECT COUNT(client_session_id) FROM client_sessions WHERE role = 'PS' AND client_sessions.session_id = s.session_id) as parolees,
-                        (SELECT COUNT(client_session_id) FROM client_sessions WHERE role = 'PR' AND client_sessions.session_id = s.session_id) as probationers,
-                        (SELECT COUNT(client_session_id) FROM client_sessions WHERE role = 'PD' AND client_sessions.session_id = s.session_id) as pardonees,
-                        (SELECT COUNT(client_session_id) FROM client_sessions WHERE role = 'JICL' AND client_sessions.session_id = s.session_id) as jicl,
-                        (SELECT COUNT(client_session_id) FROM client_sessions WHERE role = 'FTMDO' AND client_sessions.session_id = s.session_id) as ftmdo,
-                        (SELECT COUNT(client_session_id) FROM client_sessions WHERE role = 'PET' AND client_sessions.session_id = s.session_id) as petitioners,
-                        (SELECT COUNT(client_session_id) FROM client_sessions WHERE role = 'TERM' AND client_sessions.session_id = s.session_id) as `terminated`
-                        FROM quarters as q " .
-                "LEFT JOIN sessions as s ON q.quarter_id = s.quarter_id " .
-                "WHERE q.quarter_id = $id AND s.field_office_id = $fieldOfficeId ORDER BY s.session_id";
-            $stmt = $conn->prepare($sql);
-            $query = $stmt->executeQuery();
-            $data = $query->fetchAssociative();
-
-            if (!$data) {
-                $data['session_id'] = 0;
-                $data['field_office_id'] = $fieldOfficeId;
-                $data['li_lo'] = 0;
-                $data['parolees'] = 0;
-                $data['probationers'] = 0;
-                $data['pardonees'] = 0;
-                $data['jicl'] = 0;
-                $data['ftmdo'] = 0;
-                $data['petitioners'] = 0;
-                $data['terminated'] = 0;
+            $sessionData = $this->getSessionDataByQuarterAndFieldOfficeId($id, $fieldOfficeId);
+            $data = [];
+            foreach ($sessionData as $session) {
+                $session['role'] = ['Facilitator'];
+                $session['resource_person'] = $this->getResourcePerson($id, intval($session['session_id']));
+                $data[] = $session;
             }
-
-            $data['role'] = ['Facilitator'];
-            $data['resource_person'] = $this->getResourcePerson($id);
 
             return $data;
         });
@@ -326,7 +301,7 @@ class QuartersRepository extends ServiceEntityRepository
      * @throws \Doctrine\DBAL\Driver\Exception
      * @throws \Doctrine\DBAL\Exception
      */
-    private function getResourcePerson(int $id): array
+    private function getResourcePerson(int $id, int $sessionId): array
     {
         $conn = $this->getEntityManager()->getConnection();
         $sql = "SELECT DISTINCT c.first_name, c.middle_name, c.last_name, c.suffix, rfs.resource_facilitator_type as type,
@@ -335,7 +310,7 @@ class QuartersRepository extends ServiceEntityRepository
             "LEFT JOIN client_sessions as cs ON s.session_id = cs.session_id " .
             "LEFT JOIN clients as c ON cs.client_id = c.client_id " .
             "LEFT JOIN resource_facilitator_session as rfs ON s.session_id = rfs.session_id " .
-            "WHERE q.quarter_id = $id ORDER BY c.first_name";
+            "WHERE q.quarter_id = $id AND s.session_id = $sessionId ORDER BY c.first_name";
         $stmt = $conn->prepare($sql);
         $query = $stmt->executeQuery();
         $data = $query->fetchAllAssociative();
@@ -345,5 +320,43 @@ class QuartersRepository extends ServiceEntityRepository
         }
 
         return $data;
+    }
+
+    /**
+     * @throws \Doctrine\DBAL\Driver\Exception
+     * @throws \Doctrine\DBAL\Exception
+     */
+    private function getClientSessionCount(int $sessionId)
+    {
+        $conn = $this->getEntityManager()->getConnection();
+        $sql = "SELECT s.session_id, s.field_office_id, s.li_lo,
+                        (SELECT COUNT(client_session_id) FROM client_sessions WHERE role = 'PS' AND client_sessions.session_id = s.session_id) as parolees,
+                        (SELECT COUNT(client_session_id) FROM client_sessions WHERE role = 'PR' AND client_sessions.session_id = s.session_id) as probationers,
+                        (SELECT COUNT(client_session_id) FROM client_sessions WHERE role = 'PD' AND client_sessions.session_id = s.session_id) as pardonees,
+                        (SELECT COUNT(client_session_id) FROM client_sessions WHERE role = 'JICL' AND client_sessions.session_id = s.session_id) as jicl,
+                        (SELECT COUNT(client_session_id) FROM client_sessions WHERE role = 'FTMDO' AND client_sessions.session_id = s.session_id) as ftmdo,
+                        (SELECT COUNT(client_session_id) FROM client_sessions WHERE role = 'PET' AND client_sessions.session_id = s.session_id) as petitioners,
+                        (SELECT COUNT(client_session_id) FROM client_sessions WHERE role = 'TERM' AND client_sessions.session_id = s.session_id) as `terminated`
+                        FROM quarters as q " .
+            "LEFT JOIN sessions as s ON q.quarter_id = s.quarter_id " .
+            "WHERE s.session_id = $sessionId ORDER BY s.session_id";
+        $stmt = $conn->prepare($sql);
+        $query = $stmt->executeQuery();
+        return $query->fetchAssociative();
+    }
+
+    /**
+     * @throws \Doctrine\DBAL\Exception
+     * @throws \Doctrine\DBAL\Driver\Exception
+     */
+    private function getSessionDataByQuarterAndFieldOfficeId(int $quarterId, int $fieldOfficeId): array
+    {
+        $conn = $this->getEntityManager()->getConnection();
+
+        $sql = "SELECT s.session_id, s.field_office_id, s.li_lo FROM sessions as s 
+                    WHERE s.quarter_id = $quarterId AND s.field_office_id = $fieldOfficeId";
+        $stmt = $conn->prepare($sql);
+        $query = $stmt->executeQuery();
+        return $query->fetchAllAssociative();
     }
 }

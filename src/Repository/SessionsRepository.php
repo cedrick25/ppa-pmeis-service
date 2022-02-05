@@ -10,6 +10,7 @@ use App\Entity\Sessions;
 use App\Enum\Response as ResponseEnum;
 use App\Model\Sessions as SessionsModel;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
+use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\Exception\InvalidArgumentException;
 use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\ORM\OptimisticLockException;
@@ -455,6 +456,18 @@ class SessionsRepository extends ServiceEntityRepository
         $query = $stmt->executeQuery();
 
         return $query->fetchAllAssociative();
+    }
+
+    public function getSessionIdsByQuarterAndFieldOffice(int $quarterId, int $fieldOfficeId): array
+    {
+        return $this->createQueryBuilder('s')
+            ->select('s.sessionId')
+            ->where('s.quarterId = :quarterId')
+            ->where('s.fieldOfficeId = :fieldOfficeId')
+            ->setParameter('quarterId', $quarterId)
+            ->setParameter('fieldOfficeId', $fieldOfficeId)
+            ->getQuery()
+            ->getResult();
     }
 
     private function isExisting(SessionsModel $sessionData): bool
