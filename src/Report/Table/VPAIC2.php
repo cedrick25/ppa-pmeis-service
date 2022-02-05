@@ -121,7 +121,7 @@ class VPAIC2 implements Form
                 $total['REAPPOINTED']['F']++;
             } else {
                 $spreadsheet->getActiveSheet()->setCellValue('N' . $rowNumber, '∕');
-                $total['REAPPOINTED']['F']++;
+                $total['REAPPOINTED']['M']++;
             }
             if ($volunteer['isPwd']) {
                 $spreadsheet->getActiveSheet()->setCellValue('O' . $rowNumber, '∕');
@@ -145,7 +145,7 @@ class VPAIC2 implements Form
                 $total['INACTIVE']['F']++;
             } else {
                 $spreadsheet->getActiveSheet()->setCellValue('V' . $rowNumber, '∕');
-                $total['INACTIVE']['F']++;
+                $total['INACTIVE']['M']++;
             }
 
             $spreadsheet->getActiveSheet()->setCellValue('W' . $rowNumber, 'Non-reporting');
@@ -169,7 +169,7 @@ class VPAIC2 implements Form
                 $total['DROPPED']['F']++;
             } else {
                 $spreadsheet->getActiveSheet()->setCellValue('AA' . $rowNumber, '∕');
-                $total['DROPPED']['F']++;
+                $total['DROPPED']['M']++;
             }
             $spreadsheet->getActiveSheet()->setCellValue('AB' . $rowNumber, $row['reason']);
             $spreadsheet->getActiveSheet()->setCellValue('AC' . $rowNumber, $row['droppingRenewal']);
@@ -248,7 +248,6 @@ class VPAIC2 implements Form
             'A3:AC3', 'A4:C7', 'D4:D7', 'E4:F5', 'E6:E7', 'F6:F7', 'G4:G7', 'H4:H7', 'I4:K7', 'L4:L7', 'M4:N5', 'M6:M7',
             'N6:N7', 'O4:O7', 'P4:P7', 'Q4:S7', 'U4:V5', 'U6:U7', 'V6:V7', 'W4:W7', 'X4:X7', 'Y4:Y7', 'Z4:AA5', 'Z6:Z7', 'AA6:AA7',
             'AB4:AB7', 'AC4:AC7'];
-
 
         foreach ($textAndCoordinates as $coordinate => $text) {
             $spreadsheet->getActiveSheet()->setCellValue($coordinate, $text);
