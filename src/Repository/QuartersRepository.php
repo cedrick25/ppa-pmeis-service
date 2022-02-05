@@ -252,12 +252,14 @@ class QuartersRepository extends ServiceEntityRepository
         ];
 
         return $this->helper->createCachedResponseCustomQuery($params, function() use ($id, $fieldOfficeId) {
-            $sessionData = $this->getSessionDataByQuarterAndFieldOfficeId($id, $fieldOfficeId);
             $data = [];
+            $sessionData = $this->getSessionDataByQuarterAndFieldOfficeId($id, $fieldOfficeId);
+
             foreach ($sessionData as $session) {
                 $session['role'] = ['Facilitator'];
                 $session['resource_person'] = $this->getResourcePerson($id, intval($session['session_id']));
-                $data[] = $session;
+                $session['count'] = $this->getClientSessionCount(intval($session['session_id']));
+                $data[$session['session_id']] = $session;
             }
 
             return $data;
