@@ -268,6 +268,11 @@ class QuartersRepository extends ServiceEntityRepository
             $stmt = $conn->prepare($sql);
             $query = $stmt->executeQuery();
             $data = $query->fetchAssociative();
+
+            if (!$data) {
+                return [];
+            }
+
             $data['role'] = ['Facilitator'];
             $data['resource_person'] = $this->getResourcePerson($id);
 
