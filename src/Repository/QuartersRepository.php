@@ -329,16 +329,21 @@ class QuartersRepository extends ServiceEntityRepository
     private function getResourcePerson(int $id): array
     {
         $conn = $this->getEntityManager()->getConnection();
-        $sql = "SELECT CONCAT(c.first_name, ' ', COALESCE(c.middle_name, ''), ' ', c.last_name) as name, rfs.resource_facilitator_type as type,
+        $sql = "SELECT DISTINCT c.first_name, c.middle_name, c.last_name, c.suffix, rfs.resource_facilitator_type as type,
                     cs.client_id FROM quarters as q " .
             "LEFT JOIN sessions as s ON q.quarter_id = s.quarter_id " .
             "LEFT JOIN client_sessions as cs ON s.session_id = cs.session_id " .
             "LEFT JOIN clients as c ON cs.client_id = c.client_id " .
             "LEFT JOIN resource_facilitator_session as rfs ON s.session_id = rfs.session_id " .
-            "WHERE q.quarter_id = $id ORDER BY s.session_id";
+            "WHERE q.quarter_id = $id ORDER BY c.first_name";
         $stmt = $conn->prepare($sql);
         $query = $stmt->executeQuery();
+        $data = $query->fetchAllAssociative();
 
-        return $query->fetchAllAssociative();
+        foreach ($data as $index=>$row) {
+            $data[$index]['full_name'] = $row['first_name'] . ' ' . $row['middle_name'] . '' . $row['last_name'] . ' ' . $row['suffix'];
+        }
+
+        return $data;
     }
 }
