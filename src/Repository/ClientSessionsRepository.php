@@ -260,16 +260,22 @@ class ClientSessionsRepository extends ServiceEntityRepository
     }
 
     /**
-     * @param array $ids
+     * @param int $id
      * @return ClientSessions[]
+     * @throws \Doctrine\DBAL\Driver\Exception
+     * @throws \Doctrine\DBAL\Exception
      */
-    public function findBySessionIds(array $ids): array
+    public function findClientsBySessionId(int $id): array
     {
-        return $this->createQueryBuilder('cs')
-            ->where('cs.sessionId IN (:ids)')
-            ->setParameter('ids', $ids, Connection::PARAM_INT_ARRAY)
-            ->getQuery()
-            ->getResult();
+        $conn = $this->getEntityManager()->getConnection();
+        $sql = "SELECT c.first_name, c.middle_name, c.last_name, c.gender FROM client_sessions 
+            LEFT JOIN clients c on client_sessions.client_id = c.client_id
+            WHERE client_sessions.session_id = $id";
+
+        $stmt = $conn->prepare($sql);
+        $query = $stmt->executeQuery();
+
+        return $query->fetchAllAssociative();
     }
 
     private function isExisting(ClientSessionModel $clientSessionData): bool

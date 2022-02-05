@@ -332,6 +332,7 @@ class VolunteerRepository extends ServiceEntityRepository
     public function findByIds(array $ids): array
     {
         return $this->createQueryBuilder('v')
+            ->select('v.firstName, v.middleName, v.lastName, v.gender')
             ->where('v.volunteerId IN (:ids)')
             ->setParameter('ids', $ids, Connection::PARAM_INT_ARRAY)
             ->getQuery()

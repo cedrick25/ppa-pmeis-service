@@ -130,37 +130,28 @@ class ResourceFacilitatorSession implements ResourceFacilitatorSessionInterface
     {
         try {
             $activeVolunteers = $this->repository->getVolunteerIdsByQuarterAndFieldOfficeId($fieldOfficeId, $quarterId);
-            $volunteerIds = [];
-            $sessionIds = [];
-            $clientIds = [];
             $data = [];
 
-            foreach ($activeVolunteers as $volunteer) {
-                $volunteerIds[] = $volunteer['resource_facilitator_id'];
-                $sessionIds[] = $volunteer['session_id'];
+            foreach ($activeVolunteers as $activeVolunteer) {
+                $volunteer = $this->volunteerRepository->getById($activeVolunteer['resource_facilitator_id']);
 
-                $data[$volunteer['resource_facilitator_id']] = [
-                    'volunteers' => [],
-                    'clients' => [],
+                $data[] = [
+                    'volunteer' => [
+                        'first_name' => $volunteer['first_name'],
+                        'middle_name' => $volunteer['middle_name'],
+                        'last_name' => $volunteer['last_name'],
+                        'gender' => $volunteer['gender']
+                    ],
+                    'clients' => $this->clientSessionsRepository->findClientsBySessionId($activeVolunteer['resource_facilitator_id']),
                 ];
             }
 
-            $volunteers = $this->volunteerRepository->findByIds($volunteerIds);
-            $clientsByClientSessions = $this->clientSessionsRepository->findBySessionIds($sessionIds); // to be updated
+            if (sizeof($data) == 0) {
+                return $this->appFormatter->formatResponse(ResponseEnum::NO_DATA, null);
+            }
 
-//            foreach ($clientSessions as $clientSession) {
-//                $clientIds[] = $clientSession->getClientId();
-//            }
-//
-//            $clients = $this->clientsRepository->findByIds($clientIds);
-//            dd($clients);
-
-            // foreach
-                // $data[$volunteer_id] =
-                    // [ volunteer data
-                    //   client data ]
-
-        } catch (\Exception $e) {
+            return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_SUCCESS, $data);
+        } catch (\Exception|\Doctrine\DBAL\Driver\Exception $e) {
             return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_SUCCESS, null, ['app' => $e->getMessage()]);
         }
     }
