@@ -339,6 +339,11 @@ class VolunteerRepository extends ServiceEntityRepository
             ->getResult();
     }
 
+    public function getVpaStartOfQuarter()
+    {
+        
+    }
+
     private function isExisting(VolunteerModel $volunteerData): bool
     {
         $volunteer = $this->findOneBy([

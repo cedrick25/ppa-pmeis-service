@@ -270,7 +270,16 @@ class QuartersRepository extends ServiceEntityRepository
             $data = $query->fetchAssociative();
 
             if (!$data) {
-                return [];
+                $data['session_id'] = 0;
+                $data['field_office_id'] = $fieldOfficeId;
+                $data['li_lo'] = 0;
+                $data['parolees'] = 0;
+                $data['probationers'] = 0;
+                $data['pardonees'] = 0;
+                $data['jicl'] = 0;
+                $data['ftmdo'] = 0;
+                $data['petitioners'] = 0;
+                $data['terminated'] = 0;
             }
 
             $data['role'] = ['Facilitator'];
