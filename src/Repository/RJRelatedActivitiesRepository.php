@@ -38,7 +38,6 @@ class RJRelatedActivitiesRepository extends ServiceEntityRepository
     }
 
     /**
-     * @return RJRelatedActivities[]
      * @throws CacheException
      * @throws InvalidArgumentException
      */
@@ -51,11 +50,15 @@ class RJRelatedActivitiesRepository extends ServiceEntityRepository
         ];
 
         return $this->helper->createCachedResponse($params, function() {
-            return $this->createQueryBuilder('rjra')
-                ->where('rjra.deletedAt IS NULL')
-                ->orderBy('rjra.rjRelatedActivityId', 'DESC')
-                ->getQuery()
-                ->getResult();
+            $conn = $this->getEntityManager()->getConnection();
+            $sql = "SELECT rjra.*, c.first_name, c.middle_name, c.last_name, o.name as offense FROM rjrelated_activities as rjra 
+                    LEFT JOIN clients as c ON rjra.client_id = c.client_id
+                    LEFT JOIN offenses o on rjra.offense_id = o.offenses_id";
+
+            $stmt = $conn->prepare($sql);
+            $query = $stmt->executeQuery();
+
+            return $query->fetchAllAssociative();
         });
     }
 
