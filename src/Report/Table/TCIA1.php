@@ -102,22 +102,22 @@ class TCIA1 implements Form
             $spreadsheet->getActiveSheet()->getStyle("O" . $this->lastFilledOutCellY)->getAlignment()->setWrapText(true);
 
             $part2Row = $this->data['part2'][$index];
-            $spreadsheet->getActiveSheet()->setCellValue($liLOColumn[$part2Row['li_lo']] . $this->lastFilledOutCellY,"√");
-            $spreadsheet->getActiveSheet()->setCellValue("R" . $this->lastFilledOutCellY, $part2Row['parolees']);
-            $spreadsheet->getActiveSheet()->setCellValue("S" . $this->lastFilledOutCellY, $part2Row['probationers']);
-            $spreadsheet->getActiveSheet()->setCellValue("T" . $this->lastFilledOutCellY, $part2Row['pardonees']);
-            $spreadsheet->getActiveSheet()->setCellValue("U" . $this->lastFilledOutCellY, $part2Row['jicl']);
-            $spreadsheet->getActiveSheet()->setCellValue("V" . $this->lastFilledOutCellY, $part2Row['ftmdo']);
-            $total = intval($part2Row['parolees']) + intval($part2Row['probationers']) + intval($part2Row['pardonees']) + intval($part2Row['jicl']) + intval($part2Row['ftmdo']);
+            $spreadsheet->getActiveSheet()->setCellValue($liLOColumn[$part2Row['count']['li_lo']] . $this->lastFilledOutCellY,"√");
+            $spreadsheet->getActiveSheet()->setCellValue("R" . $this->lastFilledOutCellY, $part2Row['count']['parolees']);
+            $spreadsheet->getActiveSheet()->setCellValue("S" . $this->lastFilledOutCellY, $part2Row['count']['probationers']);
+            $spreadsheet->getActiveSheet()->setCellValue("T" . $this->lastFilledOutCellY, $part2Row['count']['pardonees']);
+            $spreadsheet->getActiveSheet()->setCellValue("U" . $this->lastFilledOutCellY, $part2Row['count']['jicl']);
+            $spreadsheet->getActiveSheet()->setCellValue("V" . $this->lastFilledOutCellY, $part2Row['count']['ftmdo']);
+            $total = intval($part2Row['count']['parolees']) + intval($part2Row['count']['probationers']) + intval($part2Row['count']['pardonees']) + intval($part2Row['count']['jicl']) + intval($part2Row['count']['ftmdo']);
             $spreadsheet->getActiveSheet()->setCellValue("W" . $this->lastFilledOutCellY, $total);
-            $spreadsheet->getActiveSheet()->setCellValue("X" . $this->lastFilledOutCellY, $part2Row['petitioners']);
-            $spreadsheet->getActiveSheet()->setCellValue("Y" . $this->lastFilledOutCellY, $part2Row['terminated']);
+            $spreadsheet->getActiveSheet()->setCellValue("X" . $this->lastFilledOutCellY, $part2Row['count']['petitioners']);
+            $spreadsheet->getActiveSheet()->setCellValue("Y" . $this->lastFilledOutCellY, $part2Row['count']['terminated']);
 
             $resourcePerson = '';
 
             foreach ($part2Row['resource_person'] as $resource) {
-                if ($resource['name'] != null) {
-                    $resourcePerson .=  $resource['name'] . ',';
+                if ($resource['full_name'] != null) {
+                    $resourcePerson .=  $resource['full_name'] . ',';
                 }
             }
             $spreadsheet->getActiveSheet()->setCellValue("Z" . $this->lastFilledOutCellY, rtrim($resourcePerson, ','));
