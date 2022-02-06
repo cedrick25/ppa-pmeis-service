@@ -442,7 +442,7 @@ class SessionsRepository extends ServiceEntityRepository
         $quarterIdsString = implode(',', $quarterIds);
 
         $sql = "SELECT c.last_name, c.first_name, c.middle_name, c.suffix, c.gender, c.is_pwd, c.is_senior_citizen, c.date_of_birth,
-                c.offense_category, c.supervision_start, c.supervision_end, ct.code as client_type, p.name as phase, se.date, q.name as quarter
+                c.offense_category, c.supervision_start, c.supervision_end, p.name as phase, se.date, q.name as quarter
                 FROM sessions as se " .
             "LEFT JOIN quarters as q ON se.quarter_id = q.quarter_id ".
             "LEFT JOIN client_sessions as cs ON se.session_id = cs.session_id ".
