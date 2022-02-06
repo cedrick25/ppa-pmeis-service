@@ -90,11 +90,11 @@ class ConductProcesses implements ConductProcessesInterface
         }
     }
 
-    public function getRJIB1(int $clientId, int $quarterId, int $fieldOfficeId): array
+    public function getRJIB1(int $quarterId, int $fieldOfficeId): array
     {
         // TODO: replaced stakeholders to associates data
         try {
-            $conductProcesses = $this->repository->getRJIB1Data($clientId, $quarterId, $fieldOfficeId);
+            $conductProcesses = $this->repository->getRJIB1Data($quarterId, $fieldOfficeId);
 
             if ($conductProcesses == null) {
                 return $this->appFormatter->formatResponse(ResponseEnum::NO_DATA, null);

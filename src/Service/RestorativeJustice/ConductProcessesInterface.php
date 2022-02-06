@@ -14,5 +14,5 @@ interface ConductProcessesInterface
 
     public function deleteById(int $id): array;
 
-    public function getRJIB1(int $clientId, int $quarterId, int $fieldOfficeId): array;
+    public function getRJIB1(int $quarterId, int $fieldOfficeId): array;
 }

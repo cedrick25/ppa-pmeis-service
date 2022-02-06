@@ -152,14 +152,14 @@ class RJRelatedActivitiesRepository extends ServiceEntityRepository
      * @throws CacheException
      * @throws InvalidArgumentException
      */
-    public function getRJIB2Data(int $clientId, int $quarterId, int $fieldOfficeId): ?array
+    public function getRJIB2Data(int $quarterId, int $fieldOfficeId): ?array
     {
         $params = [
-            'cacheKey' => $this->cacheHelper->getRJIB2Key($clientId, $quarterId, $fieldOfficeId),
+            'cacheKey' => $this->cacheHelper->getRJIB2Key($quarterId, $fieldOfficeId),
             'cacheTag' => self::CACHE_TAG
         ];
 
-        return $this->helper->createCachedResponseCustomQuery($params, function() use($clientId, $quarterId, $fieldOfficeId) {
+        return $this->helper->createCachedResponseCustomQuery($params, function() use($quarterId, $fieldOfficeId) {
             $conn = $this->getEntityManager()->getConnection();
             $sql = "SELECT rjra.*, c.first_name, c.middle_name, c.last_name, c.gender, c.is_pwd, c.is_senior_citizen ,o.name as offense, rjp.name as rj_process, v.name as venue, rjo.name as outcome
                     FROM rjrelated_activities as rjra " .
@@ -168,7 +168,7 @@ class RJRelatedActivitiesRepository extends ServiceEntityRepository
                 "LEFT JOIN rjprocesses as rjp ON rjra.rjp_id = rjp.id_rjprocesses " .
                 "LEFT JOIN rjoutcomes as rjo ON rjra.rjo_id = rjo.rj_outcome_id " .
                 "LEFT JOIN venues as v ON rjra.venue_id = v.venue_id " .
-                "WHERE rjra.client_id = $clientId AND rjra.quarter_id = $quarterId AND rjra.field_office_id = $fieldOfficeId ".
+                "WHERE rjra.quarter_id = $quarterId AND rjra.field_office_id = $fieldOfficeId ".
                 "AND rjra.deleted_at IS NULL ORDER BY rjra.rj_group";
             $stmt = $conn->prepare($sql);
             $query = $stmt->executeQuery();

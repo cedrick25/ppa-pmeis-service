@@ -158,14 +158,14 @@ class RjRelatedRestitutionsRepository extends ServiceEntityRepository
      * @throws CacheException
      * @throws InvalidArgumentException
      */
-    public function getRJIB3Data(int $clientId, int $quarterId, int $fieldOfficeId): ?array
+    public function getRJIB3Data(int $quarterId, int $fieldOfficeId): ?array
     {
         $params = [
-            'cacheKey' => $this->cacheHelper->getRJIB3Key($clientId, $quarterId, $fieldOfficeId),
+            'cacheKey' => $this->cacheHelper->getRJIB3Key($quarterId, $fieldOfficeId),
             'cacheTag' => self::CACHE_TAG
         ];
 
-        return $this->helper->createCachedResponseCustomQuery($params, function() use($clientId, $quarterId, $fieldOfficeId) {
+        return $this->helper->createCachedResponseCustomQuery($params, function() use($quarterId, $fieldOfficeId) {
             $conn = $this->getEntityManager()->getConnection();
             $sql = "SELECT rjrr.*, c.first_name, c.middle_name, c.last_name, c.gender, o.name as offense, pf.name as payment_form, pm.name as payment_mode
                     FROM rj_related_restitutions as rjrr " .
@@ -173,7 +173,7 @@ class RjRelatedRestitutionsRepository extends ServiceEntityRepository
                 "LEFT JOIN offenses as o ON rjrr.offense_id = o.offenses_id " .
                 "LEFT JOIN payment_forms as pf ON rjrr.payment_form_id = pf.payment_form_id " .
                 "LEFT JOIN payment_modes as pm ON rjrr.payment_mode_id = pm.payment_mode_id " .
-                "WHERE rjrr.client_id = $clientId AND rjrr.quarter_id = $quarterId AND rjrr.field_office_id = $fieldOfficeId ".
+                "WHERE rjrr.quarter_id = $quarterId AND rjrr.field_office_id = $fieldOfficeId ".
                 "AND rjrr.deleted_at IS NULL ORDER BY rjrr.rj_group";
             $stmt = $conn->prepare($sql);
             $query = $stmt->executeQuery();

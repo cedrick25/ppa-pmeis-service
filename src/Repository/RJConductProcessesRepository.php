@@ -154,14 +154,14 @@ class RJConductProcessesRepository extends ServiceEntityRepository
      * @throws CacheException
      * @throws InvalidArgumentException
      */
-    public function getRJIB1Data(int $clientId, int $quarterId, int $fieldOfficeId): ?array
+    public function getRJIB1Data(int $quarterId, int $fieldOfficeId): ?array
     {
         $params = [
-            'cacheKey' => $this->cacheHelper->getRJIB1Key($clientId, $quarterId, $fieldOfficeId),
+            'cacheKey' => $this->cacheHelper->getRJIB1Key($quarterId, $fieldOfficeId),
             'cacheTag' => self::CACHE_TAG
         ];
 
-        return $this->helper->createCachedResponseCustomQuery($params, function() use($clientId, $quarterId, $fieldOfficeId) {
+        return $this->helper->createCachedResponseCustomQuery($params, function() use($quarterId, $fieldOfficeId) {
             $conn = $this->getEntityManager()->getConnection();
             $sql = "SELECT rjcp.*, c.first_name, c.middle_name, c.last_name, c.gender, c.is_pwd, c.is_senior_citizen,
                     o.name as offense, rjcp.pe_date, (SELECT name FROM venues WHERE venues.venue_id = rjcp.pe_venue_id) as pe_venue,
@@ -175,7 +175,7 @@ class RJConductProcessesRepository extends ServiceEntityRepository
                 "LEFT JOIN user_details as ud ON rjcp.planner_id = ud.user_account_id " .
                 "LEFT JOIN rjprocess_status as rjps ON rjcp.rjps_id = rjps.id_rjprocess_status " .
                 "LEFT JOIN rjoutcomes as ro ON rjcp.rjo_id = ro.rj_outcome_id " .
-                "WHERE rjcp.client_id = $clientId AND rjcp.quarter_id = $quarterId AND rjcp.field_office_id = $fieldOfficeId ".
+                "WHERE rjcp.quarter_id = $quarterId AND rjcp.field_office_id = $fieldOfficeId ".
                 "AND rjcp.deleted_at IS NULL ORDER BY rjcp.rj_group";
             $stmt = $conn->prepare($sql);
             $query = $stmt->executeQuery();

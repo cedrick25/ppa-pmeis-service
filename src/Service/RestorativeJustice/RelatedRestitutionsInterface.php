@@ -14,5 +14,5 @@ interface RelatedRestitutionsInterface
 
     public function deleteById(int $id): array;
 
-    public function getRJIB3Data(int $clientId, int $quarterId, int $fieldOfficeId): array;
+    public function getRJIB3Data(int $quarterId, int $fieldOfficeId): array;
 }

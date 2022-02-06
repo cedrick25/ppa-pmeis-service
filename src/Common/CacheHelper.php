@@ -223,12 +223,11 @@ class CacheHelper
     }
 
     public function getRJIB1Key(
-        int $clientId,
         int $quarterId,
         int $fieldOffice
     ): string
     {
-        return 'rjib1_' . $clientId . '_' . $quarterId . '_' . $fieldOffice;
+        return 'rjib1_' . $quarterId . '_' . $fieldOffice;
     }
 
     public function getAllOffensesKey(): string
@@ -257,12 +256,11 @@ class CacheHelper
     }
 
     public function getRJIB2Key(
-        int $clientId,
         int $quarterId,
         int $fieldOffice
     ): string
     {
-        return 'rjib2_' . $clientId . '_' . $quarterId . '_' . $fieldOffice;
+        return 'rjib2_' . $quarterId . '_' . $fieldOffice;
     }
 
     public function getAllPaymentFormsKey(): string
@@ -281,12 +279,11 @@ class CacheHelper
     }
 
     public function getRJIB3Key(
-        int $clientId,
         int $quarterId,
         int $fieldOffice
     ): string
     {
-        return 'rjib3_' . $clientId . '_' . $quarterId . '_' . $fieldOffice;
+        return 'rjib3_' . $quarterId . '_' . $fieldOffice;
     }
 
     public function getAllVolunteerOperationsKey(): string

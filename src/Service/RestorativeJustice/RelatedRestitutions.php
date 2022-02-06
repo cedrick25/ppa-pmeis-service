@@ -87,10 +87,10 @@ class RelatedRestitutions implements RelatedRestitutionsInterface
         }
     }
 
-    public function getRJIB3Data(int $clientId, int $quarterId, int $fieldOfficeId): array
+    public function getRJIB3Data(int $quarterId, int $fieldOfficeId): array
     {
         try {
-            $relatedRestitutions = $this->repository->getRJIB3Data($clientId, $quarterId, $fieldOfficeId);
+            $relatedRestitutions = $this->repository->getRJIB3Data($quarterId, $fieldOfficeId);
 
             if ($relatedRestitutions == null) {
                 return $this->appFormatter->formatResponse(ResponseEnum::NO_DATA, null);

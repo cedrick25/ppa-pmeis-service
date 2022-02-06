@@ -85,12 +85,11 @@ class RestorativeJusticeController extends AbstractController
     }
 
     /**
-     * @Route("/conduct-process/rjib1/full/{clientId}/{quarterId}/{fieldOfficeId}", methods={"GET"})
+     * @Route("/conduct-process/rjib1/full/{quarterId}/{fieldOfficeId}", methods={"GET"})
      */
     public function getRJIB1(Request $request): Response
     {
         return $this->json($this->conductProcessesService->getRJIB1(
-            (int) $request->get("clientId"),
             (int) $request->get("quarterId"),
             (int) $request->get("fieldOfficeId"),
         ));
@@ -233,12 +232,11 @@ class RestorativeJusticeController extends AbstractController
     }
 
     /**
-     * @Route("/related-activities/rjib2/full/{clientId}/{quarterId}/{fieldOfficeId}", methods={"GET"})
+     * @Route("/related-activities/rjib2/full/{quarterId}/{fieldOfficeId}", methods={"GET"})
      */
     public function getRJIB2(Request $request): Response
     {
         return $this->json($this->relatedActivitiesService->getRJIB2Data(
-            (int) $request->get("clientId"),
             (int) $request->get("quarterId"),
             (int) $request->get("fieldOfficeId"),
         ));
@@ -318,12 +316,11 @@ class RestorativeJusticeController extends AbstractController
     }
 
     /**
-     * @Route("/related-restitutions/rjib3/full/{clientId}/{quarterId}/{fieldOfficeId}", methods={"GET"})
+     * @Route("/related-restitutions/rjib3/full/{quarterId}/{fieldOfficeId}", methods={"GET"})
      */
     public function getRJIB3(Request $request): Response
     {
         return $this->json($this->relatedRestitutionsService->getRJIB3Data(
-            (int) $request->get("clientId"),
             (int) $request->get("quarterId"),
             (int) $request->get("fieldOfficeId"),
         ));

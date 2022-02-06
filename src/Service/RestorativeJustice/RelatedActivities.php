@@ -90,10 +90,10 @@ class RelatedActivities implements RelatedActivitiesInterface
         }
     }
 
-    public function getRJIB2Data(int $clientId, int $quarterId, int $fieldOfficeId): array
+    public function getRJIB2Data(int $quarterId, int $fieldOfficeId): array
     {
         try {
-            $relatedActivities = $this->repository->getRJIB2Data($clientId, $quarterId, $fieldOfficeId);
+            $relatedActivities = $this->repository->getRJIB2Data($quarterId, $fieldOfficeId);
 
             if ($relatedActivities == null) {
                 return $this->appFormatter->formatResponse(ResponseEnum::NO_DATA, null);
