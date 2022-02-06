@@ -158,7 +158,7 @@ class RjRelatedRestitutionsRepository extends ServiceEntityRepository
      * @throws CacheException
      * @throws InvalidArgumentException
      */
-    public function getRJIB3Data(int $clientId, int $quarterId, int $fieldOfficeId): array
+    public function getRJIB3Data(int $clientId, int $quarterId, int $fieldOfficeId): ?array
     {
         $params = [
             'cacheKey' => $this->cacheHelper->getRJIB3Key($clientId, $quarterId, $fieldOfficeId),

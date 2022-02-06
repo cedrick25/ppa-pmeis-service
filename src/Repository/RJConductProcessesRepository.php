@@ -154,7 +154,7 @@ class RJConductProcessesRepository extends ServiceEntityRepository
      * @throws CacheException
      * @throws InvalidArgumentException
      */
-    public function getRJIB1Data(int $clientId, int $quarterId, int $fieldOfficeId): array
+    public function getRJIB1Data(int $clientId, int $quarterId, int $fieldOfficeId): ?array
     {
         $params = [
             'cacheKey' => $this->cacheHelper->getRJIB1Key($clientId, $quarterId, $fieldOfficeId),

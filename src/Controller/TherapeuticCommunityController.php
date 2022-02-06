@@ -817,7 +817,7 @@ class TherapeuticCommunityController extends AbstractController
     }
 
     /**
-     * @Route("/volunteer/by/{fieldOfficeId}/{quarterId}", methods={"GET"})
+     * @Route("/volunteer/by/{quarterId}/{fieldOfficeId}", methods={"GET"})
      */
     public function getByFieldOfficeAndMonthRange(Request $request): Response
     {

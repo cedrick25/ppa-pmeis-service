@@ -152,7 +152,7 @@ class RJRelatedActivitiesRepository extends ServiceEntityRepository
      * @throws CacheException
      * @throws InvalidArgumentException
      */
-    public function getRJIB2Data(int $clientId, int $quarterId, int $fieldOfficeId): array
+    public function getRJIB2Data(int $clientId, int $quarterId, int $fieldOfficeId): ?array
     {
         $params = [
             'cacheKey' => $this->cacheHelper->getRJIB2Key($clientId, $quarterId, $fieldOfficeId),
