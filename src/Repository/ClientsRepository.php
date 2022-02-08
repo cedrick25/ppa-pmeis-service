@@ -267,10 +267,25 @@ class ClientsRepository extends ServiceEntityRepository
     {
         return $this->createQueryBuilder('c')
             ->where('c.clientId IN (:ids)')
+            ->where('c.deletedAt IS NULL')
             ->setParameter('ids', $ids, Connection::PARAM_INT_ARRAY)
             ->getQuery()
             ->getResult();
 
+    }
+
+    /**
+     * @param int $id
+     * @return Clients[]
+     */
+    public function findByClientTypeId(int $id): array
+    {
+        return $this->createQueryBuilder('c')
+            ->where('c.clientTypeId = :id')
+            ->andWhere('c.deletedAt IS NULL')
+            ->setParameter('id', $id)
+            ->getQuery()
+            ->getResult();
     }
 
     private function isExisting(ClientModel $clientData): bool
