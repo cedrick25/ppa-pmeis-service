@@ -28,6 +28,14 @@ class UserController extends AbstractController
     ){}
 
     /**
+     * @Route("/a", methods={"GET"})
+     */
+    public function index(): Response
+    {
+        return $this->json("23");
+    }
+
+    /**
      * @Route("/list", methods={"GET"})
      */
     public function list(): Response

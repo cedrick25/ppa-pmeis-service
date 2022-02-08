@@ -21,9 +21,15 @@ RUN docker-php-ext-install -j$(nproc) mysqli
 RUN docker-php-ext-install -j$(nproc) zip
 RUN docker-php-ext-install -j$(nproc) mbstring
 
+COPY . /var/www/html
 COPY .docker/vhost.conf /etc/apache2/sites-available/000-default.conf
 
 RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
 
 RUN chown -R www-data:www-data /var/www/html \
     && a2enmod rewrite
+
+RUN chown -R root:root .
+RUN chmod 755 .
+
+RUN service apache2 restart
