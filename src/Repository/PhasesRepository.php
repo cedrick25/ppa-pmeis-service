@@ -24,7 +24,6 @@ class PhasesRepository extends ServiceEntityRepository
 
     public function __construct(
         ManagerRegistry $registry,
-        private TagAwareCacheInterface $cache,
         private CacheHelper $cacheHelper,
         private Helper $helper,
     ){

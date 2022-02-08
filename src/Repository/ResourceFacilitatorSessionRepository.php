@@ -248,7 +248,14 @@ class ResourceFacilitatorSessionRepository extends ServiceEntityRepository
         return ($client == null) ? false : $client;
     }
 
-    public function getVolunteerIdsByQuarterAndFieldOfficeId(int $fieldOfficeId, int $quarterId)
+    /**
+     * @param int $fieldOfficeId
+     * @param int $quarterId
+     * @return  array<int, array<string, mixed>>
+     * @throws \Doctrine\DBAL\Driver\Exception
+     * @throws \Doctrine\DBAL\Exception
+     */
+    public function getVolunteerIdsByQuarterAndFieldOfficeId(int $fieldOfficeId, int $quarterId): array
     {
         $conn = $this->getEntityManager()->getConnection();
         $sql = "SELECT rfs.resource_facilitator_id, rfs.resource_facilitator_type, s.session_id FROM sessions as s " .
@@ -259,7 +266,6 @@ class ResourceFacilitatorSessionRepository extends ServiceEntityRepository
         $query = $stmt->executeQuery();
 
         return $query->fetchAllAssociative();
-
     }
 
     private function isConflicted(

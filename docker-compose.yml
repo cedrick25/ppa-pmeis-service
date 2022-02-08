@@ -1,0 +1,28 @@
+version: '3.7'
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: .docker/Dockerfile
+    container_name: pmeis-service-app
+    image: 'pmeisservice'
+    ports:
+      - "8080:80"
+    volumes:
+      - ./:/var/www/html
+
+  mysql:
+    image: mysql:8.0
+    container_name: pmeis-mysql
+    restart: "no"
+    tty: true
+    ports:
+      - "4306:3306"
+    volumes:
+      - ./mysql:/var/lib/mysql
+    environment:
+      MYSQL_DATABASE: pmeis
+      MYSQL_USER: pmeisadmin
+      MYSQL_PASSWORD: Pmeis1234
+      MYSQL_ROOT_PASSWORD: Pmeis1234

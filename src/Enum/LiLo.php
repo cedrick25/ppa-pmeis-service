@@ -19,5 +19,4 @@ class LiLo extends Enum implements Hashable
     {
         return $this->getValue();
     }
-
 }

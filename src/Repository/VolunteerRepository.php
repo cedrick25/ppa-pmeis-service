@@ -295,7 +295,11 @@ class VolunteerRepository extends ServiceEntityRepository
     /**
      * @param int $fieldOfficeId
      * @param int $quarterId
+     * @param int $year
+     * @param array $months
      * @return Volunteer[]
+     * @throws \Doctrine\DBAL\Driver\Exception
+     * @throws \Doctrine\DBAL\Exception
      */
     public function findInactiveVolunteersByFieldOfficeAndMonthRange(
         int $fieldOfficeId,

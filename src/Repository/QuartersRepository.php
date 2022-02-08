@@ -222,6 +222,7 @@ class QuartersRepository extends ServiceEntityRepository
         $params = [
             'cacheKey' => $this->cacheHelper->getQuartersTCA1Part1Key($id, $fieldOfficeId),
             'cacheTag' => self::SESSION_CACHE_TAG
+
         ];
 
         return $this->helper->createCachedResponseCustomQuery($params, function() use ($id, $fieldOfficeId) {
@@ -328,7 +329,7 @@ class QuartersRepository extends ServiceEntityRepository
      * @throws \Doctrine\DBAL\Driver\Exception
      * @throws \Doctrine\DBAL\Exception
      */
-    private function getClientSessionCount(int $sessionId)
+    private function getClientSessionCount(int $sessionId): array|bool
     {
         $conn = $this->getEntityManager()->getConnection();
         $sql = "SELECT s.session_id, s.field_office_id, s.li_lo,

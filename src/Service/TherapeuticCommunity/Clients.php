@@ -24,7 +24,6 @@ class Clients implements ClientsInterface
     {
         try {
             $errors = $this->validator->validate($clientData);
-            // Additional code
 
             if (count($errors) > 0) {
                 return $this->appFormatter->formatResponse(ResponseEnum::VALIDATING_FAILED, null, $this->appFormatter->formatErrors($errors));

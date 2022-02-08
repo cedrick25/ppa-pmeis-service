@@ -261,7 +261,7 @@ class ClientSessionsRepository extends ServiceEntityRepository
 
     /**
      * @param int $id
-     * @return ClientSessions[]
+     * @return array<int, array<string, mixed>>
      * @throws \Doctrine\DBAL\Driver\Exception
      * @throws \Doctrine\DBAL\Exception
      */
