@@ -1,28 +1,28 @@
 <?php
 
-namespace App\Service\TherapeuticCommunity;
+namespace App\Service;
 
 use App\Common\AppFormatter;
 use App\Enum\Response as ResponseEnum;
-use App\Repository\SessionRemarksRepository;
+use App\Repository\OccupationRepository;
 
-class SessionRemarks implements SessionRemarksInterface
+class Occupation implements OccupationInterface
 {
     public function __construct(
-        private AppFormatter             $appFormatter,
-        private SessionRemarksRepository $repository,
+        private AppFormatter         $appFormatter,
+        private OccupationRepository $repository,
     ){}
 
     public function getAll(): array
     {
         try {
-            $remarks = $this->repository->findAll();
+            $occupations = $this->repository->findAll();
 
-            if (sizeof($remarks) == 0) {
+            if (sizeof($occupations) == 0) {
                 return $this->appFormatter->formatResponse(ResponseEnum::NO_DATA, null);
             }
 
-            return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_SUCCESS, $remarks);
+            return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_SUCCESS, $occupations);
         } catch (\Exception $exception) {
             return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_FAILED, null, ['cache' => $exception->getMessage()]);
         }

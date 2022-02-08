@@ -1,28 +1,28 @@
 <?php
 
-namespace App\Service\TherapeuticCommunity;
+namespace App\Service;
 
 use App\Common\AppFormatter;
 use App\Enum\Response as ResponseEnum;
-use App\Repository\SessionRemarksRepository;
+use App\Repository\ReligionRepository;
 
-class SessionRemarks implements SessionRemarksInterface
+class Religion implements ReligionInterface
 {
     public function __construct(
-        private AppFormatter             $appFormatter,
-        private SessionRemarksRepository $repository,
+        private AppFormatter         $appFormatter,
+        private ReligionRepository $repository,
     ){}
 
     public function getAll(): array
     {
         try {
-            $remarks = $this->repository->findAll();
+            $religions = $this->repository->findAll();
 
-            if (sizeof($remarks) == 0) {
+            if (sizeof($religions) == 0) {
                 return $this->appFormatter->formatResponse(ResponseEnum::NO_DATA, null);
             }
 
-            return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_SUCCESS, $remarks);
+            return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_SUCCESS, $religions);
         } catch (\Exception $exception) {
             return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_FAILED, null, ['cache' => $exception->getMessage()]);
         }

@@ -10,6 +10,10 @@ use App\Model\ClientSessions as ClientSessionModel;
 use App\Model\Quarters as QuartersModel;
 use App\Model\ResourceFacilitatorSession as ResourceFacilitatorSessionModel;
 use App\Model\Sessions as SessionsModel;
+use App\Service\CivilStatusInterface;
+use App\Service\EducationBackgroundInterface;
+use App\Service\OccupationInterface;
+use App\Service\ReligionInterface;
 use App\Service\TherapeuticCommunity\ClientSessionsInterface;
 use App\Service\TherapeuticCommunity\ClientTypesInterface;
 use App\Service\TherapeuticCommunity\FieldOfficesInterface;
@@ -57,6 +61,10 @@ class TherapeuticCommunityController extends AbstractController
         private RegionsInterface $regionService,
         private GenerateTableInterface $generateTable,
         private SessionRemarksInterface $sessionRemarkService,
+        private CivilStatusInterface $civilStatusService,
+        private EducationBackgroundInterface $educationBackgroundService,
+        private OccupationInterface $occupationService,
+        private ReligionInterface $religionService,
     ){}
 
     /**
@@ -941,5 +949,37 @@ class TherapeuticCommunityController extends AbstractController
         $data = json_decode($request->getContent(), true);
 
         return $this->json($this->generateTable->generate($data));
+    }
+
+    /**
+     * @Route("/civil-status/list", methods={"GET"})
+     */
+    public function getAllCivilStatuses(): Response
+    {
+        return $this->json($this->civilStatusService->getAll());
+    }
+
+    /**
+     * @Route("/educational-background/list", methods={"GET"})
+     */
+    public function getAllEducationBackgrounds(): Response
+    {
+        return $this->json($this->educationBackgroundService->getAll());
+    }
+
+    /**
+     * @Route("/occupation/list", methods={"GET"})
+     */
+    public function getAllOccupations(): Response
+    {
+        return $this->json($this->occupationService->getAll());
+    }
+
+    /**
+     * @Route("/religion/list", methods={"GET"})
+     */
+    public function getAllReligions(): Response
+    {
+        return $this->json($this->religionService->getAll());
     }
 }
