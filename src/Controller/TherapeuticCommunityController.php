@@ -174,6 +174,14 @@ class TherapeuticCommunityController extends AbstractController
     }
 
     /**
+     * @Route("/quarter/by/year/{year}", methods={"GET"})
+     */
+    public function getQuarterByYear(Request $request): Response
+    {
+        return $this->json($this->quartersService->getByYear($request->get("year")));
+    }
+
+    /**
      * @Route("/phases/list", methods={"GET"})
      */
     public function getAllPhases(): Response
