@@ -19,6 +19,7 @@ use App\Service\TherapeuticCommunity\QuartersInterface;
 use App\Service\TherapeuticCommunity\RegionsInterface;
 use App\Service\TherapeuticCommunity\ResourceFacilitatorSessionInterface;
 use App\Service\TherapeuticCommunity\SessionActivitiesInterface;
+use App\Service\TherapeuticCommunity\SessionRemarksInterface;
 use App\Service\TherapeuticCommunity\SessionsInterface;
 use App\Service\TherapeuticCommunity\TreatmentCategoriesInterface;
 use App\Service\TherapeuticCommunity\VenuesInterface;
@@ -55,6 +56,7 @@ class TherapeuticCommunityController extends AbstractController
         private ResourceFacilitatorSessionInterface $resourceFacilitatorSessionService,
         private RegionsInterface $regionService,
         private GenerateTableInterface $generateTable,
+        private SessionRemarksInterface $sessionRemarkService,
     ){}
 
     /**
@@ -494,6 +496,14 @@ class TherapeuticCommunityController extends AbstractController
             (int) $request->get("quarterId"),
             (string) $request->get("role")
         ));
+    }
+
+    /**
+     * @Route("/session-remarks/list", methods={"GET"})
+     */
+    public function getAllSessionRemarks(): Response
+    {
+        return $this->json($this->sessionRemarkService->getAll());
     }
 
     /**
