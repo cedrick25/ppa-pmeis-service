@@ -240,6 +240,10 @@ class Volunteer implements VolunteerInterface
                 $occupation = $occupations[$volunteer['occupation']];
                 $educationBackground = $educationBackgrounds[$volunteer['educationAttainment']];
 
+                if (! isset($data[$regionName]['gender'][$volunteer['gender']])) {
+                    $data[$regionName]['gender'][$volunteer['gender']] = 0;
+                }
+
                 if (! isset($data[$regionName]['civilStatus'][$civilStatus])) {
                     $data[$regionName]['civilStatus'][$civilStatus] = 0;
                 }
@@ -256,6 +260,7 @@ class Volunteer implements VolunteerInterface
                     $data[$regionName]['educationAttainment'][$educationBackground] = 0;
                 }
 
+                $data[$regionName]['gender'][$volunteer['gender']]++;
                 $data[$regionName]['civilStatus'][$civilStatus]++;
                 $data[$regionName]['religion'][$religion]++;
                 $data[$regionName]['occupation'][$occupation]++;
