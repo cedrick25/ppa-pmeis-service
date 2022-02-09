@@ -389,6 +389,33 @@ class VolunteerRepository extends ServiceEntityRepository
             ->getResult();
     }
 
+    /**
+     * @throws OptimisticLockException
+     * @throws InvalidArgumentException
+     * @throws ORMException
+     * @throws Exception
+     */
+    public function updateVolunteerStatus(array $data): string
+    {
+        $volunteer =$this->isExistingById($data['id']);
+
+        if ($volunteer == null) {
+            return ResponseEnum::NO_RECORD;
+        }
+
+        if (isset($data['dateAppointed'])) {
+            $volunteer->setDateAppointed($this->appDateHelper->convertStringToImmutableDate($data['dateAppointed']));
+        }
+
+        $volunteer->setVpaStatus($data['status']);
+        $volunteer->setUpdatedAt($this->appDateHelper->getCurrentImmutableDate());
+
+        $this->getEntityManager()->flush();
+        $this->cache->invalidateTags([self::CACHE_TAG]);
+
+        return ResponseEnum::OK;
+    }
+
     public function getVpaStartOfQuarter()
     {
         //

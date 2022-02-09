@@ -862,6 +862,20 @@ class TherapeuticCommunityController extends AbstractController
     }
 
     /**
+     * @Route("/volunteer/update-volunteer-status", methods={"POST"})
+     */
+    public function updateVolunteerStatus(Request $request): Response
+    {
+        try {
+            $data = json_decode($request->getContent(), true);
+
+            return $this->json($this->volunteerService->updateVolunteerStatus($data));
+        } catch (ReflectionException $exception) {
+            return $this->json($this->appFormatter->formatResponse('Updating volunteer session failed', null, ['reflection' => $exception->getMessage()]));
+        }
+    }
+
+    /**
      * @Route("/applicants/list", methods={"GET"})
      */
     public function getAllApplicants(): Response

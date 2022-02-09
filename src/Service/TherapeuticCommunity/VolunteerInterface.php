@@ -21,4 +21,6 @@ interface VolunteerInterface
     public function getByFieldOfficeAndMonthRange(int $fieldOfficeId, int $quarterId): array;
 
     public function getApplicants(): array;
+
+    public function updateVolunteerStatus(array $data): array;
 }
