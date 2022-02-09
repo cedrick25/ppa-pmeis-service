@@ -368,7 +368,21 @@ class VolunteerRepository extends ServiceEntityRepository
         return $this->createQueryBuilder('v')
             ->select('v.firstName, v.middleName, v.lastName, v.gender')
             ->where('v.volunteerId IN (:ids)')
+            ->andWhere('v.deletedAt IS NULL')
             ->setParameter('ids', $ids, Connection::PARAM_INT_ARRAY)
+            ->getQuery()
+            ->getResult();
+    }
+
+    /**
+     * @return Volunteer[]
+     */
+    public function findApplicants(): array
+    {
+        return $this->createQueryBuilder('v')
+            ->where('v.dateAppointed IS NULL')
+            ->andWhere("v.vpaStatus = 'APPLICANT'")
+            ->andWhere('v.deletedAt IS NULL')
             ->getQuery()
             ->getResult();
     }

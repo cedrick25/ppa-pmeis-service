@@ -862,6 +862,14 @@ class TherapeuticCommunityController extends AbstractController
     }
 
     /**
+     * @Route("/applicants/list", methods={"GET"})
+     */
+    public function getAllApplicants(): Response
+    {
+        return $this->json($this->volunteerService->getApplicants());
+    }
+
+    /**
      * @Route("/resource-facilitator-session/create", methods={"POST"})
      */
     public function createResourceFacilitatorSession(Request $request): Response

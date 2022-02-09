@@ -144,4 +144,19 @@ class Volunteer implements VolunteerInterface
             return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_SUCCESS, null, ['app' => $e->getMessage()]);
         }
     }
+
+    public function getApplicants(): array
+    {
+        try {
+            $applicants = $this->repository->findApplicants();
+
+            if (!$applicants) {
+                return $this->appFormatter->formatResponse(ResponseEnum::NO_DATA, null);
+            }
+
+            return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_SUCCESS, $applicants);
+        } catch (\Exception $e) {
+            return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_SUCCESS, null, ['app' => $e->getMessage()]);
+        }
+    }
 }
