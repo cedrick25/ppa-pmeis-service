@@ -16,7 +16,7 @@ class ID implements Form
     private const TABLE_NAME = "ID";
     
     public function __construct(
-        private int   $lastFilledOutCellY = 20,
+        private int   $lastFilledOutCellY = 5,
         private array $data = [],
     ){}
 
@@ -53,8 +53,63 @@ class ID implements Form
     {
         $spreadsheet = $this->header();
 
-        $spreadsheet->getActiveSheet()->getStyle('A6:F15')->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
-        // $spreadsheet->getActiveSheet()->getStyle('J18:P18')->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setARGB('80808080');
+        $quarter = $this->data['quarter'];
+        $fieldOffice = $this->data['field_office_id'];
+        $type = $this->data['type'];
+        $data = [
+            'VPA' => [
+                'FIRST_2022' => [
+                    '1' => [
+                        ['Luke Skylar', 'TC', 'NCR Pasig Field Office', 'Pre-morning Meeting', 'January 7, 2022 / Brgy. Dela Paz Hall, Pasig City', 'Facilitator'],
+                        ['Luke Skylar', 'VPA', 'NCR Pasig Field Office', 'Seminar',  'January 5, 2022 / Pasig City', 'First Speaker'],
+                        ['Pedro Pandacan', 'RJ', 'NCR Pasig Field Office', 'Pre-morning Meeting',  'January 8, 2022 / Pasig City', 'Monitoring',],
+                        ['Pedro Pandacan', 'VPA', 'NCR Pasig Field Office', 'Seminar',  'January 5, 2022 / Pasig City', 'Second Speaker',],
+                        ['Marie Sumapay', 'VPA', 'NCR Pasig Field Office', 'Seminar', 'January 5, 2022 / Brgy. Dela Paz Hall, Pasig City', 'Third Speaker'],
+                        ['Marie Sumapay', 'TC', 'NCR Pasig Field Office', 'Morning Meeting',  'January 11, 2022 / Pasig City', 'Facilitator'],
+                        ['Renzo Melodez', 'VPA', 'NCR Pasig Field Office', 'Seminar',  'January 5, 2022 / Pasig City', 'Assistant',],
+                        ['Renzo Melodez', 'TC', 'NCR Pasig Field Office', 'Individual Counseling',  'January 11, 2022 / Pasig City', 'Facilitator',],
+                    ],
+                ],
+                'FOURTH_2021' => [
+                    '1' => [
+                        ['Danzo Malaypay', 'VPA', 'NCR Pasig Field Office', 'Livelihood Training', 'December 10, 2021 / Brgy. Dela Paz Hall, Pasig City', 'Master Speaker'],
+                        ['Danzo Malaypay', 'RJ', 'NCR Pasig Field Office', 'Meeting the petitioners family',  'November 7, 2021 / Pasig City', 'Monitoring'],
+                        ['Marichu Balonzo', 'VPA', 'NCR Pasig Field Office', 'Livelihood Training',  'December 10, 2021 / Pasig City', 'Trainer',],
+                        ['Marichu Balonzo', 'RJ', 'NCR Pasig Field Office', 'Conferencing',  'November 20, 2021 / Pasig City', 'Monitoring',],
+                        ['Benjo Relaza', 'VPA', 'NCR Pasig Field Office', 'Livelihood Training', 'December 10, 2021 / Brgy. Dela Paz Hall, Pasig City', 'Trainer'],
+                        ['Aliya Gumara', 'VPA', 'NCR Pasig Field Office', 'Livelihood Training', 'December 10, 2021 / Pasig City', 'Trainer'],
+                    ],
+                ],
+            ],
+            'Personnel' => [
+                'FIRST_2022' => [
+                    '1' => [
+                        ['Gerone Mabagay', 'TC', 'NCR Pasig Field Office', 'Morning Meeting', 'January 28, 2022 / Brgy. Sta. Lucia, Pasig City', 'Facilitator'],
+                        ['Daniel Agbat', 'TC', 'NCR Pasig Field Office', 'Job Functions', 'January 17, 2022 / Brgy. Rosario, Pasig City', 'Facilitator'],
+                        ['Troy Terono', 'RJ', 'NCR Pasig Field Office', 'Conferencing', 'February 2, 2022 /Brgy. Santolan, Pasig City', 'Monitoring',],
+                    ],
+                ],
+                'FOURTH_2021' => [
+                    '1' => [
+                        ['Jeffrey Magbantay', 'RJ', 'NCR Pasig Field Office', 'Meeting the victims family', 'October 24, 2021 / Brgy. Dela Paz, Pasig City', 'Monitoring'],
+                        ['Melissa Femiliano', 'TC', 'NCR Pasig Field Office', 'Pre-morning meeting', 'October 7, 2021 / Brgy. Rosario, Pasig City', 'Facilitator'],
+                        ['Mariz Aguilera', 'TC', 'NCR Pasig Field Office', 'Job Functions',  'November 8, 2021 / Brgy. Dela Paz, Pasig City', 'Facilitator',],
+                    ],
+                ],
+            ],
+        ];
+
+        $rows = $data[$type][$quarter][$fieldOffice];
+        foreach ($rows as $row) {
+            $this->lastFilledOutCellY++;
+            $spreadsheet->getActiveSheet()->setCellValue("A" . $this->lastFilledOutCellY, $row[0]);
+            $spreadsheet->getActiveSheet()->setCellValue("b" . $this->lastFilledOutCellY, $row[1]);
+            $spreadsheet->getActiveSheet()->setCellValue("c" . $this->lastFilledOutCellY, $row[2]);
+            $spreadsheet->getActiveSheet()->setCellValue("d" . $this->lastFilledOutCellY, $row[3]);
+            $spreadsheet->getActiveSheet()->setCellValue("e" . $this->lastFilledOutCellY, $row[4]);
+            $spreadsheet->getActiveSheet()->setCellValue("f" . $this->lastFilledOutCellY, $row[5]);
+        }
+        $spreadsheet->getActiveSheet()->getStyle('A6:f' . $this->lastFilledOutCellY)->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
 
         return $spreadsheet;
     }
@@ -85,7 +140,7 @@ class ID implements Form
         $verticalAlignedCoordinates = ['a3:f15' => 'center'];
         $horizontalAlignedCoordinates = ['a3:f15' => 'center'];
         $adjustedColumnWidthCoordinates = [
-            'A' => 20, 'B' => 20, 'C' => 20, 'D' => 20, 'E' => 20, 'F' => 20, 'G' => 20, 'H' => 10, 'I' => 10, 'J' => 10, 'K' => 10, 'L' => 10,
+            'A' => 23, 'B' => 10, 'C' => 25, 'D' => 30, 'E' => 50, 'F' => 25, 'G' => 25, 'H' => 10, 'I' => 10, 'J' => 10, 'K' => 10, 'L' => 10,
             'M' => 10, 'N' => 10, 'O' => 10, 'P' => 30, 'Q' => 10, 'R' => 10, 'S' => 10, 'T' => 10
         ];
         $outlineBorderThinCoordinates = [

@@ -16,7 +16,7 @@ class CBIIA2 implements Form
     private const TABLE_NAME = "CBIIA2";
     
     public function __construct(
-        private int   $lastFilledOutCellY = 20,
+        private int   $lastFilledOutCellY = 7,
         private array $data = [],
     ){}
 
@@ -45,7 +45,14 @@ class CBIIA2 implements Form
     {
         $spreadsheet = $this->body();
         $this->lastFilledOutCellY++;
+        $this->lastFilledOutCellY++;
+        $lastFilledOutCellY = $this->lastFilledOutCellY;
 
+        $spreadsheet->getActiveSheet()->setCellValue('b' . $this->lastFilledOutCellY, '    NOTE:      IF PAX ARE MORE THAN FIVE (5), ATTACH ATTENDANCE SHEET OR LIST OF PARTICIPANTS');
+        $spreadsheet->getActiveSheet()->mergeCells('b' . $this->lastFilledOutCellY . ':j' . $this->lastFilledOutCellY);
+
+        $spreadsheet->getActiveSheet()->getStyle('B' . $lastFilledOutCellY . ':O' . $this->lastFilledOutCellY)->getFont()->setBold(true);
+        
         return $spreadsheet;
     }
 
@@ -53,10 +60,88 @@ class CBIIA2 implements Form
     {
         $spreadsheet = $this->header();
 
-        $spreadsheet->getActiveSheet()->getStyle('A8:J23')->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
-        $spreadsheet->getActiveSheet()->getStyle('d23')->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setARGB('80808080');
-        $spreadsheet->getActiveSheet()->getStyle('g23:j23')->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setARGB('80808080');
+        $quarter = $this->data['quarter'];
+        $fieldOffice = $this->data['field_office_id'];
+        $data = [
+            'FIRST_2022' => [
+                '1' => [
+                    ['A.  Training on  Therapeutic Community', '', '', '', '', '', '', '', '', '',],
+                    ['None', '', '', '', '', '', '', '', '', '',],
+                    ['B.  Training on  Restorative Justice', '', '', '', '', '', '', '', '', '',],
+                    ['None', '', '', '', '', '', '', '', '', '',],
+                    ['C.  Training on Volunteerism' , '', '', '', '', '', '', '', '', ''],
+                    ['None', '', '', '', '', '', '', '', '', '',],
+                    ['D.  Training on GAD' , '', '', '', '', '', '', '', '', '',],
+                    ['None', '', '', '', '', '', '', '', '', '',],
+                    ['E.  Other Training  Courses/ Seminars/', '', '', '', '', '', '', '', '', '',],
+                    ['      Fora/Symposia' , '', '', '', '', '', '', '', '', '',],
+                    ['None', '', '', '', '', '', '', '', '', '',],
+                    ['F.  Conferences/ Conventions/ Congress' , '', '', '', '', '', '', '', '', '',],
+                    ['None', '', '', '', '', '', '', '', '', '',],
+                    ['G.  VPA Meetings/ Assemblies' , '', '', '', '', '', '', '', '', '',],
+                    ['Monthly Meeting', 'January 8, 2022', '7', 'Luka Skylar', '', '', 'FO/RO', '', '8', ''],
+                    ['', '', '', 'Pedro Pandacan', '', '/', 'FO/RO', '', '8', ''],
+                    ['', '', '', 'Mari Sumapay', '', '', 'FO/RO', '', '8', ''],
+                    ['', '', '', 'Renzo Melodez', '', '', 'FO/RO', '', '8', ''],
+                    ['', '', '', 'Danzo Malapay', '', '/', 'FO/RO', '', '8', ''],
+                    ['', '', '', 'Marichu Balonzo', '', '', 'FO/RO', '', '8', ''],
+                    ['', '', '', 'Benjo Relaza', '', '', 'FO/RO', '', '8', ''],
+                ],
+            ],
+            'FOURTH_2021' => [
+                '1' => [
+                    ['A.  Training on  Therapeutic Community', '', '', '', '', '', '', '', '', '',],
+                    ['None', '', '', '', '', '', '', '', '', '',],
+                    ['B.  Training on  Restorative Justice', '', '', '', '', '', '', '', '', '',],
+                    ['None', '', '', '', '', '', '', '', '', '',],
+                    ['C.  Training on Volunteerism' , '', '', '', '', '', '', '', '', ''],
+                    ['None', '', '', '', '', '', '', '', '', '',],
+                    ['D.  Training on GAD' , '', '', '', '', '', '', '', '', '',],
+                    ['None', '', '', '', '', '', '', '', '', '',],
+                    ['E.  Other Training  Courses/ Seminars/', '', '', '', '', '', '', '', '', '',],
+                    ['      Fora/Symposia' , '', '', '', '', '', '', '', '', '',],
+                    ['None', '', '', '', '', '', '', '', '', '',],
+                    ['F.  Conferences/ Conventions/ Congress' , '', '', '', '', '', '', '', '', '',],
+                    ['None', '', '', '', '', '', '', '', '', '',],
+                    ['G.  VPA Meetings/ Assemblies' , '', '', '', '', '', '', '', '', '',],
+                    ['VPA Character Building Training', 'November 7, 2021', '7', 'Luka Skylar', '', '', 'FO/RO', '', '8', ''],
+                    ['', '', '', 'Pedro Pandacan', '', '/', 'FO/RO', '', '8', ''],
+                    ['', '', '', 'Mari Sumapay', '', '', 'FO/RO', '', '8', ''],
+                    ['', '', '', 'Renzo Melodez', '', '', 'FO/RO', '', '8', ''],
+                    ['', '', '', 'Danzo Malapay', '', '/', 'FO/RO', '', '8', ''],
+                    ['', '', '', 'Marichu Balonzo', '', '', 'FO/RO', '', '8', ''],
+                    ['', '', '', 'Benjo Relaza', '', '', 'FO/RO', '', '8', ''],
+                ],
+            ],
+        ];
 
+        $rows = $data[$quarter][$fieldOffice];
+        foreach ($rows as $row) {
+            $this->lastFilledOutCellY++;
+            $spreadsheet->getActiveSheet()->setCellValue("a" . $this->lastFilledOutCellY, $row[0]);
+            $spreadsheet->getActiveSheet()->setCellValue("b" . $this->lastFilledOutCellY, $row[1]);
+            $spreadsheet->getActiveSheet()->setCellValue("c" . $this->lastFilledOutCellY, $row[2]);
+            $spreadsheet->getActiveSheet()->setCellValue("d" . $this->lastFilledOutCellY, $row[3]);
+            $spreadsheet->getActiveSheet()->setCellValue("e" . $this->lastFilledOutCellY, $row[4]);
+            $spreadsheet->getActiveSheet()->setCellValue("f" . $this->lastFilledOutCellY, $row[5]);
+            $spreadsheet->getActiveSheet()->setCellValue("g" . $this->lastFilledOutCellY, $row[6]);
+            $spreadsheet->getActiveSheet()->setCellValue("h" . $this->lastFilledOutCellY, $row[7]);
+            $spreadsheet->getActiveSheet()->setCellValue("i" . $this->lastFilledOutCellY, $row[8]);
+            $spreadsheet->getActiveSheet()->setCellValue("j" . $this->lastFilledOutCellY, $row[9]);
+        }
+
+        $this->lastFilledOutCellY++;
+        $spreadsheet->getActiveSheet()->setCellValue('A' . $this->lastFilledOutCellY, 'TOTAL (Headcount)');
+        $spreadsheet->getActiveSheet()->setCellValue('c' . $this->lastFilledOutCellY, '7');
+        $spreadsheet->getActiveSheet()->mergeCells('A' . $this->lastFilledOutCellY . ':b' . $this->lastFilledOutCellY);
+
+        $spreadsheet->getActiveSheet()->getStyle('A8:j' . $this->lastFilledOutCellY)->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
+        $spreadsheet->getActiveSheet()
+        ->getStyle("d" . $this->lastFilledOutCellY)
+        ->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setARGB('80808080');
+        $spreadsheet->getActiveSheet()
+        ->getStyle("g" . $this->lastFilledOutCellY. ':j' . $this->lastFilledOutCellY)
+        ->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setARGB('80808080');
         return $spreadsheet;
     }
 
@@ -75,7 +160,7 @@ class CBIIA2 implements Form
         $spreadsheet = new Spreadsheet();
         $textAndCoordinates = [
             'a3' => 'Table II.A.2 –  VPAs',
-            'a5' => 'Title', 'a6' => '(1)', 'a8' => 'A.  Training on  Therapeutic Community', 'a10' => 'B.  Training on  Restorative Justice', 'a12' => 'C.  Training on Volunteerism', 'a14' => 'D.  Training on GAD', 'a16' => 'E.  Other Training  Courses/ Seminars/', 'a17' => '     Fora/Symposia', 'a19' => 'F.  Conferences/ Conventions/ Congress', 'a21' => 'G.  VPA Meetings/ Assemblies',
+            'a5' => 'Title', 'a6' => '(1)', 
             'b5' => 'Date', 'b6' => '(2)',
             'c5' => 'No. of', 'c6' => 'Participants', 'c7' => '(3)', 
             'd5' => 'Name/s', 'd6' => '(4)',
@@ -85,12 +170,12 @@ class CBIIA2 implements Form
              RO/ FO)', 'h5' => 'Out-House', 'h6' => '(Indicate Name of conducting 
              Agency/ Organization)',
             'i4' => 'No. of', 'i5' => 'Training', 'i6' => 'Hours', 'i7' => '(8)',
-            'j4' => 'REMARKS', 'j7' => '(9)',  'a23' => 'TOTAL (Headcount)',  'a24' => '    NOTE:      IF PAX ARE MORE THAN FIVE (5), ATTACH ATTENDANCE SHEET OR LIST OF PARTICIPANTS'
+            'j4' => 'REMARKS', 'j7' => '(9)',
         ];
         $mergesCoordinates = [
-            'G4:h4', 'G6:G7', 'H6:H7', 'J4:J6', 'A23:B23'
+            'G4:h4', 'G6:G7', 'H6:H7', 'J4:J6',
         ];
-        $boldCoordinates = ['l1','a1','a3','b6', 'c7', 'd6', 'e7', 'f7', 'i7','j7', 'a6', 'a19', 'a21', 'a24'];
+        $boldCoordinates = ['l1','a1','a3','b6', 'c7', 'd6', 'e7', 'f7', 'i7','j7', 'a6',];
         $verticalAlignedCoordinates = ['b4:K47' => 'center', 'a4:a7' => 'center', 'a23:b23' => 'center'];
         $horizontalAlignedCoordinates = ['b4:K47' => 'center', 'a4:a7' => 'center', 'a23:b23' => 'right'];
         $adjustedColumnWidthCoordinates = [

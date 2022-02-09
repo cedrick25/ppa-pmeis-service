@@ -16,7 +16,7 @@ class CBIIA1 implements Form
     private const TABLE_NAME = "CBIIA1";
     
     public function __construct(
-        private int   $lastFilledOutCellY = 20,
+        private int   $lastFilledOutCellY = 7,
         private array $data = [],
     ){}
 
@@ -53,11 +53,113 @@ class CBIIA1 implements Form
     {
         $spreadsheet = $this->header();
 
-        $spreadsheet->getActiveSheet()->getStyle('A8:K23')->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
-        $spreadsheet->getActiveSheet()->getStyle('d23')->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setARGB('80808080');
-        $spreadsheet->getActiveSheet()->getStyle('j23')->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setARGB('80808080');
-        $spreadsheet->getActiveSheet()->getStyle('k23')->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setARGB('80808080');
+        $quarter = $this->data['quarter'];
+        $fieldOffice = $this->data['field_office_id'];
+        $data = [
+            'FIRST_2022' => [
+                '1' => [
+                    ['A.  Training on  Therapeutic Community', '', '', '', '', '', '', '', '', '', ''],
+                    ['None', '', '', '', '', '', '', '', '', '', ''],
+                    ['B.  Training on  Restorative Justice', '', '', '', '', '', '', '', '', '', ''],
+                    ['None', '', '', '', '', '', '', '', '', '', ''],
+                    ['C.  Training on Volunteerism' , '', '', '', '', '', '', '', '', '', ''],
+                    ['None', '', '', '', '', '', '', '', '', '', ''],
+                    ['D.  Training on GAD' , '', '', '', '', '', '', '', '', '', ''],
+                    ['Embracing Quality Performance ' , 'January 9-10, 2022', '5', 'Gerone Mabagay', '', '', '', '', '/', '16', ''],
+                    ['Management System Towards GAD ' , '', '', 'Daniel Agbat', '', '', '', '', '/', '16', ''],
+                    ['Responsive Work Environment' , '', '',  'Troy Terono','', '', '', '', '/', '16', ''],
+                    ['' , '', '', 'Jeffrey Magbantay', '/', '', '', '', '/', '16', ''],
+                    ['' , '', '', 'Melissa Femiliano', '', '', '', '', '/', '16', ''],
+                    ['E.  Other Training  Courses/ Seminars/', '', '', '', '', '', '', '', '', '', ''],
+                    ['      Fora/Symposia' , '', '', '', '', '', '', '', '', '', ''],
+                    ['Information System Testing' , 'January 9, 2022', '5', 'Gerone Mabagay', '', '', '', '', '/', '8', ''],
+                    ['' , '', '', 'Daniel Agbat', '/', '', '', '', '/', '8', ''],
+                    ['' , '', '', 'Troy Terono', '', '', '', '', '/', '8', ''],
+                    ['' , '', '', 'Jeffrey Magbantay', '/', '', '', '', '/', '8', ''],
+                    ['' , '', '', 'Melissa Femiliano', '', '', '', '', '/', '8', ''],
+                    ['Public Consultation of the Draft ' , 'January 23, 2022', '1', 'Jeffrey Magbantay', '', '/', '', '', '/', '8', ''],
+                    ['Implementing Rules and Regulations of RA No. 11362' , '', '', '', '', '', '', '', '', '', ''],
+                    ['F.  Conferences/Conventions' , '', '', '', '', '', '', '', '', '', ''],
+                    ['None', '', '', '', '', '', '', '', '', '', ''],
+                    ['G.  Staff/ Committee  Meetings with Professional Devt' , '', '', '', '', '', '', '', '', '', ''],
+                    ['SRCPPO Staff Meetings' , 'January 28, 2022', '5', 'Gerone Mabagay', '', '', '', '', '/', '2', ''],
+                    ['' , '', '', 'Daniel Agbat', '', '', '', '', '/', '2', ''],
+                    ['' , '', '', 'Troy Terono', '', '', '', '', '/', '2', ''],
+                    ['' , '', '', 'Jeffrey Magbantay', '', '/', '', '', '/', '2', ''],
+                    ['' , '', '', 'Melissa Femiliano', '', '', '', '', '/', '2', ''],
+                    ['' , 'January 29, 2022', '5', 'Gerone Mabagay', '', '', '', '', '/', '2', ''],
+                    ['' , '', '', 'Daniel Agbat', '', '', '', '', '/', '2', ''],
+                    ['' , '', '', 'Troy Terono', '', '', '', '', '/', '2', ''],
+                    ['' , '', '', 'Jeffrey Magbantay', '', '/', '', '', '/', '2', ''],
+                    ['' , '', '', 'Melissa Femiliano', '', '', '', '', '/', '2', ''],
+                    ['' , 'January 30, 2022', '5', 'Gerone Mabagay', '', '', '', '', '/', '', ''],
+                    ['' , '', '', 'Daniel Agbat', '', '', '', '', '/', '', ''],
+                    ['' , '', '', 'Troy Terono', '', '', '', '', '/', '', ''],
+                    ['' , '', '', 'Jeffrey Magbantay', '', '/', '', '', '/', '', ''],
+                    ['' , '', '', 'Melissa Femiliano', '', '', '', '', '/', '', ''],
+                ],
+            ],
+            'FOURTH_2021' => [
+                '1' => [
+                    ['A.  Training on  Therapeutic Community', '', '', '', '', '', '', '', '', '', ''],
+                    ['None', '', '', '', '', '', '', '', '', '', ''],
+                    ['B.  Training on  Restorative Justice', '', '', '', '', '', '', '', '', '', ''],
+                    ['None', '', '', '', '', '', '', '', '', '', ''],
+                    ['C.  Training on Volunteerism' , '', '', '', '', '', '', '', '', '', ''],
+                    ['None', '', '', '', '', '', '', '', '', '', ''],
+                    ['D.  Training on GAD' , '', '', '', '', '', '', '', '', '', ''],
+                    ['Quality MAnagement System' , 'December 2-3, 2021', '5', 'Gerone Mabagay', '', '', '', '', '/', '16', ''],
+                    ['' , '', '', 'Daniel Agbat', '', '', '', '', '/', '16', ''],
+                    ['' , '', '', 'Troy Terono', '', '', '', '', '/', '16', ''],
+                    ['' , '', '', 'Jeffrey Magbantay', '', '/', '', '', '/', '16', ''],
+                    ['' , '', '', 'Melissa Femiliano', '', '', '', '', '/', '16', ''],
+                    ['E.  Other Training  Courses/ Seminars/', '', '', '', '', '', '', '', '', '', ''],
+                    ['      Fora/Symposia' , '', '', '', '', '', '', '', '', '', ''],
+                    ['Skill-Building Training' , 'November 28, 2021', '5', 'Gerone Mabagay', '', '', '', '', '/', '8', ''],
+                    ['' , '', '', 'Daniel Agbat', '', '', '', '', '/', '16', ''],
+                    ['' , '', '', 'Troy Terono', '', '', '', '', '/', '8', ''],
+                    ['' , '', '', 'Jeffrey Magbantay', '', '/', '', '', '/', '8', ''],
+                    ['' , '', '', 'Melissa Femiliano', '', '', '', '', '/', '8', ''],
+                    ['Implementing Rules and Regulations of RA No. 11362' , '', '', '', '', '', '', '', '', '', ''],
+                    ['F.  Conferences/Conventions' , '', '', '', '', '', '', '', '', '', ''],
+                    ['None', '', '', '', '', '', '', '', '', '', ''],
+                    ['G.  Staff/ Committee  Meetings with Professional Devt' , '', '', '', '', '', '', '', '', '', ''],
+                    ['None', '', '', '', '', '', '', '', '', '', ''],
+                ],
+            ],
+        ];
 
+        $rows = $data[$quarter][$fieldOffice];
+        foreach ($rows as $row) {
+            $this->lastFilledOutCellY++;
+            $spreadsheet->getActiveSheet()->setCellValue("A" . $this->lastFilledOutCellY, $row[0]);
+            $spreadsheet->getActiveSheet()->setCellValue("b" . $this->lastFilledOutCellY, $row[1]);
+            $spreadsheet->getActiveSheet()->setCellValue("c" . $this->lastFilledOutCellY, $row[2]);
+            $spreadsheet->getActiveSheet()->setCellValue("d" . $this->lastFilledOutCellY, $row[3]);
+            $spreadsheet->getActiveSheet()->setCellValue("e" . $this->lastFilledOutCellY, $row[4]);
+            $spreadsheet->getActiveSheet()->setCellValue("f" . $this->lastFilledOutCellY, $row[5]);
+            $spreadsheet->getActiveSheet()->setCellValue("g" . $this->lastFilledOutCellY, $row[6]);
+            $spreadsheet->getActiveSheet()->setCellValue("h" . $this->lastFilledOutCellY, $row[7]);
+            $spreadsheet->getActiveSheet()->setCellValue("i" . $this->lastFilledOutCellY, $row[8]);
+            $spreadsheet->getActiveSheet()->setCellValue("j" . $this->lastFilledOutCellY, $row[9]);
+            $spreadsheet->getActiveSheet()->setCellValue("k" . $this->lastFilledOutCellY, $row[10]);
+        }
+
+        $this->lastFilledOutCellY++;
+        $spreadsheet->getActiveSheet()->setCellValue('A' . $this->lastFilledOutCellY, 'TOTAL (Headcount)');
+        $spreadsheet->getActiveSheet()->setCellValue('c' . $this->lastFilledOutCellY, '5');
+        $spreadsheet->getActiveSheet()->mergeCells('A' . $this->lastFilledOutCellY . ':b' . $this->lastFilledOutCellY);
+        $spreadsheet->getActiveSheet()->setCellValue('g' . $this->lastFilledOutCellY, 'TOTAL:');
+        $spreadsheet->getActiveSheet()->setCellValue('h' . $this->lastFilledOutCellY, '5');
+        $spreadsheet->getActiveSheet()->setCellValue('i' . $this->lastFilledOutCellY, '5');
+
+        $spreadsheet->getActiveSheet()->getStyle('A8:k' . $this->lastFilledOutCellY)->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
+        $spreadsheet->getActiveSheet()
+        ->getStyle("d" . $this->lastFilledOutCellY)
+        ->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setARGB('80808080');
+        $spreadsheet->getActiveSheet()
+        ->getStyle("j" . $this->lastFilledOutCellY. ':k' . $this->lastFilledOutCellY)
+        ->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setARGB('80808080');
         return $spreadsheet;
     }
 
@@ -77,25 +179,25 @@ class CBIIA1 implements Form
         $textAndCoordinates = [
             'a1' => 'II.  CAPABILITY BUILDING', 'l1' => 'PPA-PLD-FR-004', 
             'a3' => 'Table II.A.1 –  PERSONNEL',
-            'a5' => 'Title', 'a6' => '(1)', 'a8' => 'A.  Training on  Therapeutic Community', 'a10' => 'B.  Training on  Restorative Justice', 'a12' => 'C.  Training on Volunteerism', 'a14' => 'D.  Training on GAD', 'a16' => 'E.  Other Training  Courses/ Seminars/', 'a18' => 'F.  Conferences/Conventions', 'a20' => 'G.  Staff/ Committee  Meetings with', 'a21' => 'Professional Dev"t.',
+            'a5' => 'Title', 'a6' => '(1)',
             'b5' => 'Date', 'b6' => '(2)',
             'c5' => 'No. of', 'c6' => 'Participants', 'c7' => '(3)', 
             'd5' => 'Name/s', 'd6' => '(4)',
             'e4' => 'P', 'e5' => 'W', 'e6' => 'D', 'e7' => '(5)',
             'f4' => 'S', 'f5' => 'C', 'f6' => '', 'f7' => '(6)',
             'g4' => 'Nature of Training   (7)', 'g5' => 'Managerial/ 
-            Supervisory', 'h6' => 'Technical', 'I5' => 'Foundation',
+            Supervisory', 'h5' => 'Technical', 'I5' => 'Foundation',
             'j4' => 'No. of', 'j5' => 'Training', 'j6' => 'Hours', 'j7' => '(8)',
-            'K4' => 'REMARKS', 'K7' => '(9)',  'a23' => 'TOTAL (Headcount)', 'g23' => 'TOTAL:', 
+            'K4' => 'REMARKS', 'K7' => '(9)', 
         ];
         $mergesCoordinates = [
-            'G4:I4', 'G5:G7', 'H5:H7', 'I5:I7', 'K4:K6', 'A23:B23'
+            'G4:I4', 'G5:G7', 'H5:H7', 'I5:I7', 'K4:K6',
         ];
-        $boldCoordinates = ['l1','a1','a3','b6', 'c7', 'd6', 'e7', 'f7', 'j7', 'k7', 'a6', 'a18', 'a20', 'a21',];
-        $verticalAlignedCoordinates = ['b4:K47' => 'center', 'a4:a7' => 'center', 'a21' => 'center', 'a23:b23' => 'center'];
-        $horizontalAlignedCoordinates = ['b4:K47' => 'center', 'a4:a7' => 'center', 'a21' => 'center', 'a23:b23' => 'right'];
+        $boldCoordinates = [];
+        $verticalAlignedCoordinates = ['b4:K47' => 'center', 'a4:a7' => 'center',];
+        $horizontalAlignedCoordinates = ['b4:K47' => 'center', 'a4:a7' => 'center',];
         $adjustedColumnWidthCoordinates = [
-            'A' => 37, 'B' => 17, 'C' => 15, 'D' => 20, 'E' => 5, 'F' => 5, 'G' => 20, 'H' => 10, 'I' => 10, 'J' => 10, 'K' => 10, 'L' => 10,
+            'A' => 49, 'B' => 20, 'C' => 15, 'D' => 20, 'E' => 5, 'F' => 5, 'G' => 20, 'H' => 10, 'I' => 10, 'J' => 10, 'K' => 10, 'L' => 10,
             'M' => 10, 'N' => 10,
         ];
         $outlineBorderThinCoordinates = [
