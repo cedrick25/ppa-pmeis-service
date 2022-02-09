@@ -51,4 +51,37 @@ class AppDateHelper
 
         return $data[$quarter];
     }
+
+    public function getQuarterByMonth(int $month): string
+    {
+        $data = [
+            1 => 'FIRST', 2 => 'FIRST' , 3 => 'FIRST',
+            4 => 'SECOND', 5 => 'SECOND' , 6 => 'SECOND',
+            7 => 'THIRD', 8 => 'THIRD' , 9 => 'THIRD',
+            10 => 'FOURTH', 11 => 'FOURTH' , 12 => 'FOURTH'
+        ];
+
+        return $data[$month];
+    }
+
+    public function getMinMaxDateByYearsAndMonths(array $years, $months): array
+    {
+        $years = array_unique($years);
+        $minYear = min($years);
+        $maxYear = max($years);
+
+        $months = array_unique($months);
+        $minMonth = min($months);
+        $minMonth = intval($minMonth) <= 9 ? '0' . $minMonth : $minMonth;
+        $maxMonth = max($months);
+
+        $minDate = $minYear . '-' . $minMonth . '-1';
+        $maxDate = new \DateTime($maxYear . '-' . $maxMonth . '-15');
+        $maxDate = $maxDate->format('Y-m-t');
+
+        return [
+            'min' => $minDate,
+            'max' => $maxDate
+        ];
+    }
 }

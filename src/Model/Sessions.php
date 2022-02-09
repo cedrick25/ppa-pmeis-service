@@ -10,7 +10,7 @@ use Symfony\Component\Validator\Constraints as Assert;
 class Sessions
 {
     public function __construct(
-        private int $quarterId,
+        private int $remarksId,
         private int $fieldOfficeId,
         private int $phaseId,
         private string $batch,
@@ -19,10 +19,10 @@ class Sessions
         private string $date,
         private int $venueId,
         private string $period,
-        private string $remarks,
         private int $fsg,
         private string $liLo,
         private int $createdBy,
+        private ?int $treesPlanted = null,
         private ?DateTimeInterface $createdAt = null,
         private ?DateTimeInterface $updatedAt = null,
         private ?DateTimeInterface $deletedAt = null,
@@ -35,9 +35,17 @@ class Sessions
      * @Assert\GreaterThan(0)
      * @return int
      */
-    public function getQuarterId(): int
+    public function getRemarksId(): int
     {
-        return $this->quarterId;
+        return $this->remarksId;
+    }
+
+    /**
+     * @return int|null
+     */
+    public function getTreesPlanted(): ?int
+    {
+        return $this->treesPlanted;
     }
 
     /**
@@ -116,15 +124,6 @@ class Sessions
     public function getPeriod(): string
     {
         return $this->period;
-    }
-
-    /**
-     * @Assert\NotBlank
-     * @return string
-     */
-    public function getRemarks(): string
-    {
-        return $this->remarks;
     }
 
     /**

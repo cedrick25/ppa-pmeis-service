@@ -12,6 +12,7 @@ use App\Model\Sessions as SessionsModel;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\Exception\InvalidArgumentException;
+use Doctrine\DBAL\ParameterType;
 use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\ORM\OptimisticLockException;
 use Doctrine\ORM\ORMException;
@@ -59,7 +60,7 @@ class SessionsRepository extends ServiceEntityRepository
         $this->cache->invalidateTags([self::CACHE_TAG]);
 
         $session = new Sessions();
-        $session->setQuarterId($sessionData->getQuarterId());
+        $session->setRemarksId($sessionData->getRemarksId());
         $session->setFieldOfficeId($sessionData->getFieldOfficeId());
         $session->setPhaseId($sessionData->getPhaseId());
         $session->setBatch($sessionData->getBatch());
@@ -68,9 +69,9 @@ class SessionsRepository extends ServiceEntityRepository
         $session->setDate($this->appDateHelper->convertStringToImmutableDate($sessionData->getDate()));
         $session->setVenueId($sessionData->getVenueId());
         $session->setPeriod($sessionData->getPeriod());
-        $session->setRemarks($sessionData->getRemarks());
         $session->setFsg($sessionData->getFsg());
         $session->setLiLo($sessionData->getLiLo());
+        $session->setTreesPlanted($sessionData->getTreesPlanted());
         $session->setCreatedBy($sessionData->getCreatedBy());
         $session->setCreatedAt($this->appDateHelper->getCurrentImmutableDate());
 
@@ -94,7 +95,8 @@ class SessionsRepository extends ServiceEntityRepository
         $this->cache->invalidateTags([self::CACHE_TAG]);
 
         $session = new Sessions();
-        $session->setQuarterId($sessionData->getQuarterId());
+        $session->setRemarksId($sessionData->getRemarksId());
+        $session->setTreesPlanted($sessionData->getTreesPlanted());
         $session->setFieldOfficeId($sessionData->getFieldOfficeId());
         $session->setPhaseId($sessionData->getPhaseId());
         $session->setBatch($sessionData->getBatch());
@@ -103,7 +105,6 @@ class SessionsRepository extends ServiceEntityRepository
         $session->setDate($this->appDateHelper->convertStringToImmutableDate($sessionData->getDate()));
         $session->setVenueId($sessionData->getVenueId());
         $session->setPeriod($sessionData->getPeriod());
-        $session->setRemarks($sessionData->getRemarks());
         $session->setFsg($sessionData->getFsg());
         $session->setLiLo($sessionData->getLiLo());
         $session->setCreatedBy($sessionData->getCreatedBy());
@@ -132,20 +133,27 @@ class SessionsRepository extends ServiceEntityRepository
 
         return $this->helper->createCachedResponseCustomQuery($params, function() {
             $conn = $this->getEntityManager()->getConnection();
-            $sql = "SELECT se.*, q.name as quarter_name, q.year as quarter_year, fe.name as field_office_name,
+            $sql = "SELECT se.*, sr.name as remarks, MONTH(se.date) as quarter_month, YEAR(se.date) as quarter_year, fe.name as field_office_name,
                     p.name as phase_name, sa.name as session_activity_name, tc.name as treatment_category_name, v.name as venue_name
                  FROM sessions as se " .
-                "LEFT JOIN quarters as q ON se.quarter_id = q.quarter_id " .
                 "LEFT JOIN field_offices as fe ON se.field_office_id = fe.field_office_id " .
                 "LEFT JOIN phases as p ON se.field_office_id = p.phase_id " .
                 "LEFT JOIN session_activities as sa ON se.session_activity_id = sa.session_activity_id " .
                 "LEFT JOIN treatment_categories as tc ON se.treatment_category_id = tc.treatment_category_id " .
                 "LEFT JOIN venues as v ON se.venue_id = v.venue_id " .
+                "LEFT JOIN session_remarks as sr ON se.remarks_id = sr.session_remark_id " .
                 "WHERE se.deleted_at IS NULL ORDER BY se.session_id DESC";
             $stmt = $conn->prepare($sql);
             $query = $stmt->executeQuery();
+            $data = $query->fetchAllAssociative();
+            $sessions = [];
 
-            return $query->fetchAllAssociative();
+            foreach ($data as $row) {
+                $row['quarter_name'] = $this->appDateHelper->getQuarterByMonth(intval($row['quarter_month']));
+                $sessions[] = $row;
+            }
+
+            return $sessions;
         });
     }
 
@@ -166,15 +174,15 @@ class SessionsRepository extends ServiceEntityRepository
             $conn = $this->getEntityManager()->getConnection();
             $data = [];
 
-            $sql = "SELECT se.*, q.name as quarter_name, q.year as quarter_year, fo.name as field_office_name,
+            $sql = "SELECT se.*, sr.name as remarks, MONTH(se.date) as quarter_month, YEAR(se.date) as quarter_year, fo.name as field_office_name,
                     p.name as phase_name, sa.name as session_activity_name, tc.name as treatment_category_name, v.name as venue_name
                  FROM sessions as se " .
-                "LEFT JOIN quarters as q ON se.quarter_id = q.quarter_id " .
                 "LEFT JOIN field_offices as fo ON se.field_office_id = fo.field_office_id " .
                 "LEFT JOIN phases as p ON se.field_office_id = p.phase_id " .
                 "LEFT JOIN session_activities as sa ON se.session_activity_id = sa.session_activity_id " .
                 "LEFT JOIN treatment_categories as tc ON se.treatment_category_id = tc.treatment_category_id " .
                 "LEFT JOIN venues as v ON se.venue_id = v.venue_id " .
+                "LEFT JOIN session_remarks as sr ON se.remarks_id = sr.session_remark_id " .
                 "WHERE se.deleted_at IS NULL ORDER BY se.session_id DESC";
             $stmt = $conn->prepare($sql);
             $query = $stmt->executeQuery();
@@ -184,6 +192,7 @@ class SessionsRepository extends ServiceEntityRepository
             foreach ($sessions as $session) {
                 $session['client_session'] = $this->clientSessionsRepository->listBySessionId((int)$session['session_id']);
                 $session['resource_facilitator'] = $this->resourceFacilitatorSessionRepository->listBySessionId((int)$session['session_id']);
+                $session['quarter_name'] = $this->appDateHelper->getQuarterByMonth(intval($session['quarter_month']));
 
                 $data[] = $session;
             }
@@ -260,7 +269,8 @@ class SessionsRepository extends ServiceEntityRepository
 
         $this->cache->invalidateTags([self::CACHE_TAG]);
 
-        $session->setQuarterId($sessionData->getQuarterId());
+        $session->setRemarksId($sessionData->getRemarksId());
+        $session->setTreesPlanted($sessionData->getTreesPlanted());
         $session->setPhaseId($sessionData->getPhaseId());
         $session->setBatch($sessionData->getBatch());
         $session->setSessionActivityId($sessionData->getSessionActivityId());
@@ -269,7 +279,6 @@ class SessionsRepository extends ServiceEntityRepository
         $session->setDate($this->appDateHelper->convertStringToImmutableDate($sessionData->getDate()));
         $session->setVenueId($sessionData->getVenueId());
         $session->setPeriod($sessionData->getPeriod());
-        $session->setRemarks($sessionData->getRemarks());
         $session->setFsg($sessionData->getFsg());
         $session->setLiLo($sessionData->getLiLo());
         $session->setCreatedBy($sessionData->getCreatedBy());
@@ -301,7 +310,8 @@ class SessionsRepository extends ServiceEntityRepository
 
         $this->cache->invalidateTags([self::CACHE_TAG]);
 
-        $session->setQuarterId($sessionData->getQuarterId());
+        $session->setRemarksId($sessionData->getRemarksId());
+        $session->setTreesPlanted($sessionData->getTreesPlanted());
         $session->setPhaseId($sessionData->getPhaseId());
         $session->setBatch($sessionData->getBatch());
         $session->setSessionActivityId($sessionData->getSessionActivityId());
@@ -310,7 +320,6 @@ class SessionsRepository extends ServiceEntityRepository
         $session->setDate($this->appDateHelper->convertStringToImmutableDate($sessionData->getDate()));
         $session->setVenueId($sessionData->getVenueId());
         $session->setPeriod($sessionData->getPeriod());
-        $session->setRemarks($sessionData->getRemarks());
         $session->setFsg($sessionData->getFsg());
         $session->setLiLo($sessionData->getLiLo());
         $session->setCreatedBy($sessionData->getCreatedBy());
@@ -359,23 +368,28 @@ class SessionsRepository extends ServiceEntityRepository
             $result = [];
 
             $conn = $this->getEntityManager()->getConnection();
-            $sql = "SELECT se.*, q.name as quarter_name, q.year as quarter_year, fe.name as field_office_name,
+            $sql = "SELECT se.*, sr.name as remarks, MONTH(se.date) as quarter_month, YEAR(se.date) as quarter_year, fe.name as field_office_name,
                     p.name as phase_name, sa.name as session_activity_name, tc.name as treatment_category_name, v.name as venue_name
                  FROM sessions as se " .
-                "LEFT JOIN quarters as q ON se.quarter_id = q.quarter_id " .
                 "LEFT JOIN field_offices as fe ON se.field_office_id = fe.field_office_id " .
                 "LEFT JOIN phases as p ON se.field_office_id = p.phase_id " .
                 "LEFT JOIN session_activities as sa ON se.session_activity_id = sa.session_activity_id " .
                 "LEFT JOIN treatment_categories as tc ON se.treatment_category_id = tc.treatment_category_id " .
                 "LEFT JOIN venues as v ON se.venue_id = v.venue_id " .
+                "LEFT JOIN session_remarks as sr ON se.remarks_id = sr.session_remark_id " .
                 "WHERE se.deleted_at IS NULL " .
                 "LIMIT $pageSize OFFSET $startOffset";
             $stmt = $conn->prepare($sql);
             $query = $stmt->executeQuery();
-            $result['data'] = $query->fetchAllAssociative();
-            $result['totalItems'] = count($this->findBy([
-                'deletedAt' => null
-            ]));
+            $sessions = $query->fetchAllAssociative();
+            $result['data'] = [];
+
+            foreach ($sessions as $session) {
+                $session['quarter_name'] = $this->appDateHelper->getQuarterByMonth(intval($session['quarter_month']));
+                $result['data'][] = $session;
+            }
+
+            $result['totalItems'] = count($result['data']);
 
             return $result;
         });
@@ -396,23 +410,23 @@ class SessionsRepository extends ServiceEntityRepository
         return $this->helper->createCachedResponseCustomQuery($params, function() use ($id) {
             $conn = $this->getEntityManager()->getConnection();
 
-            $sql = "SELECT se.*, q.name as quarter_name, q.year as quarter_year, fe.name as field_office_name,
+            $sql = "SELECT se.*, sr.name as remarks, MONTH(se.date) as quarter_month, YEAR(se.date) as quarter_year, fe.name as field_office_name,
                     p.name as phase_name, sa.name as session_activity_name, tc.name as treatment_category_name, v.name as venue_name,
                     r.name, r.region_id
                  FROM sessions as se " .
-                "LEFT JOIN quarters as q ON se.quarter_id = q.quarter_id " .
                 "LEFT JOIN field_offices as fe ON se.field_office_id = fe.field_office_id " .
                 "LEFT JOIN phases as p ON se.field_office_id = p.phase_id " .
                 "LEFT JOIN regions as r ON fe.region_id = r.region_id " .
                 "LEFT JOIN session_activities as sa ON se.session_activity_id = sa.session_activity_id " .
                 "LEFT JOIN treatment_categories as tc ON se.treatment_category_id = tc.treatment_category_id " .
                 "LEFT JOIN venues as v ON se.venue_id = v.venue_id " .
+                "LEFT JOIN session_remarks as sr ON se.remarks_id = sr.session_remark_id " .
                 "WHERE se.session_id = $id AND se.deleted_at IS NULL ORDER BY se.session_id DESC";
             $stmt = $conn->prepare($sql);
             $query = $stmt->executeQuery();
-
             $session = $query->fetchAssociative();
 
+            $session['quarter_name'] = $this->appDateHelper->getQuarterByMonth(intval($session['quarter_month']));
             $session['client_session'] = $this->clientSessionsRepository->listBySessionId($id);
             $session['resource_facilitator'] = $this->resourceFacilitatorSessionRepository->listBySessionId($id);
 
@@ -428,29 +442,36 @@ class SessionsRepository extends ServiceEntityRepository
     {
         $conn = $this->getEntityManager()->getConnection();
 
-        $quarterIds = [$quarterId];
-
         $quarterData = $this->quartersRepository->find($quarterId);
+
+        if ($quarterData == null) {
+            return null;
+        }
+
+        $quarterMonthsList = [...$this->appDateHelper->getMonthsByQuarterString($quarterData->getName())];
+        $quarterYearList = [intval($quarterData->getYear())];
 
         $previousQuarters = $this->quartersRepository
             ->fetchPreviousQuartersByNameAndYear($quarterData->getName(), $quarterData->getYear());
 
         foreach ($previousQuarters as $quarter) {
-            $quarterIds[] = $quarter->getQuarterId();
+            $quarterMonthsList =  array_merge_recursive($quarterMonthsList, $this->appDateHelper->getMonthsByQuarterString($quarter->getName()));
+            $quarterYearList[] = $quarter->getYear();
         }
 
-        $quarterIdsString = implode(',', $quarterIds);
+        $minMaxDate = $this->appDateHelper->getMinMaxDateByYearsAndMonths($quarterYearList, $quarterMonthsList);
+        $minDate = $minMaxDate['min'];
+        $maxDate = $minMaxDate['max'];
 
         $sql = "SELECT c.last_name, c.first_name, c.middle_name, c.suffix, c.gender, c.is_pwd, c.is_senior_citizen, c.date_of_birth,
-                c.offense_category, c.supervision_start, c.supervision_end, p.name as phase, se.date, q.name as quarter
-                FROM sessions as se " .
-            "LEFT JOIN quarters as q ON se.quarter_id = q.quarter_id ".
-            "LEFT JOIN client_sessions as cs ON se.session_id = cs.session_id ".
-            "LEFT JOIN clients as c ON cs.client_id = c.client_id ".
-            "LEFT JOIN client_types as ct ON c.client_type_id = ct.client_type_id ".
-            "LEFT JOIN phases as p ON se.phase_id = p.phase_id ".
-            "WHERE se.quarter_id IN ($quarterIdsString) AND cs.role = '$role' AND c.client_id IS NOT NULL ".
-            "ORDER BY ct.code";
+                c.offense_category, ct.code as client_type ,c.supervision_start, c.supervision_end, p.name as phase, se.date, YEAR(se.date) as quarter_year
+                FROM sessions as se 
+                LEFT JOIN client_sessions as cs ON se.session_id = cs.session_id 
+                LEFT JOIN clients as c ON cs.client_id = c.client_id 
+                LEFT JOIN client_types as ct ON c.client_type_id = ct.client_type_id 
+                LEFT JOIN phases as p ON se.phase_id = p.phase_id 
+                WHERE cs.role = '$role' AND c.client_id IS NOT NULL AND se.date BETWEEN CAST('$minDate' AS DATE) AND CAST('$maxDate' AS DATE) 
+                ORDER BY ct.code";
 
         $stmt = $conn->prepare($sql);
         $query = $stmt->executeQuery();
@@ -458,26 +479,28 @@ class SessionsRepository extends ServiceEntityRepository
         return $query->fetchAllAssociative();
     }
 
-    public function getSessionIdsByQuarterAndFieldOffice(int $quarterId, int $fieldOfficeId): array
-    {
-        return $this->createQueryBuilder('s')
-            ->select('s.sessionId')
-            ->where('s.quarterId = :quarterId')
-            ->where('s.fieldOfficeId = :fieldOfficeId')
-            ->setParameter('quarterId', $quarterId)
-            ->setParameter('fieldOfficeId', $fieldOfficeId)
-            ->getQuery()
-            ->getResult();
-    }
-
+    /**
+     * @throws NonUniqueResultException
+     */
     private function isExisting(SessionsModel $sessionData): bool
     {
-        $session = $this->findOneBy([
-            'quarterId' => $sessionData->getQuarterId(),
-            'phaseId' => $sessionData->getPhaseId(),
-            'sessionActivityId' => $sessionData->getSessionActivityId(),
-            'deletedAt' => null
-        ]);
+        $date = explode('-', $sessionData->getDate());
+        $quarterName = $this->appDateHelper->getQuarterByMonth(intval($date[1]));
+        $months = $this->appDateHelper->getMonthsByQuarterString($quarterName);
+        $minMaxDate = $this->appDateHelper->getMinMaxDateByYearsAndMonths([$date[0]], $months);
+
+        $session = $this->createQueryBuilder('se')
+            ->select('se.sessionId')
+            ->where("se.date BETWEEN CAST(:minDate AS DATE) AND CAST(:maxDate AS DATE)")
+            ->andWhere('se.phaseId = :phaseId')
+            ->andWhere('se.sessionActivityId = :sessionActivityId')
+            ->andWhere('se.deletedAt IS NULL')
+            ->setParameter('minDate', $minMaxDate['min'], 'string')
+            ->setParameter('maxDate', $minMaxDate['max'],  'string')
+            ->setParameter('phaseId', $sessionData->getPhaseId())
+            ->setParameter('sessionActivityId', $sessionData->getSessionActivityId())
+            ->getQuery()
+            ->getOneOrNullResult();
 
         return $session != null;
     }
@@ -487,7 +510,6 @@ class SessionsRepository extends ServiceEntityRepository
         // Fetched and input client is the same.
         // It is trying to update itself.
         if (
-            $fetchedSession->getQuarterId() === $sessionData->getQuarterId() &&
             $fetchedSession->getPhaseId() === $sessionData->getPhaseId() &&
             $fetchedSession->getSessionActivityId() === $sessionData->getSessionActivityId()
         ) {

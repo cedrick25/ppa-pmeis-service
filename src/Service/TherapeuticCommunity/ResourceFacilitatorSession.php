@@ -134,6 +134,9 @@ class ResourceFacilitatorSession implements ResourceFacilitatorSessionInterface
 
             foreach ($activeVolunteers as $activeVolunteer) {
                 $volunteer = $this->volunteerRepository->getById($activeVolunteer['resource_facilitator_id']);
+                if (! $volunteer) {
+                    continue;
+                }
 
                 $data[] = [
                     'volunteer' => [

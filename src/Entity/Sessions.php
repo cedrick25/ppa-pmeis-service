@@ -27,7 +27,12 @@ class Sessions
     /**
      * @ORM\Column(type="integer")
      */
-    private int $quarterId;
+    private ?int $remarksId;
+
+    /**
+     * @ORM\Column(type="integer")
+     */
+    private ?int $treesPlanted;
 
     /**
      * @ORM\Column(type="integer")
@@ -70,11 +75,6 @@ class Sessions
     private string $period;
 
     /**
-     * @ORM\Column(type="string", length=255)
-     */
-    private string $remarks;
-
-    /**
      * @ORM\Column(type="integer")
      */
     private int $fsg;
@@ -109,15 +109,39 @@ class Sessions
         return $this->sessionId;
     }
 
-    public function getQuarterId(): ?int
+    /**
+     * @return int|null
+     */
+    public function getRemarksId(): ?int
     {
-        return $this->quarterId;
+        return $this->remarksId;
     }
 
-    public function setQuarterId(int $quarterId): self
+    /**
+     * @param int|null $remarksId
+     * @return Sessions
+     */
+    public function setRemarksId(?int $remarksId): Sessions
     {
-        $this->quarterId = $quarterId;
+        $this->remarksId = $remarksId;
+        return $this;
+    }
 
+    /**
+     * @return int|null
+     */
+    public function getTreesPlanted(): ?int
+    {
+        return $this->treesPlanted;
+    }
+
+    /**
+     * @param int|null $treesPlanted
+     * @return Sessions
+     */
+    public function setTreesPlanted(?int $treesPlanted): Sessions
+    {
+        $this->treesPlanted = $treesPlanted;
         return $this;
     }
 
@@ -227,11 +251,6 @@ class Sessions
         return $this;
     }
 
-    public function getRemarks(): ?string
-    {
-        return $this->remarks;
-    }
-
     /**
      * @return int
      */
@@ -267,13 +286,6 @@ class Sessions
         }
 
         $this->liLo = $liLo;
-    }
-
-    public function setRemarks(string $remarks): self
-    {
-        $this->remarks = $remarks;
-
-        return $this;
     }
 
     public function getCreatedBy(): ?int
