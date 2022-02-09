@@ -87,14 +87,14 @@ class Volunteer
     private string $birthPlace;
 
     /**
-     * @ORM\Column(type="string", length=255)
+     * @ORM\Column(type="integer", nullable=true)
      */
-    private string $civilStatus;
+    private int $civilStatus;
 
     /**
-     * @ORM\Column(type="string", length=255)
+     * @ORM\Column(type="integer", nullable=true)
      */
-    private string $religion;
+    private int $religion;
 
     /**
      * @ORM\Column(type="string", length=255)
@@ -117,14 +117,14 @@ class Volunteer
     private string $bloodType;
 
     /**
-     * @ORM\Column(type="string", length=255)
+     * @ORM\Column(type="integer", nullable=true)
      */
-    private string $occupation;
+    private int $occupation;
 
     /**
-     * @ORM\Column(type="string", length=255)
+     * @ORM\Column(type="integer", nullable=true)
      */
-    private string $educationAttainment;
+    private int $educationAttainment;
 
     /**
      * @ORM\Column(type="string", length=255)
@@ -180,6 +180,16 @@ class Volunteer
      * @ORM\Column(type="datetime_immutable")
      */
     private DateTimeImmutable $dateSigned;
+
+    /**
+     * @ORM\Column(type="datetime_immutable")
+     */
+    private ?DateTimeImmutable $dateAppointed;
+
+    /**
+     * @ORM\Column(type="string", length=255)
+     */
+    private string $vpaStatus;
 
     /**
      * @ORM\Column(type="datetime_immutable")
@@ -382,36 +392,36 @@ class Volunteer
     }
 
     /**
-     * @return string
+     * @return int
      */
-    public function getCivilStatus(): string
+    public function getCivilStatus(): int
     {
         return $this->civilStatus;
     }
 
     /**
-     * @param string $civilStatus
+     * @param int $civilStatus
      * @return Volunteer
      */
-    public function setCivilStatus(string $civilStatus): Volunteer
+    public function setCivilStatus(int $civilStatus): Volunteer
     {
         $this->civilStatus = $civilStatus;
         return $this;
     }
 
     /**
-     * @return string
+     * @return int
      */
-    public function getReligion(): string
+    public function getReligion(): int
     {
         return $this->religion;
     }
 
     /**
-     * @param string $religion
+     * @param int $religion
      * @return Volunteer
      */
-    public function setReligion(string $religion): Volunteer
+    public function setReligion(int $religion): Volunteer
     {
         $this->religion = $religion;
         return $this;
@@ -490,36 +500,36 @@ class Volunteer
     }
 
     /**
-     * @return string
+     * @return int
      */
-    public function getOccupation(): string
+    public function getOccupation(): int
     {
         return $this->occupation;
     }
 
     /**
-     * @param string $occupation
+     * @param int $occupation
      * @return Volunteer
      */
-    public function setOccupation(string $occupation): Volunteer
+    public function setOccupation(int $occupation): Volunteer
     {
         $this->occupation = $occupation;
         return $this;
     }
 
     /**
-     * @return string
+     * @return int
      */
-    public function getEducationAttainment(): string
+    public function getEducationAttainment(): int
     {
         return $this->educationAttainment;
     }
 
     /**
-     * @param string $educationAttainment
+     * @param int $educationAttainment
      * @return Volunteer
      */
-    public function setEducationAttainment(string $educationAttainment): Volunteer
+    public function setEducationAttainment(int $educationAttainment): Volunteer
     {
         $this->educationAttainment = $educationAttainment;
         return $this;
@@ -720,6 +730,42 @@ class Volunteer
     public function setDateSigned(DateTimeImmutable $dateSigned): Volunteer
     {
         $this->dateSigned = $dateSigned;
+        return $this;
+    }
+
+    /**
+     * @return DateTimeImmutable|null
+     */
+    public function getDateAppointed(): ?DateTimeImmutable
+    {
+        return $this->dateAppointed;
+    }
+
+    /**
+     * @param DateTimeImmutable|null $dateAppointed
+     * @return Volunteer
+     */
+    public function setDateAppointed(?DateTimeImmutable $dateAppointed): Volunteer
+    {
+        $this->dateAppointed = $dateAppointed;
+        return $this;
+    }
+
+    /**
+     * @return string
+     */
+    public function getVpaStatus(): string
+    {
+        return $this->vpaStatus;
+    }
+
+    /**
+     * @param string $vpaStatus
+     * @return Volunteer
+     */
+    public function setVpaStatus(string $vpaStatus): Volunteer
+    {
+        $this->vpaStatus = $vpaStatus;
         return $this;
     }
 

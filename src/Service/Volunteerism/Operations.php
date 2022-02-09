@@ -108,7 +108,7 @@ class Operations implements OperationsInterface
      * @param int $fieldOfficeId
      * @param int $year
      * @param int[] $months
-     * @return Volunteer[]
+     * @return array<int, array<string, mixed>>
      * @throws Exception
      * @throws \Doctrine\DBAL\Exception
      */
@@ -139,7 +139,7 @@ class Operations implements OperationsInterface
      * @param int $fieldOfficeId
      * @param int $year
      * @param int[] $months
-     * @return Volunteer[]
+     * @return array<int, array<string, mixed>>
      * @throws Exception
      * @throws \Doctrine\DBAL\Exception
      */
@@ -171,7 +171,7 @@ class Operations implements OperationsInterface
      * @param int $year
      * @param int[] $months
      * @param Volunteer[] $inactive
-     * @return Volunteer[]
+     * @return array<int, array<string, mixed>>
      * @throws Exception
      * @throws \Doctrine\DBAL\Exception
      */

@@ -19,8 +19,12 @@ class AppDateHelper
     /**
      * @throws Exception
      */
-    public function convertStringToImmutableDate(string $date): DateTimeImmutable
+    public function convertStringToImmutableDate(?string $date): ?DateTimeImmutable
     {
+        if ($date === null) {
+            return null;
+        }
+
         $date = new DateTimeImmutable($date);
         $date->format("Y-m-d");
 
