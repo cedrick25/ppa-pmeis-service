@@ -232,12 +232,13 @@ class QuartersRepository extends ServiceEntityRepository
         return $this->helper->createCachedResponseCustomQuery($params, function() use ($id, $fieldOfficeId, $minDate, $maxDate) {
             $conn = $this->getEntityManager()->getConnection();
 
-            $sql = "SELECT q.*, s.session_id, sa.name as session_activity_title, s.treatment_category_id, s.fsg,
-                      s.field_office_id, p.name as phase_name, s.batch ,v.name as venue, s.date, s.period FROM quarters as q 
+            $sql = "SELECT q.*, s.session_id, sa.name as session_activity_title, s.treatment_category_id, s.fsg, sr.name as remarks, s.remarks_id,
+                       s.trees_planted, s.field_office_id, p.name as phase_name, s.batch ,v.name as venue, s.date, s.period FROM quarters as q 
                     LEFT JOIN sessions as s ON s.date BETWEEN CAST('$minDate' AS DATE) AND CAST('$maxDate' AS DATE) 
                     LEFT JOIN session_activities as sa ON s.session_activity_id = sa.session_activity_id 
-                    LEFT JOIN phases as p ON s.phase_id = p.phase_id 
-                    LEFT JOIN venues as v ON s.venue_id = v.venue_id 
+                    LEFT JOIN phases as p ON s.phase_id = p.phase_id
+                    LEFT JOIN venues as v ON s.venue_id = v.venue_id
+                    LEFT JOIN session_remarks as sr ON s.remarks_id = sr.session_remark_id
                     WHERE q.quarter_id = $id AND s.field_office_id = $fieldOfficeId ORDER BY p.phase_id";
             $stmt = $conn->prepare($sql);
             $query = $stmt->executeQuery();
@@ -311,13 +312,12 @@ class QuartersRepository extends ServiceEntityRepository
     private function getResourcePerson(int $id, int $sessionId): array
     {
         $conn = $this->getEntityManager()->getConnection();
-        $sql = "SELECT DISTINCT c.first_name, c.middle_name, c.last_name, c.suffix, rfs.resource_facilitator_type as type,
-                    cs.client_id FROM quarters as q
+        $sql = "SELECT DISTINCT v.first_name, v.middle_name, v.last_name, v.suffix, rfs.resource_facilitator_type as type,
+                    v.volunteer_id FROM quarters as q
                 LEFT JOIN sessions as s ON s.session_id = $sessionId
-                LEFT JOIN client_sessions as cs ON s.session_id = cs.session_id 
-                LEFT JOIN clients as c ON cs.client_id = c.client_id
                 LEFT JOIN resource_facilitator_session as rfs ON s.session_id = rfs.session_id
-                WHERE q.quarter_id = $id AND s.session_id = $sessionId ORDER BY c.first_name";
+                LEFT JOIN pmeis.volunteer as v ON rfs.resource_facilitator_id = v.volunteer_id
+                WHERE q.quarter_id = $id AND s.session_id = $sessionId ORDER BY v.first_name";
         $stmt = $conn->prepare($sql);
         $query = $stmt->executeQuery();
         $data = $query->fetchAllAssociative();
