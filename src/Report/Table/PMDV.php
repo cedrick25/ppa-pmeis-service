@@ -1,0 +1,138 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Report\Table;
+
+use PhpOffice\PhpSpreadsheet\IOFactory;
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\Style\Border;
+use PhpOffice\PhpSpreadsheet\Style\Fill;
+use PhpOffice\PhpSpreadsheet\Writer\Exception;
+use Symfony\Component\HttpFoundation\BinaryFileResponse;
+
+class PMDV implements Form
+{
+    private const TABLE_NAME = "PMDV";
+    
+    public function __construct(
+        private int   $lastFilledOutCellY = 20,
+        private array $data = [],
+    ){}
+
+    public function supports(string $tableName): bool
+    {
+        return self::TABLE_NAME === $tableName;
+    }
+
+    /**
+     * @throws Exception
+     */
+    public function generate(array $data): BinaryFileResponse
+    {
+        $this->data = $data;
+
+        $spreadsheet = $this->footer();
+        $writer = IOFactory::createWriter($spreadsheet, "Xlsx");
+
+        $filePath = $_ENV['XLSX_PATH_FILE'] . self::TABLE_NAME . "-" . time() . ".xlsx";
+        $writer->save($filePath);
+
+        return new BinaryFileResponse($filePath);
+    }
+
+    public function footer(): Spreadsheet
+    {
+        $spreadsheet = $this->body();
+        $this->lastFilledOutCellY++;
+
+        return $spreadsheet;
+    }
+
+    public function body(): Spreadsheet
+    {
+        $spreadsheet = $this->header();
+
+        $spreadsheet->getActiveSheet()->getStyle('A9:I14')->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
+        // $spreadsheet->getActiveSheet()->getStyle('D5:G5')->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
+        // $spreadsheet->getActiveSheet()->getStyle('t27')->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setARGB('80808080');
+        // $spreadsheet->getActiveSheet()->getStyle('g23:j23')->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setARGB('80808080');
+
+        return $spreadsheet;
+    }
+
+    public function header(): Spreadsheet
+    {
+        $spreadsheet = $this->prepare();
+
+        return $spreadsheet;
+    }
+
+    /**
+     * @throws \PhpOffice\PhpSpreadsheet\Exception
+     */
+    private function prepare(): Spreadsheet
+    {
+        $spreadsheet = new Spreadsheet();
+        $textAndCoordinates = [
+            'a1' => 'V.  PROGRAM AND MATERIALS DEVELOPMENT',
+            'a4' => 'Table V.  MATERIALS/ SESSION PLANS DEVELOPED AND USED FOR AGENCY PROGRAMS',
+            'a6' => 'Particulars', 
+            'a7' => '(1)',
+
+            'b6' => 'Date',
+            'b7' => '(2)',
+            
+            'c6' => 'Person Responsible ',
+            'c7' => '(Personnel/ VPA)',
+            'c8' => '(3)',
+
+            'd6' => 'Utilized for:  (4)',
+            'd7' => 'TC',
+            'e7' => 'RJ',
+            'f7' => 'VPA',
+            'g7' => 'GAD',
+            'h7' => 'OTHERS',
+
+            'i6' => 'Remarks',
+            'i7' => '(5)',
+
+        ];
+        $mergesCoordinates = [
+            'D6:h6', 'D7:D8', 'E7:E8', 'F7:F8', 'G7:G8', 'H7:H8',
+        ];
+        $boldCoordinates = ['a1','a4',];
+        $verticalAlignedCoordinates = ['B3:T30' => 'center', 'A3:A8' => 'center'];
+        $horizontalAlignedCoordinates = ['B3:T30' => 'center', 'A3:A8' => 'center'];
+        $adjustedColumnWidthCoordinates = [
+            'A' => 40, 'B' => 20, 'C' => 20, 'D' => 15, 'E' => 5, 'F' => 5, 'G' => 5, 'H' => 30, 'I' => 30, 'J' => 30, 'K' => 5, 'L' => 5, 'M' => 5, 'N' => 30, 'O' => 20, 'P' => 20, 'Q' => 5, 'R' => 5, 'S' => 5, 'T' => 20,
+        ];
+        $outlineBorderThinCoordinates = [
+            'A6:A8', 'B6:B8', 'C6:C8', 'D6:G6', 'D7:D8', 'E7:E8', 'F7:F8', 'G7:G8', 'H7:H8', 'I6:I8'
+        ];
+
+        foreach ($textAndCoordinates as $coordinate=>$text) {
+            $spreadsheet->getActiveSheet()->setCellValue($coordinate, $text);
+        }
+        foreach ($mergesCoordinates as $coordinate) {
+            $spreadsheet->getActiveSheet()->mergeCells($coordinate);
+        }
+        foreach ($boldCoordinates as $coordinate) {
+            $spreadsheet->getActiveSheet()->getStyle($coordinate)->getFont()->setBold(true);
+        }
+        foreach ($verticalAlignedCoordinates as $coordinate => $alignment) {
+            $spreadsheet->getActiveSheet()->getStyle($coordinate)->getAlignment()->setVertical($alignment);
+        }
+        foreach ($horizontalAlignedCoordinates as $coordinate => $alignment) {
+            $spreadsheet->getActiveSheet()->getStyle($coordinate)->getAlignment()->setHorizontal($alignment);
+        }
+        foreach ($adjustedColumnWidthCoordinates as $coordinate => $width) {
+            $spreadsheet->getActiveSheet()->getColumnDimension($coordinate)->setWidth($width);
+        }
+        foreach ($outlineBorderThinCoordinates as $coordinate) {
+            $spreadsheet->getActiveSheet()->getStyle($coordinate)->getBorders()->getOutline()->setBorderStyle(Border::BORDER_THIN);
+        }
+
+        return $spreadsheet;
+    }
+}
