@@ -40,6 +40,11 @@ class VolunteerOperations
     private ?string $reason;
 
     /**
+     * @ORM\Column(type="datetime_immutable")
+     */
+    private ?\DateTimeImmutable $dateEndorsed;
+
+    /**
      * @ORM\Column(type="integer", nullable=true)
      */
     private ?int $droppedBy;
@@ -100,6 +105,24 @@ class VolunteerOperations
     {
         $this->reason = $reason;
 
+        return $this;
+    }
+
+    /**
+     * @return \DateTimeImmutable|null
+     */
+    public function getDateEndorsed(): ?\DateTimeImmutable
+    {
+        return $this->dateEndorsed;
+    }
+
+    /**
+     * @param \DateTimeImmutable|null $dateEndorsed
+     * @return VolunteerOperations
+     */
+    public function setDateEndorsed(?\DateTimeImmutable $dateEndorsed): VolunteerOperations
+    {
+        $this->dateEndorsed = $dateEndorsed;
         return $this;
     }
 

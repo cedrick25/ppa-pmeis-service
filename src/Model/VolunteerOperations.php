@@ -13,6 +13,7 @@ class VolunteerOperations
         private string $date,
         private string $status,
         private ?string $reason = null,
+        private ?string $dateEndorsed = null,
         private ?int $droppedBy = null,
     ){}
 
@@ -49,6 +50,14 @@ class VolunteerOperations
     public function getReason(): ?string
     {
         return $this->reason;
+    }
+
+    /**
+     * @return string|null
+     */
+    public function getDateEndorsed(): ?string
+    {
+        return $this->dateEndorsed;
     }
 
     /**
