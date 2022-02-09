@@ -77,9 +77,9 @@ class RjRelatedRestitutions
     private int $paymentModeId;
 
     /**
-     * @ORM\Column(type="datetime_immutable")
+     * @ORM\Column(type="datetime_immutable", nullable=true)
      */
-    private \DateTimeImmutable $paymentDate;
+    private ?\DateTimeImmutable $paymentDate;
 
     /**
      * @ORM\Column(type="float")
@@ -102,9 +102,9 @@ class RjRelatedRestitutions
     private float $remittedAmount;
 
     /**
-     * @ORM\Column(type="string", length=255)
+     * @ORM\Column(type="string", length=255, nullable=true)
      */
-    private string $remarks;
+    private ?string $remarks;
 
     /**
      * @ORM\Column(type="datetime_immutable")
@@ -264,15 +264,21 @@ class RjRelatedRestitutions
         return $this;
     }
 
+    /**
+     * @return \DateTimeImmutable|null
+     */
     public function getPaymentDate(): ?\DateTimeImmutable
     {
         return $this->paymentDate;
     }
 
-    public function setPaymentDate(\DateTimeImmutable $paymentDate): self
+    /**
+     * @param \DateTimeImmutable|null $paymentDate
+     * @return RjRelatedRestitutions
+     */
+    public function setPaymentDate(?\DateTimeImmutable $paymentDate): RjRelatedRestitutions
     {
         $this->paymentDate = $paymentDate;
-
         return $this;
     }
 
@@ -324,15 +330,21 @@ class RjRelatedRestitutions
         return $this;
     }
 
+    /**
+     * @return string|null
+     */
     public function getRemarks(): ?string
     {
         return $this->remarks;
     }
 
-    public function setRemarks(string $remarks): self
+    /**
+     * @param string|null $remarks
+     * @return RjRelatedRestitutions
+     */
+    public function setRemarks(?string $remarks): RjRelatedRestitutions
     {
         $this->remarks = $remarks;
-
         return $this;
     }
 

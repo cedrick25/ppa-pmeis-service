@@ -94,6 +94,11 @@ class RJConductProcesses
     private int $plannerId;
 
     /**
+     * @ORM\Column(type="string", length=255)
+     */
+    private ?string $stakeholders;
+
+    /**
      * @ORM\Column(type="datetime_immutable")
      */
     private DateTimeImmutable $createdAt;
@@ -296,6 +301,24 @@ class RJConductProcesses
     {
         $this->plannerId = $plannerId;
 
+        return $this;
+    }
+
+    /**
+     * @return string|null
+     */
+    public function getStakeholders(): ?string
+    {
+        return $this->stakeholders;
+    }
+
+    /**
+     * @param string|null $stakeholders
+     * @return RJConductProcesses
+     */
+    public function setStakeholders(?string $stakeholders): RJConductProcesses
+    {
+        $this->stakeholders = $stakeholders;
         return $this;
     }
 

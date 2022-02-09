@@ -5,7 +5,14 @@ namespace App\Service\TherapeuticCommunity;
 use App\Common\AppDateHelper;
 use App\Common\AppFormatter;
 use App\Enum\Response as ResponseEnum;
+use App\Repository\CivilStatusRepository;
+use App\Repository\EducationBackgroundRepository;
+use App\Repository\FieldOfficesRepository;
+use App\Repository\OccupationRepository;
 use App\Repository\QuartersRepository;
+use App\Repository\ReligionRepository;
+use App\Repository\ResourceFacilitatorSessionRepository;
+use App\Repository\SessionsRepository;
 use App\Repository\VolunteerRepository;
 use Doctrine\ORM\Exception\ORMException;
 use Exception;
@@ -17,11 +24,18 @@ use \App\Model\Volunteer as VolunteerModel;
 class Volunteer implements VolunteerInterface
 {
     public function __construct(
-        private ValidatorInterface  $validator,
-        private AppFormatter        $appFormatter,
-        private VolunteerRepository $repository,
-        private QuartersRepository  $quartersRepository,
-        private AppDateHelper       $appDateHelper,
+        private ValidatorInterface                   $validator,
+        private AppFormatter                         $appFormatter,
+        private VolunteerRepository                  $repository,
+        private QuartersRepository                   $quartersRepository,
+        private AppDateHelper                        $appDateHelper,
+        private SessionsRepository                   $sessionsRepository,
+        private ResourceFacilitatorSessionRepository $resourceFacilitatorSessionRepository,
+        private FieldOfficesRepository               $fieldOfficesRepository,
+        private CivilStatusRepository                $civilStatusRepository,
+        private ReligionRepository                   $religionRepository,
+        private OccupationRepository                 $occupationRepository,
+        private EducationBackgroundRepository        $educationBackgroundRepository,
     ){}
 
     public function create(VolunteerModel $volunteerData): array
@@ -141,6 +155,115 @@ class Volunteer implements VolunteerInterface
 
             return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_SUCCESS, $volunteers);
         } catch (\Exception $e) {
+            return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_SUCCESS, null, ['app' => $e->getMessage()]);
+        }
+    }
+
+    public function getApplicants(): array
+    {
+        try {
+            $applicants = $this->repository->findApplicants();
+
+            if (!$applicants) {
+                return $this->appFormatter->formatResponse(ResponseEnum::NO_DATA, null);
+            }
+
+            return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_SUCCESS, $applicants);
+        } catch (\Exception $e) {
+            return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_SUCCESS, null, ['app' => $e->getMessage()]);
+        }
+    }
+
+    public function updateVolunteerStatus(array $data): array
+    {
+        try {
+            $isUpdated = $this->repository->updateVolunteerStatus($data);
+
+            if ($isUpdated !== ResponseEnum::OK) {
+                return $this->appFormatter->formatResponse(ResponseEnum::UPDATING_FAILED, null, ['app' => $isUpdated]);
+            }
+
+            return $this->appFormatter->formatResponse(ResponseEnum::UPDATING_SUCCESS, null);
+        } catch (Exception $e) {
+            return $this->appFormatter->formatResponse(ResponseEnum::UPDATING_FAILED, null, ['app' => $e->getMessage()]);
+        } catch (InvalidArgumentException $e) {
+            return $this->appFormatter->formatResponse(ResponseEnum::UPDATING_FAILED, null, ['cache' => $e->getMessage()]);
+        }
+    }
+
+    public function getConsolidatedSocioDemographic(int $quarterId): array
+    {
+        try {
+            $quarterData = $this->quartersRepository->find($quarterId);
+
+            if ($quarterData === null) {
+                return $this->appFormatter->formatResponse(ResponseEnum::NO_DATA, null);
+            }
+
+            $sessionIds = $this->sessionsRepository->findSessionsIdsByQuarter($quarterData);
+            $sessionIds = array_map(fn($sessionId) => $sessionId['session_id'], $sessionIds);
+
+            $volunteerIds = $this->resourceFacilitatorSessionRepository->getVolunteerIdsBySessionIds($sessionIds);
+            $volunteerIds = array_map(fn($volunteerId) => $volunteerId['resourceFacilitatorId'], $volunteerIds);
+
+            $volunteers = $this->repository->findByIds($volunteerIds);
+
+            $civilStatuses = [];
+            $rawCivilStatuses = $this->civilStatusRepository->findAll();
+            foreach ($rawCivilStatuses as $civilStatus) {
+                $civilStatuses[$civilStatus->getCivilStatusId()] = $civilStatus->getName();
+            }
+
+            $religions = [];
+            $rawReligions = $this->religionRepository->findAll();
+            foreach ($rawReligions as $religion) {
+                $religions[$religion->getReligionId()] = $religion->getName();
+            }
+
+            $occupations = [];
+            $rawOccupations = $this->occupationRepository->findAll();
+            foreach ($rawOccupations as $occupation) {
+                $occupations[$occupation->getOccupationIdId()] = $occupation->getName();
+            }
+
+            $educationBackgrounds = [];
+            $rawEducationBackgrounds = $this->educationBackgroundRepository->findAll();
+            foreach ($rawEducationBackgrounds as $educationBackground) {
+                $educationBackgrounds[$educationBackground->getEducationBackgroundId()] = $educationBackground->getName();
+            }
+
+            $data = [];
+            foreach ($volunteers as $volunteer) {
+                $regionName = $this->fieldOfficesRepository->getRegionByFieldOfficeId($volunteer['fieldOfficeId'])['region_name'];
+                $civilStatus = $civilStatuses[$volunteer['civilStatus']];
+                $religion = $religions[$volunteer['religion']];
+                $occupation = $occupations[$volunteer['occupation']];
+                $educationBackground = $educationBackgrounds[$volunteer['educationAttainment']];
+
+                if (! isset($data[$regionName]['civilStatus'][$civilStatus])) {
+                    $data[$regionName]['civilStatus'][$civilStatus] = 0;
+                }
+
+                if (! isset($data[$regionName]['religion'][$religion])) {
+                    $data[$regionName]['religion'][$religion] = 0;
+                }
+
+                if (! isset($data[$regionName]['occupation'][$occupation])) {
+                    $data[$regionName]['occupation'][$occupation] = 0;
+                }
+
+                if (! isset($data[$regionName]['educationAttainment'][$educationBackground])) {
+                    $data[$regionName]['educationAttainment'][$educationBackground] = 0;
+                }
+
+                $data[$regionName]['civilStatus'][$civilStatus]++;
+                $data[$regionName]['religion'][$religion]++;
+                $data[$regionName]['occupation'][$occupation]++;
+                $data[$regionName]['educationAttainment'][$educationBackground]++;
+            }
+
+            return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_SUCCESS, $data);
+        } catch (\Exception | \Doctrine\DBAL\Driver\Exception $e) {
             return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_SUCCESS, null, ['app' => $e->getMessage()]);
         }
     }

@@ -862,6 +862,36 @@ class TherapeuticCommunityController extends AbstractController
     }
 
     /**
+     * @Route("/volunteer/update-volunteer-status", methods={"POST"})
+     */
+    public function updateVolunteerStatus(Request $request): Response
+    {
+        try {
+            $data = json_decode($request->getContent(), true);
+
+            return $this->json($this->volunteerService->updateVolunteerStatus($data));
+        } catch (ReflectionException $exception) {
+            return $this->json($this->appFormatter->formatResponse('Updating volunteer session failed', null, ['reflection' => $exception->getMessage()]));
+        }
+    }
+
+    /**
+     * @Route("/volunteer/socio-demographic/by/quarter-id/{quarterId}", methods={"GET"})
+     */
+    public function getConsolidatedSocioDemographic(Request $request): Response
+    {
+        return $this->json($this->volunteerService->getConsolidatedSocioDemographic((int) $request->get("quarterId")));
+    }
+
+    /**
+     * @Route("/applicants/list", methods={"GET"})
+     */
+    public function getAllApplicants(): Response
+    {
+        return $this->json($this->volunteerService->getApplicants());
+    }
+
+    /**
      * @Route("/resource-facilitator-session/create", methods={"POST"})
      */
     public function createResourceFacilitatorSession(Request $request): Response

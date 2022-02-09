@@ -225,7 +225,13 @@ class QuartersRepository extends ServiceEntityRepository
 
         ];
 
-        $minMaxDate = $this->getMinMaxDateByQuarterId($id);
+        $quarterData = $this->find($id);
+
+        if ($quarterData === null) {
+            return null;
+        }
+
+        $minMaxDate = $this->getMinMaxDateByQuarter($quarterData);
         $minDate = $minMaxDate['min'];
         $maxDate = $minMaxDate['max'];
 
@@ -359,8 +365,13 @@ class QuartersRepository extends ServiceEntityRepository
     private function getSessionDataByQuarterAndFieldOfficeId(int $id, int $fieldOfficeId): array
     {
         $conn = $this->getEntityManager()->getConnection();
+        $quarterData = $this->find($id);
 
-        $minMaxDate = $this->getMinMaxDateByQuarterId($id);
+        if ($quarterData === null) {
+            return [];
+        }
+
+        $minMaxDate = $this->getMinMaxDateByQuarter($quarterData);
         $minDate = $minMaxDate['min'];
         $maxDate = $minMaxDate['max'];
 
@@ -371,9 +382,8 @@ class QuartersRepository extends ServiceEntityRepository
         return $query->fetchAllAssociative();
     }
 
-    private function getMinMaxDateByQuarterId(int $id): array
+    public function getMinMaxDateByQuarter(Quarters $quarterData): array
     {
-        $quarterData = $this->find($id);
         $quarterMonthsList = [...$this->appDateHelper->getMonthsByQuarterString($quarterData->getName())];
         $quarterYearList = [intval($quarterData->getYear())];
         $minMaxDate = $this->appDateHelper->getMinMaxDateByYearsAndMonths($quarterYearList, $quarterMonthsList);

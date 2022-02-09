@@ -161,6 +161,7 @@ class VPAIC2 implements Form
             $middleInitial = $volunteer['middleName'] != null ? substr($volunteer['middleName'], 0, 1) . '.' : '';
             $fullName = $volunteer['lastName'] . ', ' . $volunteer['firstName'] . ' ' . $middleInitial;
             $date = $this->appDateHelper->convertStringToImmutableDate($row['date']);
+            $dateEndorsed = $this->appDateHelper->convertStringToImmutableDate($row['date_endorsed']);
 
             $spreadsheet->getActiveSheet()->setCellValue("X" . $rowNumber, $fullName);
             $spreadsheet->getActiveSheet()->setCellValue("Y" . $rowNumber, $date->format('d-M-y'));
@@ -172,7 +173,7 @@ class VPAIC2 implements Form
                 $total['DROPPED']['M']++;
             }
             $spreadsheet->getActiveSheet()->setCellValue('AB' . $rowNumber, $row['reason']);
-            $spreadsheet->getActiveSheet()->setCellValue('AC' . $rowNumber, $row['droppingRenewal']);
+            $spreadsheet->getActiveSheet()->setCellValue('AC' . $rowNumber, $dateEndorsed->format('d-M-y'));
         }
 
         $lastFilledY = max(

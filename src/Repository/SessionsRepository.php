@@ -6,6 +6,7 @@ namespace App\Repository;
 
 use App\Common\AppDateHelper;
 use App\Common\CacheHelper;
+use App\Entity\Quarters;
 use App\Entity\Sessions;
 use App\Enum\Response as ResponseEnum;
 use App\Model\Sessions as SessionsModel;
@@ -463,19 +464,48 @@ class SessionsRepository extends ServiceEntityRepository
         $minDate = $minMaxDate['min'];
         $maxDate = $minMaxDate['max'];
 
-        $sql = "SELECT c.last_name, c.first_name, c.middle_name, c.suffix, c.gender, c.is_pwd, c.is_senior_citizen, c.date_of_birth,
+        $sql = "SELECT c.last_name, c.first_name, c.middle_name, c.suffix, c.gender, c.is_pwd, c.is_senior_citizen, c.date_of_birth, sr.name as remarks,
                 c.offense_category, ct.code as client_type ,c.supervision_start, c.supervision_end, p.name as phase, se.date, YEAR(se.date) as quarter_year
                 FROM sessions as se 
                 LEFT JOIN client_sessions as cs ON se.session_id = cs.session_id 
                 LEFT JOIN clients as c ON cs.client_id = c.client_id 
                 LEFT JOIN client_types as ct ON c.client_type_id = ct.client_type_id 
                 LEFT JOIN phases as p ON se.phase_id = p.phase_id 
+                LEFT JOIN session_remarks as sr ON se.remarks_id = sr.session_remark_id 
                 WHERE cs.role = '$role' AND c.client_id IS NOT NULL AND se.date BETWEEN CAST('$minDate' AS DATE) AND CAST('$maxDate' AS DATE) 
                 ORDER BY ct.code";
 
         $stmt = $conn->prepare($sql);
         $query = $stmt->executeQuery();
+        $rows = $query->fetchAllAssociative();
 
+        $sessions = [];
+        foreach ($rows as $row) {
+            $date = explode('-', $row['date']);
+            $row['quarter'] = $this->appDateHelper->getQuarterByMonth(intval($date[1]));
+
+            $sessions[] = $row;
+        }
+
+        return $sessions;
+    }
+
+    /**
+     * @param Quarters $quarterData
+     * @return array<int, array<string, mixed>>
+     * @throws \Doctrine\DBAL\Driver\Exception
+     * @throws \Doctrine\DBAL\Exception
+     */
+    public function findSessionsIdsByQuarter(Quarters $quarterData): array
+    {
+        $conn = $this->getEntityManager()->getConnection();
+        $minMaxDate = $this->quartersRepository->getMinMaxDateByQuarter($quarterData);
+        $minDate = $minMaxDate['min'];
+        $maxDate = $minMaxDate['max'];
+
+        $sql = "SELECT s.session_id FROM sessions as s WHERE s.date BETWEEN CAST('$minDate' AS DATE) AND CAST('$maxDate' AS DATE)";
+        $stmt = $conn->prepare($sql);
+        $query = $stmt->executeQuery();
         return $query->fetchAllAssociative();
     }
 

@@ -35,7 +35,6 @@ class VolunteerRepository extends ServiceEntityRepository
         private CacheHelper                          $cacheHelper,
         private AppDateHelper                        $appDateHelper,
         private Helper                               $helper,
-        private ResourceFacilitatorSessionRepository $resourceFacilitatorSessionRepository,
         private VolunteerOperationsRepository        $volunteerOperationsRepository,
     ){
         parent::__construct($registry, Volunteer::class);
@@ -122,7 +121,7 @@ class VolunteerRepository extends ServiceEntityRepository
                  LEFT JOIN religion as r ON v.religion = r.religion_id 
                  LEFT JOIN occupation as o ON v.occupation = o.occupation_id 
                  LEFT JOIN education_background as eb ON v.education_attainment = eb.education_background_id 
-                 WHERE v.deleted_at IS NULL ORDER BY v.volunteer_id DESC";
+                 WHERE v.deleted_at IS NULL AND v.date_appointed IS NOT NULL ORDER BY v.volunteer_id DESC";
             $stmt = $conn->prepare($sql);
             $query = $stmt->executeQuery();
 
@@ -233,7 +232,7 @@ class VolunteerRepository extends ServiceEntityRepository
                 LEFT JOIN religion as r ON v.religion = r.religion_id 
                 LEFT JOIN occupation as o ON v.occupation = o.occupation_id 
                 LEFT JOIN education_background as eb ON v.education_attainment = eb.education_background_id 
-                WHERE v.volunteer_id = $id AND v.deleted_at IS NULL ORDER BY v.volunteer_id DESC";
+                WHERE v.volunteer_id = $id AND v.deleted_at IS NULL AND v.date_appointed IS NOT NULL ORDER BY v.volunteer_id DESC";
         $stmt = $conn->prepare($sql);
         $query = $stmt->executeQuery();
 
@@ -282,7 +281,7 @@ class VolunteerRepository extends ServiceEntityRepository
                 LEFT JOIN religion as r ON v.religion = r.religion_id 
                 LEFT JOIN occupation as o ON v.occupation = o.occupation_id 
                 LEFT JOIN education_background as eb ON v.education_attainment = eb.education_background_id
-                WHERE v.deleted_at IS NULL ORDER BY v.volunteer_id DESC
+                WHERE v.deleted_at IS NULL AND v.date_appointed IS NOT NULL ORDER BY v.volunteer_id DESC
                 LIMIT $pageSize OFFSET $startOffset";
             $stmt = $conn->prepare($sql);
             $query = $stmt->executeQuery();
@@ -307,6 +306,7 @@ class VolunteerRepository extends ServiceEntityRepository
             ->where('v.fieldOfficeId = :fieldOfficeId')
             ->andWhere('YEAR(v.dateRecruited) = :year')
             ->andWhere('MONTH(v.dateRecruited) IN (:months)')
+            ->andWhere('v.dateAppointed IS NOT NULL')
             ->setParameter('fieldOfficeId', $fieldOfficeId)
             ->setParameter('year', $year)
             ->setParameter('months', $months, Connection::PARAM_INT_ARRAY)
@@ -316,36 +316,45 @@ class VolunteerRepository extends ServiceEntityRepository
 
     /**
      * @param int $fieldOfficeId
-     * @param int $quarterId
      * @param int $year
      * @param array $months
+     * @param array $activeVolunteers
      * @return Volunteer[]
      * @throws \Doctrine\DBAL\Driver\Exception
      * @throws \Doctrine\DBAL\Exception
      */
     public function findInactiveVolunteersByFieldOfficeAndMonthRange(
         int $fieldOfficeId,
-        int $quarterId,
         int $year,
-        array $months
+        array $months,
+        array $activeVolunteers
     ): array {
-        $activeVolunteers = $this->resourceFacilitatorSessionRepository->getVolunteerIdsByQuarterAndFieldOfficeId($fieldOfficeId, $quarterId);
-        $droppedVolunteerIds = $this->volunteerOperationsRepository->findVolunteerIdsByMonthRange($year, $months, 'DROPPED');
+        $appointedVolunteers = $this->volunteerOperationsRepository->findVolunteerIdsByMonthRange($year, $months, 'APPOINTED');
+        $reAppointedVolunteers = $this->volunteerOperationsRepository->findVolunteerIdsByMonthRange($year, $months, 'REAPPOINTED');
         $inActiveVolunteerIds = [];
         $activeVolunteerIds = [];
 
         foreach ($activeVolunteers as $activeVolunteer) {
             $activeVolunteerIds[] = $activeVolunteer['resource_facilitator_id'];
-        };
+        }
 
-        foreach ($droppedVolunteerIds as $droppedVolunteerId) {
-            if (! in_array(intval($droppedVolunteerId['volunteer_id']), $activeVolunteerIds)) {
-                $inActiveVolunteerIds[] = intval($droppedVolunteerId['volunteer_id']);
+        foreach ($appointedVolunteers as $appointedVolunteer) {
+            if (! in_array(intval($appointedVolunteer['volunteer_id']), $activeVolunteerIds)) {
+                $inActiveVolunteerIds[] = intval($appointedVolunteer['volunteer_id']);
+            }
+        }
+
+        foreach ($reAppointedVolunteers as $reAppointedVolunteer) {
+            if (! in_array(intval($reAppointedVolunteer['volunteer_id']), $activeVolunteerIds)) {
+                $inActiveVolunteerIds[] = intval($reAppointedVolunteer['volunteer_id']);
             }
         }
 
         return $this->createQueryBuilder('v')
             ->where('v.volunteerId IN (:inActiveVolunteerIds)')
+            ->andWhere('v.fieldOfficeId = :fieldOfficeId')
+            ->andWhere('v.deletedAt IS NULL')
+            ->setParameter('fieldOfficeId', $fieldOfficeId)
             ->setParameter('inActiveVolunteerIds', $inActiveVolunteerIds, Connection::PARAM_INT_ARRAY)
             ->getQuery()
             ->getResult();
@@ -358,11 +367,54 @@ class VolunteerRepository extends ServiceEntityRepository
     public function findByIds(array $ids): array
     {
         return $this->createQueryBuilder('v')
-            ->select('v.firstName, v.middleName, v.lastName, v.gender')
+            ->select('v.firstName, v.middleName, v.lastName, v.gender, v.civilStatus,
+                            v.religion, v.occupation, v.educationAttainment, v.fieldOfficeId')
             ->where('v.volunteerId IN (:ids)')
+            ->andWhere('v.deletedAt IS NULL')
+            ->andWhere('v.dateAppointed IS NOT NULL')
             ->setParameter('ids', $ids, Connection::PARAM_INT_ARRAY)
             ->getQuery()
             ->getResult();
+    }
+
+    /**
+     * @return Volunteer[]
+     */
+    public function findApplicants(): array
+    {
+        return $this->createQueryBuilder('v')
+            ->where('v.dateAppointed IS NULL')
+            ->andWhere("v.vpaStatus = 'APPLICANT'")
+            ->andWhere('v.deletedAt IS NULL')
+            ->getQuery()
+            ->getResult();
+    }
+
+    /**
+     * @throws OptimisticLockException
+     * @throws InvalidArgumentException
+     * @throws ORMException
+     * @throws Exception
+     */
+    public function updateVolunteerStatus(array $data): string
+    {
+        $volunteer =$this->isExistingById($data['id']);
+
+        if ($volunteer == null) {
+            return ResponseEnum::NO_RECORD;
+        }
+
+        if (isset($data['dateAppointed'])) {
+            $volunteer->setDateAppointed($this->appDateHelper->convertStringToImmutableDate($data['dateAppointed']));
+        }
+
+        $volunteer->setVpaStatus($data['status']);
+        $volunteer->setUpdatedAt($this->appDateHelper->getCurrentImmutableDate());
+
+        $this->getEntityManager()->flush();
+        $this->cache->invalidateTags([self::CACHE_TAG]);
+
+        return ResponseEnum::OK;
     }
 
     public function getVpaStartOfQuarter()

@@ -19,4 +19,10 @@ interface VolunteerInterface
     public function getPaginated(int $page, int $pageSize): array;
 
     public function getByFieldOfficeAndMonthRange(int $fieldOfficeId, int $quarterId): array;
+
+    public function getApplicants(): array;
+
+    public function updateVolunteerStatus(array $data): array;
+
+    public function getConsolidatedSocioDemographic(int $quarterId): array;
 }
