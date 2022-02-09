@@ -9,6 +9,7 @@ use App\Common\CacheHelper;
 use App\Entity\ResourceFacilitatorSession;
 use App\Enum\Response as ResponseEnum;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
+use Doctrine\DBAL\Connection;
 use Doctrine\ORM\ORMException;
 use Doctrine\Persistence\ManagerRegistry;
 use App\Model\ResourceFacilitatorSession as ResourceFacilitatorSessionModel;
@@ -282,6 +283,16 @@ class ResourceFacilitatorSessionRepository extends ServiceEntityRepository
         $query = $stmt->executeQuery();
 
         return $query->fetchAllAssociative();
+    }
+
+    public function getVolunteerIdsBySessionIds(array $sessionIds): array
+    {
+        return $this->createQueryBuilder('rfr')
+            ->select('rfr.resourceFacilitatorId')
+            ->where('rfr.sessionId IN (:ids)')
+            ->setParameter('ids', $sessionIds, Connection::PARAM_INT_ARRAY)
+            ->getQuery()
+            ->getResult();
     }
 
     private function isConflicted(

@@ -114,6 +114,24 @@ class FieldOfficesRepository extends ServiceEntityRepository
         });
     }
 
+    /**
+     * @param int $id
+     * @return array<string, mixed>
+     * @throws \Doctrine\DBAL\Driver\Exception
+     * @throws \Doctrine\DBAL\Exception
+     */
+    public function getRegionByFieldOfficeId(int $id): array
+    {
+        $conn = $this->getEntityManager()->getConnection();
+        $sql = "SELECT rg.name as region_name FROM field_offices as fo
+                LEFT JOIN regions as rg ON fo.region_id = rg.region_id
+                WHERE fo.field_office_id = $id AND fo.deleted_at IS NULL ORDER BY fo.field_office_id DESC";
+        $stmt = $conn->prepare($sql);
+        $query = $stmt->executeQuery();
+
+        return $query->fetchAssociative();
+    }
+
     public function isExistingById(int $id): bool | FieldOffices
     {
         $fieldOffice = $this->find($id);

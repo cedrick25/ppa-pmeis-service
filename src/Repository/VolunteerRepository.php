@@ -367,7 +367,8 @@ class VolunteerRepository extends ServiceEntityRepository
     public function findByIds(array $ids): array
     {
         return $this->createQueryBuilder('v')
-            ->select('v.firstName, v.middleName, v.lastName, v.gender')
+            ->select('v.firstName, v.middleName, v.lastName, v.gender, v.civilStatus,
+                            v.religion, v.occupation, v.educationAttainment, v.fieldOfficeId')
             ->where('v.volunteerId IN (:ids)')
             ->andWhere('v.deletedAt IS NULL')
             ->andWhere('v.dateAppointed IS NOT NULL')
@@ -414,15 +415,6 @@ class VolunteerRepository extends ServiceEntityRepository
         $this->cache->invalidateTags([self::CACHE_TAG]);
 
         return ResponseEnum::OK;
-    }
-
-    public function getConsolidatedSocioDemographic(int $quarterId): array
-    {
-        // get session ids by quarter id
-        // get resource facilitator ids by session ids
-        // get volunteer by resource facilitator ids
-        // get demographics and organize by region
-
     }
 
     public function getVpaStartOfQuarter()

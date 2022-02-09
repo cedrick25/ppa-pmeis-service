@@ -24,7 +24,7 @@ class RjRelatedRestitutions
         private string $paymentRecipient,
         private string $remittedTo,
         private float $remittedAmount,
-        private string $remarks,
+        private ?string $remarks = null,
         private ?\DateTimeImmutable $createdAt = null,
         private ?\DateTimeImmutable $updatedAt = null,
         private ?\DateTimeImmutable $deletedAt = null,
@@ -116,7 +116,6 @@ class RjRelatedRestitutions
 
     /**
      * @Assert\NotBlank
-     * @Assert\GreaterThan(0)
      * @return int
      */
     public function getPaymentFormId(): int
@@ -126,7 +125,6 @@ class RjRelatedRestitutions
 
     /**
      * @Assert\NotBlank
-     * @Assert\GreaterThan(0)
      * @return int
      */
     public function getPaymentModeId(): int
@@ -180,10 +178,9 @@ class RjRelatedRestitutions
     }
 
     /**
-     * @Assert\NotBlank
-     * @return string
+     * @return string|null
      */
-    public function getRemarks(): string
+    public function getRemarks(): ?string
     {
         return $this->remarks;
     }

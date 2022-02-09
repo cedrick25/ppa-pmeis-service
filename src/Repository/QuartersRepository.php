@@ -393,20 +393,4 @@ class QuartersRepository extends ServiceEntityRepository
             'max' => $minMaxDate['max']
         ];
     }
-
-    public function getMinMaxDateByQuarterId(int $id): array
-    {
-        $quarterData = $this->find($id);
-        if ($quarterData === null) {
-            return [];
-        }
-        $quarterMonthsList = [...$this->appDateHelper->getMonthsByQuarterString($quarterData->getName())];
-        $quarterYearList = [intval($quarterData->getYear())];
-        $minMaxDate = $this->appDateHelper->getMinMaxDateByYearsAndMonths($quarterYearList, $quarterMonthsList);
-
-        return [
-            'min' => $minMaxDate['min'],
-            'max' => $minMaxDate['max']
-        ];
-    }
 }

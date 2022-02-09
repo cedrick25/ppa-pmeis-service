@@ -23,4 +23,6 @@ interface VolunteerInterface
     public function getApplicants(): array;
 
     public function updateVolunteerStatus(array $data): array;
+
+    public function getConsolidatedSocioDemographic(int $quarterId): array;
 }

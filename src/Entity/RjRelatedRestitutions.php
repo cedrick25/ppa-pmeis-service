@@ -102,9 +102,9 @@ class RjRelatedRestitutions
     private float $remittedAmount;
 
     /**
-     * @ORM\Column(type="string", length=255)
+     * @ORM\Column(type="string", length=255, nullable=true)
      */
-    private string $remarks;
+    private ?string $remarks;
 
     /**
      * @ORM\Column(type="datetime_immutable")
@@ -324,15 +324,21 @@ class RjRelatedRestitutions
         return $this;
     }
 
+    /**
+     * @return string|null
+     */
     public function getRemarks(): ?string
     {
         return $this->remarks;
     }
 
-    public function setRemarks(string $remarks): self
+    /**
+     * @param string|null $remarks
+     * @return RjRelatedRestitutions
+     */
+    public function setRemarks(?string $remarks): RjRelatedRestitutions
     {
         $this->remarks = $remarks;
-
         return $this;
     }
 

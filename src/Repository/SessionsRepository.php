@@ -6,6 +6,7 @@ namespace App\Repository;
 
 use App\Common\AppDateHelper;
 use App\Common\CacheHelper;
+use App\Entity\Quarters;
 use App\Entity\Sessions;
 use App\Enum\Response as ResponseEnum;
 use App\Model\Sessions as SessionsModel;
@@ -487,6 +488,25 @@ class SessionsRepository extends ServiceEntityRepository
         }
 
         return $sessions;
+    }
+
+    /**
+     * @param Quarters $quarterData
+     * @return array<int, array<string, mixed>>
+     * @throws \Doctrine\DBAL\Driver\Exception
+     * @throws \Doctrine\DBAL\Exception
+     */
+    public function findSessionsIdsByQuarter(Quarters $quarterData): array
+    {
+        $conn = $this->getEntityManager()->getConnection();
+        $minMaxDate = $this->quartersRepository->getMinMaxDateByQuarter($quarterData);
+        $minDate = $minMaxDate['min'];
+        $maxDate = $minMaxDate['max'];
+
+        $sql = "SELECT s.session_id FROM sessions as s WHERE s.date BETWEEN CAST('$minDate' AS DATE) AND CAST('$maxDate' AS DATE)";
+        $stmt = $conn->prepare($sql);
+        $query = $stmt->executeQuery();
+        return $query->fetchAllAssociative();
     }
 
     /**
