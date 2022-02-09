@@ -281,7 +281,7 @@ class VolunteerRepository extends ServiceEntityRepository
                 LEFT JOIN religion as r ON v.religion = r.religion_id 
                 LEFT JOIN occupation as o ON v.occupation = o.occupation_id 
                 LEFT JOIN education_background as eb ON v.education_attainment = eb.education_background_id
-                WHERE v.deleted_at IS NULL ORDER BY v.volunteer_id DESC
+                WHERE v.deleted_at IS NULL AND v.date_appointed IS NOT NULL ORDER BY v.volunteer_id DESC
                 LIMIT $pageSize OFFSET $startOffset";
             $stmt = $conn->prepare($sql);
             $query = $stmt->executeQuery();
@@ -306,6 +306,7 @@ class VolunteerRepository extends ServiceEntityRepository
             ->where('v.fieldOfficeId = :fieldOfficeId')
             ->andWhere('YEAR(v.dateRecruited) = :year')
             ->andWhere('MONTH(v.dateRecruited) IN (:months)')
+            ->andWhere('v.dateAppointed IS NOT NULL')
             ->setParameter('fieldOfficeId', $fieldOfficeId)
             ->setParameter('year', $year)
             ->setParameter('months', $months, Connection::PARAM_INT_ARRAY)
@@ -369,6 +370,7 @@ class VolunteerRepository extends ServiceEntityRepository
             ->select('v.firstName, v.middleName, v.lastName, v.gender')
             ->where('v.volunteerId IN (:ids)')
             ->andWhere('v.deletedAt IS NULL')
+            ->andWhere('v.dateAppointed IS NOT NULL')
             ->setParameter('ids', $ids, Connection::PARAM_INT_ARRAY)
             ->getQuery()
             ->getResult();
