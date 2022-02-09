@@ -35,7 +35,6 @@ class VolunteerRepository extends ServiceEntityRepository
         private CacheHelper                          $cacheHelper,
         private AppDateHelper                        $appDateHelper,
         private Helper                               $helper,
-        private ResourceFacilitatorSessionRepository $resourceFacilitatorSessionRepository,
         private VolunteerOperationsRepository        $volunteerOperationsRepository,
     ){
         parent::__construct($registry, Volunteer::class);
@@ -316,36 +315,45 @@ class VolunteerRepository extends ServiceEntityRepository
 
     /**
      * @param int $fieldOfficeId
-     * @param int $quarterId
      * @param int $year
      * @param array $months
+     * @param array $activeVolunteers
      * @return Volunteer[]
      * @throws \Doctrine\DBAL\Driver\Exception
      * @throws \Doctrine\DBAL\Exception
      */
     public function findInactiveVolunteersByFieldOfficeAndMonthRange(
         int $fieldOfficeId,
-        int $quarterId,
         int $year,
-        array $months
+        array $months,
+        array $activeVolunteers
     ): array {
-        $activeVolunteers = $this->resourceFacilitatorSessionRepository->getVolunteerIdsByQuarterAndFieldOfficeId($fieldOfficeId, $quarterId);
-        $droppedVolunteerIds = $this->volunteerOperationsRepository->findVolunteerIdsByMonthRange($year, $months, 'DROPPED');
+        $appointedVolunteers = $this->volunteerOperationsRepository->findVolunteerIdsByMonthRange($year, $months, 'APPOINTED');
+        $reAppointedVolunteers = $this->volunteerOperationsRepository->findVolunteerIdsByMonthRange($year, $months, 'REAPPOINTED');
         $inActiveVolunteerIds = [];
         $activeVolunteerIds = [];
 
         foreach ($activeVolunteers as $activeVolunteer) {
             $activeVolunteerIds[] = $activeVolunteer['resource_facilitator_id'];
-        };
+        }
 
-        foreach ($droppedVolunteerIds as $droppedVolunteerId) {
-            if (! in_array(intval($droppedVolunteerId['volunteer_id']), $activeVolunteerIds)) {
-                $inActiveVolunteerIds[] = intval($droppedVolunteerId['volunteer_id']);
+        foreach ($appointedVolunteers as $appointedVolunteer) {
+            if (! in_array(intval($appointedVolunteer['volunteer_id']), $activeVolunteerIds)) {
+                $inActiveVolunteerIds[] = intval($appointedVolunteer['volunteer_id']);
+            }
+        }
+
+        foreach ($reAppointedVolunteers as $reAppointedVolunteer) {
+            if (! in_array(intval($reAppointedVolunteer['volunteer_id']), $activeVolunteerIds)) {
+                $inActiveVolunteerIds[] = intval($reAppointedVolunteer['volunteer_id']);
             }
         }
 
         return $this->createQueryBuilder('v')
             ->where('v.volunteerId IN (:inActiveVolunteerIds)')
+            ->andWhere('v.fieldOfficeId = :fieldOfficeId')
+            ->andWhere('v.deletedAt IS NULL')
+            ->setParameter('fieldOfficeId', $fieldOfficeId)
             ->setParameter('inActiveVolunteerIds', $inActiveVolunteerIds, Connection::PARAM_INT_ARRAY)
             ->getQuery()
             ->getResult();
