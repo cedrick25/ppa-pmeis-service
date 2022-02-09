@@ -892,6 +892,17 @@ class TherapeuticCommunityController extends AbstractController
     }
 
     /**
+     * @Route("/volunteer/database/{quarterId}/{fieldOfficeId}", methods={"GET"})
+     */
+    public function getVPADatabase(Request $request): Response
+    {
+        return $this->json($this->volunteerService->getVPADatabase(
+            (int) $request->get("fieldOfficeId"),
+            (int) $request->get("quarterId")
+        ));
+    }
+
+    /**
      * @Route("/resource-facilitator-session/create", methods={"POST"})
      */
     public function createResourceFacilitatorSession(Request $request): Response

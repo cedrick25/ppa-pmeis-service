@@ -272,4 +272,34 @@ class Volunteer implements VolunteerInterface
             return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_SUCCESS, null, ['app' => $e->getMessage()]);
         }
     }
+
+    public function getVPADatabase(int $quarterId, int $fieldOfficeId): array
+    {
+        try {
+            $data = [];
+            $quarterData = $this->quartersRepository->find($quarterId);
+
+            if ($quarterData === null) {
+                return $this->appFormatter->formatResponse(ResponseEnum::NO_DATA, null);
+            }
+
+            $sessionIds = $this->sessionsRepository->findSessionsIdsByQuarter($quarterData);
+            $sessionIds = array_map(fn($sessionId) => $sessionId['session_id'], $sessionIds);
+
+            $volunteerIds = $this->resourceFacilitatorSessionRepository->getVolunteerIdsBySessionIds($sessionIds);
+            $volunteerIds = array_map(fn($volunteerId) => $volunteerId['resourceFacilitatorId'], $volunteerIds);
+
+            $volunteers = $this->repository->findByIdsV2($volunteerIds);
+
+            foreach ($volunteers as $volunteer) {
+                if ($volunteer->getFieldOfficeId() === $fieldOfficeId) {
+                    $data[] = $volunteer;
+                }
+            }
+
+            return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_SUCCESS, $data);
+        } catch (\Exception | \Doctrine\DBAL\Driver\Exception $e) {
+            return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_SUCCESS, null, ['app' => $e->getMessage()]);
+        }
+    }
 }
