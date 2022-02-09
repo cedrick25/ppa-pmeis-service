@@ -10,6 +10,7 @@ use App\Repository\EducationBackgroundRepository;
 use App\Repository\FieldOfficesRepository;
 use App\Repository\OccupationRepository;
 use App\Repository\QuartersRepository;
+use App\Repository\RegionsRepository;
 use App\Repository\ReligionRepository;
 use App\Repository\ResourceFacilitatorSessionRepository;
 use App\Repository\SessionsRepository;
@@ -32,6 +33,7 @@ class Volunteer implements VolunteerInterface
         private SessionsRepository                   $sessionsRepository,
         private ResourceFacilitatorSessionRepository $resourceFacilitatorSessionRepository,
         private FieldOfficesRepository               $fieldOfficesRepository,
+        private RegionsRepository                    $regionsRepository,
         private CivilStatusRepository                $civilStatusRepository,
         private ReligionRepository                   $religionRepository,
         private OccupationRepository                 $occupationRepository,
@@ -276,8 +278,15 @@ class Volunteer implements VolunteerInterface
     public function getVPADatabase(int $quarterId, int $fieldOfficeId): array
     {
         try {
-            $data = [];
+            $data = [
+                'header' => [],
+                'volunteers' => []
+            ];
             $quarterData = $this->quartersRepository->find($quarterId);
+            $fieldOffice = $this->fieldOfficesRepository->find($fieldOfficeId);
+            $region = $this->regionsRepository->find($fieldOffice->getRegionId());
+            $data['header']['fieldOffice'] = $fieldOffice->getName();
+            $data['header']['region'] = $region->getName();
 
             if ($quarterData === null) {
                 return $this->appFormatter->formatResponse(ResponseEnum::NO_DATA, null);
@@ -293,7 +302,7 @@ class Volunteer implements VolunteerInterface
 
             foreach ($volunteers as $volunteer) {
                 if ($volunteer->getFieldOfficeId() === $fieldOfficeId) {
-                    $data[] = $volunteer;
+                    $data['volunteers'][] = $volunteer;
                 }
             }
 
