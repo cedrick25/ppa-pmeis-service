@@ -5,8 +5,12 @@ namespace App\Service\TherapeuticCommunity;
 use App\Common\AppDateHelper;
 use App\Common\AppFormatter;
 use App\Enum\Response as ResponseEnum;
+use App\Repository\CivilStatusRepository;
+use App\Repository\EducationBackgroundRepository;
 use App\Repository\FieldOfficesRepository;
+use App\Repository\OccupationRepository;
 use App\Repository\QuartersRepository;
+use App\Repository\ReligionRepository;
 use App\Repository\ResourceFacilitatorSessionRepository;
 use App\Repository\SessionsRepository;
 use App\Repository\VolunteerRepository;
@@ -28,6 +32,10 @@ class Volunteer implements VolunteerInterface
         private SessionsRepository                   $sessionsRepository,
         private ResourceFacilitatorSessionRepository $resourceFacilitatorSessionRepository,
         private FieldOfficesRepository               $fieldOfficesRepository,
+        private CivilStatusRepository                $civilStatusRepository,
+        private ReligionRepository                   $religionRepository,
+        private OccupationRepository                 $occupationRepository,
+        private EducationBackgroundRepository        $educationBackgroundRepository,
     ){}
 
     public function create(VolunteerModel $volunteerData): array
@@ -200,37 +208,59 @@ class Volunteer implements VolunteerInterface
 
             $volunteers = $this->repository->findByIds($volunteerIds);
 
+            $civilStatuses = [];
+            $rawCivilStatuses = $this->civilStatusRepository->findAll();
+            foreach ($rawCivilStatuses as $civilStatus) {
+                $civilStatuses[$civilStatus->getCivilStatusId()] = $civilStatus->getName();
+            }
+
+            $religions = [];
+            $rawReligions = $this->religionRepository->findAll();
+            foreach ($rawReligions as $religion) {
+                $religions[$religion->getReligionId()] = $religion->getName();
+            }
+
+            $occupations = [];
+            $rawOccupations = $this->occupationRepository->findAll();
+            foreach ($rawOccupations as $occupation) {
+                $occupations[$occupation->getOccupationIdId()] = $occupation->getName();
+            }
+
+            $educationBackgrounds = [];
+            $rawEducationBackgrounds = $this->educationBackgroundRepository->findAll();
+            foreach ($rawEducationBackgrounds as $educationBackground) {
+                $educationBackgrounds[$educationBackground->getEducationBackgroundId()] = $educationBackground->getName();
+            }
+
             $data = [];
             foreach ($volunteers as $volunteer) {
                 $regionName = $this->fieldOfficesRepository->getRegionByFieldOfficeId($volunteer['fieldOfficeId'])['region_name'];
+                $civilStatus = $civilStatuses[$volunteer['civilStatus']];
+                $religion = $religions[$volunteer['religion']];
+                $occupation = $occupations[$volunteer['occupation']];
+                $educationBackground = $educationBackgrounds[$volunteer['educationAttainment']];
 
-                if (! isset($data[$regionName]['civilStatus'][$volunteer['civilStatus']])) {
-                    $data[$regionName]['civilStatus'][$volunteer['civilStatus']] = 0;
+                if (! isset($data[$regionName]['civilStatus'][$civilStatus])) {
+                    $data[$regionName]['civilStatus'][$civilStatus] = 0;
                 }
 
-                if (! isset($data[$regionName]['religion'][$volunteer['religion']])) {
-                    $data[$regionName]['religion'][$volunteer['religion']] = 0;
+                if (! isset($data[$regionName]['religion'][$religion])) {
+                    $data[$regionName]['religion'][$religion] = 0;
                 }
 
-                if (! isset($data[$regionName]['occupation'][$volunteer['occupation']])) {
-                    $data[$regionName]['occupation'][$volunteer['occupation']] = 0;
+                if (! isset($data[$regionName]['occupation'][$occupation])) {
+                    $data[$regionName]['occupation'][$occupation] = 0;
                 }
 
-                if (! isset($data[$regionName]['educationAttainment'][$volunteer['educationAttainment']])) {
-                    $data[$regionName]['educationAttainment'][$volunteer['educationAttainment']] = 0;
+                if (! isset($data[$regionName]['educationAttainment'][$educationBackground])) {
+                    $data[$regionName]['educationAttainment'][$educationBackground] = 0;
                 }
 
-                $data[$regionName]['civilStatus'][$volunteer['civilStatus']]++;
-                $data[$regionName]['religion'][$volunteer['religion']]++;
-                $data[$regionName]['occupation'][$volunteer['occupation']]++;
-                $data[$regionName]['educationAttainment'][$volunteer['educationAttainment']]++;
+                $data[$regionName]['civilStatus'][$civilStatus]++;
+                $data[$regionName]['religion'][$religion]++;
+                $data[$regionName]['occupation'][$occupation]++;
+                $data[$regionName]['educationAttainment'][$educationBackground]++;
             }
-
-//            dd($data);
-
-//            if (!$applicants) {
-//
-//            }
 
             return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_SUCCESS, $data);
         } catch (\Exception | \Doctrine\DBAL\Driver\Exception $e) {

@@ -77,9 +77,9 @@ class RjRelatedRestitutions
     private int $paymentModeId;
 
     /**
-     * @ORM\Column(type="datetime_immutable")
+     * @ORM\Column(type="datetime_immutable", nullable=true)
      */
-    private \DateTimeImmutable $paymentDate;
+    private ?\DateTimeImmutable $paymentDate;
 
     /**
      * @ORM\Column(type="float")
@@ -264,15 +264,21 @@ class RjRelatedRestitutions
         return $this;
     }
 
+    /**
+     * @return \DateTimeImmutable|null
+     */
     public function getPaymentDate(): ?\DateTimeImmutable
     {
         return $this->paymentDate;
     }
 
-    public function setPaymentDate(\DateTimeImmutable $paymentDate): self
+    /**
+     * @param \DateTimeImmutable|null $paymentDate
+     * @return RjRelatedRestitutions
+     */
+    public function setPaymentDate(?\DateTimeImmutable $paymentDate): RjRelatedRestitutions
     {
         $this->paymentDate = $paymentDate;
-
         return $this;
     }
 

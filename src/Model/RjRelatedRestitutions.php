@@ -19,12 +19,12 @@ class RjRelatedRestitutions
         private float $balance,
         private int $paymentFormId,
         private int $paymentModeId,
-        private string $paymentDate,
         private float $paymentAmount,
         private string $paymentRecipient,
         private string $remittedTo,
         private float $remittedAmount,
         private ?string $remarks = null,
+        private ?string $paymentDate = null,
         private ?\DateTimeImmutable $createdAt = null,
         private ?\DateTimeImmutable $updatedAt = null,
         private ?\DateTimeImmutable $deletedAt = null,
@@ -133,10 +133,9 @@ class RjRelatedRestitutions
     }
 
     /**
-     * @Assert\NotBlank
-     * @return string
+     * @return string|null
      */
-    public function getPaymentDate(): string
+    public function getPaymentDate(): ?string
     {
         return $this->paymentDate;
     }
