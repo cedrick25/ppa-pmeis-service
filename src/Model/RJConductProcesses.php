@@ -24,6 +24,7 @@ class RJConductProcesses
         private int $rjoId,
         private string $rjGroup,
         private int $plannerId,
+        private ?string $stakeholders = null,
         private ?DateTimeImmutable $createdAt = null,
         private ?DateTimeImmutable $updatedAt = null,
         private ?DateTimeImmutable $deletedAt = null,
@@ -162,6 +163,14 @@ class RJConductProcesses
     public function getPlannerId(): int
     {
         return $this->plannerId;
+    }
+
+    /**
+     * @return string|null
+     */
+    public function getStakeholders(): ?string
+    {
+        return $this->stakeholders;
     }
 
     /**
