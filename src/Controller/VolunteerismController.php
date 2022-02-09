@@ -67,7 +67,7 @@ class VolunteerismController extends AbstractController
      */
     public function getVolunteerOperationsByFieldOfficeAndMonthRange(Request $request): Response
     {
-        return $this->json($this->operationService->getByFieldOfficeAndMonthRange(
+        return $this->json($this->operationService->getVPA2(
             (int) $request->get("fieldOfficeId"),
             (int) $request->get("quarterId")
         ));

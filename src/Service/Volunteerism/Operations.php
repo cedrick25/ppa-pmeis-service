@@ -87,7 +87,7 @@ class Operations implements OperationsInterface
         return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_SUCCESS, $operation);
     }
 
-    public function getByFieldOfficeAndMonthRange(int $fieldOfficeId, int $quarterId): array
+    public function getVPA2(int $fieldOfficeId, int $quarterId): array
     {
         try {
             $quarter = $this->quartersRepository->find($quarterId);

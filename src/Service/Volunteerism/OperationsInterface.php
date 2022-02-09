@@ -12,5 +12,5 @@ interface OperationsInterface
 
     public function getById(int $id): array;
 
-    public function getByFieldOfficeAndMonthRange(int $fieldOfficeId, int $quarterId): array;
+    public function getVPA2(int $fieldOfficeId, int $quarterId): array;
 }
