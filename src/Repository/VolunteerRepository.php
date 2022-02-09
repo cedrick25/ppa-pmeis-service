@@ -416,6 +416,15 @@ class VolunteerRepository extends ServiceEntityRepository
         return ResponseEnum::OK;
     }
 
+    public function getConsolidatedSocioDemographic(int $quarterId): array
+    {
+        // get session ids by quarter id
+        // get resource facilitator ids by session ids
+        // get volunteer by resource facilitator ids
+        // get demographics and organize by region
+
+    }
+
     public function getVpaStartOfQuarter()
     {
         //
