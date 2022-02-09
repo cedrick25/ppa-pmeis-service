@@ -84,7 +84,28 @@ class TCIA1 implements Form
             ]
         ];
 
+        $footer = [
+            'vpa_headcount' => [],
+            'frequency_of_vpa_involvement' => 0,
+            'trees_planted' => 0,
+            'clients_involve_in_tree_planting' => 0,
+            'community_services_and_other' => 0,
+            'coop_or_self_help' => 0
+        ];
+
         foreach ($this->data['part1'] as $index=>$rows) {
+            if ($rows['remarks'] === 'Coop./ Self-Help Asso.') {
+                $footer['coop_or_self_help']++;
+            }
+
+            if ($rows['remarks'] === 'Community Services and Other Related Activities') {
+                $footer['community_services_and_other']++;
+            }
+
+            if ($rows['trees_planted'] !== null) {
+                $footer['trees_planted'] += intval($rows['trees_planted']);
+            }
+
             $this->lastFilledOutCellY++;
             $treatmentCategory = $this->treatmentCategoriesRepository->find($rows['treatment_category_id']);
             $tcExplodedName = explode('-', $treatmentCategory->getName());
@@ -115,11 +136,22 @@ class TCIA1 implements Form
 
             $resourcePerson = '';
 
+            $hasVpa = false;
             foreach ($part2Row['resource_person'] as $resource) {
                 if ($resource['full_name'] != null) {
                     $resourcePerson .=  $resource['full_name'] . ',';
+
+                    if ($resource['type'] === 'VPA') {
+                        $footer['vpa_headcount'][] = $resource['full_name'];
+                        $hasVpa = true;
+                    }
                 }
             }
+
+            if ($hasVpa) {
+                $footer['frequency_of_vpa_involvement']++;
+            }
+
             $spreadsheet->getActiveSheet()->setCellValue("Z" . $this->lastFilledOutCellY, rtrim($resourcePerson, ','));
 
             $roles = '';
@@ -129,10 +161,12 @@ class TCIA1 implements Form
             $spreadsheet->getActiveSheet()->setCellValue("AA" . $this->lastFilledOutCellY, rtrim($roles, ','));
 
             $spreadsheet->getActiveSheet()->getStyle("AA" . $this->lastFilledOutCellY)->getAlignment()->setWrapText(true);
-            $spreadsheet->getActiveSheet()->setCellValue("AB" . $this->lastFilledOutCellY, $part2Row['remarks']);
+            $spreadsheet->getActiveSheet()->setCellValue("AB" . $this->lastFilledOutCellY, $rows['remarks']);
 
             $spreadsheet->getActiveSheet()->getStyle("A". $this->lastFilledOutCellY .":AB" . $this->lastFilledOutCellY)->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
         }
+
+        $this->data['footer'] = $footer;
 
         return $spreadsheet;
     }
@@ -144,6 +178,7 @@ class TCIA1 implements Form
     {
         $spreadsheet = $this->body();
         $this->lastFilledOutCellY++;
+        $vpas = array_unique($this->data['footer']['vpa_headcount']);
 
         $spreadsheet->getActiveSheet()->setCellValue('X' . $this->lastFilledOutCellY + 1, 'Total Number of:   1)  VPAs involved (Headcount)');
         $spreadsheet->getActiveSheet()->setCellValue('Z' . $this->lastFilledOutCellY + 2, '2)  Frequency of VPAs Involvement');
@@ -152,7 +187,7 @@ class TCIA1 implements Form
         $spreadsheet->getActiveSheet()->setCellValue('Z' . $this->lastFilledOutCellY + 5, '5)  Community Services and Other Related Activities');
         $spreadsheet->getActiveSheet()->setCellValue('Z' . $this->lastFilledOutCellY + 6, '6) Coop./ Self-Help Asso.');
 
-        $spreadsheet->getActiveSheet()->setCellValue('AB' . $this->lastFilledOutCellY + 1, $this->data['footer']['vpa_headcount']);
+        $spreadsheet->getActiveSheet()->setCellValue('AB' . $this->lastFilledOutCellY + 1, sizeof($vpas));
         $spreadsheet->getActiveSheet()->setCellValue('AB' . $this->lastFilledOutCellY + 2, $this->data['footer']['frequency_of_vpa_involvement']);
         $spreadsheet->getActiveSheet()->setCellValue('AB' . $this->lastFilledOutCellY + 3, $this->data['footer']['trees_planted']);
         $spreadsheet->getActiveSheet()->setCellValue('AB' . $this->lastFilledOutCellY + 4, $this->data['footer']['clients_involve_in_tree_planting']);

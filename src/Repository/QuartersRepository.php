@@ -225,16 +225,21 @@ class QuartersRepository extends ServiceEntityRepository
 
         ];
 
-        return $this->helper->createCachedResponseCustomQuery($params, function() use ($id, $fieldOfficeId) {
+        $minMaxDate = $this->getMinMaxDateByQuarterId($id);
+        $minDate = $minMaxDate['min'];
+        $maxDate = $minMaxDate['max'];
+
+        return $this->helper->createCachedResponseCustomQuery($params, function() use ($id, $fieldOfficeId, $minDate, $maxDate) {
             $conn = $this->getEntityManager()->getConnection();
 
-            $sql = "SELECT q.*, s.session_id, sa.name as session_activity_title, s.treatment_category_id, s.fsg,
-                      s.field_office_id, p.name as phase_name, s.batch ,v.name as venue, s.date, s.period FROM quarters as q " .
-                "LEFT JOIN sessions as s ON q.quarter_id = s.quarter_id " .
-                "LEFT JOIN session_activities as sa ON s.session_activity_id = sa.session_activity_id " .
-                "LEFT JOIN phases as p ON s.phase_id = p.phase_id " .
-                "LEFT JOIN venues as v ON s.venue_id = v.venue_id " .
-                "WHERE q.quarter_id = $id AND s.field_office_id = $fieldOfficeId ORDER BY p.phase_id";
+            $sql = "SELECT q.*, s.session_id, sa.name as session_activity_title, s.treatment_category_id, s.fsg, sr.name as remarks, s.remarks_id,
+                       s.trees_planted, s.field_office_id, p.name as phase_name, s.batch ,v.name as venue, s.date, s.period FROM quarters as q 
+                    LEFT JOIN sessions as s ON s.date BETWEEN CAST('$minDate' AS DATE) AND CAST('$maxDate' AS DATE) 
+                    LEFT JOIN session_activities as sa ON s.session_activity_id = sa.session_activity_id 
+                    LEFT JOIN phases as p ON s.phase_id = p.phase_id
+                    LEFT JOIN venues as v ON s.venue_id = v.venue_id
+                    LEFT JOIN session_remarks as sr ON s.remarks_id = sr.session_remark_id
+                    WHERE q.quarter_id = $id AND s.field_office_id = $fieldOfficeId ORDER BY p.phase_id";
             $stmt = $conn->prepare($sql);
             $query = $stmt->executeQuery();
 
@@ -259,7 +264,7 @@ class QuartersRepository extends ServiceEntityRepository
             foreach ($sessionData as $session) {
                 $session['role'] = ['Facilitator'];
                 $session['resource_person'] = $this->getResourcePerson($id, intval($session['session_id']));
-                $session['count'] = $this->getClientSessionCount(intval($session['session_id']));
+                $session['count'] = $this->getClientSessionCount($id, intval($session['session_id']));
                 $data[$session['session_id']] = $session;
             }
 
@@ -307,13 +312,12 @@ class QuartersRepository extends ServiceEntityRepository
     private function getResourcePerson(int $id, int $sessionId): array
     {
         $conn = $this->getEntityManager()->getConnection();
-        $sql = "SELECT DISTINCT c.first_name, c.middle_name, c.last_name, c.suffix, rfs.resource_facilitator_type as type,
-                    cs.client_id FROM quarters as q " .
-            "LEFT JOIN sessions as s ON q.quarter_id = s.quarter_id " .
-            "LEFT JOIN client_sessions as cs ON s.session_id = cs.session_id " .
-            "LEFT JOIN clients as c ON cs.client_id = c.client_id " .
-            "LEFT JOIN resource_facilitator_session as rfs ON s.session_id = rfs.session_id " .
-            "WHERE q.quarter_id = $id AND s.session_id = $sessionId ORDER BY c.first_name";
+        $sql = "SELECT DISTINCT v.first_name, v.middle_name, v.last_name, v.suffix, rfs.resource_facilitator_type as type,
+                    v.volunteer_id FROM quarters as q
+                LEFT JOIN sessions as s ON s.session_id = $sessionId
+                LEFT JOIN resource_facilitator_session as rfs ON s.session_id = rfs.session_id
+                LEFT JOIN pmeis.volunteer as v ON rfs.resource_facilitator_id = v.volunteer_id
+                WHERE q.quarter_id = $id AND s.session_id = $sessionId ORDER BY v.first_name";
         $stmt = $conn->prepare($sql);
         $query = $stmt->executeQuery();
         $data = $query->fetchAllAssociative();
@@ -329,7 +333,7 @@ class QuartersRepository extends ServiceEntityRepository
      * @throws \Doctrine\DBAL\Driver\Exception
      * @throws \Doctrine\DBAL\Exception
      */
-    private function getClientSessionCount(int $sessionId): array|bool
+    private function getClientSessionCount(int $id, int $sessionId): array|bool
     {
         $conn = $this->getEntityManager()->getConnection();
         $sql = "SELECT s.session_id, s.field_office_id, s.li_lo,
@@ -340,9 +344,9 @@ class QuartersRepository extends ServiceEntityRepository
                         (SELECT COUNT(client_session_id) FROM client_sessions WHERE role = 'FTMDO' AND client_sessions.session_id = s.session_id) as ftmdo,
                         (SELECT COUNT(client_session_id) FROM client_sessions WHERE role = 'PET' AND client_sessions.session_id = s.session_id) as petitioners,
                         (SELECT COUNT(client_session_id) FROM client_sessions WHERE role = 'TERM' AND client_sessions.session_id = s.session_id) as `terminated`
-                        FROM quarters as q " .
-            "LEFT JOIN sessions as s ON q.quarter_id = s.quarter_id " .
-            "WHERE s.session_id = $sessionId ORDER BY s.session_id";
+                        FROM sessions as s
+                LEFT JOIN quarters as q ON q.quarter_id = $id
+                WHERE s.session_id = $sessionId ORDER BY s.session_id";
         $stmt = $conn->prepare($sql);
         $query = $stmt->executeQuery();
         return $query->fetchAssociative();
@@ -352,14 +356,31 @@ class QuartersRepository extends ServiceEntityRepository
      * @throws \Doctrine\DBAL\Exception
      * @throws \Doctrine\DBAL\Driver\Exception
      */
-    private function getSessionDataByQuarterAndFieldOfficeId(int $quarterId, int $fieldOfficeId): array
+    private function getSessionDataByQuarterAndFieldOfficeId(int $id, int $fieldOfficeId): array
     {
         $conn = $this->getEntityManager()->getConnection();
 
+        $minMaxDate = $this->getMinMaxDateByQuarterId($id);
+        $minDate = $minMaxDate['min'];
+        $maxDate = $minMaxDate['max'];
+
         $sql = "SELECT s.session_id, s.field_office_id, s.li_lo FROM sessions as s 
-                    WHERE s.quarter_id = $quarterId AND s.field_office_id = $fieldOfficeId";
+                    WHERE s.date BETWEEN CAST('$minDate' AS DATE) AND CAST('$maxDate' AS DATE) AND s.field_office_id = $fieldOfficeId";
         $stmt = $conn->prepare($sql);
         $query = $stmt->executeQuery();
         return $query->fetchAllAssociative();
+    }
+
+    private function getMinMaxDateByQuarterId(int $id): array
+    {
+        $quarterData = $this->find($id);
+        $quarterMonthsList = [...$this->appDateHelper->getMonthsByQuarterString($quarterData->getName())];
+        $quarterYearList = [intval($quarterData->getYear())];
+        $minMaxDate = $this->appDateHelper->getMinMaxDateByYearsAndMonths($quarterYearList, $quarterMonthsList);
+
+        return [
+            'min' => $minMaxDate['min'],
+            'max' => $minMaxDate['max']
+        ];
     }
 }

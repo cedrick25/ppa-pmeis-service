@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Repository;
 
+use App\Common\AppDateHelper;
 use App\Common\CacheHelper;
 use App\Entity\ResourceFacilitatorSession;
 use App\Enum\Response as ResponseEnum;
@@ -31,8 +32,10 @@ class ResourceFacilitatorSessionRepository extends ServiceEntityRepository
     public function __construct(
         ManagerRegistry $registry,
         private TagAwareCacheInterface $cache,
-        private CacheHelper $cacheHelper,
-        private Helper $helper
+        private CacheHelper            $cacheHelper,
+        private Helper                 $helper,
+        private QuartersRepository     $quartersRepository,
+        private AppDateHelper          $appDateHelper,
     ){
         parent::__construct($registry, ResourceFacilitatorSession::class);
     }
@@ -257,10 +260,23 @@ class ResourceFacilitatorSessionRepository extends ServiceEntityRepository
      */
     public function getVolunteerIdsByQuarterAndFieldOfficeId(int $fieldOfficeId, int $quarterId): array
     {
+        $quarterData = $this->quartersRepository->find($quarterId);
+
+        if ($quarterData === null) {
+            return [];
+        }
+
+        $quarterMonthsList = [...$this->appDateHelper->getMonthsByQuarterString($quarterData->getName())];
+        $quarterYearList = [intval($quarterData->getYear())];
+        $minMaxDate = $this->appDateHelper->getMinMaxDateByYearsAndMonths($quarterYearList, $quarterMonthsList);
+        $minDate = $minMaxDate['min'];
+        $maxDate = $minMaxDate['max'];
+
         $conn = $this->getEntityManager()->getConnection();
-        $sql = "SELECT rfs.resource_facilitator_id, rfs.resource_facilitator_type, s.session_id FROM sessions as s " .
-            "LEFT JOIN resource_facilitator_session as rfs ON s.session_id = rfs.session_id " .
-            "WHERE s.field_office_id = $fieldOfficeId AND s.quarter_id = $quarterId AND rfs.resource_facilitator_type = 'VPA'";
+        $sql = "SELECT rfs.resource_facilitator_id, rfs.resource_facilitator_type, s.session_id FROM sessions as s
+                LEFT JOIN resource_facilitator_session as rfs ON s.session_id = rfs.session_id
+                WHERE s.field_office_id = $fieldOfficeId AND rfs.resource_facilitator_type = 'VPA' 
+                  AND s.date BETWEEN CAST('$minDate' AS DATE) AND CAST('$maxDate' AS DATE)";
 
         $stmt = $conn->prepare($sql);
         $query = $stmt->executeQuery();

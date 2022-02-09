@@ -23,4 +23,6 @@ interface QuartersInterface
     public function getTCA1Part1(int $id, int $fieldOfficeId): array;
 
     public function getTCA1Part2(int $id, int $fieldOfficeId): array;
+
+    public function getByYear(string $year): array;
 }

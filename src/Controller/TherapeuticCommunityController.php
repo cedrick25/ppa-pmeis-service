@@ -10,6 +10,10 @@ use App\Model\ClientSessions as ClientSessionModel;
 use App\Model\Quarters as QuartersModel;
 use App\Model\ResourceFacilitatorSession as ResourceFacilitatorSessionModel;
 use App\Model\Sessions as SessionsModel;
+use App\Service\CivilStatusInterface;
+use App\Service\EducationBackgroundInterface;
+use App\Service\OccupationInterface;
+use App\Service\ReligionInterface;
 use App\Service\TherapeuticCommunity\ClientSessionsInterface;
 use App\Service\TherapeuticCommunity\ClientTypesInterface;
 use App\Service\TherapeuticCommunity\FieldOfficesInterface;
@@ -19,6 +23,7 @@ use App\Service\TherapeuticCommunity\QuartersInterface;
 use App\Service\TherapeuticCommunity\RegionsInterface;
 use App\Service\TherapeuticCommunity\ResourceFacilitatorSessionInterface;
 use App\Service\TherapeuticCommunity\SessionActivitiesInterface;
+use App\Service\TherapeuticCommunity\SessionRemarksInterface;
 use App\Service\TherapeuticCommunity\SessionsInterface;
 use App\Service\TherapeuticCommunity\TreatmentCategoriesInterface;
 use App\Service\TherapeuticCommunity\VenuesInterface;
@@ -55,6 +60,11 @@ class TherapeuticCommunityController extends AbstractController
         private ResourceFacilitatorSessionInterface $resourceFacilitatorSessionService,
         private RegionsInterface $regionService,
         private GenerateTableInterface $generateTable,
+        private SessionRemarksInterface $sessionRemarkService,
+        private CivilStatusInterface $civilStatusService,
+        private EducationBackgroundInterface $educationBackgroundService,
+        private OccupationInterface $occupationService,
+        private ReligionInterface $religionService,
     ){}
 
     /**
@@ -171,6 +181,14 @@ class TherapeuticCommunityController extends AbstractController
             (int) $request->get("id"),
             (int) $request->get("field_office_id")
         ));
+    }
+
+    /**
+     * @Route("/quarter/by/year/{year}", methods={"GET"})
+     */
+    public function getQuarterByYear(Request $request): Response
+    {
+        return $this->json($this->quartersService->getByYear($request->get("year")));
     }
 
     /**
@@ -489,6 +507,14 @@ class TherapeuticCommunityController extends AbstractController
     }
 
     /**
+     * @Route("/session-remarks/list", methods={"GET"})
+     */
+    public function getAllSessionRemarks(): Response
+    {
+        return $this->json($this->sessionRemarkService->getAll());
+    }
+
+    /**
      * @Route("/client-type/create", methods={"POST"})
      */
     public function createClientType(Request $request): Response
@@ -666,6 +692,14 @@ class TherapeuticCommunityController extends AbstractController
     public function getClientById(Request $request): Response
     {
         return $this->json($this->clientService->getById((int) $request->get("id")));
+    }
+
+    /**
+     * @Route("/client/by/type/{id}", methods={"GET"})
+     */
+    public function getClientByClientTypeId(Request $request): Response
+    {
+        return $this->json($this->clientService->getByClientId((int) $request->get("id")));
     }
 
     /**
@@ -915,5 +949,37 @@ class TherapeuticCommunityController extends AbstractController
         $data = json_decode($request->getContent(), true);
 
         return $this->json($this->generateTable->generate($data));
+    }
+
+    /**
+     * @Route("/civil-status/list", methods={"GET"})
+     */
+    public function getAllCivilStatuses(): Response
+    {
+        return $this->json($this->civilStatusService->getAll());
+    }
+
+    /**
+     * @Route("/educational-background/list", methods={"GET"})
+     */
+    public function getAllEducationBackgrounds(): Response
+    {
+        return $this->json($this->educationBackgroundService->getAll());
+    }
+
+    /**
+     * @Route("/occupation/list", methods={"GET"})
+     */
+    public function getAllOccupations(): Response
+    {
+        return $this->json($this->occupationService->getAll());
+    }
+
+    /**
+     * @Route("/religion/list", methods={"GET"})
+     */
+    public function getAllReligions(): Response
+    {
+        return $this->json($this->religionService->getAll());
     }
 }

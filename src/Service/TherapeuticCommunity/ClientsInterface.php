@@ -17,4 +17,6 @@ interface ClientsInterface
     public function getPaginated(int $page, int $pageSize): array;
 
     public function getById(int $id): array;
+
+    public function getByClientId(int $id): array;
 }
