@@ -225,6 +225,11 @@ class QuartersRepository extends ServiceEntityRepository
 
         ];
 
+        $quarterData = $this->find($id);
+        if ($quarterData === null) {
+            return null;
+        }
+
         $minMaxDate = $this->getMinMaxDateByQuarterId($id);
         $minDate = $minMaxDate['min'];
         $maxDate = $minMaxDate['max'];
