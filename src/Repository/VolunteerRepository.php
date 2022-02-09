@@ -389,7 +389,7 @@ class VolunteerRepository extends ServiceEntityRepository
             ->andWhere('v.dateAppointed IS NOT NULL')
             ->setParameter('ids', $ids, Connection::PARAM_INT_ARRAY)
             ->getQuery()
-            ->getResult();
+            ->getArrayResult();
     }
 
     /**

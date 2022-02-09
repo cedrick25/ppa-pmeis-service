@@ -292,6 +292,30 @@ class Volunteer implements VolunteerInterface
                 return $this->appFormatter->formatResponse(ResponseEnum::NO_DATA, null);
             }
 
+            $civilStatuses = [];
+            $rawCivilStatuses = $this->civilStatusRepository->findAll();
+            foreach ($rawCivilStatuses as $civilStatus) {
+                $civilStatuses[$civilStatus->getCivilStatusId()] = $civilStatus->getName();
+            }
+
+            $religions = [];
+            $rawReligions = $this->religionRepository->findAll();
+            foreach ($rawReligions as $religion) {
+                $religions[$religion->getReligionId()] = $religion->getName();
+            }
+
+            $occupations = [];
+            $rawOccupations = $this->occupationRepository->findAll();
+            foreach ($rawOccupations as $occupation) {
+                $occupations[$occupation->getOccupationIdId()] = $occupation->getName();
+            }
+
+            $educationBackgrounds = [];
+            $rawEducationBackgrounds = $this->educationBackgroundRepository->findAll();
+            foreach ($rawEducationBackgrounds as $educationBackground) {
+                $educationBackgrounds[$educationBackground->getEducationBackgroundId()] = $educationBackground->getName();
+            }
+
             $sessionIds = $this->sessionsRepository->findSessionsIdsByQuarter($quarterData);
             $sessionIds = array_map(fn($sessionId) => $sessionId['session_id'], $sessionIds);
 
@@ -301,7 +325,11 @@ class Volunteer implements VolunteerInterface
             $volunteers = $this->repository->findByIdsV2($volunteerIds);
 
             foreach ($volunteers as $volunteer) {
-                if ($volunteer->getFieldOfficeId() === $fieldOfficeId) {
+                if ($volunteer['fieldOfficeId'] === $fieldOfficeId) {
+                    $volunteer['religion'] = $religions[$volunteer['religion']];
+                    $volunteer['occupation'] = $occupations[$volunteer['occupation']];
+                    $volunteer['educationAttainment'] = $educationBackgrounds[$volunteer['educationAttainment']];
+                    $volunteer['civilStatus'] = $civilStatuses[$volunteer['civilStatus']];
                     $data['volunteers'][] = $volunteer;
                 }
             }
