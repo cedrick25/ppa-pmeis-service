@@ -87,6 +87,8 @@ class VolunteerRepository extends ServiceEntityRepository
         $newVolunteer->setDateAccomplished($this->appDateHelper->convertStringToImmutableDate($volunteerData->getDateAccomplished()));
         $newVolunteer->setOfficerSignature($volunteerData->getOfficerSignature());
         $newVolunteer->setDateSigned($this->appDateHelper->convertStringToImmutableDate($volunteerData->getDateSigned()));
+        $newVolunteer->setDateAppointed($this->appDateHelper->convertStringToImmutableDate($volunteerData->getDateAppointed()));
+        $newVolunteer->setVpaStatus($volunteerData->getVpaStatus());
         $newVolunteer->setCreatedAt($this->appDateHelper->getCurrentImmutableDate());
 
         $this->getEntityManager()->persist($newVolunteer);
@@ -110,11 +112,17 @@ class VolunteerRepository extends ServiceEntityRepository
         return $this->helper->createCachedResponseCustomQuery($params, function() {
             $conn = $this->getEntityManager()->getConnection();
 
-            $sql = "SELECT v.*, fo.name as field_office_name, rg.region_id, rg.name as region_name 
-                 FROM volunteer as v " .
-                "LEFT JOIN field_offices as fo ON v.field_office_id = fo.field_office_id " .
-                "LEFT JOIN regions as rg ON fo.region_id = rg.region_id " .
-                "WHERE v.deleted_at IS NULL ORDER BY v.volunteer_id DESC";
+            $sql = "SELECT v.*, fo.name as field_office_name, rg.region_id, rg.name as region_name,
+                    v.civil_status as civil_status_id, v.religion as religion_id, v.occupation as occupation_id, v.education_attainment as education_attainment_id,
+                    cvs.name as civil_status, r.name as religion, o.name as occupation, eb.name as education_attainment
+                 FROM volunteer as v 
+                 LEFT JOIN field_offices as fo ON v.field_office_id = fo.field_office_id 
+                 LEFT JOIN regions as rg ON fo.region_id = rg.region_id 
+                 LEFT JOIN civil_status as cvs ON v.civil_status = cvs.civil_status_id 
+                 LEFT JOIN religion as r ON v.religion = r.religion_id 
+                 LEFT JOIN occupation as o ON v.occupation = o.occupation_id 
+                 LEFT JOIN education_background as eb ON v.education_attainment = eb.education_background_id 
+                 WHERE v.deleted_at IS NULL ORDER BY v.volunteer_id DESC";
             $stmt = $conn->prepare($sql);
             $query = $stmt->executeQuery();
 
@@ -196,6 +204,8 @@ class VolunteerRepository extends ServiceEntityRepository
         $volunteer->setDateAccomplished($this->appDateHelper->convertStringToImmutableDate($volunteerData->getDateAccomplished()));
         $volunteer->setOfficerSignature($volunteerData->getOfficerSignature());
         $volunteer->setDateSigned($this->appDateHelper->convertStringToImmutableDate($volunteerData->getDateSigned()));
+        $volunteer->setDateAppointed($this->appDateHelper->convertStringToImmutableDate($volunteerData->getDateAppointed()));
+        $volunteer->setVpaStatus($volunteerData->getVpaStatus());
         $volunteer->setUpdatedAt($this->appDateHelper->getCurrentImmutableDate());
 
         $this->getEntityManager()->flush();
@@ -213,11 +223,17 @@ class VolunteerRepository extends ServiceEntityRepository
     {
         $conn = $this->getEntityManager()->getConnection();
 
-        $sql = "SELECT v.*, fo.name as field_office_name, rg.region_id, rg.name as region_name 
-                 FROM volunteer as v " .
-            "LEFT JOIN field_offices as fo ON v.field_office_id = fo.field_office_id " .
-            "LEFT JOIN regions as rg ON fo.region_id = rg.region_id " .
-            "WHERE v.volunteer_id = $id AND v.deleted_at IS NULL ORDER BY v.volunteer_id DESC";
+        $sql = "SELECT v.*, fo.name as field_office_name, rg.region_id, rg.name as region_name,
+                    v.civil_status as civil_status_id, v.religion as religion_id, v.occupation as occupation_id, v.education_attainment as education_attainment_id,
+                    cvs.name as civil_status, r.name as religion, o.name as occupation, eb.name as education_attainment
+                FROM volunteer as v
+                LEFT JOIN field_offices as fo ON v.field_office_id = fo.field_office_id
+                LEFT JOIN regions as rg ON fo.region_id = rg.region_id
+                LEFT JOIN civil_status as cvs ON v.civil_status = cvs.civil_status_id 
+                LEFT JOIN religion as r ON v.religion = r.religion_id 
+                LEFT JOIN occupation as o ON v.occupation = o.occupation_id 
+                LEFT JOIN education_background as eb ON v.education_attainment = eb.education_background_id 
+                WHERE v.volunteer_id = $id AND v.deleted_at IS NULL ORDER BY v.volunteer_id DESC";
         $stmt = $conn->prepare($sql);
         $query = $stmt->executeQuery();
 
@@ -256,12 +272,18 @@ class VolunteerRepository extends ServiceEntityRepository
             $startOffset = $pageSize * ($page-1);
             $result = [];
 
-            $sql = "SELECT v.*, fo.name as field_office_name, rg.region_id, rg.name as region_name 
-                 FROM volunteer as v " .
-                "LEFT JOIN field_offices as fo ON v.field_office_id = fo.field_office_id " .
-                "LEFT JOIN regions as rg ON fo.region_id = rg.region_id " .
-                "WHERE v.deleted_at IS NULL ORDER BY v.volunteer_id DESC " .
-                "LIMIT $pageSize OFFSET $startOffset";
+            $sql = "SELECT v.*, fo.name as field_office_name, rg.region_id, rg.name as region_name,
+                    v.civil_status as civil_status_id, v.religion as religion_id, v.occupation as occupation_id, v.education_attainment as education_attainment_id,
+                    cvs.name as civil_status, r.name as religion, o.name as occupation, eb.name as education_attainment
+                FROM volunteer as v
+                LEFT JOIN field_offices as fo ON v.field_office_id = fo.field_office_id
+                LEFT JOIN regions as rg ON fo.region_id = rg.region_id
+                LEFT JOIN civil_status as cvs ON v.civil_status = cvs.civil_status_id 
+                LEFT JOIN religion as r ON v.religion = r.religion_id 
+                LEFT JOIN occupation as o ON v.occupation = o.occupation_id 
+                LEFT JOIN education_background as eb ON v.education_attainment = eb.education_background_id
+                WHERE v.deleted_at IS NULL ORDER BY v.volunteer_id DESC
+                LIMIT $pageSize OFFSET $startOffset";
             $stmt = $conn->prepare($sql);
             $query = $stmt->executeQuery();
             $result['data'] = $query->fetchAllAssociative();

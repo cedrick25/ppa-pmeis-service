@@ -18,14 +18,14 @@ class Volunteer
         private string $recruitingOfficer,
         private int $age,
         private string $birthPlace,
-        private string $civilStatus,
-        private string $religion,
+        private int $civilStatus,
+        private int $religion,
         private string $presentAddress,
         private float $height,
         private float $weight,
         private string $bloodType,
-        private string $occupation,
-        private string $educationAttainment,
+        private int $occupation,
+        private int $educationAttainment,
         private string $contactNumber,
         private string $emailAddress,
         private string $specialSkill,
@@ -36,6 +36,8 @@ class Volunteer
         private string $dateAccomplished,
         private string $officerSignature,
         private string $dateSigned,
+        private string $vpaStatus,
+        private ?string $dateAppointed = null,
         private ?string $middleName = null,
         private ?string $suffix = null,
         private ?int $fieldOfficeId = null,
@@ -149,18 +151,18 @@ class Volunteer
 
     /**
      * @Assert\NotBlank
-     * @return string
+     * @return int
      */
-    public function getCivilStatus(): string
+    public function getCivilStatus(): int
     {
         return $this->civilStatus;
     }
 
     /**
      * @Assert\NotBlank
-     * @return string
+     * @return int
      */
-    public function getReligion(): string
+    public function getReligion(): int
     {
         return $this->religion;
     }
@@ -205,18 +207,18 @@ class Volunteer
 
     /**
      * @Assert\NotBlank
-     * @return string
+     * @return int
      */
-    public function getOccupation(): string
+    public function getOccupation(): int
     {
         return $this->occupation;
     }
 
     /**
      * @Assert\NotBlank
-     * @return string
+     * @return int
      */
-    public function getEducationAttainment(): string
+    public function getEducationAttainment(): int
     {
         return $this->educationAttainment;
     }
@@ -318,6 +320,23 @@ class Volunteer
     public function getDateSigned(): string
     {
         return $this->dateSigned;
+    }
+
+    /**
+     * @Assert\NotBlank
+     * @return string
+     */
+    public function getVpaStatus(): string
+    {
+        return $this->vpaStatus;
+    }
+
+    /**
+     * @return string|null
+     */
+    public function getDateAppointed(): ?string
+    {
+        return $this->dateAppointed;
     }
 
     /**
