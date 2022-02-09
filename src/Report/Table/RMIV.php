@@ -16,7 +16,7 @@ class RMIV implements Form
     private const TABLE_NAME = "RMIV";
     
     public function __construct(
-        private int   $lastFilledOutCellY = 20,
+        private int   $lastFilledOutCellY = 8,
         private array $data = [],
     ){}
 
@@ -53,6 +53,80 @@ class RMIV implements Form
     {
         $spreadsheet = $this->header();
 
+        $quarter = $this->data['quarter'];
+        $fieldOffice = $this->data['field_office_id'];
+        $data = [
+            'FIRST_2022' => [
+                '1' => [
+                    ['1.  THERAPEUTIC ', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '',],
+                    ['     COMMUNITY  (TC)', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '',],
+                    ['Implementation of PD 968', '1/15/2022 / Pasig City Hall', '', '', '', '', '', 'Snacks', '14,625', 'Pasig City LGU', '/', '', '', '', '', '', '', '', '', 'Gerone Mabagay / Troy Tereno / Melissa Femilliano / Mariza Aguilera',],
+                    ['TC Session', '1/22/2022 / Brgy. Dela Paz, Pasig City', '1000', 'Daniel Agbat', '', '', '/', 'Snacks', '14,625', 'Pasig City LGU', '/', '', '', '', '', '', '', '', '', 'Gerone Mabagay / Troy Tereno / Melissa Femilliano / Mariza Aguilera',],
+                    ['2. RESTORATIVE JUSTICE', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '',],
+                    ['RJ', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '',],
+                    ['None', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '',],
+                    ['3. VOLUNTEERISM (VPA)', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '',],
+                    ['None', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '',],
+                    ['4. GENDER AND DEVELOPMENT (GAD)', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '',],
+                    ['None', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '',],
+                    ['5. PERSONS WITH DISABILITY (PWDs) AND SENIOR CITIZENS', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '',],
+                    ['None', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '',],
+                    ['6. OTHERS', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '',],
+                    ['   (To include LGUs - on detail)', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '',],
+                    ['None', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '',],
+                    ['', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '',],
+                    ['', 'TOTAL', '1000', 'TOTAL', '0', '0', '1', 'TOTAL', '29,250', 'TOTAL', '2', '0', '0', 'TOTAL', '0', 'TOTAL', '0', '0', '0', '',],
+                ],
+            ],
+            'FOURTH_2021' => [
+                '1' => [
+                    ['1.  THERAPEUTIC ', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '',],
+                    ['     COMMUNITY  (TC)', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '',],
+                    ['Fire Safety and Prevention Seminar', '1/22/2022 / Brgy. Dela Paz, Pasig City', '1000', 'Daniel Agbat', '', '', '/', 'Snacks', '14,625', 'Pasig City LGU', '/', '', '', '', '', '', '', '', '', 'Gerone Mabagay / Troy Tereno / Jeffrey Magbantay',],
+                    ['2. RESTORATIVE JUSTICE', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '',],
+                    ['RJ', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '',],
+                    ['None', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '',],
+                    ['3. VOLUNTEERISM (VPA)', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '',],
+                    ['None', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '',],
+                    ['4. GENDER AND DEVELOPMENT (GAD)', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '',],
+                    ['None', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '',],
+                    ['5. PERSONS WITH DISABILITY (PWDs) AND SENIOR CITIZENS', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '',],
+                    ['None', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '',],
+                    ['6. OTHERS', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '',],
+                    ['   (To include LGUs - on detail)', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '',],
+                    ['None', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '',],
+                    ['', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '',],
+                    ['', 'TOTAL', '1000', 'TOTAL', '0', '0', '1', 'TOTAL', '14,625', 'TOTAL', '1', '0', '0', 'TOTAL', '0', 'TOTAL', '0', '0', '0', '',],
+                ],
+            ],
+        ];
+
+        $rows = $data[$quarter][$fieldOffice];
+        foreach ($rows as $row) {
+            $this->lastFilledOutCellY++;
+            $spreadsheet->getActiveSheet()->setCellValue("a" . $this->lastFilledOutCellY, $row[0]);
+            $spreadsheet->getActiveSheet()->setCellValue("b" . $this->lastFilledOutCellY, $row[1]);
+            $spreadsheet->getActiveSheet()->setCellValue("c" . $this->lastFilledOutCellY, $row[2]);
+            $spreadsheet->getActiveSheet()->setCellValue("d" . $this->lastFilledOutCellY, $row[3]);
+            $spreadsheet->getActiveSheet()->setCellValue("e" . $this->lastFilledOutCellY, $row[4]);
+            $spreadsheet->getActiveSheet()->setCellValue("f" . $this->lastFilledOutCellY, $row[5]);
+            $spreadsheet->getActiveSheet()->setCellValue("g" . $this->lastFilledOutCellY, $row[6]);
+            $spreadsheet->getActiveSheet()->setCellValue("h" . $this->lastFilledOutCellY, $row[7]);
+            $spreadsheet->getActiveSheet()->setCellValue("i" . $this->lastFilledOutCellY, $row[8]);
+            $spreadsheet->getActiveSheet()->setCellValue("j" . $this->lastFilledOutCellY, $row[9]);
+            $spreadsheet->getActiveSheet()->setCellValue("k" . $this->lastFilledOutCellY, $row[10]);
+            $spreadsheet->getActiveSheet()->setCellValue("l" . $this->lastFilledOutCellY, $row[11]);
+            $spreadsheet->getActiveSheet()->setCellValue("m" . $this->lastFilledOutCellY, $row[12]);
+            $spreadsheet->getActiveSheet()->setCellValue("n" . $this->lastFilledOutCellY, $row[13]);
+            $spreadsheet->getActiveSheet()->setCellValue("o" . $this->lastFilledOutCellY, $row[14]);
+            $spreadsheet->getActiveSheet()->setCellValue("p" . $this->lastFilledOutCellY, $row[15]);
+            $spreadsheet->getActiveSheet()->setCellValue("q" . $this->lastFilledOutCellY, $row[16]);
+            $spreadsheet->getActiveSheet()->setCellValue("r" . $this->lastFilledOutCellY, $row[17]);
+            $spreadsheet->getActiveSheet()->setCellValue("s" . $this->lastFilledOutCellY, $row[18]);
+            $spreadsheet->getActiveSheet()->setCellValue("t" . $this->lastFilledOutCellY, $row[19]);
+        }
+        $spreadsheet->getActiveSheet()->getStyle('A6:h' . $this->lastFilledOutCellY)->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
+
         $spreadsheet->getActiveSheet()->getStyle('A9:T27')->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
         // $spreadsheet->getActiveSheet()->getStyle('D5:G5')->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
         $spreadsheet->getActiveSheet()->getStyle('t27')->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setARGB('80808080');
@@ -81,24 +155,11 @@ class RMIV implements Form
             'a6' => 'RESOURCES/ ASSISTANCE', 
             'a7' => 'WERE UTILIZED',
             'a8' => '(1)',
-            'a9' => '1.  THERAPEUTIC ',
-            'a10' => '     COMMUNITY  (TC)',
-            'a12' => '2.  RESTORATIVE JUSTICE',
-            'a13' => '      (RJ)',
-            'a15' => '3.  VOLUNTEERISM  (VPA)',
-            'a17' => '4.   GENDER AND ',
-            'a18' => '       DEVELOPMENT  (GAD)',
-            'a20' => '5.  PERSONS WITH ',
-            'a21' => '     DISABILITY (PWDs) and ',
-            'a22' => '     SENIOR CITIZENS',
-            'a24' => '6.  OTHERS ',
-            'a25' => '     (To include LGUs - on detail)',
             'a29' => 'NOTE:  DO NOT INCLUDE RESOURCES FROM THE  REGIONAL OFFICE (THIS IS REPORTED BY RO SEPARATELY)',
             'a31' => 'NOTE:      RESOURCE MOBILIZATION is a  continuing process of developing, generating and managing funds, information, goods, services, people and institutions to provide support to program',
 
             'b4' => 'DATE/ VENUE',
             'b6' => '(2)',
-            'b27' => 'TOTAL',
             
             'c3' => 'RESOURCES SECURED/ UTILIZED (3)',
             'c4' => 'CASH',
@@ -148,7 +209,7 @@ class RMIV implements Form
         $verticalAlignedCoordinates = ['B3:T30' => 'center', 'A3:A8' => 'center'];
         $horizontalAlignedCoordinates = ['B3:T30' => 'center', 'A3:A8' => 'center'];
         $adjustedColumnWidthCoordinates = [
-            'A' => 40, 'B' => 20, 'C' => 20, 'D' => 15, 'E' => 5, 'F' => 5, 'G' => 5, 'H' => 30, 'I' => 30, 'J' => 30, 'K' => 5, 'L' => 5, 'M' => 5, 'N' => 30, 'O' => 20, 'P' => 20, 'Q' => 5, 'R' => 5, 'S' => 5, 'T' => 20,
+            'A' => 57, 'B' => 40, 'C' => 17, 'D' => 15, 'E' => 5, 'F' => 5, 'G' => 5, 'H' => 30, 'I' => 30, 'J' => 30, 'K' => 5, 'L' => 5, 'M' => 5, 'N' => 30, 'O' => 20, 'P' => 20, 'Q' => 5, 'R' => 5, 'S' => 5, 'T' => 70,
         ];
         $outlineBorderThinCoordinates = [
             'A3:A8', 'B3:B8', 'C5:C8', 'D6:D8', 'E6:E8', 'F6:F8', 'G6:G8', 'H5:H8', 'I5:I8', 'J6:J8', 'K6:K8', 'L6:L8', 'm6:m8',

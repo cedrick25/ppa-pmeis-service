@@ -16,7 +16,7 @@ class JDVIA1 implements Form
     private const TABLE_NAME = "JDVIA1";
     
     public function __construct(
-        private int   $lastFilledOutCellY = 20,
+        private int   $lastFilledOutCellY = 8,
         private array $data = [],
     ){}
 
@@ -53,10 +53,47 @@ class JDVIA1 implements Form
     {
         $spreadsheet = $this->header();
 
-        $spreadsheet->getActiveSheet()->getStyle('A9:M18')->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
-        // $spreadsheet->getActiveSheet()->getStyle('D5:G5')->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
-        // $spreadsheet->getActiveSheet()->getStyle('t27')->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setARGB('80808080');
-        // $spreadsheet->getActiveSheet()->getStyle('g23:j23')->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setARGB('80808080');
+        $quarter = $this->data['quarter'];
+        $fieldOffice = $this->data['field_office_id'];
+        $data = [
+            'FIRST_2022' => [
+                '1' => [
+                    ['01/07/2022', 'BJMP Pasig City', '/', '', '2', '', '', '', '', '', '', 'Troy Terono', ''],
+                    ['01/15/2022', 'BJMP Pasig City', '/', '', '1', '', '', '', '', '', '', 'Troy Terono', ''],
+                    ['', '', '', '', '', '', '', '', '', '', '', '', ''],
+                    ['', '', '', '', '', '', '', '', '', '', '', '', ''],
+                    ['', 'Total', '', '', '3', '', '', '', '', '', '', '', ''],
+                ],
+            ],
+            'FOURTH_2021' => [
+                '1' => [
+                    ['11/28/2021', 'BJMP Pasig City', '/', '', '2', '', '', '', '', '', '', 'Jeffrey Mgbantay', ''],
+                    ['12/05/2021', 'BJMP Pasig City', '/', '', '2', '', '', '', '', '', '', 'Troy Terono', ''],
+                    ['', '', '', '', '', '', '', '', '', '', '', '', ''],
+                    ['', '', '', '', '', '', '', '', '', '', '', '', ''],
+                    ['', 'Total', '', '', '4', '', '', '', '', '', '', '', ''],
+                ],
+            ],
+        ];
+
+        $rows = $data[$quarter][$fieldOffice];
+        foreach ($rows as $row) {
+            $this->lastFilledOutCellY++;
+            $spreadsheet->getActiveSheet()->setCellValue("a" . $this->lastFilledOutCellY, $row[0]);
+            $spreadsheet->getActiveSheet()->setCellValue("b" . $this->lastFilledOutCellY, $row[1]);
+            $spreadsheet->getActiveSheet()->setCellValue("c" . $this->lastFilledOutCellY, $row[2]);
+            $spreadsheet->getActiveSheet()->setCellValue("d" . $this->lastFilledOutCellY, $row[3]);
+            $spreadsheet->getActiveSheet()->setCellValue("e" . $this->lastFilledOutCellY, $row[4]);
+            $spreadsheet->getActiveSheet()->setCellValue("f" . $this->lastFilledOutCellY, $row[5]);
+            $spreadsheet->getActiveSheet()->setCellValue("g" . $this->lastFilledOutCellY, $row[6]);
+            $spreadsheet->getActiveSheet()->setCellValue("h" . $this->lastFilledOutCellY, $row[7]);
+            $spreadsheet->getActiveSheet()->setCellValue("i" . $this->lastFilledOutCellY, $row[8]);
+            $spreadsheet->getActiveSheet()->setCellValue("j" . $this->lastFilledOutCellY, $row[9]);
+            $spreadsheet->getActiveSheet()->setCellValue("k" . $this->lastFilledOutCellY, $row[10]);
+            $spreadsheet->getActiveSheet()->setCellValue("l" . $this->lastFilledOutCellY, $row[11]);
+            $spreadsheet->getActiveSheet()->setCellValue("m" . $this->lastFilledOutCellY, $row[12]);
+        }
+        $spreadsheet->getActiveSheet()->getStyle('A9:m' . $this->lastFilledOutCellY)->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
 
         return $spreadsheet;
     }

@@ -16,7 +16,7 @@ class SMIIIA3 implements Form
     private const TABLE_NAME = "SMIIIA3";
     
     public function __construct(
-        private int   $lastFilledOutCellY = 20,
+        private int   $lastFilledOutCellY = 5,
         private array $data = [],
     ){}
 
@@ -53,10 +53,35 @@ class SMIIIA3 implements Form
     {
         $spreadsheet = $this->header();
 
-        $spreadsheet->getActiveSheet()->getStyle('A6:H14')->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
-        $spreadsheet->getActiveSheet()->getStyle('D5:G5')->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
-        // $spreadsheet->getActiveSheet()->getStyle('d23')->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setARGB('80808080');
-        // $spreadsheet->getActiveSheet()->getStyle('g23:j23')->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setARGB('80808080');
+        $quarter = $this->data['quarter'];
+        $fieldOffice = $this->data['field_office_id'];
+        $data = [
+            'FIRST_2022' => [
+                '1' => [
+                    ['Free Check-up Drive', 'DSWD', 'January 12, 2022 / Pasig City Hall', '100', '', 'Luke Skylar / Renzo Melodez / Danzo Malaypay /Marie Sumapay /Pedro Pandacan', 'Facilitator', '', ],
+                ],
+            ],
+            'FOURTH_2021' => [
+                '1' => [
+                    ['Food Kitchen & Gift Giving', 'DSWD', 'December 15, 2021 / Brgy. Santolan, Pasig City', '20', '', 'Mariz Aguilera / Troy Terono / Jeffrey Magbantay', 'Facilitator', '', ],
+                ],
+            ],
+        ];
+
+
+        $rows = $data[$quarter][$fieldOffice];
+        foreach ($rows as $row) {
+            $this->lastFilledOutCellY++;
+            $spreadsheet->getActiveSheet()->setCellValue("a" . $this->lastFilledOutCellY, $row[0]);
+            $spreadsheet->getActiveSheet()->setCellValue("b" . $this->lastFilledOutCellY, $row[1]);
+            $spreadsheet->getActiveSheet()->setCellValue("c" . $this->lastFilledOutCellY, $row[2]);
+            $spreadsheet->getActiveSheet()->setCellValue("d" . $this->lastFilledOutCellY, $row[3]);
+            $spreadsheet->getActiveSheet()->setCellValue("e" . $this->lastFilledOutCellY, $row[4]);
+            $spreadsheet->getActiveSheet()->setCellValue("f" . $this->lastFilledOutCellY, $row[5]);
+            $spreadsheet->getActiveSheet()->setCellValue("g" . $this->lastFilledOutCellY, $row[6]);
+            $spreadsheet->getActiveSheet()->setCellValue("h" . $this->lastFilledOutCellY, $row[7]);
+        }
+        $spreadsheet->getActiveSheet()->getStyle('A6:h' . $this->lastFilledOutCellY)->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
 
         return $spreadsheet;
     }
@@ -100,10 +125,10 @@ class SMIIIA3 implements Form
         $verticalAlignedCoordinates = ['A4:H14' => 'center',];
         $horizontalAlignedCoordinates = ['A4:H14' => 'center',];
         $adjustedColumnWidthCoordinates = [
-            'A' => 63, 'B' => 20, 'C' => 20, 'D' => 15, 'E' => 15, 'F' => 20, 'G' => 15, 'H' => 20,
+            'A' => 33, 'B' => 20, 'C' => 50, 'D' => 15, 'E' => 15, 'F' => 80, 'G' => 15, 'H' => 20,
         ];
         $outlineBorderThinCoordinates = [
-            'A4:A5', 'B4:B5', 'C4:C5', 'D4:E4', 'F4:G4', 'H4:H5',
+            'A4:A5', 'B4:B5', 'C4:C5', 'D4:E4', 'F4:G4', 'H4:H5', 'F5:F5', 'D5:D5'
         ];
 
         foreach ($textAndCoordinates as $coordinate=>$text) {

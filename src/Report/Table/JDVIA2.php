@@ -11,9 +11,9 @@ use PhpOffice\PhpSpreadsheet\Style\Fill;
 use PhpOffice\PhpSpreadsheet\Writer\Exception;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
-class JDVI2 implements Form
+class JDVIA2 implements Form
 {
-    private const TABLE_NAME = "JDVI2";
+    private const TABLE_NAME = "JDVIA2";
     
     public function __construct(
         private int   $lastFilledOutCellY = 20,
@@ -52,11 +52,33 @@ class JDVI2 implements Form
     public function body(): Spreadsheet
     {
         $spreadsheet = $this->header();
-        
-        $spreadsheet->getActiveSheet()->getStyle('A5:E11')->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
-        // $spreadsheet->getActiveSheet()->getStyle('D5:G5')->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
-        // $spreadsheet->getActiveSheet()->getStyle('t27')->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setARGB('80808080');
-        // $spreadsheet->getActiveSheet()->getStyle('g23:j23')->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setARGB('80808080');
+
+        $quarter = $this->data['quarter'];
+        $fieldOffice = $this->data['field_office_id'];
+        $data = [
+            'FIRST_2022' => [
+                '1' => [
+                    ['', '', '', '', '',],
+                    ['', '', '', '', '',],
+                ],
+            ],
+            'FOURTH_2021' => [
+                '1' => [
+                    ['', '', '', '', '',],
+                    ['', '', '', '', '',],
+                ],
+            ],
+        ];
+        $rows = $data[$quarter][$fieldOffice];
+        foreach ($rows as $row) {
+            $this->lastFilledOutCellY++;
+            $spreadsheet->getActiveSheet()->setCellValue("a" . $this->lastFilledOutCellY, $row[0]);
+            $spreadsheet->getActiveSheet()->setCellValue("b" . $this->lastFilledOutCellY, $row[1]);
+            $spreadsheet->getActiveSheet()->setCellValue("c" . $this->lastFilledOutCellY, $row[2]);
+            $spreadsheet->getActiveSheet()->setCellValue("d" . $this->lastFilledOutCellY, $row[3]);
+            $spreadsheet->getActiveSheet()->setCellValue("e" . $this->lastFilledOutCellY, $row[4]);
+        }
+        $spreadsheet->getActiveSheet()->getStyle('a5:e' . $this->lastFilledOutCellY)->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
 
         return $spreadsheet;
     }
@@ -83,7 +105,7 @@ class JDVI2 implements Form
             'a5' => 'I.  SPECIAL ASSIGNMENT ',
             'a6' => '    (Committee memberships)',
             'a8' => 'II.  MISCELLANEOUS ACTIVITIES',
-            'a9' => '    (e.g.  Attendance to Court Hearings,',
+            'a9' => '    (e.g.  Attendance to Court Hearings, etc)',
 
             'b3' => 'ACTIVITY',
             'b4' => '(2)',
