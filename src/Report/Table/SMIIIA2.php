@@ -16,7 +16,7 @@ class SMIIIA2 implements Form
     private const TABLE_NAME = "SMIIIA2";
     
     public function __construct(
-        private int   $lastFilledOutCellY = 20,
+        private int   $lastFilledOutCellY = 3,
         private array $data = [],
     ){}
 
@@ -53,11 +53,39 @@ class SMIIIA2 implements Form
     {
         $spreadsheet = $this->header();
 
-        $spreadsheet->getActiveSheet()->getStyle('A4:G11')->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
-        $spreadsheet->getActiveSheet()->getStyle('C3:F3')->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
-        // $spreadsheet->getActiveSheet()->getStyle('d23')->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setARGB('80808080');
-        // $spreadsheet->getActiveSheet()->getStyle('g23:j23')->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setARGB('80808080');
+        $quarter = $this->data['quarter'];
+        $fieldOffice = $this->data['field_office_id'];
+        $data = [
+            'FOURTH_2021' => [
+                '1' => [
+                    ['1.  Peace and Order Councils (POC) / Anti-Drug Abuse Council ( CADAC)/', '', '', '', '', '', ''],
+                    ['     Government Information Officers  League, MSEC, etc.', '', '', '', '', '', ''],
+                    ['', '', '', '', '', '', ''],
+                    ['Lunch Meeting with Court Judges, CADAC Focal Personnel and, ', 'October 4. 2021 / Brgy. Santolan, Pasig City', '2', '', 'Mariz Aguilera Troy Tereno', 'Participant', ''],
+                    ['Balai Silangan Reformation and Rehabilitation Center Personnel', '', '', '', '', '', ''],
+                    ['', '', '', '', '', '', ''],
+                    ['2.  Others (Attendance/ Participation in significant events ', '', '', '', '', '', ''],
+                    ['            as representative of the Agency)', '', '', '', '', '', ''],
+                    ['None', '', '', '', '', '', ''],
+                ],
+            ],
+        ];
 
+        $rows = $data[$quarter][$fieldOffice];
+        foreach ($rows as $row) {
+            $this->lastFilledOutCellY++;
+            $spreadsheet->getActiveSheet()->setCellValue("a" . $this->lastFilledOutCellY, $row[0]);
+            $spreadsheet->getActiveSheet()->setCellValue("b" . $this->lastFilledOutCellY, $row[1]);
+            $spreadsheet->getActiveSheet()->setCellValue("c" . $this->lastFilledOutCellY, $row[2]);
+            $spreadsheet->getActiveSheet()->setCellValue("d" . $this->lastFilledOutCellY, $row[3]);
+            $spreadsheet->getActiveSheet()->setCellValue("e" . $this->lastFilledOutCellY, $row[4]);
+            $spreadsheet->getActiveSheet()->setCellValue("f" . $this->lastFilledOutCellY, $row[5]);
+            $spreadsheet->getActiveSheet()->setCellValue("g" . $this->lastFilledOutCellY, $row[6]);
+        }
+
+        $this->lastFilledOutCellY++;
+
+        $spreadsheet->getActiveSheet()->getStyle('A4:g' . $this->lastFilledOutCellY)->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
         return $spreadsheet;
     }
 
@@ -78,10 +106,6 @@ class SMIIIA2 implements Form
             'a1' => 'Table  III.A.2  -  MEETINGS /PARTICIPATIONS IN PEACE & ORDER COUNCIL (POC)/ ANTI-DRUG ABUSE COUNCIL (CADAC)/ MANAGEMENT SCREENING & EVALUATION COMMITTEE (MSEC), DDB AUTHORIZED REPRESENTATIVE, ETC.',
             'a2' => 'Activity', 
             'a3' => '(1)',
-            'a4' => '1.  Peace and Order Councils (POC) / Anti-Drug Abuse Council ( CADAC)/',
-            'a5' => '     Government Information Officers  League, MSEC, etc.',
-            'a7' => '2.  Others (Attendance/ Participation in significant events ', 
-            'a8' => '            as representative of the Agency)',
             'b2' => 'Date.Venue',
             'b3' => '(2)',
             'c2' => 'Participants (3)',
@@ -101,7 +125,7 @@ class SMIIIA2 implements Form
         $verticalAlignedCoordinates = ['B2:G11' => 'center', 'A2:A3' => 'center'];
         $horizontalAlignedCoordinates = ['B2:G11' => 'center', 'A2:A3' => 'center'];
         $adjustedColumnWidthCoordinates = [
-            'A' => 63, 'B' => 20, 'C' => 10, 'D' => 10, 'E' => 15, 'F' => 15, 'G' => 15, 'H' => 20,
+            'A' => 63, 'B' => 45, 'C' => 10, 'D' => 10, 'E' => 25, 'F' => 15, 'G' => 15, 'H' => 20,
         ];
         $outlineBorderThinCoordinates = [
             'A2:A3', 'B2:B3', 'C2:D2', 'E2:F2', 'G2:G3', 
