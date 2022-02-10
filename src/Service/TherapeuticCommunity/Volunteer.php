@@ -148,6 +148,9 @@ class Volunteer implements VolunteerInterface
     {
         try {
             $quarter = $this->quartersRepository->find($quarterId);
+            if ($quarter === null) {
+                return [];
+            }
             $months = $this->appDateHelper->getMonthsByQuarterString($quarter->getName());
             $volunteers = $this->repository->findByFieldOfficeAndMonthRange($fieldOfficeId, intval($quarter->getYear()), $months);
 
