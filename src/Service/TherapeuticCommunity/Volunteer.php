@@ -10,6 +10,7 @@ use App\Repository\EducationBackgroundRepository;
 use App\Repository\FieldOfficesRepository;
 use App\Repository\OccupationRepository;
 use App\Repository\QuartersRepository;
+use App\Repository\RegionsRepository;
 use App\Repository\ReligionRepository;
 use App\Repository\ResourceFacilitatorSessionRepository;
 use App\Repository\SessionsRepository;
@@ -32,6 +33,7 @@ class Volunteer implements VolunteerInterface
         private SessionsRepository                   $sessionsRepository,
         private ResourceFacilitatorSessionRepository $resourceFacilitatorSessionRepository,
         private FieldOfficesRepository               $fieldOfficesRepository,
+        private RegionsRepository                    $regionsRepository,
         private CivilStatusRepository                $civilStatusRepository,
         private ReligionRepository                   $religionRepository,
         private OccupationRepository                 $occupationRepository,
@@ -240,6 +242,10 @@ class Volunteer implements VolunteerInterface
                 $occupation = $occupations[$volunteer['occupation']];
                 $educationBackground = $educationBackgrounds[$volunteer['educationAttainment']];
 
+                if (! isset($data[$regionName]['gender'][$volunteer['gender']])) {
+                    $data[$regionName]['gender'][$volunteer['gender']] = 0;
+                }
+
                 if (! isset($data[$regionName]['civilStatus'][$civilStatus])) {
                     $data[$regionName]['civilStatus'][$civilStatus] = 0;
                 }
@@ -256,6 +262,7 @@ class Volunteer implements VolunteerInterface
                     $data[$regionName]['educationAttainment'][$educationBackground] = 0;
                 }
 
+                $data[$regionName]['gender'][$volunteer['gender']]++;
                 $data[$regionName]['civilStatus'][$civilStatus]++;
                 $data[$regionName]['religion'][$religion]++;
                 $data[$regionName]['occupation'][$occupation]++;
@@ -265,6 +272,101 @@ class Volunteer implements VolunteerInterface
             return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_SUCCESS, $data);
         } catch (\Exception | \Doctrine\DBAL\Driver\Exception $e) {
             return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_SUCCESS, null, ['app' => $e->getMessage()]);
+        }
+    }
+
+    public function getVPADatabase(int $quarterId, int $fieldOfficeId): array
+    {
+        try {
+            $data = [
+                'header' => [],
+                'volunteers' => []
+            ];
+            $quarterData = $this->quartersRepository->find($quarterId);
+            $fieldOffice = $this->fieldOfficesRepository->find($fieldOfficeId);
+            $region = $this->regionsRepository->find($fieldOffice->getRegionId());
+            $data['header']['fieldOffice'] = $fieldOffice->getName();
+            $data['header']['region'] = $region->getName();
+
+            if ($quarterData === null) {
+                return $this->appFormatter->formatResponse(ResponseEnum::NO_DATA, null);
+            }
+
+            $civilStatuses = [];
+            $rawCivilStatuses = $this->civilStatusRepository->findAll();
+            foreach ($rawCivilStatuses as $civilStatus) {
+                $civilStatuses[$civilStatus->getCivilStatusId()] = $civilStatus->getName();
+            }
+
+            $religions = [];
+            $rawReligions = $this->religionRepository->findAll();
+            foreach ($rawReligions as $religion) {
+                $religions[$religion->getReligionId()] = $religion->getName();
+            }
+
+            $occupations = [];
+            $rawOccupations = $this->occupationRepository->findAll();
+            foreach ($rawOccupations as $occupation) {
+                $occupations[$occupation->getOccupationIdId()] = $occupation->getName();
+            }
+
+            $educationBackgrounds = [];
+            $rawEducationBackgrounds = $this->educationBackgroundRepository->findAll();
+            foreach ($rawEducationBackgrounds as $educationBackground) {
+                $educationBackgrounds[$educationBackground->getEducationBackgroundId()] = $educationBackground->getName();
+            }
+
+            $sessionIds = $this->sessionsRepository->findSessionsIdsByQuarter($quarterData);
+            $sessionIds = array_map(fn($sessionId) => $sessionId['session_id'], $sessionIds);
+
+            $volunteerIds = $this->resourceFacilitatorSessionRepository->getVolunteerIdsBySessionIds($sessionIds);
+            $volunteerIds = array_map(fn($volunteerId) => $volunteerId['resourceFacilitatorId'], $volunteerIds);
+
+            $volunteers = $this->repository->findByIdsV2($volunteerIds);
+
+            foreach ($volunteers as $volunteer) {
+                if ($volunteer['fieldOfficeId'] === $fieldOfficeId) {
+                    $volunteer['religion'] = $religions[$volunteer['religion']];
+                    $volunteer['occupation'] = $occupations[$volunteer['occupation']];
+                    $volunteer['educationAttainment'] = $educationBackgrounds[$volunteer['educationAttainment']];
+                    $volunteer['civilStatus'] = $civilStatuses[$volunteer['civilStatus']];
+                    $data['volunteers'][] = $volunteer;
+                }
+            }
+
+            return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_SUCCESS, $data);
+        } catch (\Exception | \Doctrine\DBAL\Driver\Exception $e) {
+            return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_SUCCESS, null, ['app' => $e->getMessage()]);
+        }
+    }
+
+    public function getVpaMonitoring(int $quarterId, int $fieldOfficeId): array
+    {
+        $startOfQuarterVpa = $this->getStartOfQuarterVpa($quarterId, $fieldOfficeId);
+
+        return [];
+    }
+
+    private function getStartOfQuarterVpa(int $quarterId, int $fieldOfficeId):array
+    {
+        $activeVolunteers = $this->resourceFacilitatorSessionRepository->getVolunteerIdsByQuarterAndFieldOfficeId($fieldOfficeId, $quarterId);
+        $activeVolunteerIds = array_map(fn($activeVolunteer) => $activeVolunteer['resource_facilitator_id'], $activeVolunteers);;
+
+        $volunteers = $this->repository->list();
+        $previousVolunteersCount = [];
+
+        foreach ($volunteers as $volunteer) {
+            // if in active volunteers, skip
+            if (in_array($volunteer['volunteer_id'], $activeVolunteerIds)) {
+                continue;
+            }
+
+            $regionName = $this->fieldOfficesRepository->getRegionByFieldOfficeId($fieldOfficeId)['region_name'];
+            if (! isset($previousVolunteersCount[$regionName])) {
+                $previousVolunteersCount[$regionName] = 0;
+            }
+
+            $previousVolunteersCount[$regionName]++;
         }
     }
 }

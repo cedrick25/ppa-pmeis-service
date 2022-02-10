@@ -378,6 +378,21 @@ class VolunteerRepository extends ServiceEntityRepository
     }
 
     /**
+     * @param int[] $ids
+     * @return Volunteer[]
+     */
+    public function findByIdsV2(array $ids): array
+    {
+        return $this->createQueryBuilder('v')
+            ->where('v.volunteerId IN (:ids)')
+            ->andWhere('v.deletedAt IS NULL')
+            ->andWhere('v.dateAppointed IS NOT NULL')
+            ->setParameter('ids', $ids, Connection::PARAM_INT_ARRAY)
+            ->getQuery()
+            ->getArrayResult();
+    }
+
+    /**
      * @return Volunteer[]
      */
     public function findApplicants(): array
@@ -419,6 +434,8 @@ class VolunteerRepository extends ServiceEntityRepository
 
     public function getVpaStartOfQuarter()
     {
+        // get vpas in previous quarter
+
         //
     }
 

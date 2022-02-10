@@ -80,11 +80,11 @@ class VPAIC3 implements Form
     public function body(): Spreadsheet
     {
         $spreadsheet = $this->header();
-
         $total = [
             'volunteer' => ['F' => 0, 'M' => 0],
             'clients' => ['F' => 0, 'M' => 0],
         ];
+
         foreach ($this->data['rows'] as $rowIndex=>$row) {
             foreach ($row['clients'] as $index=>$client) {
                 $this->lastFilledOutCellY++;
