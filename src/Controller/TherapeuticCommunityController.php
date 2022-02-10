@@ -856,8 +856,8 @@ class TherapeuticCommunityController extends AbstractController
     public function getByFieldOfficeAndMonthRange(Request $request): Response
     {
         return $this->json($this->volunteerService->getByFieldOfficeAndMonthRange(
-            (int) $request->get("fieldOfficeId"),
-            (int) $request->get("quarterId")
+            (int) $request->get("quarterId"),
+            (int) $request->get("fieldOfficeId")
         ));
     }
 
