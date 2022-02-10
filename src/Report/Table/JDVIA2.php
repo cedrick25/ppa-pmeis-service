@@ -16,7 +16,7 @@ class JDVIA2 implements Form
     private const TABLE_NAME = "JDVIA2";
     
     public function __construct(
-        private int   $lastFilledOutCellY = 20,
+        private int   $lastFilledOutCellY = 4,
         private array $data = [],
     ){}
 
@@ -58,14 +58,44 @@ class JDVIA2 implements Form
         $data = [
             'FIRST_2022' => [
                 '1' => [
+                    ['I.  SPECIAL ASSIGNMENT ', '', '', '', '',],
+                    ['    (Committee memberships)', '', '', '', '',],
+                    ['   a.   National', 'PPOLPIE Executive Officers Meeting', 'January 30-31, 2022 / PPACO', 'Gerone Mabagay', '',],
                     ['', '', '', '', '',],
+                    ['          Total', '1', '', '1', '',],
+                    ['   b. Regional', '', '', '', '',],
+                    ['    Election Committee Member', 'Formulation of General Rules', 'January 3, 2022 / PPA Pasig Office', 'Daniel Agbat', '',],
+                    ['    Election Committee Member', 'Formulation of General Rules', 'January 3, 2022 / PPA Pasig Office', 'Troy Torona', '',],
+                    ['    Annual Report Committee Member', 'Consolidation of Reports', 'January 7, 2022 / PPA Pasig Office', 'Gerone Mabagay', '',],
+                    ['    TC Committee Chairperson', 'Consolidation of Rules', 'January 7, 2022 / PPA Pasig Office', 'Gerone Mabagay', '',],
                     ['', '', '', '', '',],
+                    ['          Total', '4', '', '4', '',],
+                    ['   c. Field Office', '', '', '', '',],
+                    ['None', '', '', '', '',],
+                    ['', '', '', '', '',],
+                    ['          Total', '0', '', '0', '',],
+                    ['', '', '', '', '',],
+                    ['II. MISCELLANEOUS ACTIVITIES', '', '', '', '',],
+                    ['    (e.g.  Attendance to Court Hearings, etc.)', '', '', '', '',],
+                    ['          Total', '0', '', '0', '',],
                 ],
             ],
             'FOURTH_2021' => [
                 '1' => [
+                    ['I.  SPECIAL ASSIGNMENT ', '', '', '', '',],
+                    ['    (Committee memberships)', '', '', '', '',],
+                    ['None', '', '', '', '',],
+                    ['          Total', '0', '', '0', '',],
+                    ['   c. Field Office', '', '', '', '',],
+                    ['None', '', '', '', '',],
                     ['', '', '', '', '',],
+                    ['          Total', '0', '', '0', '',],
                     ['', '', '', '', '',],
+                    ['II. MISCELLANEOUS ACTIVITIES', '', '', '', '',],
+                    ['    (e.g.  Attendance to Court Hearings, etc.)', '', '', '', '',],
+                    ['      Attendace to Court Hearing', 'Revocation of Probation', 'November 11, 2021 / RTC PAsig', 'Gerone Mabagay', '',],
+                    ['      Attendace to Court Hearing', 'Denial of Probation', 'December 3, 2021 / RTC PAsig', 'Daniel Agbat', '',],
+                    ['          Total', '2', 'TOTAL (HEADCOUNT)', '2', '',],
                 ],
             ],
         ];
@@ -102,11 +132,6 @@ class JDVIA2 implements Form
             'a3' => 'DESCRIPTION', 
             'a4' => '(1)',
 
-            'a5' => 'I.  SPECIAL ASSIGNMENT ',
-            'a6' => '    (Committee memberships)',
-            'a8' => 'II.  MISCELLANEOUS ACTIVITIES',
-            'a9' => '    (e.g.  Attendance to Court Hearings, etc)',
-
             'b3' => 'ACTIVITY',
             'b4' => '(2)',
 
@@ -124,10 +149,10 @@ class JDVIA2 implements Form
 
         ];
         $boldCoordinates = ['a1','e1','a4','b4','c4','d4','e4',];
-        $verticalAlignedCoordinates = ['B3:E11' => 'center', 'A3:A4' => 'center'];
-        $horizontalAlignedCoordinates = ['B3:E11' => 'center', 'A3:A4' => 'center'];
+        $verticalAlignedCoordinates = ['B6:E27' => 'center', 'A3:A4' => 'center'];
+        $horizontalAlignedCoordinates = ['B6:E27' => 'center', 'A3:A4' => 'center'];
         $adjustedColumnWidthCoordinates = [
-            'A' => 40, 'B' => 25, 'C' => 25, 'D' => 25, 'E' => 25, 'F' => 15, 'G' => 15, 'H' => 15, 'I' => 15, 'J' => 15, 'K' => 27, 'L' => 20, 'M' => 30, 'N' => 30, 'O' => 20, 'P' => 20, 'Q' => 5, 'R' => 5, 'S' => 5, 'T' => 20,
+            'A' => 40, 'B' => 35, 'C' => 40, 'D' => 25, 'E' => 25, 'F' => 15, 'G' => 15, 'H' => 15, 'I' => 15, 'J' => 15, 'K' => 27, 'L' => 20, 'M' => 30, 'N' => 30, 'O' => 20, 'P' => 20, 'Q' => 5, 'R' => 5, 'S' => 5, 'T' => 20,
         ];
         $outlineBorderThinCoordinates = [
             'A3:A4', 'B3:B4', 'c3:c4', 'd3:d4', 'e3:e4',
