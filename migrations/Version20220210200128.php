@@ -14,7 +14,7 @@ final class Version20220210200128 extends AbstractMigration
 {
     public function up(Schema $schema): void
     {
-        $this->addSql("INSERT INTO active_supervision_remarks (name) VALUES "
+        $this->addSql("INSERT INTO session_remarks (name) VALUES "
             . "('w/ FR/VR'),"
             . "('Terminated'),"
             . "('Revoked'),"
@@ -22,13 +22,17 @@ final class Version20220210200128 extends AbstractMigration
             . "('Transferred'),"
             . "('Absconded'),"
             . "('Died'),"
+            . "('In Jail with no report'),"
+            . "('With Serious Ailment'),"
+            . "('On Travel Abroad (with permit)'),"
+            . "('Case/ s pending in Court'),"
             . "('Others')"
         );
     }
 
     public function down(Schema $schema): void
     {
-        $this->addSql('DROP TABLE active_supervision_remarks');
+        $this->addSql('DROP TABLE session_remarks');
     }
 
     public function isTransactional(): bool
