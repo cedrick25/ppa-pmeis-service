@@ -45,7 +45,7 @@ final class Version20211019185954 extends AbstractMigration
             'NCR', 'Regions I', 'CAR', 'Regions II', 'Regions III', 'Regions IV-A',
             'Regions IV-B', 'Regions V', 'Regions VI', 'NIR or Regions XVIII', 'Regions VII',
             'Regions VIII', 'Regions IX', 'Regions X', 'Regions XIII', 'Regions XI', 'Regions XII',
-            'ARMM', '12'
+            'ARMM'
         ];
     }
 
