@@ -434,6 +434,8 @@ class VolunteerRepository extends ServiceEntityRepository
 
     public function getVpaStartOfQuarter()
     {
+        // get vpas in previous quarter
+
         //
     }
 

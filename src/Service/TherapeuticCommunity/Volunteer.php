@@ -339,4 +339,34 @@ class Volunteer implements VolunteerInterface
             return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_SUCCESS, null, ['app' => $e->getMessage()]);
         }
     }
+
+    public function getVpaMonitoring(int $quarterId, int $fieldOfficeId): array
+    {
+        $startOfQuarterVpa = $this->getStartOfQuarterVpa($quarterId, $fieldOfficeId);
+
+        return [];
+    }
+
+    private function getStartOfQuarterVpa(int $quarterId, int $fieldOfficeId):array
+    {
+        $activeVolunteers = $this->resourceFacilitatorSessionRepository->getVolunteerIdsByQuarterAndFieldOfficeId($fieldOfficeId, $quarterId);
+        $activeVolunteerIds = array_map(fn($activeVolunteer) => $activeVolunteer['resource_facilitator_id'], $activeVolunteers);;
+
+        $volunteers = $this->repository->list();
+        $previousVolunteersCount = [];
+
+        foreach ($volunteers as $volunteer) {
+            // if in active volunteers, skip
+            if (in_array($volunteer['volunteer_id'], $activeVolunteerIds)) {
+                continue;
+            }
+
+            $regionName = $this->fieldOfficesRepository->getRegionByFieldOfficeId($fieldOfficeId)['region_name'];
+            if (! isset($previousVolunteersCount[$regionName])) {
+                $previousVolunteersCount[$regionName] = 0;
+            }
+
+            $previousVolunteersCount[$regionName]++;
+        }
+    }
 }
