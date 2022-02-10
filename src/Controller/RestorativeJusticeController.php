@@ -9,6 +9,7 @@ use App\Common\AppHydrator;
 use App\Model\RJConductProcesses as ConductProcessesModel;
 use App\Model\RJRelatedActivities as RelatedActivitiesModel;
 use App\Model\RjRelatedRestitutions as RelatedRestitutionsModel;
+use App\Service\RestorativeJustice\ActiveSupervisionRemarksInterface;
 use App\Service\RestorativeJustice\ConductProcessesInterface;
 use App\Service\RestorativeJustice\OffensesInterface;
 use App\Service\RestorativeJustice\OutcomesInterface;
@@ -30,17 +31,18 @@ use Symfony\Component\Routing\Annotation\Route;
 class RestorativeJusticeController extends AbstractController
 {
     public function __construct(
-        private AppHydrator                  $appHydrator,
-        private AppFormatter                 $appFormatter,
-        private ConductProcessesInterface    $conductProcessesService,
-        private OffensesInterface            $offensesService,
-        private ProcessesInterface           $processesService,
-        private ProcessStatusInterface       $processStatusService,
-        private OutcomesInterface            $outcomesService,
-        private RelatedActivitiesInterface   $relatedActivitiesService,
-        private PaymentFormsInterface        $paymentFormsService,
-        private PaymentModesInterface        $paymentModesService,
-        private RelatedRestitutionsInterface $relatedRestitutionsService,
+        private AppHydrator                         $appHydrator,
+        private AppFormatter                        $appFormatter,
+        private ConductProcessesInterface           $conductProcessesService,
+        private OffensesInterface                   $offensesService,
+        private ProcessesInterface                  $processesService,
+        private ProcessStatusInterface              $processStatusService,
+        private OutcomesInterface                   $outcomesService,
+        private RelatedActivitiesInterface          $relatedActivitiesService,
+        private PaymentFormsInterface               $paymentFormsService,
+        private PaymentModesInterface               $paymentModesService,
+        private RelatedRestitutionsInterface        $relatedRestitutionsService,
+        private ActiveSupervisionRemarksInterface   $activeSupervisionRemarksService,
     ){}
 
     /**
@@ -324,5 +326,13 @@ class RestorativeJusticeController extends AbstractController
             (int) $request->get("quarterId"),
             (int) $request->get("fieldOfficeId"),
         ));
+    }
+
+    /**
+     * @Route("/active-supervision-remark/list", methods={"GET"})
+     */
+    public function getAllActiveSupervisionRemarks(): Response
+    {
+        return $this->json($this->activeSupervisionRemarksService->getAll());
     }
 }
