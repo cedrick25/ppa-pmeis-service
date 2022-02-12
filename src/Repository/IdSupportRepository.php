@@ -30,6 +30,8 @@ class IdSupportRepository extends ServiceEntityRepository
         private CacheHelper $cacheHelper,
         private Helper $helper,
         private AppDateHelper $appDateHelper,
+        private VolunteerRepository $volunteerRepository,
+        private UserDetailsRepository $userDetailsRepository,
     ) {
         parent::__construct($registry, IdSupport::class);
     }
@@ -106,5 +108,41 @@ class IdSupportRepository extends ServiceEntityRepository
         ]);
 
         return ($idSupport == null) ? false : $idSupport;
+    }
+
+    /**
+     * @param string[] $minMaxDate
+     * @param int $fieldOfficeId
+     * @return array<int, array<string, mixed>>
+     * @throws \Doctrine\DBAL\Exception
+     * @throws \Doctrine\DBAL\Driver\Exception
+     */
+    public function findByDateRange(array $minMaxDate, int $fieldOfficeId): array
+    {
+        $conn = $this->getEntityManager()->getConnection();
+        $min = $minMaxDate['min'];
+        $max = $minMaxDate['max'];
+
+        $sql = "SELECT ids.*, fo.name as field_office FROM id_support as ids
+                LEFT JOIN field_offices as fo ON ids.field_office_id = fo.field_office_id
+                WHERE ids.field_office_id = $fieldOfficeId AND ids.date BETWEEN CAST('$min' AS DATE) AND CAST('$max' AS DATE)";
+        $stmt = $conn->prepare($sql);
+        $query = $stmt->executeQuery();
+        $rows = $query->fetchAllAssociative();
+        $result = [];
+
+        foreach ($rows as $row) {
+            if ($row['type'] === 'VPA') {
+                $vpa = $this->volunteerRepository->find(intval($row['vpa_personnel_id']));
+                $name = $vpa->getFirstName() . ' ' . $vpa->getMiddleName() . ' ' . $vpa->getLastName();
+            } else {
+                $userDetail = $this->userDetailsRepository->findOneBy(['userAccountId' => $row['vpa_personnel_id']]);
+                $name = $userDetail->getFirstName() . ' ' . $userDetail->getMiddleName() . ' ' . $userDetail->getLastName();
+            }
+            $row['name'] = $name;
+            $result[] = $row;
+        }
+
+        return $result;
     }
 }

@@ -13,4 +13,6 @@ interface IdSupportInterface
     public function getById(int $id): array;
 
     public function deleteById(int $id): array;
+
+    public function getIdSupportReport(int $quarterId, int $fieldOfficeId): array;
 }
