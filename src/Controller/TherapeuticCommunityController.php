@@ -14,6 +14,7 @@ use App\Service\CivilStatusInterface;
 use App\Service\EducationBackgroundInterface;
 use App\Service\OccupationInterface;
 use App\Service\ReligionInterface;
+use App\Service\TherapeuticCommunity\ClientRemarksInterface;
 use App\Service\TherapeuticCommunity\ClientSessionsInterface;
 use App\Service\TherapeuticCommunity\ClientTypesInterface;
 use App\Service\TherapeuticCommunity\FieldOfficesInterface;
@@ -65,6 +66,7 @@ class TherapeuticCommunityController extends AbstractController
         private EducationBackgroundInterface $educationBackgroundService,
         private OccupationInterface $occupationService,
         private ReligionInterface $religionService,
+        private ClientRemarksInterface $clientRemarksService,
     ){}
 
     /**
@@ -1045,5 +1047,13 @@ class TherapeuticCommunityController extends AbstractController
     public function getAllReligions(): Response
     {
         return $this->json($this->religionService->getAll());
+    }
+
+    /**
+     * @Route("/client-remarks/list", methods={"GET"})
+     */
+    public function getAllClientRemarks(): Response
+    {
+        return $this->json($this->clientRemarksService->getAll());
     }
 }
