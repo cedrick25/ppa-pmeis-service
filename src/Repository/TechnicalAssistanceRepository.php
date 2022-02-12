@@ -143,9 +143,11 @@ class TechnicalAssistanceRepository extends ServiceEntityRepository
             if ($row['personnel_id'] != null) {
                 $userDetail = $this->userDetailsRepository->findOneBy(['userAccountId' => $row['personnel_id']]);
                 $name = $userDetail->getFirstName() . ' ' . $userDetail->getMiddleName() . ' ' . $userDetail->getLastName();
+                $row['role'] = $row['personnel_role'];
             } else {
                 $vpa = $this->volunteerRepository->find(intval($row['vpa_id']));
                 $name = $vpa->getFirstName() . ' ' . $vpa->getMiddleName() . ' ' . $vpa->getLastName();
+                $row['role'] = $row['vpa_role'];
             }
             $row['name'] = $name;
             $result[] = $row;

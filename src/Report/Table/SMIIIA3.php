@@ -49,37 +49,23 @@ class SMIIIA3 implements Form
         return $spreadsheet;
     }
 
+    /**
+     * @throws \PhpOffice\PhpSpreadsheet\Exception
+     */
     public function body(): Spreadsheet
     {
         $spreadsheet = $this->header();
 
-        $quarter = $this->data['quarter'];
-        $fieldOffice = $this->data['field_office_id'];
-        $data = [
-            'FIRST_2022' => [
-                '1' => [
-                    ['Free Check-up Drive', 'DSWD', 'January 12, 2022 / Pasig City Hall', '100', '', 'Luke Skylar / Renzo Melodez / Danzo Malaypay /Marie Sumapay /Pedro Pandacan', 'Facilitator', '', ],
-                ],
-            ],
-            'FOURTH_2021' => [
-                '1' => [
-                    ['Food Kitchen & Gift Giving', 'DSWD', 'December 15, 2021 / Brgy. Santolan, Pasig City', '20', '', 'Mariz Aguilera / Troy Terono / Jeffrey Magbantay', 'Facilitator', '', ],
-                ],
-            ],
-        ];
-
-
-        $rows = $data[$quarter][$fieldOffice];
-        foreach ($rows as $row) {
+        foreach ($this->data['rows'] as $row) {
             $this->lastFilledOutCellY++;
-            $spreadsheet->getActiveSheet()->setCellValue("a" . $this->lastFilledOutCellY, $row[0]);
-            $spreadsheet->getActiveSheet()->setCellValue("b" . $this->lastFilledOutCellY, $row[1]);
-            $spreadsheet->getActiveSheet()->setCellValue("c" . $this->lastFilledOutCellY, $row[2]);
-            $spreadsheet->getActiveSheet()->setCellValue("d" . $this->lastFilledOutCellY, $row[3]);
-            $spreadsheet->getActiveSheet()->setCellValue("e" . $this->lastFilledOutCellY, $row[4]);
-            $spreadsheet->getActiveSheet()->setCellValue("f" . $this->lastFilledOutCellY, $row[5]);
-            $spreadsheet->getActiveSheet()->setCellValue("g" . $this->lastFilledOutCellY, $row[6]);
-            $spreadsheet->getActiveSheet()->setCellValue("h" . $this->lastFilledOutCellY, $row[7]);
+            $spreadsheet->getActiveSheet()->setCellValue("a" . $this->lastFilledOutCellY, $row['activity_name']);
+            $spreadsheet->getActiveSheet()->setCellValue("b" . $this->lastFilledOutCellY, $row['agency_name']);
+            $spreadsheet->getActiveSheet()->setCellValue("c" . $this->lastFilledOutCellY, $row['date'] . ' ' . $row['venue']);
+            $spreadsheet->getActiveSheet()->setCellValue("d" . $this->lastFilledOutCellY, $row['participants_no']);
+            $spreadsheet->getActiveSheet()->setCellValue("e" . $this->lastFilledOutCellY, $row['participants_type']);
+            $spreadsheet->getActiveSheet()->setCellValue("f" . $this->lastFilledOutCellY, $row['name']);
+            $spreadsheet->getActiveSheet()->setCellValue("g" . $this->lastFilledOutCellY, $row['role']);
+            $spreadsheet->getActiveSheet()->setCellValue("h" . $this->lastFilledOutCellY, $row['remarks']);
         }
         $spreadsheet->getActiveSheet()->getStyle('A6:h' . $this->lastFilledOutCellY)->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
 
