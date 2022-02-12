@@ -300,4 +300,9 @@ class CacheHelper
     {
         return 'id_supports_all';
     }
+
+    public function getAllTechnicalAssistanceKey(): string
+    {
+        return 'technical_assistance_all';
+    }
 }

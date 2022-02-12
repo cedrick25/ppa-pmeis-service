@@ -13,6 +13,8 @@ use App\Service\Volunteerism\IdInterface;
 use App\Service\Volunteerism\IdSupportInterface;
 use App\Service\Volunteerism\OperationsInterface;
 use App\Service\Volunteerism\ServicesRenderedInterface;
+use App\Model\TechnicalAssistance as TechnicalAssistanceModel;
+use App\Service\Volunteerism\TechnicalAssistanceInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -24,12 +26,13 @@ use Symfony\Component\Routing\Annotation\Route;
 class VolunteerismController extends AbstractController
 {
     public function __construct(
-        private AppHydrator                 $appHydrator,
-        private AppFormatter                $appFormatter,
-        private OperationsInterface         $operationService,
-        private IdInterface                 $idService,
-        private ServicesRenderedInterface   $servicesRenderedService,
-        private IdSupportInterface          $idSupportService,
+        private AppHydrator                  $appHydrator,
+        private AppFormatter                 $appFormatter,
+        private OperationsInterface          $operationService,
+        private IdInterface                  $idService,
+        private ServicesRenderedInterface    $servicesRenderedService,
+        private IdSupportInterface           $idSupportService,
+        private TechnicalAssistanceInterface $technicalAssistanceService,
     ){}
 
     /**
@@ -175,5 +178,46 @@ class VolunteerismController extends AbstractController
             (int) $request->get("quarterId"),
             (int) $request->get("fieldOfficeId"),
         ));
+    }
+
+    /**
+     * @Route("/technical-assistance/create", methods={"POST"})
+     */
+    public function createTechnicalAssistance(Request $request): Response
+    {
+        try {
+            $data = json_decode($request->getContent(), true);
+
+            /** @var TechnicalAssistanceModel $technicalAssistance */
+            $technicalAssistance = $this->appHydrator->convertArrayToObject($data, TechnicalAssistanceModel::class);
+
+            return $this->json($this->technicalAssistanceService->create($technicalAssistance));
+        } catch (\ReflectionException $exception) {
+            return $this->json($this->appFormatter->formatResponse('Creating Technical Assistance failed', null, ['reflection' => $exception->getMessage()]));
+        }
+    }
+
+    /**
+     * @Route("/technical-assistance/list", methods={"GET"})
+     */
+    public function getAllTechnicalAssistance(): Response
+    {
+        return $this->json($this->technicalAssistanceService->getAll());
+    }
+
+    /**
+     * @Route("/technical-assistance/by/id/{id}", methods={"GET"})
+     */
+    public function getTechnicalAssistanceById(Request $request): Response
+    {
+        return $this->json($this->technicalAssistanceService->getById((int) $request->get("id")));
+    }
+
+    /**
+     * @Route("/technical-assistance/delete/{id}", methods={"GET"})
+     */
+    public function deleteTechnicalAssistanceById(Request $request): Response
+    {
+        return $this->json($this->technicalAssistanceService->deleteById((int) $request->get("id")));
     }
 }
