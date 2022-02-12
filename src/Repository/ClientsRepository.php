@@ -10,6 +10,7 @@ use App\Entity\Clients;
 use App\Enum\Response as ResponseEnum;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\DBAL\Connection;
+use Doctrine\DBAL\ParameterType;
 use Doctrine\ORM\OptimisticLockException;
 use Doctrine\ORM\ORMException;
 use Doctrine\Persistence\ManagerRegistry;
@@ -67,6 +68,7 @@ class ClientsRepository extends ServiceEntityRepository
         $newClient->setIsPwd($clientData->isPwd());
         $newClient->setSupervisionStart($this->appDateHelper->convertStringToImmutableDate($clientData->getSupervisionStart()));
         $newClient->setSupervisionEnd($this->appDateHelper->convertStringToImmutableDate($clientData->getSupervisionEnd()));
+        $newClient->setClientRemarksId($clientData->getClientRemarksId());
         $newClient->setCreatedAt($this->appDateHelper->getCurrentImmutableDate());
 
         $this->getEntityManager()->persist($newClient);
@@ -181,6 +183,7 @@ class ClientsRepository extends ServiceEntityRepository
         $client->setIsPwd($clientData->isPwd());
         $client->setSupervisionStart($this->appDateHelper->convertStringToImmutableDate($clientData->getSupervisionStart()));
         $client->setSupervisionEnd($this->appDateHelper->convertStringToImmutableDate($clientData->getSupervisionEnd()));
+        $newClient->setClientRemarksId($clientData->getClientRemarksId());
         $client->setUpdatedAt($this->appDateHelper->getCurrentImmutableDate());
 
         $this->getEntityManager()->flush();
@@ -284,6 +287,45 @@ class ClientsRepository extends ServiceEntityRepository
             ->where('c.clientTypeId = :id')
             ->andWhere('c.deletedAt IS NULL')
             ->setParameter('id', $id)
+            ->getQuery()
+            ->getResult();
+    }
+
+    /**
+     * @param string[] $minMaxDate
+     * @param string $direction
+     * @param int $fieldOfficeId
+     * @param int|null $clientRemarksId
+     * @return Clients[]
+     */
+    public function findBySupervisionPeriodDateRange(array $minMaxDate, string $direction, int $fieldOfficeId, ?int $clientRemarksId): array
+    {
+        $supervisionDirection = (strtoupper($direction) === 'END') ? 'supervisionEnd' : 'supervisionStart';
+        $predicate = "c.$supervisionDirection BETWEEN CAST(:minDate AS DATE) AND CAST(:maxDate AS DATE)";
+        $clientRemarksIdWhere = ($clientRemarksId === null) ? "c.clientRemarksId IS NULL" : "c.clientRemarksId = $clientRemarksId";
+
+        return $this->createQueryBuilder('c')
+            ->where($predicate)
+            ->andWhere('c.fieldOfficeId = :fieldOfficeId')
+            ->andWhere($clientRemarksIdWhere)
+            ->andWhere('c.deletedAt IS NULL')
+            ->setParameter('fieldOfficeId', $fieldOfficeId)
+            ->setParameter('minDate', $minMaxDate['min'], 'string')
+            ->setParameter('maxDate', $minMaxDate['max'], 'string')
+            ->getQuery()
+            ->getResult();
+    }
+
+    public function findSupervisionCasesDropBySupervisionPeriodEndDateRange(array $minMaxDate, int $fieldOfficeId): array
+    {
+        return $this->createQueryBuilder('c')
+            ->where('c.supervisionEnd BETWEEN CAST(:minDate AS DATE) AND CAST(:maxDate AS DATE)')
+            ->andWhere('c.fieldOfficeId = :fieldOfficeId')
+            ->andWhere('c.clientRemarksId = 2 OR c.clientRemarksId = 3 OR c.clientRemarksId = 5')
+            ->andWhere('c.deletedAt IS NULL')
+            ->setParameter('fieldOfficeId', $fieldOfficeId)
+            ->setParameter('minDate', $minMaxDate['min'], 'string')
+            ->setParameter('maxDate', $minMaxDate['max'], 'string')
             ->getQuery()
             ->getResult();
     }

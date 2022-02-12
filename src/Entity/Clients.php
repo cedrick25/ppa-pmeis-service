@@ -94,6 +94,11 @@ class Clients
     private DateTimeInterface $supervisionEnd;
 
     /**
+     * @ORM\Column(type="integer", nullable=true)
+     */
+    private ?int $clientRemarksId;
+
+    /**
      * @ORM\Column(type="datetime_immutable")
      */
     private DateTimeImmutable $createdAt;
@@ -284,6 +289,24 @@ class Clients
     {
         $this->supervisionEnd = $supervisionEnd;
 
+        return $this;
+    }
+
+    /**
+     * @return int|null
+     */
+    public function getClientRemarksId(): ?int
+    {
+        return $this->clientRemarksId;
+    }
+
+    /**
+     * @param int|null $clientRemarksId
+     * @return Clients
+     */
+    public function setClientRemarksId(?int $clientRemarksId): Clients
+    {
+        $this->clientRemarksId = $clientRemarksId;
         return $this;
     }
 

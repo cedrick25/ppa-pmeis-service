@@ -8,6 +8,8 @@ use App\Common\AppDateHelper;
 use App\Common\AppFormatter;
 use App\Enum\Response as ResponseEnum;
 use App\Model\Sessions as SessionsModel;
+use App\Repository\ClientsRepository;
+use App\Repository\QuartersRepository;
 use App\Repository\SessionsRepository;
 use Doctrine\DBAL\Exception\InvalidArgumentException;
 use Doctrine\ORM\ORMException;
@@ -17,11 +19,15 @@ use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 class Sessions implements SessionsInterface
 {
+    const ON_CS_CLIENT_TYPE_ID = 4;
+
     public function __construct(
         private AppFormatter       $appFormatter,
         private SessionsRepository $repository,
         private ValidatorInterface $validator,
-        private AppDateHelper $appDateHelper,
+        private AppDateHelper      $appDateHelper,
+        private QuartersRepository $quartersRepository,
+        private ClientsRepository  $clientsRepository,
     ){}
 
     public function create(SessionsModel $sessionData): array
@@ -189,10 +195,15 @@ class Sessions implements SessionsInterface
         }
     }
 
-    public function getTCIA2(int $quarterId, string $role): array
+    public function getTCIA2(int $quarterId, int $fieldOfficeId, string $role): array
     {
+        /**
+         * CRITERIA
+         * Per Client in current quarter
+         * Session activities from selected quarter and previous quarter in the same year
+         */
         try {
-            $sessions = $this->repository->fetchTCIA2($quarterId, $role);
+            $sessions = $this->repository->fetchTCIA2($quarterId, $fieldOfficeId, $role);
 
             if ($sessions == null) {
                 return $this->appFormatter->formatResponse(ResponseEnum::NO_DATA, null);
@@ -208,7 +219,7 @@ class Sessions implements SessionsInterface
                 $fullName = $session['last_name'] . '_' . $session['first_name'] . '_' . $middleInitial;
                 $monthInitial = $this->appDateHelper->getFirstLetterOfMonthFromDateString($session['date']);
                 // The only criteria needed is the fullName and client type (for sorting)
-                // Because if we add phase and quarter then the whenever there is new quarter or phase with the same name
+                // Because if we add phase and quarter then whenever there is new quarter or phase with the same name
                 // it will produce another row with same name
                 $rowIdentifier = $session['client_type'] . '_' . $fullName;
                 $monthIdentifier = $quarter . '_' . $monthInitial;
@@ -223,7 +234,132 @@ class Sessions implements SessionsInterface
 
             return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_SUCCESS, $rows);
         } catch (\Doctrine\DBAL\Exception | \Doctrine\DBAL\Driver\Exception $e) {
-            return $this->appFormatter->formatResponse(ResponseEnum::UPDATING_FAILED, null, ['orm' => $e->getMessage()]);
+            return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_FAILED, null, ['orm' => $e->getMessage()]);
         }
+    }
+
+    public function getTC7(int $quarterId, int $fieldOfficeId):array
+    {
+        try {
+            $currentQuarter = $this->quartersRepository->find($quarterId);
+            if ($currentQuarter == null) {
+                return $this->appFormatter->formatResponse(ResponseEnum::NO_DATA, null);
+            }
+
+            $previousQuarter = $this->quartersRepository->fetchPreviousQuarterByNameAndYear($currentQuarter->getName(), $currentQuarter->getYear());
+
+            $activeSupervisions = $this->getActiveSupervision($previousQuarter, $fieldOfficeId);
+            $activeCourtesySupervision = $this->getActiveSupervision($previousQuarter, $fieldOfficeId, self::ON_CS_CLIENT_TYPE_ID);
+
+            $superVisionReferrals = $this->getSupervisionReferrals($currentQuarter, $fieldOfficeId);
+            $courtesySupervisionReferrals = $this->getSupervisionReferrals($currentQuarter, $fieldOfficeId, self::ON_CS_CLIENT_TYPE_ID);
+
+            $supervisionCasesDropped = $this->getSupervisionCasesDropped($currentQuarter, $fieldOfficeId);
+//            $a = 0;
+            // LESS: Clients under the following circumstances
+
+            // Total Adjusted Supervision Caseload This Quarter
+            // Total Number of Clients Attending TC
+            // Percentage of Clients Attending TC
+
+            return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_SUCCESS, []);
+        } catch (\Exception $e) {
+            return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_FAILED, null, ['app' => $e->getMessage()]);
+        }
+    }
+
+    /**
+     * @param \App\Entity\Quarters|null $quarter
+     * @param int $fieldOfficeId
+     * @param int|null $clientRemarksId
+     * @return int[]
+     */
+    private function getActiveSupervision(?\App\Entity\Quarters $quarter, int $fieldOfficeId, ?int $clientRemarksId = null): array
+    {
+        /**
+         * CRITERIA:
+         * Clients supervision end is within the previous quarter
+         * Same field office and client remarks = null | 4 (on CS)
+         *
+         * RETURNS:  [client_type_id:score]
+         */
+        if ($quarter == null) {
+           return [];
+        }
+
+        $result = [];
+        $previousQuarterDates = $this->quartersRepository->getQuarterMinMaxDate($quarter);
+        $clients = $this->clientsRepository->findBySupervisionPeriodDateRange($previousQuarterDates, 'END', $fieldOfficeId, $clientRemarksId);
+
+        foreach ($clients as $client) {
+            if (! isset($result[$client->getClientTypeId()])) {
+                $result[$client->getClientTypeId()] = 0;
+            }
+
+            $result[$client->getClientTypeId()]++;
+        }
+
+        return $result;
+    }
+
+    public function getSupervisionReferrals(?\App\Entity\Quarters $quarter, int $fieldOfficeId, ?int $clientRemarksId = null): array
+    {
+        /**
+         * CRITERIA:
+         * Clients supervision start is within the selected quarter
+         * Same field office and client remarks = null | 4 (on CS)
+         *
+         * RETURNS [month:[client_type_id:score]]
+         */
+        if ($quarter == null) {
+            return [];
+        }
+
+        $result = [];
+        $quarterMinMaxDate = $this->quartersRepository->getQuarterMinMaxDate($quarter);
+        $clients = $this->clientsRepository->findBySupervisionPeriodDateRange($quarterMinMaxDate, 'START', $fieldOfficeId, $clientRemarksId);
+
+        foreach ($clients as $client) {
+            $supervisionMonth = intval($client->getSupervisionStart()->format('m'));
+
+            if (! isset($result[$client->getClientTypeId()][$supervisionMonth])) {
+                $result[$client->getClientTypeId()][$supervisionMonth] = 0;
+            }
+
+            $result[$client->getClientTypeId()][$supervisionMonth]++;
+        }
+
+        return $result;
+    }
+
+    public function getSupervisionCasesDropped(?\App\Entity\Quarters $quarter, int $fieldOfficeId): array
+    {
+        /**
+         * CRITERIA:
+         * Clients supervision end is within the selected quarter
+         * Same field office and client remarks = null | 4 (on CS)
+         *
+         * RETURNS [month:[client_type_id:score]]
+         */
+        if ($quarter == null) {
+            return [];
+        }
+
+        $result = [];
+        $quarterMinMaxDate = $this->quartersRepository->getQuarterMinMaxDate($quarter);
+        $clients = $this->clientsRepository
+            ->findSupervisionCasesDropBySupervisionPeriodEndDateRange($quarterMinMaxDate,  $fieldOfficeId);
+
+        foreach ($clients as $client) {
+            $supervisionMonth = intval($client->getSupervisionStart()->format('m'));
+
+            if (! isset($result[$client->getClientTypeId()][$supervisionMonth])) {
+                $result[$client->getClientTypeId()][$supervisionMonth] = 0;
+            }
+
+            $result[$client->getClientTypeId()][$supervisionMonth]++;
+        }
+
+        return $result;
     }
 }
