@@ -13,6 +13,7 @@ class TechnicalAssistance
         private string $date,
         private string $venue,
         private int $participantsNo,
+        private int $fieldOfficeId,
         private string $participantsType,
         private ?int $personnelId = null,
         private ?string $personnelRole = null,
@@ -67,6 +68,14 @@ class TechnicalAssistance
     public function getParticipantsNo(): int
     {
         return $this->participantsNo;
+    }
+
+    /**
+     * @return int
+     */
+    public function getFieldOfficeId(): int
+    {
+        return $this->fieldOfficeId;
     }
 
     /**

@@ -7,6 +7,7 @@ use App\Common\CacheHelper;
 use App\Entity\TechnicalAssistance;
 use App\Model\TechnicalAssistance as TechnicalAssistanceModel;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
+use Doctrine\DBAL\Exception;
 use Doctrine\ORM\OptimisticLockException;
 use Doctrine\ORM\ORMException;
 use Doctrine\Persistence\ManagerRegistry;
@@ -30,6 +31,8 @@ class TechnicalAssistanceRepository extends ServiceEntityRepository
         private CacheHelper $cacheHelper,
         private Helper $helper,
         private AppDateHelper $appDateHelper,
+        private VolunteerRepository $volunteerRepository,
+        private UserDetailsRepository $userDetailsRepository,
     ) {
         parent::__construct($registry, TechnicalAssistance::class);
     }
@@ -70,6 +73,7 @@ class TechnicalAssistanceRepository extends ServiceEntityRepository
         $newTechnicalAssistance->setAgencyName($data->getAgencyName());
         $newTechnicalAssistance->setDate($this->appDateHelper->convertStringToImmutableDate($data->getDate()));
         $newTechnicalAssistance->setVenue($data->getVenue());
+        $newTechnicalAssistance->setFieldOfficeId($data->getFieldOfficeId());
         $newTechnicalAssistance->setParticipantsNo($data->getParticipantsNo());
         $newTechnicalAssistance->setParticipantsType($data->getParticipantsType());
         $newTechnicalAssistance->setPersonnelId($data->getPersonnelId());
@@ -112,5 +116,41 @@ class TechnicalAssistanceRepository extends ServiceEntityRepository
         ]);
 
         return ($technicalAssistance == null) ? false : $technicalAssistance;
+    }
+
+    /**
+     * @param string[] $minMaxDate
+     * @param int $fieldOfficeId
+     * @return array<int, array<string, mixed>>
+     * @throws Exception
+     * @throws \Doctrine\DBAL\Driver\Exception
+     */
+    public function findByDateRange(array $minMaxDate, int $fieldOfficeId): array
+    {
+        $conn = $this->getEntityManager()->getConnection();
+        $min = $minMaxDate['min'];
+        $max = $minMaxDate['max'];
+
+        $sql = "SELECT ta.*, fo.name as field_office FROM technical_assistance as ta
+                LEFT JOIN field_offices as fo ON ta.field_office_id = fo.field_office_id
+                WHERE ta.field_office_id = $fieldOfficeId AND ta.date BETWEEN CAST('$min' AS DATE) AND CAST('$max' AS DATE)";
+        $stmt = $conn->prepare($sql);
+        $query = $stmt->executeQuery();
+        $rows = $query->fetchAllAssociative();
+        $result = [];
+
+        foreach ($rows as $row) {
+            if ($row['personnel_id'] != null) {
+                $userDetail = $this->userDetailsRepository->findOneBy(['userAccountId' => $row['personnel_id']]);
+                $name = $userDetail->getFirstName() . ' ' . $userDetail->getMiddleName() . ' ' . $userDetail->getLastName();
+            } else {
+                $vpa = $this->volunteerRepository->find(intval($row['vpa_id']));
+                $name = $vpa->getFirstName() . ' ' . $vpa->getMiddleName() . ' ' . $vpa->getLastName();
+            }
+            $row['name'] = $name;
+            $result[] = $row;
+        }
+
+        return $result;
     }
 }
