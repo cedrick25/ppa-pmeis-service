@@ -501,7 +501,7 @@ class SessionsRepository extends ServiceEntityRepository
     public function findSessionsIdsByQuarter(Quarters $quarterData): array
     {
         $conn = $this->getEntityManager()->getConnection();
-        $minMaxDate = $this->quartersRepository->getMinMaxDateByQuarter($quarterData);
+        $minMaxDate = $this->quartersRepository->getQuarterMinMaxDate($quarterData);
         $minDate = $minMaxDate['min'];
         $maxDate = $minMaxDate['max'];
 

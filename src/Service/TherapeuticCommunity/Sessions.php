@@ -8,6 +8,7 @@ use App\Common\AppDateHelper;
 use App\Common\AppFormatter;
 use App\Enum\Response as ResponseEnum;
 use App\Model\Sessions as SessionsModel;
+use App\Repository\ClientSessionsRepository;
 use App\Repository\ClientsRepository;
 use App\Repository\QuartersRepository;
 use App\Repository\SessionsRepository;
@@ -22,12 +23,13 @@ class Sessions implements SessionsInterface
     const ON_CS_CLIENT_TYPE_ID = 4;
 
     public function __construct(
-        private AppFormatter       $appFormatter,
-        private SessionsRepository $repository,
-        private ValidatorInterface $validator,
-        private AppDateHelper      $appDateHelper,
-        private QuartersRepository $quartersRepository,
-        private ClientsRepository  $clientsRepository,
+        private AppFormatter             $appFormatter,
+        private SessionsRepository       $repository,
+        private ValidatorInterface       $validator,
+        private AppDateHelper            $appDateHelper,
+        private QuartersRepository       $quartersRepository,
+        private ClientsRepository        $clientsRepository,
+        private ClientSessionsRepository $clientSessionsRepository,
     ){}
 
     public function create(SessionsModel $sessionData): array
@@ -122,7 +124,7 @@ class Sessions implements SessionsInterface
             return $this->appFormatter->formatResponse(ResponseEnum::DELETING_SUCCESS, null);
         } catch (\Psr\Cache\InvalidArgumentException $exception) {
             return $this->appFormatter->formatResponse(ResponseEnum::DELETING_FAILED, null, ['cache' => $exception->getMessage()]);
-        } catch (ORMException $exception) {
+        } catch (Exception $exception) {
             return $this->appFormatter->formatResponse(ResponseEnum::DELETING_FAILED, null, ['orm' => $exception->getMessage()]);
         }
     }
@@ -137,8 +139,6 @@ class Sessions implements SessionsInterface
             }
 
             return $this->appFormatter->formatResponse(ResponseEnum::UPDATING_SUCCESS, null);
-        } catch (ORMException $exception) {
-            return $this->appFormatter->formatResponse(ResponseEnum::UPDATING_FAILED, null, ['orm' => $exception->getMessage()]);
         } catch (InvalidArgumentException | Exception $e) {
             return $this->appFormatter->formatResponse(ResponseEnum::UPDATING_FAILED, null, ['app' => $e->getMessage()]);
         } catch (\Psr\Cache\InvalidArgumentException $e) {
@@ -156,7 +156,7 @@ class Sessions implements SessionsInterface
             }
 
             return $this->appFormatter->formatResponse(ResponseEnum::UPDATING_SUCCESS, null);
-        } catch (\Doctrine\DBAL\Driver\Exception | ORMException $exception) {
+        } catch (\Doctrine\DBAL\Driver\Exception $exception) {
             return $this->appFormatter->formatResponse(ResponseEnum::UPDATING_FAILED, null, ['orm' => $exception->getMessage()]);
         } catch (InvalidArgumentException | Exception $e) {
             return $this->appFormatter->formatResponse(ResponseEnum::UPDATING_FAILED, null, ['app' => $e->getMessage()]);
@@ -250,21 +250,39 @@ class Sessions implements SessionsInterface
 
             $activeSupervisions = $this->getActiveSupervision($previousQuarter, $fieldOfficeId);
             $activeCourtesySupervision = $this->getActiveSupervision($previousQuarter, $fieldOfficeId, self::ON_CS_CLIENT_TYPE_ID);
-
             $superVisionReferrals = $this->getSupervisionReferrals($currentQuarter, $fieldOfficeId);
             $courtesySupervisionReferrals = $this->getSupervisionReferrals($currentQuarter, $fieldOfficeId, self::ON_CS_CLIENT_TYPE_ID);
-
             $supervisionCasesDropped = $this->getSupervisionCasesDropped($currentQuarter, $fieldOfficeId);
-//            $a = 0;
-            // LESS: Clients under the following circumstances
+            $totalSupervisionCasesHandled = $this
+                ->getTotalSupervisionCaseHandled(
+                    $activeSupervisions,
+                    $activeCourtesySupervision,
+                    $superVisionReferrals,
+                    $courtesySupervisionReferrals,
+                    $supervisionCasesDropped
+                );
+            $less = $this->getLess($currentQuarter, $fieldOfficeId);
+            $totalAdjustedSupervisionCaseLoad = $this->getTotalAdjustedSupervisionCaseLoad($totalSupervisionCasesHandled, $less);
+            $clientsAttendingTC = $this->getClientsAttendingTC($currentQuarter, $fieldOfficeId);
+            $percentageOfClientsAttendingTC = $this
+                ->getPercentageOfClientsAttendingTC($totalAdjustedSupervisionCaseLoad, $clientsAttendingTC);
 
-            // Total Adjusted Supervision Caseload This Quarter
-            // Total Number of Clients Attending TC
-            // Percentage of Clients Attending TC
-
-            return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_SUCCESS, []);
-        } catch (\Exception $e) {
+            return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_SUCCESS, [
+                'activeSupervisions' => $activeSupervisions,
+                'activeCourtesySupervision' => $activeCourtesySupervision,
+                'superVisionReferrals' => $superVisionReferrals,
+                'courtesySupervisionReferrals' => $courtesySupervisionReferrals,
+                'supervisionCasesDropped' => $supervisionCasesDropped,
+                'totalSupervisionCasesHandled' => $totalSupervisionCasesHandled,
+                'less' => $less,
+                'totalAdjustedSupervisionCaseLoad' => $totalAdjustedSupervisionCaseLoad,
+                'clientsAttendingTC' => $clientsAttendingTC,
+                'percentageOfClientsAttendingTC' => $percentageOfClientsAttendingTC
+            ]);
+        } catch (Exception $e) {
             return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_FAILED, null, ['app' => $e->getMessage()]);
+        } catch (\Doctrine\DBAL\Driver\Exception $e) {
+            return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_FAILED, null, ['orm' => $e->getMessage()]);
         }
     }
 
@@ -302,7 +320,13 @@ class Sessions implements SessionsInterface
         return $result;
     }
 
-    public function getSupervisionReferrals(?\App\Entity\Quarters $quarter, int $fieldOfficeId, ?int $clientRemarksId = null): array
+    /**
+     * @param \App\Entity\Quarters $quarter
+     * @param int $fieldOfficeId
+     * @param int|null $clientRemarksId
+     * @return int[][]
+     */
+    private function getSupervisionReferrals(\App\Entity\Quarters $quarter, int $fieldOfficeId, ?int $clientRemarksId = null): array
     {
         /**
          * CRITERIA:
@@ -311,9 +335,6 @@ class Sessions implements SessionsInterface
          *
          * RETURNS [month:[client_type_id:score]]
          */
-        if ($quarter == null) {
-            return [];
-        }
 
         $result = [];
         $quarterMinMaxDate = $this->quartersRepository->getQuarterMinMaxDate($quarter);
@@ -332,7 +353,12 @@ class Sessions implements SessionsInterface
         return $result;
     }
 
-    public function getSupervisionCasesDropped(?\App\Entity\Quarters $quarter, int $fieldOfficeId): array
+    /**
+     * @param \App\Entity\Quarters $quarter
+     * @param int $fieldOfficeId
+     * @return int[][]
+     */
+    private function getSupervisionCasesDropped(\App\Entity\Quarters $quarter, int $fieldOfficeId): array
     {
         /**
          * CRITERIA:
@@ -341,9 +367,6 @@ class Sessions implements SessionsInterface
          *
          * RETURNS [month:[client_type_id:score]]
          */
-        if ($quarter == null) {
-            return [];
-        }
 
         $result = [];
         $quarterMinMaxDate = $this->quartersRepository->getQuarterMinMaxDate($quarter);
@@ -358,6 +381,195 @@ class Sessions implements SessionsInterface
             }
 
             $result[$client->getClientTypeId()][$supervisionMonth]++;
+        }
+
+        return $result;
+    }
+
+    /**
+     * @param int[] $activeSupervisions
+     * @param int[] $activeCourtesySupervisions
+     * @param int[][] $superVisionReferrals
+     * @param int[][] $courtesySupervisionReferrals
+     * @param int[][] $supervisionCasesDropped
+     * @return int[]
+     */
+    private function getTotalSupervisionCaseHandled(
+        array $activeSupervisions,
+        array $activeCourtesySupervisions,
+        array $superVisionReferrals,
+        array $courtesySupervisionReferrals,
+        array $supervisionCasesDropped
+    ): array
+    {
+        $result = [];
+
+        foreach ($activeSupervisions as $clientTypeId=>$score) {
+            if (! isset($result[$clientTypeId])) {
+                $result[$clientTypeId] = 0;
+            }
+            $result[$clientTypeId] += $score;
+        }
+
+        foreach ($activeCourtesySupervisions as $clientTypeId=>$score) {
+            if (! isset($result[$clientTypeId])) {
+                $result[$clientTypeId] = 0;
+            }
+            $result[$clientTypeId] += $score;
+        }
+
+        foreach ($superVisionReferrals as $clientTypeId=>$superVisionReferral) {
+            foreach ($superVisionReferral as $supervisionMonth=>$score) {
+                if (! isset($result[$clientTypeId])) {
+                    $result[$clientTypeId] = 0;
+                }
+                $result[$clientTypeId] += $score;
+            }
+        }
+
+        foreach ($courtesySupervisionReferrals as $clientTypeId=>$superVisionReferral) {
+            foreach ($superVisionReferral as $supervisionMonth=>$score) {
+                if (! isset($result[$clientTypeId])) {
+                    $result[$clientTypeId] = 0;
+                }
+                $result[$clientTypeId] += $score;
+            }
+        }
+
+        foreach ($supervisionCasesDropped as $clientTypeId=>$superVisionReferral) {
+            foreach ($superVisionReferral as $supervisionMonth=>$score) {
+                if (! isset($result[$clientTypeId])) {
+                    $result[$clientTypeId] = 0;
+                }
+                $result[$clientTypeId] += $score;
+            }
+        }
+
+        return $result;
+    }
+
+    /**
+     * @param \App\Entity\Quarters $quarter
+     * @param int $fieldOfficeId
+     * @return array<int, int[]>
+     * @throws \Doctrine\DBAL\Driver\Exception
+     * @throws \Doctrine\DBAL\Exception
+     */
+    private function getLess(\App\Entity\Quarters $quarter, int $fieldOfficeId):array
+    {
+        /**
+         * CRITERIA:
+         *  Clients that has no session in the current quarter, same field office as selected
+         *  and remarks are:
+         *      a.   On CS to other FOs
+                b.   Died with no report submitted to Court/ BPP
+                c.   Absconded with no report submitted to Court/ BPP
+                d.   In jail with no report submitted to court/ BPP
+                e.   With serious ailment
+                f.   On travel abroad ( with permit)
+                h.   Cases Pending in Court/ BPP
+                i.   Others (specify):  No initial report
+         * RETURNS [client_type_id:[client_remarks_id:score]]
+         */
+
+        $result = [];
+        $quarterMinMaxDate = $this->quartersRepository->getQuarterMinMaxDate($quarter);
+        /** @var \App\Entity\Clients[] $clients */
+        $clients = $this->clientsRepository
+            ->findSupervisionCasesDropBySupervisionPeriodEndDateRangeLess($quarterMinMaxDate,  $fieldOfficeId);
+
+        $sessionIds = $this->repository->findSessionsIdsByQuarter($quarter);
+        $sessionIds = array_map(fn($sessionId) => $sessionId['session_id'], $sessionIds);
+
+        $sessionClients = $this->clientSessionsRepository->findClientsBySessionIds($sessionIds);
+        $sessionClientIds = array_map(fn($client) => $client['client_id'], $sessionClients);
+
+        foreach ($clients as $client) {
+            if (in_array($client->getClientId(), $sessionClientIds)) {
+                continue;
+            }
+
+            if (! isset($result[$client->getClientTypeId()][$client->getClientRemarksId()])) {
+                $result[$client->getClientTypeId()][$client->getClientRemarksId()] = 0;
+            }
+
+            $result[$client->getClientTypeId()][$client->getClientRemarksId()]++;
+        }
+
+        return $result;
+    }
+
+    /**
+     * @param int[] $totalSupervisionCasesHandled
+     * @param int[][] $less
+     * @return int[]
+     */
+    private function getTotalAdjustedSupervisionCaseLoad(array $totalSupervisionCasesHandled, array $less): array
+    {
+        $result = [];
+
+        foreach ($totalSupervisionCasesHandled as $clientTypeId=>$score) {
+            if (! isset($result[$clientTypeId])) {
+                $result[$clientTypeId] = 0;
+            }
+            $result[$clientTypeId] += $score;
+        }
+
+        foreach ($less as $clientTypeId=>$les) {
+            foreach ($les as $clientRemarksId=>$score) {
+                if (! isset($result[$clientTypeId])) {
+                    $result[$clientTypeId] = 0;
+                }
+                $result[$clientTypeId] += $score;
+            }
+        }
+
+        return $result;
+    }
+
+    /**
+     * @param \App\Entity\Quarters $quarter
+     * @param int $fieldOfficeId
+     * @return int[]
+     * @throws \Doctrine\DBAL\Driver\Exception
+     * @throws \Doctrine\DBAL\Exception
+     */
+    private function getClientsAttendingTC(\App\Entity\Quarters $quarter, int $fieldOfficeId):array
+    {
+        /**
+         * CRITERIA:
+         * All clients that attend session in current quarter and field office
+         *
+         * RETURNS [client_type_id:score]
+         */
+        $result = [];
+        $sessionIds = $this->repository->findSessionsIdsByQuarter($quarter);
+        $sessionIds = array_map(fn($sessionId) => $sessionId['session_id'], $sessionIds);
+        $sessionClients = $this->clientSessionsRepository->findClientsBySessionIdsAndFieldOfficeId($sessionIds, $fieldOfficeId);
+
+        foreach ($sessionClients as $sessionClient) {
+            if (! isset($result[$sessionClient['client_type_id']])) {
+                $result[$sessionClient['client_type_id']] = 0;
+            }
+            $result[$sessionClient['client_type_id']]++;
+        }
+
+        return $result;
+    }
+
+    /**
+     * @param int[] $totalAdjustedSupervisionCaseLoad
+     * @param int[] $clientsAttendingTC
+     * @return int[]
+     */
+    private function getPercentageOfClientsAttendingTC(
+        array $totalAdjustedSupervisionCaseLoad,
+        array $clientsAttendingTC
+    ):array {
+        $result = [];
+
+        foreach ($totalAdjustedSupervisionCaseLoad as $clientTypeId=>$score) {
+            $result[$clientTypeId] = $clientsAttendingTC[$clientTypeId] / $score;
         }
 
         return $result;

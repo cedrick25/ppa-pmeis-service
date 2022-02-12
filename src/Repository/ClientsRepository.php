@@ -183,7 +183,7 @@ class ClientsRepository extends ServiceEntityRepository
         $client->setIsPwd($clientData->isPwd());
         $client->setSupervisionStart($this->appDateHelper->convertStringToImmutableDate($clientData->getSupervisionStart()));
         $client->setSupervisionEnd($this->appDateHelper->convertStringToImmutableDate($clientData->getSupervisionEnd()));
-        $newClient->setClientRemarksId($clientData->getClientRemarksId());
+        $client->setClientRemarksId($clientData->getClientRemarksId());
         $client->setUpdatedAt($this->appDateHelper->getCurrentImmutableDate());
 
         $this->getEntityManager()->flush();
@@ -319,9 +319,25 @@ class ClientsRepository extends ServiceEntityRepository
     public function findSupervisionCasesDropBySupervisionPeriodEndDateRange(array $minMaxDate, int $fieldOfficeId): array
     {
         return $this->createQueryBuilder('c')
-            ->where('c.supervisionEnd BETWEEN CAST(:minDate AS DATE) AND CAST(:maxDate AS DATE)')
+            ->where('c.updatedAt BETWEEN CAST(:minDate AS DATE) AND CAST(:maxDate AS DATE)')
             ->andWhere('c.fieldOfficeId = :fieldOfficeId')
             ->andWhere('c.clientRemarksId = 2 OR c.clientRemarksId = 3 OR c.clientRemarksId = 5')
+            ->andWhere('c.deletedAt IS NULL')
+            ->setParameter('fieldOfficeId', $fieldOfficeId)
+            ->setParameter('minDate', $minMaxDate['min'], 'string')
+            ->setParameter('maxDate', $minMaxDate['max'], 'string')
+            ->getQuery()
+            ->getResult();
+    }
+
+    public function findSupervisionCasesDropBySupervisionPeriodEndDateRangeLess(array $minMaxDate, int $fieldOfficeId): array
+    {
+        return $this->createQueryBuilder('c')
+            ->where('c.updatedAt BETWEEN CAST(:minDate AS DATE) AND CAST(:maxDate AS DATE)')
+            ->andWhere('c.fieldOfficeId = :fieldOfficeId')
+            ->andWhere('c.clientRemarksId = 13 OR c.clientRemarksId = 7 OR c.clientRemarksId = 6 
+                        OR c.clientRemarksId = 7 OR c.clientRemarksId = 8 OR c.clientRemarksId = 9 OR c.clientRemarksId = 10
+                        OR c.clientRemarksId = 11 OR c.clientRemarksId = 12')
             ->andWhere('c.deletedAt IS NULL')
             ->setParameter('fieldOfficeId', $fieldOfficeId)
             ->setParameter('minDate', $minMaxDate['min'], 'string')

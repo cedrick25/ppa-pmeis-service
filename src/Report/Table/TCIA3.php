@@ -148,7 +148,7 @@ class TCIA3 implements Form
         }
 
         $supervisionCasesDropped = $this->data['footer']['Terminated'] + $this->data['footer']['Revoked'] + $this->data['footer']['Transferred'];
-        $spreadsheet->getActiveSheet()->setCellValue('AF' . $currentRowNumber3, $this->data['footer']['on CS']);
+        $spreadsheet->getActiveSheet()->setCellValue('AF' . $currentRowNumber3, $this->data['footer']['On CS to other FOs']);
         $spreadsheet->getActiveSheet()->setCellValue('AF' . $currentRowNumber4, $this->data['footer']['Died']);
         $spreadsheet->getActiveSheet()->setCellValue('AF' . $currentRowNumber5, $this->data['footer']['Absconded']);
         $spreadsheet->getActiveSheet()->setCellValue('AF' . $currentRowNumber6, $this->data['footer']['In Jail with no report']);
@@ -203,7 +203,7 @@ class TCIA3 implements Form
         ];
         $monthlyTotal = [];
         $footer = [
-            'Terminated' => 0, 'Revoked' => 0, 'on CS' => 0, 'Transferred' => 0, 'Absconded' => 0, 'Died' => 0, 'In Jail with no report' => 0,
+            'Terminated' => 0, 'Revoked' => 0, 'On CS to other FOs' => 0, 'Transferred' => 0, 'Absconded' => 0, 'Died' => 0, 'In Jail with no report' => 0,
             'With Serious Ailment' => 0, 'On Travel Abroad (with permit)' => 0, 'Case/ s pending in Court' => 0, 'Others' => 0,
         ];
         $rowNumber = 1;
@@ -435,7 +435,7 @@ class TCIA3 implements Form
             'Q6' => 'Prep./',
             'V6' => 'Prep./',
             'AA6' => 'Prep./',
-            'AF6' => 'Recommitted, on CS, Transferred,',
+            'AF6' => 'Recommitted, On CS, Transferred,',
             'G7' => 'yyyy',
             'H7' => 'DO',
             'I7' => 'NDO',
