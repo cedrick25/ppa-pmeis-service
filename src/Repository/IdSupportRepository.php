@@ -70,6 +70,7 @@ class IdSupportRepository extends ServiceEntityRepository
         $newIdSupport->setVpaPersonnelId($data->getVpaPersonnelId());
         $newIdSupport->setProgram($data->getProgram());
         $newIdSupport->setFieldOfficeId($data->getFieldOfficeId());
+        $newIdSupport->setActivity($data->getActivity());
         $newIdSupport->setDate($this->appDateHelper->convertStringToImmutableDate($data->getDate()));
         $newIdSupport->setVenue($data->getVenue());
         $newIdSupport->setAssistanceRendered($data->getAssistanceRendered());

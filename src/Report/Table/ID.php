@@ -49,65 +49,21 @@ class ID implements Form
         return $spreadsheet;
     }
 
+    /**
+     * @throws \PhpOffice\PhpSpreadsheet\Exception
+     */
     public function body(): Spreadsheet
     {
         $spreadsheet = $this->header();
 
-        $quarter = $this->data['quarter'];
-        $fieldOffice = $this->data['field_office_id'];
-        $type = $this->data['type'];
-        $data = [
-            'VPA' => [
-                'FIRST_2022' => [
-                    '1' => [
-                        ['Luke Skylar', 'TC', 'NCR Pasig Field Office', 'Pre-morning Meeting', 'January 7, 2022 / Brgy. Dela Paz Hall, Pasig City', 'Facilitator'],
-                        ['Luke Skylar', 'VPA', 'NCR Pasig Field Office', 'Seminar',  'January 5, 2022 / Pasig City', 'First Speaker'],
-                        ['Pedro Pandacan', 'RJ', 'NCR Pasig Field Office', 'Pre-morning Meeting',  'January 8, 2022 / Pasig City', 'Monitoring',],
-                        ['Pedro Pandacan', 'VPA', 'NCR Pasig Field Office', 'Seminar',  'January 5, 2022 / Pasig City', 'Second Speaker',],
-                        ['Marie Sumapay', 'VPA', 'NCR Pasig Field Office', 'Seminar', 'January 5, 2022 / Brgy. Dela Paz Hall, Pasig City', 'Third Speaker'],
-                        ['Marie Sumapay', 'TC', 'NCR Pasig Field Office', 'Morning Meeting',  'January 11, 2022 / Pasig City', 'Facilitator'],
-                        ['Renzo Melodez', 'VPA', 'NCR Pasig Field Office', 'Seminar',  'January 5, 2022 / Pasig City', 'Assistant',],
-                        ['Renzo Melodez', 'TC', 'NCR Pasig Field Office', 'Individual Counseling',  'January 11, 2022 / Pasig City', 'Facilitator',],
-                    ],
-                ],
-                'FOURTH_2021' => [
-                    '1' => [
-                        ['Danzo Malaypay', 'VPA', 'NCR Pasig Field Office', 'Livelihood Training', 'December 10, 2021 / Brgy. Dela Paz Hall, Pasig City', 'Master Speaker'],
-                        ['Danzo Malaypay', 'RJ', 'NCR Pasig Field Office', 'Meeting the petitioners family',  'November 7, 2021 / Pasig City', 'Monitoring'],
-                        ['Marichu Balonzo', 'VPA', 'NCR Pasig Field Office', 'Livelihood Training',  'December 10, 2021 / Pasig City', 'Trainer',],
-                        ['Marichu Balonzo', 'RJ', 'NCR Pasig Field Office', 'Conferencing',  'November 20, 2021 / Pasig City', 'Monitoring',],
-                        ['Benjo Relaza', 'VPA', 'NCR Pasig Field Office', 'Livelihood Training', 'December 10, 2021 / Brgy. Dela Paz Hall, Pasig City', 'Trainer'],
-                        ['Aliya Gumara', 'VPA', 'NCR Pasig Field Office', 'Livelihood Training', 'December 10, 2021 / Pasig City', 'Trainer'],
-                    ],
-                ],
-            ],
-            'Personnel' => [
-                'FIRST_2022' => [
-                    '1' => [
-                        ['Gerone Mabagay', 'TC', 'NCR Pasig Field Office', 'Morning Meeting', 'January 28, 2022 / Brgy. Sta. Lucia, Pasig City', 'Facilitator'],
-                        ['Daniel Agbat', 'TC', 'NCR Pasig Field Office', 'Job Functions', 'January 17, 2022 / Brgy. Rosario, Pasig City', 'Facilitator'],
-                        ['Troy Terono', 'RJ', 'NCR Pasig Field Office', 'Conferencing', 'February 2, 2022 /Brgy. Santolan, Pasig City', 'Monitoring',],
-                    ],
-                ],
-                'FOURTH_2021' => [
-                    '1' => [
-                        ['Jeffrey Magbantay', 'RJ', 'NCR Pasig Field Office', 'Meeting the victims family', 'October 24, 2021 / Brgy. Dela Paz, Pasig City', 'Monitoring'],
-                        ['Melissa Femiliano', 'TC', 'NCR Pasig Field Office', 'Pre-morning meeting', 'October 7, 2021 / Brgy. Rosario, Pasig City', 'Facilitator'],
-                        ['Mariz Aguilera', 'TC', 'NCR Pasig Field Office', 'Job Functions',  'November 8, 2021 / Brgy. Dela Paz, Pasig City', 'Facilitator',],
-                    ],
-                ],
-            ],
-        ];
-
-        $rows = $data[$type][$quarter][$fieldOffice];
-        foreach ($rows as $row) {
+        foreach ($this->data['rows'] as $row) {
             $this->lastFilledOutCellY++;
-            $spreadsheet->getActiveSheet()->setCellValue("A" . $this->lastFilledOutCellY, $row[0]);
-            $spreadsheet->getActiveSheet()->setCellValue("b" . $this->lastFilledOutCellY, $row[1]);
-            $spreadsheet->getActiveSheet()->setCellValue("c" . $this->lastFilledOutCellY, $row[2]);
-            $spreadsheet->getActiveSheet()->setCellValue("d" . $this->lastFilledOutCellY, $row[3]);
-            $spreadsheet->getActiveSheet()->setCellValue("e" . $this->lastFilledOutCellY, $row[4]);
-            $spreadsheet->getActiveSheet()->setCellValue("f" . $this->lastFilledOutCellY, $row[5]);
+            $spreadsheet->getActiveSheet()->setCellValue("A" . $this->lastFilledOutCellY, $row['name']);
+            $spreadsheet->getActiveSheet()->setCellValue("b" . $this->lastFilledOutCellY, $row['program']);
+            $spreadsheet->getActiveSheet()->setCellValue("c" . $this->lastFilledOutCellY, $row['field_office']);
+            $spreadsheet->getActiveSheet()->setCellValue("d" . $this->lastFilledOutCellY, $row['activity']);
+            $spreadsheet->getActiveSheet()->setCellValue("e" . $this->lastFilledOutCellY, $row['date'] . ' ' . $row['venue']);
+            $spreadsheet->getActiveSheet()->setCellValue("f" . $this->lastFilledOutCellY, $row['assistance_rendered']);
         }
         $spreadsheet->getActiveSheet()->getStyle('A6:f' . $this->lastFilledOutCellY)->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
 

@@ -12,6 +12,7 @@ class IdSupport
         private int $vpaPersonnelId,
         private string $program,
         private int $fieldOfficeId,
+        private string $activity,
         private string $date,
         private string $venue,
         private string $assistanceRendered,
@@ -55,6 +56,15 @@ class IdSupport
     public function getFieldOfficeId(): int
     {
         return $this->fieldOfficeId;
+    }
+
+    /**
+     * @Assert\NotBlank
+     * @return string
+     */
+    public function getActivity(): string
+    {
+        return $this->activity;
     }
 
     /**

@@ -42,6 +42,11 @@ class IdSupport
     private int $fieldOfficeId;
 
     /**
+     * @ORM\Column(type="string", length=255)
+     */
+    private string $activity;
+
+    /**
      * @ORM\Column(type="date")
      */
     private DateTimeInterface $date;
@@ -127,6 +132,24 @@ class IdSupport
     {
         $this->fieldOfficeId = $fieldOfficeId;
 
+        return $this;
+    }
+
+    /**
+     * @return string
+     */
+    public function getActivity(): string
+    {
+        return $this->activity;
+    }
+
+    /**
+     * @param string $activity
+     * @return IdSupport
+     */
+    public function setActivity(string $activity): IdSupport
+    {
+        $this->activity = $activity;
         return $this;
     }
 
