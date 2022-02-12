@@ -7,8 +7,10 @@ namespace App\Controller;
 use App\Common\AppFormatter;
 use App\Common\AppHydrator;
 use App\Model\VolunteerOperations as VolunteerOperationsModel;
+use App\Model\IdSupport as IdSupportModel;
 use App\Model\VolunteerId as VolunteerIdModel;
 use App\Service\Volunteerism\IdInterface;
+use App\Service\Volunteerism\IdSupportInterface;
 use App\Service\Volunteerism\OperationsInterface;
 use App\Service\Volunteerism\ServicesRenderedInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -27,6 +29,7 @@ class VolunteerismController extends AbstractController
         private OperationsInterface         $operationService,
         private IdInterface                 $idService,
         private ServicesRenderedInterface   $servicesRenderedService,
+        private IdSupportInterface          $idSupportService,
     ){}
 
     /**
@@ -120,5 +123,46 @@ class VolunteerismController extends AbstractController
     public function getgetAllServiceRenderedById(Request $request): Response
     {
         return $this->json($this->servicesRenderedService->getById((int) $request->get("id")));
+    }
+
+    /**
+     * @Route("/id-support/create", methods={"POST"})
+     */
+    public function createIdSupport(Request $request): Response
+    {
+        try {
+            $data = json_decode($request->getContent(), true);
+
+            /** @var IdSupportModel $idSupport */
+            $idSupport = $this->appHydrator->convertArrayToObject($data, IdSupportModel::class);
+
+            return $this->json($this->idSupportService->create($idSupport));
+        } catch (\ReflectionException $exception) {
+            return $this->json($this->appFormatter->formatResponse('Creating ID Support failed', null, ['reflection' => $exception->getMessage()]));
+        }
+    }
+
+    /**
+     * @Route("/id-support/list", methods={"GET"})
+     */
+    public function getAllIdSupport(): Response
+    {
+        return $this->json($this->idSupportService->getAll());
+    }
+
+    /**
+     * @Route("/id-support/by/id/{id}", methods={"GET"})
+     */
+    public function getIdSupportById(Request $request): Response
+    {
+        return $this->json($this->idSupportService->getById((int) $request->get("id")));
+    }
+
+    /**
+     * @Route("/id-support/delete/{id}", methods={"GET"})
+     */
+    public function deleteIdSupportById(Request $request): Response
+    {
+        return $this->json($this->idSupportService->deleteById((int) $request->get("id")));
     }
 }
