@@ -911,8 +911,8 @@ class TherapeuticCommunityController extends AbstractController
     public function getVPADatabase(Request $request): Response
     {
         return $this->json($this->volunteerService->getVPADatabase(
-            (int) $request->get("fieldOfficeId"),
-            (int) $request->get("quarterId")
+            (int) $request->get("quarterId"),
+            (int) $request->get("fieldOfficeId")
         ));
     }
 
