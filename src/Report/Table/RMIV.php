@@ -46,19 +46,81 @@ class RMIV implements Form
         $spreadsheet = $this->body();
         $this->lastFilledOutCellY++;
 
+        $this->lastFilledOutCellY++;
+        $lastFilledOutCellY = $this->lastFilledOutCellY;
+        $spreadsheet->getActiveSheet()->setCellValue("A" . $this->lastFilledOutCellY, 'NOTE:  DO NOT INCLUDE RESOURCES FROM THE  REGIONAL OFFICE (THIS IS REPORTED BY RO SEPARATELY) ');
+        $this->lastFilledOutCellY++;
+        $this->lastFilledOutCellY++;
+        $spreadsheet->getActiveSheet()->setCellValue("A" . $this->lastFilledOutCellY, 'NOTE:      RESOURCE MOBILIZATION is a  continuing process of developing, generating and managing funds, information, goods, services, people and institutions to provide support to program');
+        $this->lastFilledOutCellY++;
+        $spreadsheet->getActiveSheet()->setCellValue("A" . $this->lastFilledOutCellY, '                implementation  and sustainability.  The process includes scanning, analyzing, processing, planning, matching, advocating, monitoring, linkaging, allocating, utilizing, controlling');
+        $this->lastFilledOutCellY++;
+        $spreadsheet->getActiveSheet()->setCellValue("A" . $this->lastFilledOutCellY, '                evaluating  and maintaining internal and external resources.');
+        $spreadsheet->getActiveSheet()->getStyle("A$lastFilledOutCellY" . ':T' . $this->lastFilledOutCellY)->getFont()->setBold(true);
+
         return $spreadsheet;
     }
 
     public function body(): Spreadsheet
     {
         $spreadsheet = $this->header();
+        $this->data['total'] = [
+            'amount' => 0,
+            'cash_source_type' => ['GO' => 0, 'NGO' => 0, 'IND' => 0],
+            'materials_amount' => 0,
+            'material_source_type' => ['GO' => 0, 'NGO' => 0, 'IND' => 0],
+            'technical_assistance_amount' => 0,
+            'technical_assistance_type' => ['GO' => 0, 'NGO' => 0, 'IND' => 0]
+        ];
+
         $this->lastFilledOutCellY++;
-        $spreadsheet->getActiveSheet()->setCellValue("A" . $this->lastFilledOutCellY, 'COMMUNITY  (TC)');
+        $spreadsheet->getActiveSheet()->setCellValue("A" . $this->lastFilledOutCellY, '1.  THERAPEUTIC ');
+        $this->lastFilledOutCellY++;
+        $spreadsheet->getActiveSheet()->setCellValue("A" . $this->lastFilledOutCellY, '     COMMUNITY  (TC)');
         $spreadsheet = $this->plot($this->data['rows']['TC'], $spreadsheet);
+        $this->lastFilledOutCellY++;
 
-        $spreadsheet->getActiveSheet()->getStyle('A6:h' . $this->lastFilledOutCellY)->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
+        $this->lastFilledOutCellY++;
+        $spreadsheet->getActiveSheet()->setCellValue("A" . $this->lastFilledOutCellY, '2.  RESTORATIVE JUSTICE');
+        $this->lastFilledOutCellY++;
+        $spreadsheet->getActiveSheet()->setCellValue("A" . $this->lastFilledOutCellY, '      (RJ)');
+        $spreadsheet = $this->plot($this->data['rows']['RJ'], $spreadsheet);
+        $this->lastFilledOutCellY++;
 
-        $spreadsheet->getActiveSheet()->getStyle('A9:T27')->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
+        $this->lastFilledOutCellY++;
+        $spreadsheet->getActiveSheet()->setCellValue("A" . $this->lastFilledOutCellY, '3.  VOLUNTEERISM  (VPA)');
+        $spreadsheet = $this->plot($this->data['rows']['VPA'], $spreadsheet);
+        $this->lastFilledOutCellY++;
+
+        $this->lastFilledOutCellY++;
+        $spreadsheet->getActiveSheet()->setCellValue("A" . $this->lastFilledOutCellY, '4.   GENDER AND ');
+        $this->lastFilledOutCellY++;
+        $spreadsheet->getActiveSheet()->setCellValue("A" . $this->lastFilledOutCellY, '       DEVELOPMENT  (GAD)');
+        $spreadsheet = $this->plot($this->data['rows']['GAD'], $spreadsheet);
+        $this->lastFilledOutCellY++;
+
+        $this->lastFilledOutCellY++;
+        $spreadsheet->getActiveSheet()->setCellValue("A" . $this->lastFilledOutCellY, '5.  PERSONS WITH');
+        $this->lastFilledOutCellY++;
+        $spreadsheet->getActiveSheet()->setCellValue("A" . $this->lastFilledOutCellY, '     DISABILITY (PWDs) and');
+        $this->lastFilledOutCellY++;
+        $spreadsheet->getActiveSheet()->setCellValue("A" . $this->lastFilledOutCellY, '     SENIOR CITIZENS');
+        // TODO: To be discussed
+        $spreadsheet = $this->plot([], $spreadsheet);
+        $this->lastFilledOutCellY++;
+
+        $this->lastFilledOutCellY++;
+        $spreadsheet->getActiveSheet()->setCellValue("A" . $this->lastFilledOutCellY, '6.  OTHERS');
+        $this->lastFilledOutCellY++;
+        $spreadsheet->getActiveSheet()->setCellValue("A" . $this->lastFilledOutCellY, '     (To include LGUs - on detail)');
+        $spreadsheet = $this->plot($this->data['rows']['OTHERS'], $spreadsheet);
+        $this->lastFilledOutCellY++;
+
+        $spreadsheet = $this->plotTotal($spreadsheet);
+
+        $spreadsheet->getActiveSheet()->getStyle('A6:H' . $this->lastFilledOutCellY)->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
+
+        $spreadsheet->getActiveSheet()->getStyle('A9:T' . $this->lastFilledOutCellY)->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
         $spreadsheet->getActiveSheet()->getStyle('t27')->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setARGB('80808080');
 
         return $spreadsheet;
@@ -84,8 +146,6 @@ class RMIV implements Form
             'a6' => 'RESOURCES/ ASSISTANCE', 
             'a7' => 'WERE UTILIZED',
             'a8' => '(1)',
-            'a29' => 'NOTE:  DO NOT INCLUDE RESOURCES FROM THE  REGIONAL OFFICE (THIS IS REPORTED BY RO SEPARATELY)',
-            'a31' => 'NOTE:      RESOURCE MOBILIZATION is a  continuing process of developing, generating and managing funds, information, goods, services, people and institutions to provide support to program',
 
             'b4' => 'DATE/ VENUE',
             'b6' => '(2)',
@@ -187,19 +247,60 @@ class RMIV implements Form
             $spreadsheet->getActiveSheet()->setCellValue(
                 $sourceTypeCoordinate['cash'][$row['cash_source_type']] . $this->lastFilledOutCellY,
                 $row['cash_source_type']);
-            $spreadsheet->getActiveSheet()->setCellValue('H' . $this->lastFilledOutCellY, $row['materials_id'] . ' ' . $row['materials_qty']);
-            $spreadsheet->getActiveSheet()->setCellValue('I' . $this->lastFilledOutCellY, $row['']);
-            $spreadsheet->getActiveSheet()->setCellValue('J' . $this->lastFilledOutCellY, $row['']);
-            $spreadsheet->getActiveSheet()->setCellValue('K' . $this->lastFilledOutCellY, $row['']);
-            $spreadsheet->getActiveSheet()->setCellValue('L' . $this->lastFilledOutCellY, $row['']);
-            $spreadsheet->getActiveSheet()->setCellValue('M' . $this->lastFilledOutCellY, $row['']);
-            $spreadsheet->getActiveSheet()->setCellValue('N' . $this->lastFilledOutCellY, $row['']);
-            $spreadsheet->getActiveSheet()->setCellValue('O' . $this->lastFilledOutCellY, $row['']);
-            $spreadsheet->getActiveSheet()->setCellValue('P' . $this->lastFilledOutCellY, $row['']);
-            $spreadsheet->getActiveSheet()->setCellValue('Q' . $this->lastFilledOutCellY, $row['']);
-            $spreadsheet->getActiveSheet()->setCellValue('R' . $this->lastFilledOutCellY, $row['']);
-            $spreadsheet->getActiveSheet()->setCellValue('S' . $this->lastFilledOutCellY, $row['']);
-            $spreadsheet->getActiveSheet()->setCellValue('T' . $this->lastFilledOutCellY, $row['']);
+            $spreadsheet->getActiveSheet()->setCellValue('H' . $this->lastFilledOutCellY, $row['materials_particulars'] . ' ' . $row['materials_qty']);
+            $spreadsheet->getActiveSheet()->setCellValue('I' . $this->lastFilledOutCellY, $row['materials_amount']);
+            $spreadsheet->getActiveSheet()->setCellValue('J' . $this->lastFilledOutCellY, $row['material_source_name']);
+            $spreadsheet->getActiveSheet()->setCellValue(
+                $sourceTypeCoordinate['materials'][$row['material_source_type']] . $this->lastFilledOutCellY,
+                $row['material_source_type']);
+            $spreadsheet->getActiveSheet()->setCellValue('N' . $this->lastFilledOutCellY, $row['technical_assistance_particulars']);
+            $spreadsheet->getActiveSheet()->setCellValue('O' . $this->lastFilledOutCellY, $row['technical_assistance_amount']);
+            $spreadsheet->getActiveSheet()->setCellValue('P' . $this->lastFilledOutCellY, $row['technical_assistance_name']);
+            $spreadsheet->getActiveSheet()->setCellValue(
+                $sourceTypeCoordinate['technical'][$row['technical_assistance_type']] . $this->lastFilledOutCellY,
+                $row['technical_assistance_type']);
+            $spreadsheet->getActiveSheet()->setCellValue('T' . $this->lastFilledOutCellY, $row['resources_secured_by']);
+
+            $this->data['total']['amount'] += intval($row['amount']);
+            $this->data['total']['cash_source_type'][$row['cash_source_type']]++;
+            $this->data['total']['materials_amount'] += intval($row['materials_amount']);
+            $this->data['total']['material_source_type'][$row['material_source_type']]++;
+            $this->data['total']['technical_assistance_amount'] += intval($row['technical_assistance_amount']);
+            $this->data['total']['technical_assistance_type'][$row['material_source_type']]++;
+        }
+
+        return $spreadsheet;
+    }
+
+    private function plotTotal(Spreadsheet $spreadsheet): Spreadsheet
+    {
+        $this->lastFilledOutCellY++;
+        $total = $this->data['total'];
+        $sourceTypeCoordinate = [
+            'cash' => ['GO' => 'E', 'NGO' => 'F', 'IND' => 'G'],
+            'materials' => ['GO' => 'K', 'NGO' => 'L', 'IND' => 'M'],
+            'technical' => ['GO' => 'Q', 'NGO' => 'R', 'IND' => 'S'],
+        ];
+
+        $spreadsheet->getActiveSheet()->setCellValue('B' . $this->lastFilledOutCellY, 'TOTAL');
+        $spreadsheet->getActiveSheet()->setCellValue('C' . $this->lastFilledOutCellY, number_format($total['amount'], 2));
+        $spreadsheet->getActiveSheet()->setCellValue('D' . $this->lastFilledOutCellY, 'TOTAL');
+        foreach ($total['cash_source_type'] as $type=>$score) {
+            $spreadsheet->getActiveSheet()->setCellValue($sourceTypeCoordinate['cash'][$type] . $this->lastFilledOutCellY, $score);
+        }
+
+        $spreadsheet->getActiveSheet()->setCellValue('H' . $this->lastFilledOutCellY, 'TOTAL');
+        $spreadsheet->getActiveSheet()->setCellValue('I' . $this->lastFilledOutCellY, number_format($total['materials_amount'], 2));
+        $spreadsheet->getActiveSheet()->setCellValue('J' . $this->lastFilledOutCellY, 'TOTAL');
+        foreach ($total['material_source_type'] as $type=>$score) {
+            $spreadsheet->getActiveSheet()->setCellValue($sourceTypeCoordinate['materials'][$type] . $this->lastFilledOutCellY, $score);
+        }
+
+        $spreadsheet->getActiveSheet()->setCellValue('N' . $this->lastFilledOutCellY, 'TOTAL');
+        $spreadsheet->getActiveSheet()->setCellValue('O' . $this->lastFilledOutCellY, number_format($total['technical_assistance_amount'], 2));
+        $spreadsheet->getActiveSheet()->setCellValue('P' . $this->lastFilledOutCellY, 'TOTAL');
+        foreach ($total['technical_assistance_type'] as $type=>$score) {
+            $spreadsheet->getActiveSheet()->setCellValue($sourceTypeCoordinate['technical'][$type] . $this->lastFilledOutCellY, $score);
         }
 
         return $spreadsheet;
