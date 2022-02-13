@@ -14,6 +14,7 @@ use App\Service\CivilStatusInterface;
 use App\Service\EducationBackgroundInterface;
 use App\Service\OccupationInterface;
 use App\Service\ReligionInterface;
+use App\Service\TherapeuticCommunity\ClientRemarksInterface;
 use App\Service\TherapeuticCommunity\ClientSessionsInterface;
 use App\Service\TherapeuticCommunity\ClientTypesInterface;
 use App\Service\TherapeuticCommunity\FieldOfficesInterface;
@@ -65,6 +66,7 @@ class TherapeuticCommunityController extends AbstractController
         private EducationBackgroundInterface $educationBackgroundService,
         private OccupationInterface $occupationService,
         private ReligionInterface $religionService,
+        private ClientRemarksInterface $clientRemarksService,
     ){}
 
     /**
@@ -496,13 +498,25 @@ class TherapeuticCommunityController extends AbstractController
     }
 
     /**
-     * @Route("/session/tca2-6-8/full/{quarterId}/{role}", methods={"GET"})
+     * @Route("/session/tca2-6-8/full/{quarterId}/{fieldOfficeId}/{role}", methods={"GET"})
      */
     public function getTCIA2(Request $request): Response
     {
         return $this->json($this->sessionService->getTCIA2(
             (int) $request->get("quarterId"),
+            (int) $request->get("fieldOfficeId"),
             (string) $request->get("role")
+        ));
+    }
+
+    /**
+     * @Route("/session/tca7/full/{quarterId}/{fieldOfficeId}", methods={"GET"})
+     */
+    public function getTC7(Request $request): Response
+    {
+        return $this->json($this->sessionService->getTC7(
+            (int) $request->get("quarterId"),
+            (int) $request->get("fieldOfficeId")
         ));
     }
 
@@ -856,8 +870,8 @@ class TherapeuticCommunityController extends AbstractController
     public function getByFieldOfficeAndMonthRange(Request $request): Response
     {
         return $this->json($this->volunteerService->getByFieldOfficeAndMonthRange(
-            (int) $request->get("quarterId"),
-            (int) $request->get("fieldOfficeId")
+            (int) $request->get("fieldOfficeId"),
+            (int) $request->get("quarterId")
         ));
     }
 
@@ -897,8 +911,8 @@ class TherapeuticCommunityController extends AbstractController
     public function getVPADatabase(Request $request): Response
     {
         return $this->json($this->volunteerService->getVPADatabase(
-            (int) $request->get("fieldOfficeId"),
-            (int) $request->get("quarterId")
+            (int) $request->get("quarterId"),
+            (int) $request->get("fieldOfficeId")
         ));
     }
 
@@ -1033,5 +1047,13 @@ class TherapeuticCommunityController extends AbstractController
     public function getAllReligions(): Response
     {
         return $this->json($this->religionService->getAll());
+    }
+
+    /**
+     * @Route("/client-remarks/list", methods={"GET"})
+     */
+    public function getAllClientRemarks(): Response
+    {
+        return $this->json($this->clientRemarksService->getAll());
     }
 }

@@ -22,6 +22,7 @@ class Clients
         private int $fieldOfficeId,
         private ?string $middleName = null,
         private ?string $suffix = null,
+        private ?int $clientRemarksId = null,
         private ?DateTimeInterface $createdAt = null,
         private ?DateTimeInterface $updatedAt = null,
         private ?DateTimeInterface $deletedAt = null
@@ -147,6 +148,14 @@ class Clients
     public function getMiddleName(): ?string
     {
         return $this->middleName;
+    }
+
+    /**
+     * @return int|null
+     */
+    public function getClientRemarksId(): ?int
+    {
+        return $this->clientRemarksId;
     }
 
     /**

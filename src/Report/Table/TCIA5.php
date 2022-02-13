@@ -147,15 +147,16 @@ class TCIA5 implements Form
             $spreadsheet->getActiveSheet()->setCellValue($summaryCoordinates[$quarter]['TOTAL'], array_sum($row));
         }
 
-        $spreadsheet->getActiveSheet()->setCellValue('AF' . $currentRowNumber3, $this->data['footer']['cs_to_other_field']);
-        $spreadsheet->getActiveSheet()->setCellValue('AF' . $currentRowNumber4, $this->data['footer']['died_with_no_report']);
-        $spreadsheet->getActiveSheet()->setCellValue('AF' . $currentRowNumber5, $this->data['footer']['absconded_with_no_report']);
-        $spreadsheet->getActiveSheet()->setCellValue('AF' . $currentRowNumber6, $this->data['footer']['in_jail_with_no_report']);
-        $spreadsheet->getActiveSheet()->setCellValue('AF' . $currentRowNumber7, $this->data['footer']['with_serious_ailment']);
-        $spreadsheet->getActiveSheet()->setCellValue('AF' . $currentRowNumber8, $this->data['footer']['on_travel_abroad']);
-        $spreadsheet->getActiveSheet()->setCellValue('AF' . $currentRowNumber9, $this->data['footer']['supervision_cases_dropped']);
-        $spreadsheet->getActiveSheet()->setCellValue('AF' . $currentRowNumber11, $this->data['footer']['cases_pending_in_court']);
-        $spreadsheet->getActiveSheet()->setCellValue('AF' . $currentRowNumber12, $this->data['footer']['others']);
+        $supervisionCasesDropped = $this->data['footer']['Terminated'] + $this->data['footer']['Revoked'] + $this->data['footer']['Transferred'];
+        $spreadsheet->getActiveSheet()->setCellValue('AF' . $currentRowNumber3, $this->data['footer']['On CS to other FOs']);
+        $spreadsheet->getActiveSheet()->setCellValue('AF' . $currentRowNumber4, $this->data['footer']['Died']);
+        $spreadsheet->getActiveSheet()->setCellValue('AF' . $currentRowNumber5, $this->data['footer']['Absconded']);
+        $spreadsheet->getActiveSheet()->setCellValue('AF' . $currentRowNumber6, $this->data['footer']['In Jail with no report']);
+        $spreadsheet->getActiveSheet()->setCellValue('AF' . $currentRowNumber7, $this->data['footer']['With Serious Ailment']);
+        $spreadsheet->getActiveSheet()->setCellValue('AF' . $currentRowNumber8, $this->data['footer']['On Travel Abroad (with permit)']);
+        $spreadsheet->getActiveSheet()->setCellValue('AF' . $currentRowNumber9, $supervisionCasesDropped);
+        $spreadsheet->getActiveSheet()->setCellValue('AF' . $currentRowNumber11, $this->data['footer']['Case/ s pending in Court']);
+        $spreadsheet->getActiveSheet()->setCellValue('AF' . $currentRowNumber12, $this->data['footer']['Others']);
         $spreadsheet->getActiveSheet()->setCellValue('AF' . $currentRowNumber13, array_sum($this->data['footer']));
 
         $spreadsheet->getActiveSheet()->getStyle("A$currentRowNumber:T$currentRowNumber")->getAlignment()->setHorizontal('center');
@@ -201,6 +202,10 @@ class TCIA5 implements Form
             'ndo' => 0,
         ];
         $monthlyTotal = [];
+        $footer = [
+            'Terminated' => 0, 'Revoked' => 0, 'On CS to other FOs' => 0, 'Transferred' => 0, 'Absconded' => 0, 'Died' => 0, 'In Jail with no report' => 0,
+            'With Serious Ailment' => 0, 'On Travel Abroad (with permit)' => 0, 'Case/ s pending in Court' => 0, 'Others' => 0,
+        ];
         $rowNumber = 1;
         foreach ($this->data['rows'] as $row) {
             $this->lastFilledOutCellY++;
@@ -272,9 +277,12 @@ class TCIA5 implements Form
             }
 
             $this->summaryData[$row['quarter']][$row['phase']]++;
+            $footer[$row['remarks']]++;
 
             $rowNumber++;
         }
+
+        $this->data['footer'] = $footer;
 
         $this->lastFilledOutCellY++;
         $spreadsheet->getActiveSheet()
@@ -429,7 +437,7 @@ class TCIA5 implements Form
             'Q6' => 'Prep./',
             'V6' => 'Prep./',
             'AA6' => 'Prep./',
-            'AF6' => 'Revoked, on CS, Transferred,',
+            'AF6' => 'Revoked, On CS, Transferred,',
             'G7' => 'yyyy',
             'H7' => 'DO',
             'I7' => 'NDO',

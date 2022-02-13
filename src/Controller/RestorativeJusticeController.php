@@ -30,17 +30,17 @@ use Symfony\Component\Routing\Annotation\Route;
 class RestorativeJusticeController extends AbstractController
 {
     public function __construct(
-        private AppHydrator                  $appHydrator,
-        private AppFormatter                 $appFormatter,
-        private ConductProcessesInterface    $conductProcessesService,
-        private OffensesInterface            $offensesService,
-        private ProcessesInterface           $processesService,
-        private ProcessStatusInterface       $processStatusService,
-        private OutcomesInterface            $outcomesService,
-        private RelatedActivitiesInterface   $relatedActivitiesService,
-        private PaymentFormsInterface        $paymentFormsService,
-        private PaymentModesInterface        $paymentModesService,
-        private RelatedRestitutionsInterface $relatedRestitutionsService,
+        private AppHydrator                         $appHydrator,
+        private AppFormatter                        $appFormatter,
+        private ConductProcessesInterface           $conductProcessesService,
+        private OffensesInterface                   $offensesService,
+        private ProcessesInterface                  $processesService,
+        private ProcessStatusInterface              $processStatusService,
+        private OutcomesInterface                   $outcomesService,
+        private RelatedActivitiesInterface          $relatedActivitiesService,
+        private PaymentFormsInterface               $paymentFormsService,
+        private PaymentModesInterface               $paymentModesService,
+        private RelatedRestitutionsInterface        $relatedRestitutionsService,
     ){}
 
     /**

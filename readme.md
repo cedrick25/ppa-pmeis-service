@@ -12,3 +12,6 @@ Inside the container run:
     openssl pkey -in config/jwt/private.pem -out config/jwt/public.pem -pubout
     Note: passphrase is in .env JWT_PASSPHRASE
     chmod 775 -R config/jwt/
+
+xdebug
+To start: append ?XDEBUG_SESSION_START=1 in one of the request until cookie is set.

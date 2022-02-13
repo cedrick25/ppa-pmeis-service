@@ -213,29 +213,10 @@ class Volunteer implements VolunteerInterface
 
             $volunteers = $this->repository->findByIds($volunteerIds);
 
-            $civilStatuses = [];
-            $rawCivilStatuses = $this->civilStatusRepository->findAll();
-            foreach ($rawCivilStatuses as $civilStatus) {
-                $civilStatuses[$civilStatus->getCivilStatusId()] = $civilStatus->getName();
-            }
-
-            $religions = [];
-            $rawReligions = $this->religionRepository->findAll();
-            foreach ($rawReligions as $religion) {
-                $religions[$religion->getReligionId()] = $religion->getName();
-            }
-
-            $occupations = [];
-            $rawOccupations = $this->occupationRepository->findAll();
-            foreach ($rawOccupations as $occupation) {
-                $occupations[$occupation->getOccupationIdId()] = $occupation->getName();
-            }
-
-            $educationBackgrounds = [];
-            $rawEducationBackgrounds = $this->educationBackgroundRepository->findAll();
-            foreach ($rawEducationBackgrounds as $educationBackground) {
-                $educationBackgrounds[$educationBackground->getEducationBackgroundId()] = $educationBackground->getName();
-            }
+            $educationBackgrounds = $this->getEducationBackgrounds();
+            $civilStatuses = $this->getCivilStatuses();
+            $occupations = $this->getOccupations();
+            $religions = $this->getReligions();
 
             $data = [];
             foreach ($volunteers as $volunteer) {
@@ -295,29 +276,10 @@ class Volunteer implements VolunteerInterface
                 return $this->appFormatter->formatResponse(ResponseEnum::NO_DATA, null);
             }
 
-            $civilStatuses = [];
-            $rawCivilStatuses = $this->civilStatusRepository->findAll();
-            foreach ($rawCivilStatuses as $civilStatus) {
-                $civilStatuses[$civilStatus->getCivilStatusId()] = $civilStatus->getName();
-            }
-
-            $religions = [];
-            $rawReligions = $this->religionRepository->findAll();
-            foreach ($rawReligions as $religion) {
-                $religions[$religion->getReligionId()] = $religion->getName();
-            }
-
-            $occupations = [];
-            $rawOccupations = $this->occupationRepository->findAll();
-            foreach ($rawOccupations as $occupation) {
-                $occupations[$occupation->getOccupationIdId()] = $occupation->getName();
-            }
-
-            $educationBackgrounds = [];
-            $rawEducationBackgrounds = $this->educationBackgroundRepository->findAll();
-            foreach ($rawEducationBackgrounds as $educationBackground) {
-                $educationBackgrounds[$educationBackground->getEducationBackgroundId()] = $educationBackground->getName();
-            }
+            $educationBackgrounds = $this->getEducationBackgrounds();
+            $civilStatuses = $this->getCivilStatuses();
+            $occupations = $this->getOccupations();
+            $religions = $this->getReligions();
 
             $sessionIds = $this->sessionsRepository->findSessionsIdsByQuarter($quarterData);
             $sessionIds = array_map(fn($sessionId) => $sessionId['session_id'], $sessionIds);
@@ -350,10 +312,16 @@ class Volunteer implements VolunteerInterface
         return [];
     }
 
+    /**
+     * @throws \Doctrine\DBAL\Driver\Exception
+     * @throws InvalidArgumentException
+     * @throws CacheException
+     * @throws \Doctrine\DBAL\Exception
+     */
     private function getStartOfQuarterVpa(int $quarterId, int $fieldOfficeId):array
     {
         $activeVolunteers = $this->resourceFacilitatorSessionRepository->getVolunteerIdsByQuarterAndFieldOfficeId($fieldOfficeId, $quarterId);
-        $activeVolunteerIds = array_map(fn($activeVolunteer) => $activeVolunteer['resource_facilitator_id'], $activeVolunteers);;
+        $activeVolunteerIds = array_map(fn($activeVolunteer) => $activeVolunteer['resource_facilitator_id'], $activeVolunteers);
 
         $volunteers = $this->repository->list();
         $previousVolunteersCount = [];
@@ -371,5 +339,51 @@ class Volunteer implements VolunteerInterface
 
             $previousVolunteersCount[$regionName]++;
         }
+
+        return [];
+    }
+
+    private function getCivilStatuses(): array
+    {
+        $civilStatuses = [];
+        $rawCivilStatuses = $this->civilStatusRepository->findAll();
+        foreach ($rawCivilStatuses as $civilStatus) {
+            $civilStatuses[$civilStatus->getCivilStatusId()] = $civilStatus->getName();
+        }
+
+        return $civilStatuses;
+    }
+
+    private function getReligions(): array
+    {
+        $religions = [];
+        $rawReligions = $this->religionRepository->findAll();
+        foreach ($rawReligions as $religion) {
+            $religions[$religion->getReligionId()] = $religion->getName();
+        }
+
+        return $religions;
+    }
+
+    private function getOccupations():array
+    {
+        $occupations = [];
+        $rawOccupations = $this->occupationRepository->findAll();
+        foreach ($rawOccupations as $occupation) {
+            $occupations[$occupation->getOccupationIdId()] = $occupation->getName();
+        }
+
+        return $occupations;
+    }
+
+    private function getEducationBackgrounds(): array
+    {
+        $educationBackgrounds = [];
+        $rawEducationBackgrounds = $this->educationBackgroundRepository->findAll();
+        foreach ($rawEducationBackgrounds as $educationBackground) {
+            $educationBackgrounds[$educationBackground->getEducationBackgroundId()] = $educationBackground->getName();
+        }
+
+        return $educationBackgrounds;
     }
 }

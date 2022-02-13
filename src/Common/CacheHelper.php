@@ -295,4 +295,14 @@ class CacheHelper
     {
         return 'volunteer_ids_all';
     }
+
+    public function getAllIdSupportsKey(): string
+    {
+        return 'id_supports_all';
+    }
+
+    public function getAllTechnicalAssistanceKey(): string
+    {
+        return 'technical_assistance_all';
+    }
 }

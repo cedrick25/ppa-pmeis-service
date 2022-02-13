@@ -278,6 +278,47 @@ class ClientSessionsRepository extends ServiceEntityRepository
         return $query->fetchAllAssociative();
     }
 
+    /**
+     * @param int[] $ids
+     * @return array<int, array<string, mixed>>
+     * @throws \Doctrine\DBAL\Driver\Exception
+     * @throws \Doctrine\DBAL\Exception
+     */
+    public function findClientsBySessionIds(array $ids): array
+    {
+        $ids = implode(',', $ids);
+        $conn = $this->getEntityManager()->getConnection();
+        $sql = "SELECT c.* FROM client_sessions 
+            LEFT JOIN clients c on client_sessions.client_id = c.client_id
+            WHERE client_sessions.session_id IN ($ids)";
+
+        $stmt = $conn->prepare($sql);
+        $query = $stmt->executeQuery();
+
+        return $query->fetchAllAssociative();
+    }
+
+    /**
+     * @param int[] $ids
+     * @param int $fieldOfficeId
+     * @return array<int, array<string, mixed>>
+     * @throws \Doctrine\DBAL\Driver\Exception
+     * @throws \Doctrine\DBAL\Exception
+     */
+    public function findClientsBySessionIdsAndFieldOfficeId(array $ids, int $fieldOfficeId): array
+    {
+        $ids = implode(',', $ids);
+        $conn = $this->getEntityManager()->getConnection();
+        $sql = "SELECT c.* FROM client_sessions 
+            LEFT JOIN clients c on client_sessions.client_id = c.client_id
+            WHERE c.field_office_id = $fieldOfficeId AND client_sessions.session_id IN ($ids)";
+
+        $stmt = $conn->prepare($sql);
+        $query = $stmt->executeQuery();
+
+        return $query->fetchAllAssociative();
+    }
+
     private function isExisting(ClientSessionModel $clientSessionData): bool
     {
         $clientSession = $this->findOneBy([

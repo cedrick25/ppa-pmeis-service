@@ -231,7 +231,7 @@ class QuartersRepository extends ServiceEntityRepository
             return null;
         }
 
-        $minMaxDate = $this->getMinMaxDateByQuarter($quarterData);
+        $minMaxDate = $this->getQuarterMinMaxDate($quarterData);
         $minDate = $minMaxDate['min'];
         $maxDate = $minMaxDate['max'];
 
@@ -285,22 +285,33 @@ class QuartersRepository extends ServiceEntityRepository
      */
     public function fetchPreviousQuartersByNameAndYear(string $name, string $year): array
     {
+        if ($name === 'FIRST') {
+            return [];
+        }
+
         $quarters = [];
         $convertedNumberQuarters = ['FIRST', 'SECOND', 'THIRD', 'FOURTH'];
-        $convertedNameQuarters = [
-            'FIRST' => 1, 'SECOND' => 2, 'THIRD' => 3, 'FOURTH' => 4
-        ];
+        $quarterIndex = array_search($name, $convertedNumberQuarters);
 
-        if ($convertedNameQuarters[$name] > 1) {
-            for ($quarterId = $convertedNameQuarters[$name] - 1; $quarterId > 0 ; $quarterId--) {
-                $quarter = $this->fetchByNameAndYear($convertedNumberQuarters[$quarterId-1], $year);
-                if ($quarter != null) {
-                    $quarters[] = $quarter;
-                }
+        for ($quarterId = $quarterIndex + 1; $quarterId > 0 ; $quarterId--) {
+            $quarter = $this->fetchByNameAndYear($convertedNumberQuarters[$quarterId-1], $year);
+            if ($quarter != null) {
+                $quarters[] = $quarter;
             }
         }
 
         return $quarters;
+    }
+
+    public function fetchPreviousQuarterByNameAndYear(string $name, string $year): ?Quarters
+    {
+        $namedQuarters = ['FIRST', 'SECOND', 'THIRD', 'FOURTH'];
+        $quarterIndex = array_search($name, $namedQuarters);
+        $previousQuarterIndex = $quarterIndex > 0 ? $quarterIndex - 1 : 3;
+        $year =  $quarterIndex > 0 ? $year : strval(intval($year) - 1);
+        $name = $namedQuarters[$previousQuarterIndex];
+
+        return $this->fetchByNameAndYear($name, $year);
     }
 
     public function fetchByNameAndYear(string $name, string $year): ?Quarters
@@ -329,7 +340,7 @@ class QuartersRepository extends ServiceEntityRepository
         $data = $query->fetchAllAssociative();
 
         foreach ($data as $index=>$row) {
-            $data[$index]['full_name'] = $row['first_name'] . ' ' . $row['middle_name'] . '' . $row['last_name'] . ' ' . $row['suffix'];
+            $data[$index]['full_name'] = $row['first_name'] . ' ' . $row['middle_name'] . ' ' . $row['last_name'] . ' ' . $row['suffix'];
         }
 
         return $data;
@@ -371,7 +382,7 @@ class QuartersRepository extends ServiceEntityRepository
             return [];
         }
 
-        $minMaxDate = $this->getMinMaxDateByQuarter($quarterData);
+        $minMaxDate = $this->getQuarterMinMaxDate($quarterData);
         $minDate = $minMaxDate['min'];
         $maxDate = $minMaxDate['max'];
 
@@ -382,15 +393,11 @@ class QuartersRepository extends ServiceEntityRepository
         return $query->fetchAllAssociative();
     }
 
-    public function getMinMaxDateByQuarter(Quarters $quarterData): array
+    public function getQuarterMinMaxDate(Quarters $quarterData): array
     {
         $quarterMonthsList = [...$this->appDateHelper->getMonthsByQuarterString($quarterData->getName())];
         $quarterYearList = [intval($quarterData->getYear())];
-        $minMaxDate = $this->appDateHelper->getMinMaxDateByYearsAndMonths($quarterYearList, $quarterMonthsList);
 
-        return [
-            'min' => $minMaxDate['min'],
-            'max' => $minMaxDate['max']
-        ];
+        return $this->appDateHelper->getMinMaxDateByYearsAndMonths($quarterYearList, $quarterMonthsList);
     }
 }
