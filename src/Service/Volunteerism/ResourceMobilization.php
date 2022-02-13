@@ -97,10 +97,14 @@ class ResourceMobilization implements ResourceMobilizationInterface
                 return $this->appFormatter->formatResponse(ResponseEnum::NO_DATA, null);
             }
 
+            $result = ['TC' => [], 'RJ' => [], 'VPA' => [], 'SC' => [], 'GAD' => [], 'OTHERS' => [],];
             $minMaxDate = $this->quartersRepository->getQuarterMinMaxDate($quarter);
             $resourceMobilizations = $this->repository->findByDateRange($minMaxDate, $fieldOfficeId);
+            foreach ($resourceMobilizations as $resourceMobilization) {
+                $result[$resourceMobilization['category']][] = $resourceMobilization;
+            }
 
-            return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_SUCCESS, $resourceMobilizations);
+            return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_SUCCESS, $result);
         } catch (\Exception $e) {
             return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_SUCCESS, null, ['app' => $e->getMessage()]);
         } catch (Exception $e) {
