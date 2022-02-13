@@ -262,7 +262,8 @@ class Sessions implements SessionsInterface
                     $supervisionCasesDropped
                 );
             $less = $this->getLess($currentQuarter, $fieldOfficeId);
-            $totalAdjustedSupervisionCaseLoad = $this->getTotalAdjustedSupervisionCaseLoad($totalSupervisionCasesHandled, $less);
+            $totalLess = $this->getTotalLess($less);
+            $totalAdjustedSupervisionCaseLoad = $this->getTotalAdjustedSupervisionCaseLoad($totalSupervisionCasesHandled, $totalLess);
             $clientsAttendingTC = $this->getClientsAttendingTC($currentQuarter, $fieldOfficeId);
             $percentageOfClientsAttendingTC = $this
                 ->getPercentageOfClientsAttendingTC($totalAdjustedSupervisionCaseLoad, $clientsAttendingTC);
@@ -275,6 +276,7 @@ class Sessions implements SessionsInterface
                 'supervisionCasesDropped' => $supervisionCasesDropped,
                 'totalSupervisionCasesHandled' => $totalSupervisionCasesHandled,
                 'less' => $less,
+                'totalLess' => $totalLess,
                 'totalAdjustedSupervisionCaseLoad' => $totalAdjustedSupervisionCaseLoad,
                 'clientsAttendingTC' => $clientsAttendingTC,
                 'percentageOfClientsAttendingTC' => $percentageOfClientsAttendingTC
@@ -343,11 +345,11 @@ class Sessions implements SessionsInterface
         foreach ($clients as $client) {
             $supervisionMonth = intval($client->getSupervisionStart()->format('m'));
 
-            if (! isset($result[$client->getClientTypeId()][$supervisionMonth])) {
-                $result[$client->getClientTypeId()][$supervisionMonth] = 0;
+            if (! isset($result[$supervisionMonth][$client->getClientTypeId()])) {
+                $result[$supervisionMonth][$client->getClientTypeId()] = 0;
             }
 
-            $result[$client->getClientTypeId()][$supervisionMonth]++;
+            $result[$supervisionMonth][$client->getClientTypeId()]++;
         }
 
         return $result;
@@ -376,11 +378,11 @@ class Sessions implements SessionsInterface
         foreach ($clients as $client) {
             $supervisionMonth = intval($client->getSupervisionStart()->format('m'));
 
-            if (! isset($result[$client->getClientTypeId()][$supervisionMonth])) {
-                $result[$client->getClientTypeId()][$supervisionMonth] = 0;
+            if (! isset($result[$supervisionMonth][$client->getClientTypeId()])) {
+                $result[$supervisionMonth][$client->getClientTypeId()] = 0;
             }
 
-            $result[$client->getClientTypeId()][$supervisionMonth]++;
+            $result[$supervisionMonth][$client->getClientTypeId()]++;
         }
 
         return $result;
@@ -469,7 +471,7 @@ class Sessions implements SessionsInterface
                 f.   On travel abroad ( with permit)
                 h.   Cases Pending in Court/ BPP
                 i.   Others (specify):  No initial report
-         * RETURNS [client_type_id:[client_remarks_id:score]]
+         * RETURNS [client_remarks_id:[client_type_id:score]]
          */
 
         $result = [];
@@ -489,11 +491,31 @@ class Sessions implements SessionsInterface
                 continue;
             }
 
-            if (! isset($result[$client->getClientTypeId()][$client->getClientRemarksId()])) {
-                $result[$client->getClientTypeId()][$client->getClientRemarksId()] = 0;
+            if (! isset( $result[$client->getClientRemarksId()][$client->getClientTypeId()] )) {
+                $result[$client->getClientRemarksId()][$client->getClientTypeId()] = 0;
             }
 
-            $result[$client->getClientTypeId()][$client->getClientRemarksId()]++;
+            $result[$client->getClientRemarksId()][$client->getClientTypeId()]++;
+        }
+
+        return $result;
+    }
+
+    /**
+     * @param int[][] $less
+     * @return int[]
+     */
+    private function getTotalLess(array $less): array
+    {
+        $result = [];
+
+        foreach ($less as $clientRemarksId=>$les) {
+            foreach ($les as $clientTypeId=>$score) {
+                if (! isset($result[$clientTypeId])) {
+                    $result[$clientTypeId] = 0;
+                }
+                $result[$clientTypeId] += $score;
+            }
         }
 
         return $result;
@@ -501,26 +523,22 @@ class Sessions implements SessionsInterface
 
     /**
      * @param int[] $totalSupervisionCasesHandled
-     * @param int[][] $less
+     * @param int[] $totalLess
      * @return int[]
      */
-    private function getTotalAdjustedSupervisionCaseLoad(array $totalSupervisionCasesHandled, array $less): array
+    private function getTotalAdjustedSupervisionCaseLoad(array $totalSupervisionCasesHandled, array $totalLess): array
     {
         $result = [];
 
-        foreach ($totalSupervisionCasesHandled as $clientTypeId=>$score) {
-            if (! isset($result[$clientTypeId])) {
-                $result[$clientTypeId] = 0;
+        if (count($totalSupervisionCasesHandled) > count($totalLess)) {
+            foreach ($totalSupervisionCasesHandled as $clientTypeId=>$score) {
+                $less = !isset($totalLess[$clientTypeId]) ? 0 : $totalLess[$clientTypeId];
+                $result[$clientTypeId] = $score - $less;
             }
-            $result[$clientTypeId] += $score;
-        }
-
-        foreach ($less as $clientTypeId=>$les) {
-            foreach ($les as $clientRemarksId=>$score) {
-                if (! isset($result[$clientTypeId])) {
-                    $result[$clientTypeId] = 0;
-                }
-                $result[$clientTypeId] += $score;
+        } else {
+            foreach ($totalLess as $clientTypeId=>$score) {
+                $totalSupervision = !isset($totalSupervisionCasesHandled[$clientTypeId]) ? 0 : $totalSupervisionCasesHandled[$clientTypeId];
+                $result[$clientTypeId] = $totalSupervision - $score;
             }
         }
 
@@ -569,7 +587,7 @@ class Sessions implements SessionsInterface
         $result = [];
 
         foreach ($totalAdjustedSupervisionCaseLoad as $clientTypeId=>$score) {
-            $result[$clientTypeId] = $clientsAttendingTC[$clientTypeId] / $score;
+            $result[$clientTypeId] = ($clientsAttendingTC[$clientTypeId] / $score) * 100;
         }
 
         return $result;
