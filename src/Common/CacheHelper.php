@@ -310,4 +310,9 @@ class CacheHelper
     {
         return 'social_marketing_all';
     }
+
+    public function getAllProgramMaterialsDevelopmentKey(): string
+    {
+        return 'program_materials_development_all';
+    }
 }

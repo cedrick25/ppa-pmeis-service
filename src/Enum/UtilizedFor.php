@@ -1,0 +1,28 @@
+<?php
+
+namespace App\Enum;
+
+use Ds\Hashable;
+use MyCLabs\Enum\Enum;
+
+/**
+ * @extends Enum<string>
+ * @method static self TC()
+ * @method static self RJ()
+ * @method static self VPA()
+ * @method static self GAD()
+ * @method static self OTHERS()
+ */
+class UtilizedFor extends Enum implements Hashable
+{
+    public const TC = "TC";
+    public const RJ = "RJ";
+    public const VPA = "VPA";
+    public const GAD = "GAD";
+    public const OTHERS = "OTHERS";
+
+    public function hash()
+    {
+        return $this->getValue();
+    }
+}

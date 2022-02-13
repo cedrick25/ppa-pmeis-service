@@ -9,9 +9,11 @@ use App\Common\AppHydrator;
 use App\Model\VolunteerOperations as VolunteerOperationsModel;
 use App\Model\IdSupport as IdSupportModel;
 use App\Model\VolunteerId as VolunteerIdModel;
+use App\Model\ProgramMaterialsDevelopment as ProgramMaterialsDevelopmentModel;
 use App\Service\Volunteerism\IdInterface;
 use App\Service\Volunteerism\IdSupportInterface;
 use App\Service\Volunteerism\OperationsInterface;
+use App\Service\Volunteerism\ProgramMaterialsDevelopmentInterface;
 use App\Service\Volunteerism\ServicesRenderedInterface;
 use App\Model\TechnicalAssistance as TechnicalAssistanceModel;
 use App\Service\Volunteerism\SocialMarketingActivitiesInterface;
@@ -29,15 +31,16 @@ use Symfony\Component\Routing\Annotation\Route;
 class VolunteerismController extends AbstractController
 {
     public function __construct(
-        private AppHydrator                        $appHydrator,
-        private AppFormatter                       $appFormatter,
-        private OperationsInterface                $operationService,
-        private IdInterface                        $idService,
-        private ServicesRenderedInterface          $servicesRenderedService,
-        private IdSupportInterface                 $idSupportService,
-        private TechnicalAssistanceInterface       $technicalAssistanceService,
-        private SocialMarketingActivitiesInterface $socialMarketingActivitiesService,
-        private SocialMarketingInterface           $socialMarketingService,
+        private AppHydrator                          $appHydrator,
+        private AppFormatter                         $appFormatter,
+        private OperationsInterface                  $operationService,
+        private IdInterface                          $idService,
+        private ServicesRenderedInterface            $servicesRenderedService,
+        private IdSupportInterface                   $idSupportService,
+        private TechnicalAssistanceInterface         $technicalAssistanceService,
+        private SocialMarketingActivitiesInterface   $socialMarketingActivitiesService,
+        private SocialMarketingInterface             $socialMarketingService,
+        private ProgramMaterialsDevelopmentInterface $programMaterialsDevelopmentService,
     ){}
 
     /**
@@ -296,5 +299,47 @@ class VolunteerismController extends AbstractController
             (int) $request->get("fieldOfficeId"),
             $request->get("type"),
         ));
+    }
+
+
+    /**
+     * @Route("/program-materials-development/create", methods={"POST"})
+     */
+    public function createProgramMaterialsDevelopment(Request $request): Response
+    {
+        try {
+            $data = json_decode($request->getContent(), true);
+
+            /** @var ProgramMaterialsDevelopmentModel $programMaterialsDevelopmentModel */
+            $programMaterialsDevelopmentModel = $this->appHydrator->convertArrayToObject($data, ProgramMaterialsDevelopmentModel::class);
+
+            return $this->json($this->programMaterialsDevelopmentService->create($programMaterialsDevelopmentModel));
+        } catch (\ReflectionException $exception) {
+            return $this->json($this->appFormatter->formatResponse('Creating Program Materials Development failed', null, ['reflection' => $exception->getMessage()]));
+        }
+    }
+
+    /**
+     * @Route("/program-materials-development/list", methods={"GET"})
+     */
+    public function getAllProgramMaterialsDevelopment(): Response
+    {
+        return $this->json($this->programMaterialsDevelopmentService->getAll());
+    }
+
+    /**
+     * @Route("/program-materials-development/by/id/{id}", methods={"GET"})
+     */
+    public function getIdProgramMaterialsDevelopmentById(Request $request): Response
+    {
+        return $this->json($this->programMaterialsDevelopmentService->getById((int) $request->get("id")));
+    }
+
+    /**
+     * @Route("/program-materials-development/delete/{id}", methods={"GET"})
+     */
+    public function deleteProgramMaterialsDevelopmentById(Request $request): Response
+    {
+        return $this->json($this->programMaterialsDevelopmentService->deleteById((int) $request->get("id")));
     }
 }
