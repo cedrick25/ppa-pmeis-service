@@ -111,4 +111,25 @@ class ProgramMaterialsDevelopmentRepository extends ServiceEntityRepository
 
         return ($programMaterialsDevelopment == null) ? false : $programMaterialsDevelopment;
     }
+
+    /**
+     * @param string[] $minMaxDate
+     * @param int $fieldOfficeId
+     * @return array<int, array<string, mixed>>
+     * @throws \Doctrine\DBAL\Exception
+     * @throws \Doctrine\DBAL\Driver\Exception
+     */
+    public function findByDateRange(array $minMaxDate, int $fieldOfficeId): array
+    {
+        $conn = $this->getEntityManager()->getConnection();
+        $min = $minMaxDate['min'];
+        $max = $minMaxDate['max'];
+
+        $sql = "SELECT pmd.* FROM program_materials_development as pmd
+                WHERE pmd.field_office_id = $fieldOfficeId AND pmd.date BETWEEN CAST('$min' AS DATE) AND CAST('$max' AS DATE)";
+        $stmt = $conn->prepare($sql);
+        $query = $stmt->executeQuery();
+
+        return $query->fetchAllAssociative();
+    }
 }

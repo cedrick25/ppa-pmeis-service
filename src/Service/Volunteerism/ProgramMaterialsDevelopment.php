@@ -7,6 +7,7 @@ use App\Enum\Response as ResponseEnum;
 use App\Model\ProgramMaterialsDevelopment as ProgramMaterialsDevelopmentModel;
 use App\Repository\ProgramMaterialsDevelopmentRepository;
 use App\Repository\QuartersRepository;
+use Doctrine\DBAL\Driver\Exception;
 use Doctrine\ORM\Exception\ORMException;
 use Psr\Cache\CacheException;
 use Psr\Cache\InvalidArgumentException;
@@ -87,4 +88,22 @@ class ProgramMaterialsDevelopment implements ProgramMaterialsDevelopmentInterfac
         }
     }
 
+    public function getIdSupportReport(int $quarterId, int $fieldOfficeId): array
+    {
+        try {
+            $quarter = $this->quartersRepository->find($quarterId);
+            if ($quarter === null) {
+                return $this->appFormatter->formatResponse(ResponseEnum::NO_DATA, null);
+            }
+
+            $minMaxDate = $this->quartersRepository->getQuarterMinMaxDate($quarter);
+            $programMaterialsDevelopments = $this->repository->findByDateRange($minMaxDate, $fieldOfficeId);
+
+            return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_SUCCESS, $programMaterialsDevelopments);
+        } catch (\Exception $e) {
+            return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_SUCCESS, null, ['app' => $e->getMessage()]);
+        } catch (Exception $e) {
+            return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_SUCCESS, null, ['orm' => $e->getMessage()]);
+        }
+    }
 }

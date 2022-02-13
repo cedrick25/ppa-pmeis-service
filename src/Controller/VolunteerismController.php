@@ -342,4 +342,15 @@ class VolunteerismController extends AbstractController
     {
         return $this->json($this->programMaterialsDevelopmentService->deleteById((int) $request->get("id")));
     }
+
+    /**
+     * @Route("/program-materials-development/report/full/{quarterId}/{fieldOfficeId}", methods={"GET"})
+     */
+    public function getProgramMaterialsDevelopmentReport(Request $request): Response
+    {
+        return $this->json($this->programMaterialsDevelopmentService->getIdSupportReport(
+            (int) $request->get("quarterId"),
+            (int) $request->get("fieldOfficeId"),
+        ));
+    }
 }
