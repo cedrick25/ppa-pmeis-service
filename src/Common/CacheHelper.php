@@ -315,4 +315,9 @@ class CacheHelper
     {
         return 'program_materials_development_all';
     }
+
+    public function getAllResourceMobilizationKey(): string
+    {
+        return 'resource_mobilization_all';
+    }
 }

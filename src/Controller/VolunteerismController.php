@@ -8,12 +8,14 @@ use App\Common\AppFormatter;
 use App\Common\AppHydrator;
 use App\Model\VolunteerOperations as VolunteerOperationsModel;
 use App\Model\IdSupport as IdSupportModel;
+use App\Model\ResourceMobilization as ResourceMobilizationModel;
 use App\Model\VolunteerId as VolunteerIdModel;
 use App\Model\ProgramMaterialsDevelopment as ProgramMaterialsDevelopmentModel;
 use App\Service\Volunteerism\IdInterface;
 use App\Service\Volunteerism\IdSupportInterface;
 use App\Service\Volunteerism\OperationsInterface;
 use App\Service\Volunteerism\ProgramMaterialsDevelopmentInterface;
+use App\Service\Volunteerism\ResourceMobilizationInterface;
 use App\Service\Volunteerism\ServicesRenderedInterface;
 use App\Model\TechnicalAssistance as TechnicalAssistanceModel;
 use App\Service\Volunteerism\SocialMarketingActivitiesInterface;
@@ -41,6 +43,7 @@ class VolunteerismController extends AbstractController
         private SocialMarketingActivitiesInterface   $socialMarketingActivitiesService,
         private SocialMarketingInterface             $socialMarketingService,
         private ProgramMaterialsDevelopmentInterface $programMaterialsDevelopmentService,
+        private ResourceMobilizationInterface        $resourceMobilizationService,
     ){}
 
     /**
@@ -352,5 +355,46 @@ class VolunteerismController extends AbstractController
             (int) $request->get("quarterId"),
             (int) $request->get("fieldOfficeId"),
         ));
+    }
+
+    /**
+     * @Route("/resource-mobilization/create", methods={"POST"})
+     */
+    public function createResourceMobilization(Request $request): Response
+    {
+        try {
+            $data = json_decode($request->getContent(), true);
+
+            /** @var ResourceMobilizationModel $resourceMobilization */
+            $resourceMobilization = $this->appHydrator->convertArrayToObject($data, ResourceMobilizationModel::class);
+
+            return $this->json($this->resourceMobilizationService->create($resourceMobilization));
+        } catch (\ReflectionException $exception) {
+            return $this->json($this->appFormatter->formatResponse('Creating Resource Mobilization failed', null, ['reflection' => $exception->getMessage()]));
+        }
+    }
+
+    /**
+     * @Route("/resource-mobilization/list", methods={"GET"})
+     */
+    public function getAllResourceMobilizations(): Response
+    {
+        return $this->json($this->resourceMobilizationService->getAll());
+    }
+
+    /**
+     * @Route("/resource-mobilization/by/id/{id}", methods={"GET"})
+     */
+    public function getResourceMobilizationById(Request $request): Response
+    {
+        return $this->json($this->resourceMobilizationService->getById((int) $request->get("id")));
+    }
+
+    /**
+     * @Route("/resource-mobilization/delete/{id}", methods={"GET"})
+     */
+    public function deleteResourceMobilizationById(Request $request): Response
+    {
+        return $this->json($this->resourceMobilizationService->deleteById((int) $request->get("id")));
     }
 }
