@@ -133,7 +133,8 @@ class ResourceMobilizationRepository extends ServiceEntityRepository
         $max = $minMaxDate['max'];
 
         $sql = "SELECT rm.* FROM resource_mobilization as rm
-                WHERE rm.field_office_id = $fieldOfficeId AND rm.date BETWEEN CAST('$min' AS DATE) AND CAST('$max' AS DATE)";
+                WHERE rm.field_office_id = $fieldOfficeId AND rm.date BETWEEN CAST('$min' AS DATE) AND CAST('$max' AS DATE)
+                ORDER BY rm.category DESC";
         $stmt = $conn->prepare($sql);
         $query = $stmt->executeQuery();
 
