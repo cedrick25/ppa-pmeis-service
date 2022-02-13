@@ -320,4 +320,9 @@ class CacheHelper
     {
         return 'resource_mobilization_all';
     }
+
+    public function getAllJailDecongestionKey(): string
+    {
+        return 'jail_decongestion_all';
+    }
 }

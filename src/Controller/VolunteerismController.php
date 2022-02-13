@@ -11,8 +11,10 @@ use App\Model\IdSupport as IdSupportModel;
 use App\Model\ResourceMobilization as ResourceMobilizationModel;
 use App\Model\VolunteerId as VolunteerIdModel;
 use App\Model\ProgramMaterialsDevelopment as ProgramMaterialsDevelopmentModel;
+use App\Model\JailDecongestion as JailDecongestionModel;
 use App\Service\Volunteerism\IdInterface;
 use App\Service\Volunteerism\IdSupportInterface;
+use App\Service\Volunteerism\JailDecongestionInterface;
 use App\Service\Volunteerism\OperationsInterface;
 use App\Service\Volunteerism\ProgramMaterialsDevelopmentInterface;
 use App\Service\Volunteerism\ResourceMobilizationInterface;
@@ -44,6 +46,7 @@ class VolunteerismController extends AbstractController
         private SocialMarketingInterface             $socialMarketingService,
         private ProgramMaterialsDevelopmentInterface $programMaterialsDevelopmentService,
         private ResourceMobilizationInterface        $resourceMobilizationService,
+        private JailDecongestionInterface            $jailDecongestionService,
     ){}
 
     /**
@@ -404,6 +407,58 @@ class VolunteerismController extends AbstractController
     public function getResourceMobilizationReport(Request $request): Response
     {
         return $this->json($this->resourceMobilizationService->getReport(
+            (int) $request->get("quarterId"),
+            (int) $request->get("fieldOfficeId"),
+        ));
+    }
+
+    /**
+     * @Route("/jail-decogenstion/create", methods={"POST"})
+     */
+    public function createJailDecongestion(Request $request): Response
+    {
+        try {
+            $data = json_decode($request->getContent(), true);
+
+            /** @var JailDecongestionModel $jailDecongestion */
+            $jailDecongestion = $this->appHydrator->convertArrayToObject($data, JailDecongestionModel::class);
+
+            return $this->json($this->jailDecongestionService->create($jailDecongestion));
+        } catch (\ReflectionException $exception) {
+            return $this->json($this->appFormatter->formatResponse('Creating Jail Decongestion failed', null, ['reflection' => $exception->getMessage()]));
+        }
+    }
+
+    /**
+     * @Route("/jail-decogenstion/list", methods={"GET"})
+     */
+    public function getAllJailDecongestions(): Response
+    {
+        return $this->json($this->jailDecongestionService->getAll());
+    }
+
+    /**
+     * @Route("/jail-decogenstion/by/id/{id}", methods={"GET"})
+     */
+    public function getJailDecongestionById(Request $request): Response
+    {
+        return $this->json($this->jailDecongestionService->getById((int) $request->get("id")));
+    }
+
+    /**
+     * @Route("/jail-decogenstion/delete/{id}", methods={"GET"})
+     */
+    public function deleteJailDecongestionById(Request $request): Response
+    {
+        return $this->json($this->jailDecongestionService->deleteById((int) $request->get("id")));
+    }
+
+    /**
+     * @Route("/jail-decogenstion/report/full/{quarterId}/{fieldOfficeId}", methods={"GET"})
+     */
+    public function getJailDecongestionReport(Request $request): Response
+    {
+        return $this->json($this->jailDecongestionService->getReport(
             (int) $request->get("quarterId"),
             (int) $request->get("fieldOfficeId"),
         ));
