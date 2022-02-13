@@ -13,4 +13,6 @@ interface SocialMarketingInterface
     public function getById(int $id): array;
 
     public function deleteById(int $id): array;
+
+    public function getReport(int $quarterId, int $fieldOfficeId, string $type): array;
 }

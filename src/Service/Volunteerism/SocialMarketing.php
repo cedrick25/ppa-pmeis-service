@@ -7,6 +7,7 @@ use App\Enum\Response as ResponseEnum;
 use App\Model\SocialMarketing as SocialMarketingModel;
 use App\Repository\QuartersRepository;
 use App\Repository\SocialMarketingRepository;
+use Doctrine\DBAL\Driver\Exception;
 use Doctrine\ORM\Exception\ORMException;
 use Psr\Cache\CacheException;
 use Psr\Cache\InvalidArgumentException;
@@ -84,6 +85,25 @@ class SocialMarketing implements SocialMarketingInterface
             return $this->appFormatter->formatResponse(ResponseEnum::DELETING_FAILED, null, ['cache' => $exception->getMessage()]);
         } catch (\Doctrine\ORM\ORMException | ORMException $exception) {
             return $this->appFormatter->formatResponse(ResponseEnum::DELETING_FAILED, null, ['orm' => $exception->getMessage()]);
+        }
+    }
+
+    public function getReport(int $quarterId, int $fieldOfficeId, string $type): array
+    {
+        try {
+            $quarter = $this->quartersRepository->find($quarterId);
+            if ($quarter === null) {
+                return $this->appFormatter->formatResponse(ResponseEnum::NO_DATA, null);
+            }
+
+            $minMaxDate = $this->quartersRepository->getQuarterMinMaxDate($quarter);
+            $idSupports = $this->repository->findByDateRange($minMaxDate, $fieldOfficeId, $type);
+
+            return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_SUCCESS, $idSupports);
+        } catch (\Exception $e) {
+            return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_SUCCESS, null, ['app' => $e->getMessage()]);
+        } catch (Exception $e) {
+            return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_SUCCESS, null, ['orm' => $e->getMessage()]);
         }
     }
 }

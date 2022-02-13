@@ -285,4 +285,16 @@ class VolunteerismController extends AbstractController
     {
         return $this->json($this->socialMarketingService->deleteById((int) $request->get("id")));
     }
+
+    /**
+     * @Route("/social-marketing/report/full/{quarterId}/{fieldOfficeId}/{type}", methods={"GET"})
+     */
+    public function getSocialMarketingReport(Request $request): Response
+    {
+        return $this->json($this->socialMarketingService->getReport(
+            (int) $request->get("quarterId"),
+            (int) $request->get("fieldOfficeId"),
+            $request->get("type"),
+        ));
+    }
 }

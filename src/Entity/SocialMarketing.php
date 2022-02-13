@@ -73,6 +73,11 @@ class SocialMarketing
     private string $remarks;
 
     /**
+     * @ORM\Column(type="integer", nullable=true)
+     */
+    private ?int $fieldOfficeId;
+
+    /**
      * @ORM\Column(type="datetime_immutable")
      */
     private \DateTimeImmutable $createdAt;
@@ -245,6 +250,24 @@ class SocialMarketing
     {
         $this->remarks = $remarks;
 
+        return $this;
+    }
+
+    /**
+     * @return int|null
+     */
+    public function getFieldOfficeId(): ?int
+    {
+        return $this->fieldOfficeId;
+    }
+
+    /**
+     * @param int|null $fieldOfficeId
+     * @return SocialMarketing
+     */
+    public function setFieldOfficeId(?int $fieldOfficeId): SocialMarketing
+    {
+        $this->fieldOfficeId = $fieldOfficeId;
         return $this;
     }
 

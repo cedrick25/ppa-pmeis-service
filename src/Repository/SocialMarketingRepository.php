@@ -24,11 +24,13 @@ class SocialMarketingRepository extends ServiceEntityRepository
     protected const CACHE_TAG = "social_marketing";
 
     public function __construct(
-        ManagerRegistry $registry,
+        ManagerRegistry                $registry,
         private TagAwareCacheInterface $cache,
-        private CacheHelper $cacheHelper,
-        private Helper $helper,
-        private AppDateHelper $appDateHelper,
+        private CacheHelper            $cacheHelper,
+        private Helper                 $helper,
+        private AppDateHelper          $appDateHelper,
+        private VolunteerRepository    $volunteerRepository,
+        private UserDetailsRepository  $userDetailsRepository,
     ) {
         parent::__construct($registry, SocialMarketing::class);
     }
@@ -74,6 +76,7 @@ class SocialMarketingRepository extends ServiceEntityRepository
         $newSocialMarketing->setVpaId($data->getVpaId());
         $newSocialMarketing->setVpaRole($data->getVpaRole());
         $newSocialMarketing->setRemarks($data->getRemarks());
+        $newSocialMarketing->setFieldOfficeId($data->getFieldOfficeId());
         $newSocialMarketing->setCreatedAt($this->appDateHelper->getCurrentImmutableDate());
 
         $this->getEntityManager()->persist($newSocialMarketing);
@@ -109,5 +112,44 @@ class SocialMarketingRepository extends ServiceEntityRepository
         ]);
 
         return ($socialMarketing == null) ? false : $socialMarketing;
+    }
+
+    /**
+     * @param string[] $minMaxDate
+     * @param int $fieldOfficeId
+     * @return array<int, array<string, mixed>>
+     * @throws \Doctrine\DBAL\Exception
+     * @throws \Doctrine\DBAL\Driver\Exception
+     */
+    public function findByDateRange(array $minMaxDate, int $fieldOfficeId, string $type): array
+    {
+        $conn = $this->getEntityManager()->getConnection();
+        $min = $minMaxDate['min'];
+        $max = $minMaxDate['max'];
+
+        $sql = "SELECT sm.*, fo.name as field_office FROM social_marketing as sm
+                LEFT JOIN field_offices as fo ON sm.field_office_id = fo.field_office_id
+                WHERE sm.field_office_id = $fieldOfficeId AND sm.type = '$type' 
+                  AND sm.date BETWEEN CAST('$min' AS DATE) AND CAST('$max' AS DATE)";
+        $stmt = $conn->prepare($sql);
+        $query = $stmt->executeQuery();
+        $rows = $query->fetchAllAssociative();
+        $result = [];
+
+        foreach ($rows as $row) {
+            if ($row['vpa_id'] != null) {
+                $vpa = $this->volunteerRepository->find(intval($row['vpa_id']));
+                $row['name'] = $vpa->getFirstName() . ' ' . $vpa->getMiddleName() . ' ' . $vpa->getLastName();
+                $row['role'] = $row['vpa_role'];
+            } else {
+                $userDetail = $this->userDetailsRepository->findOneBy(['userAccountId' => $row['personnel_id']]);
+                $row['name'] = $userDetail->getFirstName() . ' ' . $userDetail->getMiddleName() . ' ' . $userDetail->getLastName();
+                $row['role'] = $row['personnel_role'];
+            }
+
+            $result[] = $row;
+        }
+
+        return $result;
     }
 }

@@ -19,6 +19,7 @@ class SocialMarketing
         private ?string $personnelRole = null,
         private ?string $vpaId = null,
         private ?string $vpaRole = null,
+        private ?string $fieldOfficeId = null,
         private ?DateTimeInterface $createdAt = null,
         private ?DateTimeInterface $updatedAt = null,
         private ?DateTimeInterface $deletedAt = null,
@@ -109,6 +110,14 @@ class SocialMarketing
     public function getVpaRole(): ?string
     {
         return $this->vpaRole;
+    }
+
+    /**
+     * @return string|null
+     */
+    public function getFieldOfficeId(): ?string
+    {
+        return $this->fieldOfficeId;
     }
 
     /**
