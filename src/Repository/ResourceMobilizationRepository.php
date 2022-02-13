@@ -74,6 +74,7 @@ class ResourceMobilizationRepository extends ServiceEntityRepository
         $newResourceMobilization->setCashSourceType($data->getCashSourceType());
         $newResourceMobilization->setMaterialsId($data->getMaterialsId());
         $newResourceMobilization->setMaterialsQty($data->getMaterialsQty());
+        $newResourceMobilization->setMaterialsAmount($data->getMaterialsAmount());
         $newResourceMobilization->setMaterialSourceName($data->getMaterialSourceName());
         $newResourceMobilization->setMaterialSourceType($data->getMaterialSourceType());
         $newResourceMobilization->setTechnicalAssistanceParticulars($data->getTechnicalAssistanceParticulars());
@@ -132,7 +133,8 @@ class ResourceMobilizationRepository extends ServiceEntityRepository
         $min = $minMaxDate['min'];
         $max = $minMaxDate['max'];
 
-        $sql = "SELECT rm.* FROM resource_mobilization as rm
+        $sql = "SELECT rm.*, pmd.particulars as materials_particulars FROM resource_mobilization as rm
+                LEFT JOIN program_materials_development as pmd ON rm.materials_id = pmd.program_materials_development_id
                 WHERE rm.field_office_id = $fieldOfficeId AND rm.date BETWEEN CAST('$min' AS DATE) AND CAST('$max' AS DATE)
                 ORDER BY rm.category DESC";
         $stmt = $conn->prepare($sql);

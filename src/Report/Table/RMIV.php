@@ -52,10 +52,10 @@ class RMIV implements Form
     public function body(): Spreadsheet
     {
         $spreadsheet = $this->header();
-        foreach ($this->data['rows'] as $row) {
-            $this->lastFilledOutCellY++;
-//            $spreadsheet->getActiveSheet()->setCellValue("a" . $this->lastFilledOutCellY, $row[0]);
-        }
+        $this->lastFilledOutCellY++;
+        $spreadsheet->getActiveSheet()->setCellValue("A" . $this->lastFilledOutCellY, 'COMMUNITY  (TC)');
+        $spreadsheet = $this->plot($this->data['rows']['TC'], $spreadsheet);
+
         $spreadsheet->getActiveSheet()->getStyle('A6:h' . $this->lastFilledOutCellY)->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
 
         $spreadsheet->getActiveSheet()->getStyle('A9:T27')->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
@@ -165,6 +165,41 @@ class RMIV implements Form
         }
         foreach ($outlineBorderThinCoordinates as $coordinate) {
             $spreadsheet->getActiveSheet()->getStyle($coordinate)->getBorders()->getOutline()->setBorderStyle(Border::BORDER_THIN);
+        }
+
+        return $spreadsheet;
+    }
+
+    private function plot(array $rows, Spreadsheet $spreadsheet): Spreadsheet
+    {
+        $sourceTypeCoordinate = [
+            'cash' => ['GO' => 'E', 'NGO' => 'F', 'IND' => 'G'],
+            'materials' => ['GO' => 'K', 'NGO' => 'L', 'IND' => 'M'],
+            'technical' => ['GO' => 'Q', 'NGO' => 'R', 'IND' => 'S'],
+        ];
+
+        foreach ($rows as $row) {
+            $this->lastFilledOutCellY++;
+            $spreadsheet->getActiveSheet()->setCellValue('A' . $this->lastFilledOutCellY, $row['activity_name']);
+            $spreadsheet->getActiveSheet()->setCellValue('B' . $this->lastFilledOutCellY, $row['date'] . ' ' . $row['venue']);
+            $spreadsheet->getActiveSheet()->setCellValue('C' . $this->lastFilledOutCellY, $row['amount']);
+            $spreadsheet->getActiveSheet()->setCellValue('D' . $this->lastFilledOutCellY, $row['cash_source_name']);
+            $spreadsheet->getActiveSheet()->setCellValue(
+                $sourceTypeCoordinate['cash'][$row['cash_source_type']] . $this->lastFilledOutCellY,
+                $row['cash_source_type']);
+            $spreadsheet->getActiveSheet()->setCellValue('H' . $this->lastFilledOutCellY, $row['materials_id'] . ' ' . $row['materials_qty']);
+            $spreadsheet->getActiveSheet()->setCellValue('I' . $this->lastFilledOutCellY, $row['']);
+            $spreadsheet->getActiveSheet()->setCellValue('J' . $this->lastFilledOutCellY, $row['']);
+            $spreadsheet->getActiveSheet()->setCellValue('K' . $this->lastFilledOutCellY, $row['']);
+            $spreadsheet->getActiveSheet()->setCellValue('L' . $this->lastFilledOutCellY, $row['']);
+            $spreadsheet->getActiveSheet()->setCellValue('M' . $this->lastFilledOutCellY, $row['']);
+            $spreadsheet->getActiveSheet()->setCellValue('N' . $this->lastFilledOutCellY, $row['']);
+            $spreadsheet->getActiveSheet()->setCellValue('O' . $this->lastFilledOutCellY, $row['']);
+            $spreadsheet->getActiveSheet()->setCellValue('P' . $this->lastFilledOutCellY, $row['']);
+            $spreadsheet->getActiveSheet()->setCellValue('Q' . $this->lastFilledOutCellY, $row['']);
+            $spreadsheet->getActiveSheet()->setCellValue('R' . $this->lastFilledOutCellY, $row['']);
+            $spreadsheet->getActiveSheet()->setCellValue('S' . $this->lastFilledOutCellY, $row['']);
+            $spreadsheet->getActiveSheet()->setCellValue('T' . $this->lastFilledOutCellY, $row['']);
         }
 
         return $spreadsheet;

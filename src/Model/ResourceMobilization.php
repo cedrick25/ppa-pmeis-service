@@ -16,6 +16,7 @@ class ResourceMobilization
         private string $cashSourceType,
         private int $materialsId,
         private int $materialsQty,
+        private float $materialsAmount,
         private string $materialSourceName,
         private string $materialSourceType,
         private string $technicalAssistanceParticulars,
@@ -111,6 +112,14 @@ class ResourceMobilization
     public function getMaterialsQty(): int
     {
         return $this->materialsQty;
+    }
+
+    /**
+     * @return float
+     */
+    public function getMaterialsAmount(): float
+    {
+        return $this->materialsAmount;
     }
 
     /**

@@ -66,6 +66,11 @@ class ResourceMobilization
     private int $materialsQty;
 
     /**
+     * @ORM\Column(type="float")
+     */
+    private float $materialsAmount;
+
+    /**
      * @ORM\Column(type="string", length=255)
      */
     private string $materialSourceName;
@@ -254,6 +259,24 @@ class ResourceMobilization
     {
         $this->materialSourceName = $materialSourceName;
 
+        return $this;
+    }
+
+    /**
+     * @return float
+     */
+    public function getMaterialsAmount(): float
+    {
+        return $this->materialsAmount;
+    }
+
+    /**
+     * @param float $materialsAmount
+     * @return ResourceMobilization
+     */
+    public function setMaterialsAmount(float $materialsAmount): ResourceMobilization
+    {
+        $this->materialsAmount = $materialsAmount;
         return $this;
     }
 
