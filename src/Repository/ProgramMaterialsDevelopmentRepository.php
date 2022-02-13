@@ -129,7 +129,21 @@ class ProgramMaterialsDevelopmentRepository extends ServiceEntityRepository
                 WHERE pmd.field_office_id = $fieldOfficeId AND pmd.date BETWEEN CAST('$min' AS DATE) AND CAST('$max' AS DATE)";
         $stmt = $conn->prepare($sql);
         $query = $stmt->executeQuery();
+        $rows = $query->fetchAllAssociative();
+        $result = [];
 
-        return $query->fetchAllAssociative();
+        foreach ($rows as $row) {
+            if ($row['person_responsible_type'] === 'VPA') {
+                $vpa = $this->volunteerRepository->find(intval($row['vpa_ppo_id']));
+                $name = $vpa->getFirstName() . ' ' . $vpa->getMiddleName() . ' ' . $vpa->getLastName();
+            } else {
+                $userDetail = $this->userDetailsRepository->findOneBy(['userAccountId' => $row['vpa_ppo_id']]);
+                $name = $userDetail->getFirstName() . ' ' . $userDetail->getMiddleName() . ' ' . $userDetail->getLastName();
+            }
+            $row['name'] = $name;
+            $result[] = $row;
+        }
+
+        return $result;
     }
 }

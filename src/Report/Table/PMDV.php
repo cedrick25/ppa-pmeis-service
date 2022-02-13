@@ -53,35 +53,19 @@ class PMDV implements Form
     {
         $spreadsheet = $this->header();
 
-        $quarter = $this->data['quarter'];
-        $fieldOffice = $this->data['field_office_id'];
-        $data = [
-            'FIRST_2022' => [
-                '1' => [
-                    ['Laptop', 'January 7, 2022', 'Marie Sumapay', '', '', '/', '', '', ''],
-                    ['DSLR Camera', 'January 7, 2022', 'Marie Sumapay', '', '', '/', '', '', ''],
-                ],
-            ],
-            'FOURTH_2021' => [
-                '1' => [
-                    ['Whiteboard', 'December 12, 2021', 'Pedro Pandacan', '/', '', '', '', '', ''],
-                ],
-            ],
+        $utilizedFor = [
+            'TC' => 'D', 'RJ' => 'E', 'VPA' => 'F', 'GAD' => 'G', 'OTHERS' => 'H'
         ];
 
-        $rows = $data[$quarter][$fieldOffice];
-        foreach ($rows as $row) {
+        foreach ($this->data['rows'] as $row) {
             $this->lastFilledOutCellY++;
-            $spreadsheet->getActiveSheet()->setCellValue("a" . $this->lastFilledOutCellY, $row[0]);
-            $spreadsheet->getActiveSheet()->setCellValue("b" . $this->lastFilledOutCellY, $row[1]);
-            $spreadsheet->getActiveSheet()->setCellValue("c" . $this->lastFilledOutCellY, $row[2]);
-            $spreadsheet->getActiveSheet()->setCellValue("d" . $this->lastFilledOutCellY, $row[3]);
-            $spreadsheet->getActiveSheet()->setCellValue("e" . $this->lastFilledOutCellY, $row[4]);
-            $spreadsheet->getActiveSheet()->setCellValue("f" . $this->lastFilledOutCellY, $row[5]);
-            $spreadsheet->getActiveSheet()->setCellValue("g" . $this->lastFilledOutCellY, $row[6]);
-            $spreadsheet->getActiveSheet()->setCellValue("h" . $this->lastFilledOutCellY, $row[7]);
-            $spreadsheet->getActiveSheet()->setCellValue("i" . $this->lastFilledOutCellY, $row[8]);
+            $spreadsheet->getActiveSheet()->setCellValue("A" . $this->lastFilledOutCellY, $row['particulars']);
+            $spreadsheet->getActiveSheet()->setCellValue("B" . $this->lastFilledOutCellY, $row['date']);
+            $spreadsheet->getActiveSheet()->setCellValue("C" . $this->lastFilledOutCellY, $row['name']);
+            $spreadsheet->getActiveSheet()->setCellValue($utilizedFor[$row['utilized_for']] . $this->lastFilledOutCellY, '/');
+            $spreadsheet->getActiveSheet()->setCellValue("I" . $this->lastFilledOutCellY, $row['remarks']);
         }
+
         $spreadsheet->getActiveSheet()->getStyle('A9:i' . $this->lastFilledOutCellY)->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
 
         return $spreadsheet;
