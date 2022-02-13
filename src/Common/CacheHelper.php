@@ -305,4 +305,9 @@ class CacheHelper
     {
         return 'technical_assistance_all';
     }
+
+    public function getAllSocialMarketingKey(): string
+    {
+        return 'social_marketing_all';
+    }
 }

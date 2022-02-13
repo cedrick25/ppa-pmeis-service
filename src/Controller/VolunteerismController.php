@@ -15,7 +15,9 @@ use App\Service\Volunteerism\OperationsInterface;
 use App\Service\Volunteerism\ServicesRenderedInterface;
 use App\Model\TechnicalAssistance as TechnicalAssistanceModel;
 use App\Service\Volunteerism\SocialMarketingActivitiesInterface;
+use App\Service\Volunteerism\SocialMarketingInterface;
 use App\Service\Volunteerism\TechnicalAssistanceInterface;
+use App\Model\SocialMarketing as SocialMarketingModel;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -35,6 +37,7 @@ class VolunteerismController extends AbstractController
         private IdSupportInterface                 $idSupportService,
         private TechnicalAssistanceInterface       $technicalAssistanceService,
         private SocialMarketingActivitiesInterface $socialMarketingActivitiesService,
+        private SocialMarketingInterface           $socialMarketingService,
     ){}
 
     /**
@@ -240,5 +243,46 @@ class VolunteerismController extends AbstractController
     public function getAllSocialMarketingActivities(): Response
     {
         return $this->json($this->socialMarketingActivitiesService->getAll());
+    }
+
+    /**
+     * @Route("/social-marketing/create", methods={"POST"})
+     */
+    public function createSocialMarketing(Request $request): Response
+    {
+        try {
+            $data = json_decode($request->getContent(), true);
+
+            /** @var SocialMarketingModel $socialMarketing */
+            $socialMarketing = $this->appHydrator->convertArrayToObject($data, SocialMarketingModel::class);
+
+            return $this->json($this->socialMarketingService->create($socialMarketing));
+        } catch (\ReflectionException $exception) {
+            return $this->json($this->appFormatter->formatResponse('Creating Social Marketing failed', null, ['reflection' => $exception->getMessage()]));
+        }
+    }
+
+    /**
+     * @Route("/social-marketing/list", methods={"GET"})
+     */
+    public function getAllSocialMarketing(): Response
+    {
+        return $this->json($this->socialMarketingService->getAll());
+    }
+
+    /**
+     * @Route("/social-marketing/by/id/{id}", methods={"GET"})
+     */
+    public function getSocialMarketingById(Request $request): Response
+    {
+        return $this->json($this->socialMarketingService->getById((int) $request->get("id")));
+    }
+
+    /**
+     * @Route("/social-marketing/delete/{id}", methods={"GET"})
+     */
+    public function deleteSocialMarketingById(Request $request): Response
+    {
+        return $this->json($this->socialMarketingService->deleteById((int) $request->get("id")));
     }
 }
