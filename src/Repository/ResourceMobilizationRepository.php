@@ -7,6 +7,7 @@ use App\Common\CacheHelper;
 use App\Entity\ResourceMobilization;
 use App\Model\ResourceMobilization as ResourceMobilizationModel;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
+use Doctrine\DBAL\Exception;
 use Doctrine\ORM\ORMException;
 use Doctrine\Persistence\ManagerRegistry;
 use Psr\Cache\CacheException;
@@ -116,5 +117,26 @@ class ResourceMobilizationRepository extends ServiceEntityRepository
         ]);
 
         return ($resourceMobilization == null) ? false : $resourceMobilization;
+    }
+
+    /**
+     * @param string[] $minMaxDate
+     * @param int $fieldOfficeId
+     * @return array<int, array<string, mixed>>
+     * @throws Exception
+     * @throws \Doctrine\DBAL\Driver\Exception
+     */
+    public function findByDateRange(array $minMaxDate, int $fieldOfficeId): array
+    {
+        $conn = $this->getEntityManager()->getConnection();
+        $min = $minMaxDate['min'];
+        $max = $minMaxDate['max'];
+
+        $sql = "SELECT rm.* FROM resource_mobilization as rm
+                WHERE rm.field_office_id = $fieldOfficeId AND rm.date BETWEEN CAST('$min' AS DATE) AND CAST('$max' AS DATE)";
+        $stmt = $conn->prepare($sql);
+        $query = $stmt->executeQuery();
+
+        return $query->fetchAllAssociative();
     }
 }

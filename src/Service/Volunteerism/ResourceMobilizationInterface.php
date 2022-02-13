@@ -14,4 +14,5 @@ interface ResourceMobilizationInterface
 
     public function deleteById(int $id): array;
 
+    public function getReport(int $quarterId, int $fieldOfficeId): array;
 }

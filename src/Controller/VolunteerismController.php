@@ -397,4 +397,15 @@ class VolunteerismController extends AbstractController
     {
         return $this->json($this->resourceMobilizationService->deleteById((int) $request->get("id")));
     }
+
+    /**
+     * @Route("/resource-mobilization/report/full/{quarterId}/{fieldOfficeId}", methods={"GET"})
+     */
+    public function getResourceMobilizationReport(Request $request): Response
+    {
+        return $this->json($this->resourceMobilizationService->getReport(
+            (int) $request->get("quarterId"),
+            (int) $request->get("fieldOfficeId"),
+        ));
+    }
 }
