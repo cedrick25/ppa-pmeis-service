@@ -7,6 +7,7 @@ use App\Common\CacheHelper;
 use App\Entity\SocialMarketing;
 use App\Model\SocialMarketing as SocialMarketingModel;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
+use Doctrine\DBAL\Driver\Exception;
 use Doctrine\ORM\ORMException;
 use Doctrine\Persistence\ManagerRegistry;
 use Psr\Cache\CacheException;
@@ -117,9 +118,10 @@ class SocialMarketingRepository extends ServiceEntityRepository
     /**
      * @param string[] $minMaxDate
      * @param int $fieldOfficeId
-     * @return array<int, array<string, mixed>>
+     * @param string $type
+     * @return array<int|string, array<int, array<string, mixed>>>
+     * @throws Exception
      * @throws \Doctrine\DBAL\Exception
-     * @throws \Doctrine\DBAL\Driver\Exception
      */
     public function findByDateRange(array $minMaxDate, int $fieldOfficeId, string $type): array
     {
@@ -127,8 +129,9 @@ class SocialMarketingRepository extends ServiceEntityRepository
         $min = $minMaxDate['min'];
         $max = $minMaxDate['max'];
 
-        $sql = "SELECT sm.*, fo.name as field_office FROM social_marketing as sm
+        $sql = "SELECT sm.*, fo.name as field_office, sma.name as social_marketing_activity FROM social_marketing as sm
                 LEFT JOIN field_offices as fo ON sm.field_office_id = fo.field_office_id
+                LEFT JOIN social_marketing_activities as sma ON sm.social_marketing_activity_id = sma.id
                 WHERE sm.field_office_id = $fieldOfficeId AND sm.type = '$type' 
                   AND sm.date BETWEEN CAST('$min' AS DATE) AND CAST('$max' AS DATE)";
         $stmt = $conn->prepare($sql);
@@ -137,17 +140,20 @@ class SocialMarketingRepository extends ServiceEntityRepository
         $result = [];
 
         foreach ($rows as $row) {
-            if ($row['vpa_id'] != null) {
-                $vpa = $this->volunteerRepository->find(intval($row['vpa_id']));
-                $row['name'] = $vpa->getFirstName() . ' ' . $vpa->getMiddleName() . ' ' . $vpa->getLastName();
-                $row['role'] = $row['vpa_role'];
+            $vpa = $this->volunteerRepository->find(intval($row['vpa_id']));
+            $userDetail = $this->userDetailsRepository->findOneBy(['userAccountId' => $row['personnel_id']]);
+            if ($userDetail !== null) {
+                $row['personnel_name'] = $userDetail->getFirstName() . ' ' . $userDetail->getMiddleName() . ' ' . $userDetail->getLastName();
             } else {
-                $userDetail = $this->userDetailsRepository->findOneBy(['userAccountId' => $row['personnel_id']]);
-                $row['name'] = $userDetail->getFirstName() . ' ' . $userDetail->getMiddleName() . ' ' . $userDetail->getLastName();
-                $row['role'] = $row['personnel_role'];
+                $row['personnel_name'] = '';
+            }
+            if ($vpa !== null) {
+                $row['vpa_name'] = $vpa->getFirstName() . ' ' . $vpa->getMiddleName() . ' ' . $vpa->getLastName();
+            } else {
+                $row['vpa_name'] = '';
             }
 
-            $result[] = $row;
+            $result[$row['social_marketing_activity_id']][] = $row;
         }
 
         return $result;

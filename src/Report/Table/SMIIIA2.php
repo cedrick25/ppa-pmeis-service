@@ -49,43 +49,36 @@ class SMIIIA2 implements Form
         return $spreadsheet;
     }
 
+    /**
+     * @throws \PhpOffice\PhpSpreadsheet\Exception
+     */
     public function body(): Spreadsheet
     {
         $spreadsheet = $this->header();
 
-        $quarter = $this->data['quarter'];
-        $fieldOffice = $this->data['field_office_id'];
-        $data = [
-            'FOURTH_2021' => [
-                '1' => [
-                    ['1.  Peace and Order Councils (POC) / Anti-Drug Abuse Council ( CADAC)/', '', '', '', '', '', ''],
-                    ['     Government Information Officers  League, MSEC, etc.', '', '', '', '', '', ''],
-                    ['', '', '', '', '', '', ''],
-                    ['Lunch Meeting with Court Judges, CADAC Focal Personnel and, ', 'October 4. 2021 / Brgy. Santolan, Pasig City', '2', '', 'Mariz Aguilera Troy Tereno', 'Participant', ''],
-                    ['Balai Silangan Reformation and Rehabilitation Center Personnel', '', '', '', '', '', ''],
-                    ['', '', '', '', '', '', ''],
-                    ['2.  Others (Attendance/ Participation in significant events ', '', '', '', '', '', ''],
-                    ['            as representative of the Agency)', '', '', '', '', '', ''],
-                    ['None', '', '', '', '', '', ''],
-                ],
-            ],
-        ];
-
-        $rows = $data[$quarter][$fieldOffice];
-        foreach ($rows as $row) {
-            $this->lastFilledOutCellY++;
-            $spreadsheet->getActiveSheet()->setCellValue("a" . $this->lastFilledOutCellY, $row[0]);
-            $spreadsheet->getActiveSheet()->setCellValue("b" . $this->lastFilledOutCellY, $row[1]);
-            $spreadsheet->getActiveSheet()->setCellValue("c" . $this->lastFilledOutCellY, $row[2]);
-            $spreadsheet->getActiveSheet()->setCellValue("d" . $this->lastFilledOutCellY, $row[3]);
-            $spreadsheet->getActiveSheet()->setCellValue("e" . $this->lastFilledOutCellY, $row[4]);
-            $spreadsheet->getActiveSheet()->setCellValue("f" . $this->lastFilledOutCellY, $row[5]);
-            $spreadsheet->getActiveSheet()->setCellValue("g" . $this->lastFilledOutCellY, $row[6]);
+        foreach ($this->data['rows'] as $socialMarketingActivityId=>$socialMarketing) {
+            foreach ($socialMarketing as $index=>$row) {
+                $this->lastFilledOutCellY++;
+                if ($index <= 0) {
+                    $spreadsheet->getActiveSheet()->setCellValue("a" . $this->lastFilledOutCellY, trim(preg_replace('/\s\s+/', ' ', $row['social_marketing_activity'])));
+                    $this->lastFilledOutCellY++;
+                }
+                $spreadsheet->getActiveSheet()->setCellValue("a" . $this->lastFilledOutCellY, $row['activity_name']);
+                $spreadsheet->getActiveSheet()->setCellValue("b" . $this->lastFilledOutCellY, $row['date'] . ' ' . $row['venue']);
+                $spreadsheet->getActiveSheet()->setCellValue("c" . $this->lastFilledOutCellY, $row['participants']);
+                $spreadsheet->getActiveSheet()->setCellValue("d" . $this->lastFilledOutCellY, $row['type']);
+                $spreadsheet->getActiveSheet()->setCellValue("e" . $this->lastFilledOutCellY, $row['personnel_name'] . '/' . $row['personnel_role']);
+                $spreadsheet->getActiveSheet()->setCellValue("f" . $this->lastFilledOutCellY, $row['vpa_name'] . '/' . $row['vpa_role']);
+                $spreadsheet->getActiveSheet()->setCellValue("g" . $this->lastFilledOutCellY, $row['remarks']);
+            }
         }
 
         $this->lastFilledOutCellY++;
 
-        $spreadsheet->getActiveSheet()->getStyle('A4:g' . $this->lastFilledOutCellY)->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
+        $spreadsheet->getActiveSheet()->getStyle('A4:G' . $this->lastFilledOutCellY)->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
+        $spreadsheet->getActiveSheet()->getStyle('A4:G' . $this->lastFilledOutCellY)->getAlignment()->setHorizontal('center');
+        $spreadsheet->getActiveSheet()->getStyle('A4:G' . $this->lastFilledOutCellY)->getAlignment()->setVertical('center');
+        $spreadsheet->getActiveSheet()->getStyle('A4:G' . $this->lastFilledOutCellY)->getAlignment()->setWrapText(true);
         return $spreadsheet;
     }
 
