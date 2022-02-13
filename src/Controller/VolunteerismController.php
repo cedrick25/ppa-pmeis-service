@@ -14,6 +14,7 @@ use App\Service\Volunteerism\IdSupportInterface;
 use App\Service\Volunteerism\OperationsInterface;
 use App\Service\Volunteerism\ServicesRenderedInterface;
 use App\Model\TechnicalAssistance as TechnicalAssistanceModel;
+use App\Service\Volunteerism\SocialMarketingActivitiesInterface;
 use App\Service\Volunteerism\TechnicalAssistanceInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -26,13 +27,14 @@ use Symfony\Component\Routing\Annotation\Route;
 class VolunteerismController extends AbstractController
 {
     public function __construct(
-        private AppHydrator                  $appHydrator,
-        private AppFormatter                 $appFormatter,
-        private OperationsInterface          $operationService,
-        private IdInterface                  $idService,
-        private ServicesRenderedInterface    $servicesRenderedService,
-        private IdSupportInterface           $idSupportService,
-        private TechnicalAssistanceInterface $technicalAssistanceService,
+        private AppHydrator                        $appHydrator,
+        private AppFormatter                       $appFormatter,
+        private OperationsInterface                $operationService,
+        private IdInterface                        $idService,
+        private ServicesRenderedInterface          $servicesRenderedService,
+        private IdSupportInterface                 $idSupportService,
+        private TechnicalAssistanceInterface       $technicalAssistanceService,
+        private SocialMarketingActivitiesInterface $socialMarketingActivitiesService,
     ){}
 
     /**
@@ -230,5 +232,13 @@ class VolunteerismController extends AbstractController
             (int) $request->get("quarterId"),
             (int) $request->get("fieldOfficeId"),
         ));
+    }
+
+    /**
+     * @Route("/social-marketing-activities/list", methods={"GET"})
+     */
+    public function getAllSocialMarketingActivities(): Response
+    {
+        return $this->json($this->socialMarketingActivitiesService->getAll());
     }
 }
