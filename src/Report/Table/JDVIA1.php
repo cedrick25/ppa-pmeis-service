@@ -49,51 +49,66 @@ class JDVIA1 implements Form
         return $spreadsheet;
     }
 
+    /**
+     * @throws \PhpOffice\PhpSpreadsheet\Exception
+     */
     public function body(): Spreadsheet
     {
         $spreadsheet = $this->header();
 
-        $quarter = $this->data['quarter'];
-        $fieldOffice = $this->data['field_office_id'];
-        $data = [
-            'FIRST_2022' => [
-                '1' => [
-                    ['01/07/2022', 'BJMP Pasig City', '/', '', '2', '', '', '', '', '', '', 'Troy Terono', ''],
-                    ['01/15/2022', 'BJMP Pasig City', '/', '', '1', '', '', '', '', '', '', 'Troy Terono', ''],
-                    ['', '', '', '', '', '', '', '', '', '', '', '', ''],
-                    ['', '', '', '', '', '', '', '', '', '', '', '', ''],
-                    ['', 'Total', '', '', '3', '', '', '', '', '', '', '', ''],
-                ],
-            ],
-            'FOURTH_2021' => [
-                '1' => [
-                    ['11/28/2021', 'BJMP Pasig City', '/', '', '2', '', '', '', '', '', '', 'Jeffrey Mgbantay', ''],
-                    ['12/05/2021', 'BJMP Pasig City', '/', '', '2', '', '', '', '', '', '', 'Troy Terono', ''],
-                    ['', '', '', '', '', '', '', '', '', '', '', '', ''],
-                    ['', '', '', '', '', '', '', '', '', '', '', '', ''],
-                    ['', 'Total', '', '', '4', '', '', '', '', '', '', '', ''],
-                ],
-            ],
+        $total = [
+            'probation' => 0,
+            'clemency' => 0,
+            'referral_pao' => 0,
+            'referral_prosecution' => 0,
+            'referral_others' => 0,
+            'gcta' => 0,
+            'recognizance' => 0,
         ];
 
-        $rows = $data[$quarter][$fieldOffice];
-        foreach ($rows as $row) {
+        foreach ($this->data['rows'] as $row) {
             $this->lastFilledOutCellY++;
-            $spreadsheet->getActiveSheet()->setCellValue("a" . $this->lastFilledOutCellY, $row[0]);
-            $spreadsheet->getActiveSheet()->setCellValue("b" . $this->lastFilledOutCellY, $row[1]);
-            $spreadsheet->getActiveSheet()->setCellValue("c" . $this->lastFilledOutCellY, $row[2]);
-            $spreadsheet->getActiveSheet()->setCellValue("d" . $this->lastFilledOutCellY, $row[3]);
-            $spreadsheet->getActiveSheet()->setCellValue("e" . $this->lastFilledOutCellY, $row[4]);
-            $spreadsheet->getActiveSheet()->setCellValue("f" . $this->lastFilledOutCellY, $row[5]);
-            $spreadsheet->getActiveSheet()->setCellValue("g" . $this->lastFilledOutCellY, $row[6]);
-            $spreadsheet->getActiveSheet()->setCellValue("h" . $this->lastFilledOutCellY, $row[7]);
-            $spreadsheet->getActiveSheet()->setCellValue("i" . $this->lastFilledOutCellY, $row[8]);
-            $spreadsheet->getActiveSheet()->setCellValue("j" . $this->lastFilledOutCellY, $row[9]);
-            $spreadsheet->getActiveSheet()->setCellValue("k" . $this->lastFilledOutCellY, $row[10]);
-            $spreadsheet->getActiveSheet()->setCellValue("l" . $this->lastFilledOutCellY, $row[11]);
-            $spreadsheet->getActiveSheet()->setCellValue("m" . $this->lastFilledOutCellY, $row[12]);
+
+            $spreadsheet->getActiveSheet()->setCellValue("a" . $this->lastFilledOutCellY, $row['date']);
+            $spreadsheet->getActiveSheet()->setCellValue("b" . $this->lastFilledOutCellY, $row['name_address']);
+            if (intval($row['jail_venue'])) {
+                $spreadsheet->getActiveSheet()->setCellValue("c" . $this->lastFilledOutCellY, '/');
+            }
+            if (intval($row['jail_office'])) {
+                $spreadsheet->getActiveSheet()->setCellValue("D" . $this->lastFilledOutCellY, '/');
+            }
+            $spreadsheet->getActiveSheet()->setCellValue("e" . $this->lastFilledOutCellY, $row['probation']);
+            $spreadsheet->getActiveSheet()->setCellValue("f" . $this->lastFilledOutCellY, $row['clemency']);
+            $spreadsheet->getActiveSheet()->setCellValue("g" . $this->lastFilledOutCellY, $row['referral_pao']);
+            $spreadsheet->getActiveSheet()->setCellValue("h" . $this->lastFilledOutCellY, $row['referral_prosecution']);
+            $spreadsheet->getActiveSheet()->setCellValue("i" . $this->lastFilledOutCellY, $row['referral_others']);
+            $spreadsheet->getActiveSheet()->setCellValue("j" . $this->lastFilledOutCellY, $row['gcta']);
+            $spreadsheet->getActiveSheet()->setCellValue("k" . $this->lastFilledOutCellY, $row['recognizance']);
+            $spreadsheet->getActiveSheet()->setCellValue("l" . $this->lastFilledOutCellY, $row['person_responsible']);
+            $spreadsheet->getActiveSheet()->setCellValue("m" . $this->lastFilledOutCellY, $row['remarks']);
+
+            $total['probation'] += intval($row['probation']);
+            $total['clemency'] += intval($row['clemency']);
+            $total['referral_pao'] += intval($row['referral_pao']);
+            $total['referral_prosecution'] += intval($row['referral_prosecution']);
+            $total['referral_others'] += intval($row['referral_others']);
+            $total['gcta'] += intval($row['gcta']);
+            $total['recognizance'] += intval($row['recognizance']);
         }
-        $spreadsheet->getActiveSheet()->getStyle('A9:m' . $this->lastFilledOutCellY)->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
+        $this->lastFilledOutCellY++;
+        $spreadsheet->getActiveSheet()->setCellValue('B' . $this->lastFilledOutCellY, 'TOTAL');
+        $spreadsheet->getActiveSheet()->setCellValue('E' . $this->lastFilledOutCellY, $total['probation']);
+        $spreadsheet->getActiveSheet()->setCellValue('F' . $this->lastFilledOutCellY, $total['clemency']);
+        $spreadsheet->getActiveSheet()->setCellValue('G' . $this->lastFilledOutCellY, $total['referral_pao']);
+        $spreadsheet->getActiveSheet()->setCellValue('H' . $this->lastFilledOutCellY, $total['referral_prosecution']);
+        $spreadsheet->getActiveSheet()->setCellValue('I' . $this->lastFilledOutCellY, $total['referral_others']);
+        $spreadsheet->getActiveSheet()->setCellValue('J' . $this->lastFilledOutCellY, $total['gcta']);
+        $spreadsheet->getActiveSheet()->setCellValue('K' . $this->lastFilledOutCellY, $total['recognizance']);
+
+        $spreadsheet->getActiveSheet()->getStyle('A9:M' . $this->lastFilledOutCellY)->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
+        $spreadsheet->getActiveSheet()->getStyle('A9:M' . $this->lastFilledOutCellY)->getAlignment()->setHorizontal('center');
+        $spreadsheet->getActiveSheet()->getStyle('A9:M' . $this->lastFilledOutCellY)->getAlignment()->setVertical('center');
+
 
         return $spreadsheet;
     }
