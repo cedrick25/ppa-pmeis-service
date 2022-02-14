@@ -7,7 +7,6 @@ namespace App\Report\Table;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Style\Border;
-use PhpOffice\PhpSpreadsheet\Style\Fill;
 use PhpOffice\PhpSpreadsheet\Writer\Exception;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
@@ -49,66 +48,31 @@ class JDVIA2 implements Form
         return $spreadsheet;
     }
 
+    /**
+     * @throws \PhpOffice\PhpSpreadsheet\Exception
+     */
     public function body(): Spreadsheet
     {
         $spreadsheet = $this->header();
+        $this->lastFilledOutCellY++;
+        $spreadsheet->getActiveSheet()->setCellValue('A' . $this->lastFilledOutCellY, 'I.  SPECIAL ASSIGNMENT');
+        $this->lastFilledOutCellY++;
+        $spreadsheet->getActiveSheet()->setCellValue('A' . $this->lastFilledOutCellY, '    (Committee memberships)');
+        $spreadsheet = $this->plotSpecialAssignments($this->data['rows']['SPECIAL_ASSIGNMENT'], $spreadsheet);
 
-        $quarter = $this->data['quarter'];
-        $fieldOffice = $this->data['field_office_id'];
-        $data = [
-            'FIRST_2022' => [
-                '1' => [
-                    ['I.  SPECIAL ASSIGNMENT ', '', '', '', '',],
-                    ['    (Committee memberships)', '', '', '', '',],
-                    ['   a.   National', 'PPOLPIE Executive Officers Meeting', 'January 30-31, 2022 / PPACO', 'Gerone Mabagay', '',],
-                    ['', '', '', '', '',],
-                    ['          Total', '1', '', '1', '',],
-                    ['   b. Regional', '', '', '', '',],
-                    ['    Election Committee Member', 'Formulation of General Rules', 'January 3, 2022 / PPA Pasig Office', 'Daniel Agbat', '',],
-                    ['    Election Committee Member', 'Formulation of General Rules', 'January 3, 2022 / PPA Pasig Office', 'Troy Torona', '',],
-                    ['    Annual Report Committee Member', 'Consolidation of Reports', 'January 7, 2022 / PPA Pasig Office', 'Gerone Mabagay', '',],
-                    ['    TC Committee Chairperson', 'Consolidation of Rules', 'January 7, 2022 / PPA Pasig Office', 'Gerone Mabagay', '',],
-                    ['', '', '', '', '',],
-                    ['          Total', '4', '', '4', '',],
-                    ['   c. Field Office', '', '', '', '',],
-                    ['None', '', '', '', '',],
-                    ['', '', '', '', '',],
-                    ['          Total', '0', '', '0', '',],
-                    ['', '', '', '', '',],
-                    ['II. MISCELLANEOUS ACTIVITIES', '', '', '', '',],
-                    ['    (e.g.  Attendance to Court Hearings, etc.)', '', '', '', '',],
-                    ['          Total', '0', '', '0', '',],
-                ],
-            ],
-            'FOURTH_2021' => [
-                '1' => [
-                    ['I.  SPECIAL ASSIGNMENT ', '', '', '', '',],
-                    ['    (Committee memberships)', '', '', '', '',],
-                    ['None', '', '', '', '',],
-                    ['          Total', '0', '', '0', '',],
-                    ['   c. Field Office', '', '', '', '',],
-                    ['None', '', '', '', '',],
-                    ['', '', '', '', '',],
-                    ['          Total', '0', '', '0', '',],
-                    ['', '', '', '', '',],
-                    ['II. MISCELLANEOUS ACTIVITIES', '', '', '', '',],
-                    ['    (e.g.  Attendance to Court Hearings, etc.)', '', '', '', '',],
-                    ['      Attendace to Court Hearing', 'Revocation of Probation', 'November 11, 2021 / RTC PAsig', 'Gerone Mabagay', '',],
-                    ['      Attendace to Court Hearing', 'Denial of Probation', 'December 3, 2021 / RTC PAsig', 'Daniel Agbat', '',],
-                    ['          Total', '2', 'TOTAL (HEADCOUNT)', '2', '',],
-                ],
-            ],
-        ];
-        $rows = $data[$quarter][$fieldOffice];
-        foreach ($rows as $row) {
-            $this->lastFilledOutCellY++;
-            $spreadsheet->getActiveSheet()->setCellValue("a" . $this->lastFilledOutCellY, $row[0]);
-            $spreadsheet->getActiveSheet()->setCellValue("b" . $this->lastFilledOutCellY, $row[1]);
-            $spreadsheet->getActiveSheet()->setCellValue("c" . $this->lastFilledOutCellY, $row[2]);
-            $spreadsheet->getActiveSheet()->setCellValue("d" . $this->lastFilledOutCellY, $row[3]);
-            $spreadsheet->getActiveSheet()->setCellValue("e" . $this->lastFilledOutCellY, $row[4]);
-        }
-        $spreadsheet->getActiveSheet()->getStyle('a5:e' . $this->lastFilledOutCellY)->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
+        $this->lastFilledOutCellY++;
+        $spreadsheet->getActiveSheet()->setCellValue('A' . $this->lastFilledOutCellY, 'II.  MISCELLANEOUS ACTIVITIES');
+        $this->lastFilledOutCellY++;
+        $spreadsheet->getActiveSheet()->setCellValue('A' . $this->lastFilledOutCellY, '    (e.g.  Attendance to Court Hearings,');
+        $this->lastFilledOutCellY++;
+        $spreadsheet->getActiveSheet()->setCellValue('A' . $this->lastFilledOutCellY, '      etc.)');
+        $this->lastFilledOutCellY++;
+
+        $spreadsheet = $this->plot($this->data['rows']['MISCELLANEOUS_ACTIVITIES'], $spreadsheet);
+
+        $spreadsheet->getActiveSheet()->getStyle('A5:E' . $this->lastFilledOutCellY)->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
+        $spreadsheet->getActiveSheet()->getStyle('A5:E' . $this->lastFilledOutCellY)->getAlignment()->setHorizontal('center');
+        $spreadsheet->getActiveSheet()->getStyle('A5:E' . $this->lastFilledOutCellY)->getAlignment()->setVertical('center');
 
         return $spreadsheet;
     }
@@ -144,10 +108,6 @@ class JDVIA2 implements Form
             'e4' => '(5)',
 
         ];
-        $mergesCoordinates = [
-            // 'C4:D5', 'D7:D8', 'E4:K4', 'E5:F5', 'G5:I5', 'L4:L8', 'J5:J8', 'K5:K8', 'B4:B6', 'C6:C8', 'D6:D8', 'E6:E8', 'G6:G8', 'H6:H8', 'I6:I8', 'J5:J8',
-
-        ];
         $boldCoordinates = ['a1','e1','a4','b4','c4','d4','e4',];
         $verticalAlignedCoordinates = ['B6:E27' => 'center', 'A3:A4' => 'center'];
         $horizontalAlignedCoordinates = ['B6:E27' => 'center', 'A3:A4' => 'center'];
@@ -160,9 +120,6 @@ class JDVIA2 implements Form
 
         foreach ($textAndCoordinates as $coordinate=>$text) {
             $spreadsheet->getActiveSheet()->setCellValue($coordinate, $text);
-        }
-        foreach ($mergesCoordinates as $coordinate) {
-            $spreadsheet->getActiveSheet()->mergeCells($coordinate);
         }
         foreach ($boldCoordinates as $coordinate) {
             $spreadsheet->getActiveSheet()->getStyle($coordinate)->getFont()->setBold(true);
@@ -179,6 +136,52 @@ class JDVIA2 implements Form
         foreach ($outlineBorderThinCoordinates as $coordinate) {
             $spreadsheet->getActiveSheet()->getStyle($coordinate)->getBorders()->getOutline()->setBorderStyle(Border::BORDER_THIN);
         }
+
+        return $spreadsheet;
+    }
+
+    private function plotSpecialAssignments(array $rows, Spreadsheet $spreadsheet): Spreadsheet
+    {
+        $this->lastFilledOutCellY++;
+        $this->lastFilledOutCellY++;
+        $spreadsheet->getActiveSheet()->setCellValue('A' . $this->lastFilledOutCellY, '   a.   National');
+        $spreadsheet = $this->plot($rows['national'], $spreadsheet);
+        $this->lastFilledOutCellY++;
+
+        $this->lastFilledOutCellY++;
+        $spreadsheet->getActiveSheet()->setCellValue('A' . $this->lastFilledOutCellY, '    b.   Regional');
+        $spreadsheet = $this->plot($rows['regional'], $spreadsheet);
+        $this->lastFilledOutCellY++;
+
+        $this->lastFilledOutCellY++;
+        $spreadsheet->getActiveSheet()->setCellValue('A' . $this->lastFilledOutCellY, '   c.   Field Office');
+        $spreadsheet = $this->plot($rows['field_office'], $spreadsheet);
+        $this->lastFilledOutCellY++;
+
+        return $spreadsheet;
+    }
+    private function plot(array $rows, Spreadsheet $spreadsheet): Spreadsheet
+    {
+        $total = [
+            'activity' => 0,
+            'person_involved' => 0
+        ];
+        foreach ($rows as $row) {
+            $this->lastFilledOutCellY++;
+            $spreadsheet->getActiveSheet()->setCellValue("a" . $this->lastFilledOutCellY, $row['decsription']);
+            $spreadsheet->getActiveSheet()->setCellValue("b" . $this->lastFilledOutCellY, $row['activity']);
+            $spreadsheet->getActiveSheet()->setCellValue("c" . $this->lastFilledOutCellY, $row['date'] . ' ' . $row['venue']);
+            $spreadsheet->getActiveSheet()->setCellValue("d" . $this->lastFilledOutCellY, $row['person_involved']);
+            $spreadsheet->getActiveSheet()->setCellValue("e" . $this->lastFilledOutCellY, $row['remarks']);
+            $total['activity']++;
+            $total['person_involved']++;
+        }
+        $this->lastFilledOutCellY++;
+        $spreadsheet->getActiveSheet()->setCellValue('A' . $this->lastFilledOutCellY, '                                                     Total');
+        $spreadsheet->getActiveSheet()->setCellValue('B' . $this->lastFilledOutCellY, $total['activity']);
+        $spreadsheet->getActiveSheet()->setCellValue('C' . $this->lastFilledOutCellY, '              TOTAL  (Headcount)');
+        $spreadsheet->getActiveSheet()->setCellValue('D' . $this->lastFilledOutCellY, $total['person_involved']);
+        $spreadsheet->getActiveSheet()->getStyle('A' . $this->lastFilledOutCellY .':E' . $this->lastFilledOutCellY)->getFont()->setBold(true);
 
         return $spreadsheet;
     }
