@@ -12,6 +12,7 @@ use App\Model\ResourceMobilization as ResourceMobilizationModel;
 use App\Model\VolunteerId as VolunteerIdModel;
 use App\Model\ProgramMaterialsDevelopment as ProgramMaterialsDevelopmentModel;
 use App\Model\JailDecongestion as JailDecongestionModel;
+use App\Model\SpecialAssignment as SpecialAssignmentModel;
 use App\Service\Volunteerism\IdInterface;
 use App\Service\Volunteerism\IdSupportInterface;
 use App\Service\Volunteerism\JailDecongestionInterface;
@@ -22,6 +23,7 @@ use App\Service\Volunteerism\ServicesRenderedInterface;
 use App\Model\TechnicalAssistance as TechnicalAssistanceModel;
 use App\Service\Volunteerism\SocialMarketingActivitiesInterface;
 use App\Service\Volunteerism\SocialMarketingInterface;
+use App\Service\Volunteerism\SpecialAssignmentInterface;
 use App\Service\Volunteerism\TechnicalAssistanceInterface;
 use App\Model\SocialMarketing as SocialMarketingModel;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -47,6 +49,7 @@ class VolunteerismController extends AbstractController
         private ProgramMaterialsDevelopmentInterface $programMaterialsDevelopmentService,
         private ResourceMobilizationInterface        $resourceMobilizationService,
         private JailDecongestionInterface            $jailDecongestionService,
+        private SpecialAssignmentInterface           $specialAssignmentSerivice,
     ){}
 
     /**
@@ -459,6 +462,58 @@ class VolunteerismController extends AbstractController
     public function getJailDecongestionReport(Request $request): Response
     {
         return $this->json($this->jailDecongestionService->getReport(
+            (int) $request->get("quarterId"),
+            (int) $request->get("fieldOfficeId"),
+        ));
+    }
+
+    /**
+     * @Route("/special-assignment/create", methods={"POST"})
+     */
+    public function createSpecialAssignment(Request $request): Response
+    {
+        try {
+            $data = json_decode($request->getContent(), true);
+
+            /** @var SpecialAssignmentModel $specialAssignment */
+            $specialAssignment = $this->appHydrator->convertArrayToObject($data, SpecialAssignmentModel::class);
+
+            return $this->json($this->specialAssignmentSerivice->create($specialAssignment));
+        } catch (\ReflectionException $exception) {
+            return $this->json($this->appFormatter->formatResponse('Creating Special Assignment failed', null, ['reflection' => $exception->getMessage()]));
+        }
+    }
+
+    /**
+     * @Route("/special-assignment/list", methods={"GET"})
+     */
+    public function getAllSpecialAssignments(): Response
+    {
+        return $this->json($this->specialAssignmentSerivice->getAll());
+    }
+
+    /**
+     * @Route("/special-assignment/by/id/{id}", methods={"GET"})
+     */
+    public function getSpecialAssignmentById(Request $request): Response
+    {
+        return $this->json($this->specialAssignmentSerivice->getById((int) $request->get("id")));
+    }
+
+    /**
+     * @Route("/special-assignment/delete/{id}", methods={"GET"})
+     */
+    public function deleteSpecialAssignmentById(Request $request): Response
+    {
+        return $this->json($this->specialAssignmentSerivice->deleteById((int) $request->get("id")));
+    }
+
+    /**
+     * @Route("/special-assignment/report/full/{quarterId}/{fieldOfficeId}", methods={"GET"})
+     */
+    public function getSpecialAssignmentReport(Request $request): Response
+    {
+        return $this->json($this->specialAssignmentSerivice->getReport(
             (int) $request->get("quarterId"),
             (int) $request->get("fieldOfficeId"),
         ));

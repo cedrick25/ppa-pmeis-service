@@ -325,4 +325,9 @@ class CacheHelper
     {
         return 'jail_decongestion_all';
     }
+
+    public function getAllSpecialAssignmentsKey(): string
+    {
+        return 'special_assignment_all';
+    }
 }
