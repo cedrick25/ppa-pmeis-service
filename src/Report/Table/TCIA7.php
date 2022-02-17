@@ -170,8 +170,6 @@ class TCIA7 implements Form
             'a45' => ' ',
 
         ];
-        $mergesCoordinates = [
-        ];
         $boldCoordinates = ['f1', 'a4',];
         $verticalAlignedCoordinates = ['a5:f5' => 'center',];
         $horizontalAlignedCoordinates = ['a5:f5' => 'center',];
@@ -184,9 +182,6 @@ class TCIA7 implements Form
 
         foreach ($textAndCoordinates as $coordinate=>$text) {
             $spreadsheet->getActiveSheet()->setCellValue($coordinate, $text);
-        }
-        foreach ($mergesCoordinates as $coordinate) {
-            $spreadsheet->getActiveSheet()->mergeCells($coordinate);
         }
         foreach ($boldCoordinates as $coordinate) {
             $spreadsheet->getActiveSheet()->getStyle($coordinate)->getFont()->setBold(true);
@@ -560,7 +555,8 @@ class TCIA7 implements Form
             $total += $percentageOfClientsAttendingTC[5];
             $count++;
         }
-        $spreadsheet->getActiveSheet()->setCellValue('F44', ($total / $count) . '%');
+        $overallTotal = $total > 0 && $count > 0 ? ($total / $count) : 0;
+        $spreadsheet->getActiveSheet()->setCellValue('F44', $overallTotal . '%');
 
         return $spreadsheet;
     }
