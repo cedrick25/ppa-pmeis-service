@@ -330,4 +330,9 @@ class CacheHelper
     {
         return 'special_assignment_all';
     }
+
+    public function getAllSupportOfRegionToFieldOfficesKey(): string
+    {
+        return 'all_support_of_region_to_field_offices';
+    }
 }

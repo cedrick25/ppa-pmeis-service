@@ -24,8 +24,10 @@ use App\Model\TechnicalAssistance as TechnicalAssistanceModel;
 use App\Service\Volunteerism\SocialMarketingActivitiesInterface;
 use App\Service\Volunteerism\SocialMarketingInterface;
 use App\Service\Volunteerism\SpecialAssignmentInterface;
+use App\Service\Volunteerism\SupportOfRegionToFieldOfficeInterface;
 use App\Service\Volunteerism\TechnicalAssistanceInterface;
 use App\Model\SocialMarketing as SocialMarketingModel;
+use App\Model\SupportOfRegionToFieldOffice as SupportOfRegionToFieldOfficeModel;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -37,19 +39,20 @@ use Symfony\Component\Routing\Annotation\Route;
 class VolunteerismController extends AbstractController
 {
     public function __construct(
-        private AppHydrator                          $appHydrator,
-        private AppFormatter                         $appFormatter,
-        private OperationsInterface                  $operationService,
-        private IdInterface                          $idService,
-        private ServicesRenderedInterface            $servicesRenderedService,
-        private IdSupportInterface                   $idSupportService,
-        private TechnicalAssistanceInterface         $technicalAssistanceService,
-        private SocialMarketingActivitiesInterface   $socialMarketingActivitiesService,
-        private SocialMarketingInterface             $socialMarketingService,
-        private ProgramMaterialsDevelopmentInterface $programMaterialsDevelopmentService,
-        private ResourceMobilizationInterface        $resourceMobilizationService,
-        private JailDecongestionInterface            $jailDecongestionService,
-        private SpecialAssignmentInterface           $specialAssignmentSerivice,
+        private AppHydrator                             $appHydrator,
+        private AppFormatter                            $appFormatter,
+        private OperationsInterface                     $operationService,
+        private IdInterface                             $idService,
+        private ServicesRenderedInterface               $servicesRenderedService,
+        private IdSupportInterface                      $idSupportService,
+        private TechnicalAssistanceInterface            $technicalAssistanceService,
+        private SocialMarketingActivitiesInterface      $socialMarketingActivitiesService,
+        private SocialMarketingInterface                $socialMarketingService,
+        private ProgramMaterialsDevelopmentInterface    $programMaterialsDevelopmentService,
+        private ResourceMobilizationInterface           $resourceMobilizationService,
+        private JailDecongestionInterface               $jailDecongestionService,
+        private SpecialAssignmentInterface              $specialAssignmentSerivice,
+        private SupportOfRegionToFieldOfficeInterface   $supportOfRegionToFieldOfficeService,
     ){}
 
     /**
@@ -516,6 +519,59 @@ class VolunteerismController extends AbstractController
         return $this->json($this->specialAssignmentSerivice->getReport(
             (int) $request->get("quarterId"),
             (int) $request->get("fieldOfficeId"),
+        ));
+    }
+
+    /**
+     * @Route("/support-of-region/create", methods={"POST"})
+     */
+    public function createSupportOfRegion(Request $request): Response
+    {
+        try {
+            $data = json_decode($request->getContent(), true);
+
+            /** @var SupportOfRegionToFieldOfficeModel $supportOfRegionToFieldOffice */
+            $supportOfRegionToFieldOffice = $this->appHydrator->convertArrayToObject($data, SupportOfRegionToFieldOfficeModel::class);
+
+            return $this->json($this->supportOfRegionToFieldOfficeService->create($supportOfRegionToFieldOffice));
+        } catch (\ReflectionException $exception) {
+            return $this->json($this->appFormatter->formatResponse('Creating Support Of Region To Field Office Support failed', null, ['reflection' => $exception->getMessage()]));
+        }
+    }
+
+    /**
+     * @Route("/support-of-region/list", methods={"GET"})
+     */
+    public function getAllSupportOfRegion(): Response
+    {
+        return $this->json($this->supportOfRegionToFieldOfficeService->getAll());
+    }
+
+    /**
+     * @Route("/support-of-region/by/id/{id}", methods={"GET"})
+     */
+    public function getSupportOfRegionById(Request $request): Response
+    {
+        return $this->json($this->supportOfRegionToFieldOfficeService->getById((int) $request->get("id")));
+    }
+
+    /**
+     * @Route("/support-of-region/delete/{id}", methods={"GET"})
+     */
+    public function deleteSupportOfRegionById(Request $request): Response
+    {
+        return $this->json($this->supportOfRegionToFieldOfficeService->deleteById((int) $request->get("id")));
+    }
+
+    /**
+     * @Route("/support-of-region/report/full/{quarterId}/{fieldOfficeId}/{category}", methods={"GET"})
+     */
+    public function getSupportOfRegionReport(Request $request): Response
+    {
+        return $this->json($this->supportOfRegionToFieldOfficeService->getReport(
+            (int) $request->get("quarterId"),
+            (int) $request->get("fieldOfficeId"),
+            $request->get("category"),
         ));
     }
 }
