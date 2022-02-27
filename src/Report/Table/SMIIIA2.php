@@ -66,7 +66,7 @@ class SMIIIA2 implements Form
                 $spreadsheet->getActiveSheet()->setCellValue("a" . $this->lastFilledOutCellY, $row['activity_name']);
                 $spreadsheet->getActiveSheet()->setCellValue("b" . $this->lastFilledOutCellY, $row['date'] . ' ' . $row['venue']);
                 $spreadsheet->getActiveSheet()->setCellValue("c" . $this->lastFilledOutCellY, $row['participants']);
-                $spreadsheet->getActiveSheet()->setCellValue("d" . $this->lastFilledOutCellY, $row['type']);
+                $spreadsheet->getActiveSheet()->setCellValue("d" . $this->lastFilledOutCellY, $row['participant_type']);
                 $spreadsheet->getActiveSheet()->setCellValue("e" . $this->lastFilledOutCellY, $row['personnel_name'] . '/' . $row['personnel_role']);
                 $spreadsheet->getActiveSheet()->setCellValue("f" . $this->lastFilledOutCellY, $row['vpa_name'] . '/' . $row['vpa_role']);
                 $spreadsheet->getActiveSheet()->setCellValue("g" . $this->lastFilledOutCellY, $row['remarks']);

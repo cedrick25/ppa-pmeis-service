@@ -13,6 +13,7 @@ class SocialMarketing
         private string $date,
         private string $venue,
         private string $participants,
+        private string $participantType,
         private string $type,
         private string $remarks,
         private ?int $personnelId = null,
@@ -69,6 +70,15 @@ class SocialMarketing
     public function getParticipants(): string
     {
         return $this->participants;
+    }
+
+    /**
+     * @Assert\NotBlank
+     * @return string
+     */
+    public function getParticipantType(): string
+    {
+        return $this->participantType;
     }
 
     /**

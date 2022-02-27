@@ -45,6 +45,11 @@ class SocialMarketing
     /**
      * @ORM\Column(type="string", length=255)
      */
+    private string $participantType;
+
+    /**
+     * @ORM\Column(type="string", length=255)
+     */
     private string $type;
 
     /**
@@ -154,6 +159,24 @@ class SocialMarketing
     {
         $this->participants = $participants;
 
+        return $this;
+    }
+
+    /**
+     * @return string
+     */
+    public function getParticipantType(): string
+    {
+        return $this->participantType;
+    }
+
+    /**
+     * @param string $participantType
+     * @return SocialMarketing
+     */
+    public function setParticipantType(string $participantType): SocialMarketing
+    {
+        $this->participantType = $participantType;
         return $this;
     }
 

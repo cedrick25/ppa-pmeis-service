@@ -71,6 +71,7 @@ class SocialMarketingRepository extends ServiceEntityRepository
         $newSocialMarketing->setDate($this->appDateHelper->convertStringToImmutableDate($data->getDate()));
         $newSocialMarketing->setVenue($data->getVenue());
         $newSocialMarketing->setParticipants($data->getParticipants());
+        $newSocialMarketing->setParticipantType($data->getParticipantType());
         $newSocialMarketing->setType($data->getType());
         $newSocialMarketing->setPersonnelId($data->getPersonnelId());
         $newSocialMarketing->setPersonnelRole($data->getPersonnelRole());
