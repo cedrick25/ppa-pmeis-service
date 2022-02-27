@@ -127,7 +127,8 @@ class SupportOfRegionToFieldOfficeRepository extends ServiceEntityRepository
         $min = $minMaxDate['min'];
         $max = $minMaxDate['max'];
 
-        $sql = "SELECT * FROM support_of_region_to_field_office as sortfo
+        $sql = "SELECT sortfo.*, fo.name as field_office FROM support_of_region_to_field_office as sortfo
+                LEFT JOIN field_offices as fo ON sortfo.field_office_id = fo.field_office_id
                 WHERE sortfo.field_office_id = $fieldOfficeId
                   AND sortfo.category = '$category'
                   AND sortfo.date BETWEEN CAST('$min' AS DATE) AND CAST('$max' AS DATE)";

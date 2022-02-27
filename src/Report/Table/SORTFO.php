@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Report\Table;
 
+use App\Common\AppDateHelper;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Style\Border;
@@ -11,11 +12,12 @@ use PhpOffice\PhpSpreadsheet\Style\Fill;
 use PhpOffice\PhpSpreadsheet\Writer\Exception;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
-class ROFOF implements Form
+class SORTFO implements Form
 {
-    private const TABLE_NAME = "ROFOF";
+    private const TABLE_NAME = "SORTFO";
     
     public function __construct(
+        private AppDateHelper $appDateHelper,
         private int   $lastFilledOutCellY = 5,
         private array $data = [],
     ){}
@@ -49,36 +51,27 @@ class ROFOF implements Form
         return $spreadsheet;
     }
 
+    /**
+     * @throws \PhpOffice\PhpSpreadsheet\Exception
+     * @throws \Exception
+     */
     public function body(): Spreadsheet
     {
         $spreadsheet = $this->header();
 
-        $quarter = $this->data['quarter'];
-        $fieldOffice = $this->data['field_office_id'];
-        $data = [
-            'FIRST_2022' => [
-                '1' => [
-                    ['I.  ACTIVITIES BY FIELD OFFICES', '', '', '', '', '', '',],
-                    ['', '', '', '', '', '', '',],
-                    ['', '', '', '', '', '', '',],
-                    ['II.  ACTIVITIES BY CLUSTER/REGIONAL OFFICE', '', '', '', '', '', '',],
-                    ['  January 7, 2022', 'Pasig City Field Office', 'Meals', '14000', '2500', '16500', '',],
-                    ['', '', '', '', '', '', '',],
-                ],
-            ],
-        ];
-        $rows = $data[$quarter][$fieldOffice];
-        foreach ($rows as $row) {
+        foreach ($this->data['rows'] as $row) {
             $this->lastFilledOutCellY++;
-            $spreadsheet->getActiveSheet()->setCellValue("a" . $this->lastFilledOutCellY, $row[0]);
-            $spreadsheet->getActiveSheet()->setCellValue("b" . $this->lastFilledOutCellY, $row[1]);
-            $spreadsheet->getActiveSheet()->setCellValue("c" . $this->lastFilledOutCellY, $row[2]);
-            $spreadsheet->getActiveSheet()->setCellValue("d" . $this->lastFilledOutCellY, $row[3]);
-            $spreadsheet->getActiveSheet()->setCellValue("e" . $this->lastFilledOutCellY, $row[4]);
-            $spreadsheet->getActiveSheet()->setCellValue("F" . $this->lastFilledOutCellY, $row[5]);
-            $spreadsheet->getActiveSheet()->setCellValue("G" . $this->lastFilledOutCellY, $row[6]);
+            $date = $this->appDateHelper->convertStringToImmutableDate($row['date']);
+
+            $spreadsheet->getActiveSheet()->setCellValue('A' . $this->lastFilledOutCellY, $date->format('d-M-y'));
+            $spreadsheet->getActiveSheet()->setCellValue('B' . $this->lastFilledOutCellY, $row['field_office']);
+            $spreadsheet->getActiveSheet()->setCellValue('C' . $this->lastFilledOutCellY, $row['particulars']);
+            $spreadsheet->getActiveSheet()->setCellValue('D' . $this->lastFilledOutCellY, number_format(floatval($row['amount'])));
+            $spreadsheet->getActiveSheet()->setCellValue('E' . $this->lastFilledOutCellY, number_format(floatval($row['attributable_cost'])));
+            $spreadsheet->getActiveSheet()->setCellValue('F' . $this->lastFilledOutCellY, number_format(floatval($row['total_amount'])));
+            $spreadsheet->getActiveSheet()->setCellValue('G' . $this->lastFilledOutCellY, $row['remarks']);
         }
-        $spreadsheet->getActiveSheet()->getStyle('a6:G' . $this->lastFilledOutCellY)->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
+        $spreadsheet->getActiveSheet()->getStyle('A6:G' . $this->lastFilledOutCellY)->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
 
         return $spreadsheet;
     }
@@ -96,8 +89,20 @@ class ROFOF implements Form
     private function prepare(): Spreadsheet
     {
         $spreadsheet = new Spreadsheet();
+        $clientTypes = [
+            'TC' => 'A. TC ACTIVITIES',
+            'RJ' => 'B. RJ ACTIVITIES',
+            'VPA' => 'C. VPA ACTIVITIES',
+            'GAD' => 'D. GAD ACTIVITIES',
+            'PWDSC' => 'E. PERSONS WITH DISABILITY (PWD) / SENIOR CITIZENS (SC)',
+            'OTHERS' => 'F. OTHER ACTIVITIES (TRICON, REGIONAL/ NATIONAL COMMITTEE MEETINGS, FIELD AUDIT, EXECON, ETC.)',
+        ];
+        $clientType = $this->data['rows'][0]['category'];
+
         $textAndCoordinates = [
-            'A1' => 'F. OTHER ACITIVITIES (TRICON, REGIONAL / NATIONAL COMMITTEE MEETINS, FIELD AUDIT, EXECON, ETC.)',
+            'B1' => 'FINANCIAL / MATERIAL SUPPORT OF REGIONAL OFFICE TO FIELD OFFICES (To be prepared by the Regional Office)',
+            'b2' => '_______________Quarter 20______________',
+            'a4' => $clientTypes[$clientType],
             'a5' => 'DATE',
             'b5' => 'FIELD OFFICE(S)',
             'c5' => 'PARTICULARS',
@@ -105,14 +110,14 @@ class ROFOF implements Form
             'e5' => 'ATTRIBUTABLE COST',
             'f5' => 'TOTAL AMOUNT',
             'g5' => 'REMARKS',
-
         ];
         $mergesCoordinates = [
-            'A1:G1','B2:G2',
+            'B1:G1','B2:G2',
+
         ];
-        $boldCoordinates = ['A1'];
-        $verticalAlignedCoordinates = ['B2:G15' => 'center', 'A5:A5' => 'center'];
-        $horizontalAlignedCoordinates = ['B2:G15' => 'center', 'A5:A5' => 'center'];
+        $boldCoordinates = ['B1','B2','a4'];
+        $verticalAlignedCoordinates = ['B2:G10' => 'center', 'B1:B1' => 'center', 'A5:A5' => 'center'];
+        $horizontalAlignedCoordinates = ['B2:G10' => 'center', 'B1:B1' => 'center', 'A5:A5' => 'center'];
         $adjustedColumnWidthCoordinates = [
             'A' => 40, 'B' => 35, 'C' => 40, 'D' => 25, 'E' => 25, 'F' => 15, 'G' => 15, 'H' => 15, 'I' => 15, 'J' => 15, 'K' => 27, 'L' => 20, 'M' => 30, 'N' => 30, 'O' => 20, 'P' => 20, 'Q' => 5, 'R' => 5, 'S' => 5, 'T' => 20,
         ];

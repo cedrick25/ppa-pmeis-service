@@ -11,7 +11,7 @@ use PhpOffice\PhpSpreadsheet\Style\Fill;
 use PhpOffice\PhpSpreadsheet\Writer\Exception;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
-class SMIIIA2 implements Form
+class SMIIIA1And2 implements Form
 {
     private const TABLE_NAME = "SMIIIA2";
     
