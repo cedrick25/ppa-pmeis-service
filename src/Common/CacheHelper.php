@@ -335,4 +335,9 @@ class CacheHelper
     {
         return 'all_support_of_region_to_field_offices';
     }
+
+    public function getAllVolunteerSupervisionsKey(): string
+    {
+        return 'all_volunteer_supervisions';
+    }
 }

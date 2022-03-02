@@ -211,6 +211,7 @@ class Volunteer implements VolunteerInterface
             $volunteerIds = $this->resourceFacilitatorSessionRepository->getVolunteerIdsBySessionIds($sessionIds);
             $volunteerIds = array_map(fn($volunteerId) => $volunteerId['resourceFacilitatorId'], $volunteerIds);
 
+            // TODO: Add per region
             $volunteers = $this->repository->findByIds($volunteerIds);
 
             $educationBackgrounds = $this->getEducationBackgrounds();

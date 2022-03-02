@@ -28,6 +28,8 @@ use App\Service\Volunteerism\SupportOfRegionToFieldOfficeInterface;
 use App\Service\Volunteerism\TechnicalAssistanceInterface;
 use App\Model\SocialMarketing as SocialMarketingModel;
 use App\Model\SupportOfRegionToFieldOffice as SupportOfRegionToFieldOfficeModel;
+use App\Model\VolunteerSupervisions as VolunteerSupervisionsModel;
+use App\Service\Volunteerism\VolunteerSupervisionsInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -51,8 +53,9 @@ class VolunteerismController extends AbstractController
         private ProgramMaterialsDevelopmentInterface    $programMaterialsDevelopmentService,
         private ResourceMobilizationInterface           $resourceMobilizationService,
         private JailDecongestionInterface               $jailDecongestionService,
-        private SpecialAssignmentInterface              $specialAssignmentSerivice,
+        private SpecialAssignmentInterface              $specialAssignmentService,
         private SupportOfRegionToFieldOfficeInterface   $supportOfRegionToFieldOfficeService,
+        private VolunteerSupervisionsInterface          $volunteerSupervisionsService,
     ){}
 
     /**
@@ -481,7 +484,7 @@ class VolunteerismController extends AbstractController
             /** @var SpecialAssignmentModel $specialAssignment */
             $specialAssignment = $this->appHydrator->convertArrayToObject($data, SpecialAssignmentModel::class);
 
-            return $this->json($this->specialAssignmentSerivice->create($specialAssignment));
+            return $this->json($this->specialAssignmentService->create($specialAssignment));
         } catch (\ReflectionException $exception) {
             return $this->json($this->appFormatter->formatResponse('Creating Special Assignment failed', null, ['reflection' => $exception->getMessage()]));
         }
@@ -492,7 +495,7 @@ class VolunteerismController extends AbstractController
      */
     public function getAllSpecialAssignments(): Response
     {
-        return $this->json($this->specialAssignmentSerivice->getAll());
+        return $this->json($this->specialAssignmentService->getAll());
     }
 
     /**
@@ -500,7 +503,7 @@ class VolunteerismController extends AbstractController
      */
     public function getSpecialAssignmentById(Request $request): Response
     {
-        return $this->json($this->specialAssignmentSerivice->getById((int) $request->get("id")));
+        return $this->json($this->specialAssignmentService->getById((int) $request->get("id")));
     }
 
     /**
@@ -508,7 +511,7 @@ class VolunteerismController extends AbstractController
      */
     public function deleteSpecialAssignmentById(Request $request): Response
     {
-        return $this->json($this->specialAssignmentSerivice->deleteById((int) $request->get("id")));
+        return $this->json($this->specialAssignmentService->deleteById((int) $request->get("id")));
     }
 
     /**
@@ -516,7 +519,7 @@ class VolunteerismController extends AbstractController
      */
     public function getSpecialAssignmentReport(Request $request): Response
     {
-        return $this->json($this->specialAssignmentSerivice->getReport(
+        return $this->json($this->specialAssignmentService->getReport(
             (int) $request->get("quarterId"),
             (int) $request->get("fieldOfficeId"),
         ));
@@ -572,6 +575,58 @@ class VolunteerismController extends AbstractController
             (int) $request->get("quarterId"),
             (int) $request->get("fieldOfficeId"),
             $request->get("category"),
+        ));
+    }
+
+    /**
+     * @Route("/volunteer-supervision/create", methods={"POST"})
+     */
+    public function createVolunteerSupervision(Request $request): Response
+    {
+        try {
+            $data = json_decode($request->getContent(), true);
+
+            /** @var VolunteerSupervisionsModel $volunteerSupervision */
+            $volunteerSupervision = $this->appHydrator->convertArrayToObject($data, VolunteerSupervisionsModel::class);
+
+            return $this->json($this->volunteerSupervisionsService->create($volunteerSupervision));
+        } catch (\ReflectionException $exception) {
+            return $this->json($this->appFormatter->formatResponse('Creating Volunteer Supervision failed', null, ['reflection' => $exception->getMessage()]));
+        }
+    }
+
+    /**
+     * @Route("/volunteer-supervision/list", methods={"GET"})
+     */
+    public function getAllVolunteerSupervisions(): Response
+    {
+        return $this->json($this->volunteerSupervisionsService->getAll());
+    }
+
+    /**
+     * @Route("/volunteer-supervision/by/id/{id}", methods={"GET"})
+     */
+    public function getVolunteerSupervisionById(Request $request): Response
+    {
+        return $this->json($this->volunteerSupervisionsService->getById((int) $request->get("id")));
+    }
+
+    /**
+     * @Route("/volunteer-supervision/delete/{id}", methods={"GET"})
+     */
+    public function deleteVolunteerSupervisionById(Request $request): Response
+    {
+        return $this->json($this->volunteerSupervisionsService->deleteById((int) $request->get("id")));
+    }
+
+    /**
+     * @Route("/volunteer-supervision/report/full/{quarterId}/{fieldOfficeId}", methods={"GET"})
+     */
+    public function getVolunteerSupervisionReport(Request $request): Response
+    {
+        return $this->json($this->volunteerSupervisionsService->getReport(
+            (int) $request->get("quarterId"),
+            (int) $request->get("fieldOfficeId")
         ));
     }
 }
