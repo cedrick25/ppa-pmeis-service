@@ -119,8 +119,8 @@ class VolunteerSupervisionsRepository extends ServiceEntityRepository
     {
         $conn = $this->getEntityManager()->getConnection();
         $sql = "SELECT vs.*, v.first_name v_firstname, v.middle_name v_middlename, v.last_name v_lastname,
-                v.gender, c.first_name c_firstname, c.middle_name c_middlename, c.last_name c_lastname,
-                sr.name service_rendered
+                v.gender v_gender, c.first_name c_firstname, c.middle_name c_middlename, c.last_name c_lastname,
+                c.gender  c_gender, sr.name service_rendered
                 FROM volunteer_supervisions as vs
                 LEFT JOIN volunteer v on vs.volunteer_id = v.volunteer_id
                 LEFT JOIN clients c on vs.client_id = c.client_id

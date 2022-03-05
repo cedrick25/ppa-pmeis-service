@@ -85,9 +85,34 @@ class VolunteerSupervisions implements VolunteerSupervisionsInterface
     public function getReport(int $quarterId, int $fieldOfficeId): array
     {
         try {
+            $data = [];
             $volunteerSupervisions = $this->repository->findByQuarter($quarterId, $fieldOfficeId);
 
-            return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_SUCCESS, $volunteerSupervisions);
+            foreach ($volunteerSupervisions as $volunteerSupervision) {
+                $fullName = $volunteerSupervision['v_firstname'] . ' ' . $volunteerSupervision['v_middlename'] . ' ' . $volunteerSupervision['v_lastname'];
+                $clientFullName = $volunteerSupervision['c_firstname'] . ' ' . $volunteerSupervision['c_middlename'] . ' ' . $volunteerSupervision['c_lastname'];
+                $clientData = [
+                    'full_name' => $clientFullName,
+                    'gender' => $volunteerSupervision['c_gender'],
+                    'services_rendered' => $volunteerSupervision['service_rendered'],
+                    'community_resources_tapped' => $volunteerSupervision['community_resources_tapped'],
+                    'assistance_received' => $volunteerSupervision['assistance_received'],
+                    'remarks' => $volunteerSupervision['remarks'],
+                ];
+
+                if (! isset($data[$fullName])) {
+                    $data[$fullName] = [
+                        'gender' => $volunteerSupervision['v_gender'],
+                        'clients' => [$clientData],
+                    ];
+
+                    continue;
+                }
+
+                $data[$fullName]['clients'][] = $clientData;
+            }
+
+            return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_SUCCESS, $data);
         } catch (\Exception $e) {
             return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_SUCCESS, null, ['app' => $e->getMessage()]);
         } catch (Exception $e) {

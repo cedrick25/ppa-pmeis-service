@@ -85,36 +85,31 @@ class VPAIC3 implements Form
             'clients' => ['F' => 0, 'M' => 0],
         ];
 
-        foreach ($this->data['rows'] as $rowIndex=>$row) {
+        foreach ($this->data['rows'] as $volunteerName=>$row) {
+            $this->lastFilledOutCellY++;
+            $spreadsheet->getActiveSheet()->setCellValue("A" . $this->lastFilledOutCellY, $volunteerName);
+            if ($row['gender'] === 'F') {
+                $spreadsheet->getActiveSheet()->setCellValue('D' . $this->lastFilledOutCellY, '∕');
+                $total['volunteer']['F']++;
+            } else {
+                $spreadsheet->getActiveSheet()->setCellValue('E' . $this->lastFilledOutCellY, '∕');
+                $total['volunteer']['M']++;
+            }
+
             foreach ($row['clients'] as $index=>$client) {
-                $this->lastFilledOutCellY++;
                 if ($index === 0) {
-                    if ($rowIndex > 0) {
-                        $spreadsheet->getActiveSheet()->mergeCells('A' . $this->lastFilledOutCellY . ':C' . $this->lastFilledOutCellY);
-                        $spreadsheet->getActiveSheet()->mergeCells('F' . $this->lastFilledOutCellY . ':H' . $this->lastFilledOutCellY);
-                        $spreadsheet->getActiveSheet()->mergeCells('K' . $this->lastFilledOutCellY . ':L' . $this->lastFilledOutCellY);
-                        $spreadsheet->getActiveSheet()->mergeCells('M' . $this->lastFilledOutCellY . ':O' . $this->lastFilledOutCellY);
-                        $spreadsheet->getActiveSheet()->mergeCells('P' . $this->lastFilledOutCellY . ':R' . $this->lastFilledOutCellY);
-                        $spreadsheet->getActiveSheet()->mergeCells('S' . $this->lastFilledOutCellY . ':T' . $this->lastFilledOutCellY);
-                        $this->lastFilledOutCellY++;
-                    }
-                    $volunteer = $row['volunteer'];
-                    $middleInitial = $volunteer['middle_name'] != null ? substr($volunteer['middle_name'], 0, 1) . '.' : '';
-                    $fullName = $volunteer['first_name'] . ' ' . $middleInitial . '. ' . $volunteer['last_name'];
-                    $spreadsheet->getActiveSheet()->setCellValue("A" . $this->lastFilledOutCellY, $fullName);
-                    if ($volunteer['gender'] === 'F') {
-                        $spreadsheet->getActiveSheet()->setCellValue('D' . $this->lastFilledOutCellY, '∕');
-                        $total['volunteer']['F']++;
-                    } else {
-                        $spreadsheet->getActiveSheet()->setCellValue('E' . $this->lastFilledOutCellY, '∕');
-                        $total['volunteer']['M']++;
-                    }
+                    $spreadsheet->getActiveSheet()->mergeCells('A' . $this->lastFilledOutCellY . ':C' . $this->lastFilledOutCellY);
+                    $spreadsheet->getActiveSheet()->mergeCells('F' . $this->lastFilledOutCellY . ':H' . $this->lastFilledOutCellY);
+                    $spreadsheet->getActiveSheet()->mergeCells('K' . $this->lastFilledOutCellY . ':L' . $this->lastFilledOutCellY);
+                    $spreadsheet->getActiveSheet()->mergeCells('M' . $this->lastFilledOutCellY . ':O' . $this->lastFilledOutCellY);
+                    $spreadsheet->getActiveSheet()->mergeCells('P' . $this->lastFilledOutCellY . ':R' . $this->lastFilledOutCellY);
+                    $spreadsheet->getActiveSheet()->mergeCells('S' . $this->lastFilledOutCellY . ':T' . $this->lastFilledOutCellY);
+                }
+                if ($index > 0) {
+                    $this->lastFilledOutCellY++;
                 }
 
-                $middleInitial = $client['middle_name'] != null ? substr($client['middle_name'], 0, 1) . '.' : '';
-                $fullName = $client['first_name'] . ' ' . $middleInitial . '. ' . $client['last_name'];
-
-                $spreadsheet->getActiveSheet()->setCellValue("F" . $this->lastFilledOutCellY, $fullName);
+                $spreadsheet->getActiveSheet()->setCellValue("F" . $this->lastFilledOutCellY, $client['full_name']);
                 if ($client['gender'] === 'F') {
                     $spreadsheet->getActiveSheet()->setCellValue('I' . $this->lastFilledOutCellY, '∕');
                     $total['clients']['F']++;
@@ -124,7 +119,7 @@ class VPAIC3 implements Form
                 }
 
                 $spreadsheet->getActiveSheet()->setCellValue('K' . $this->lastFilledOutCellY, $client['services_rendered']);
-                $spreadsheet->getActiveSheet()->setCellValue('M' . $this->lastFilledOutCellY, $client['community_source_tapped']);
+                $spreadsheet->getActiveSheet()->setCellValue('M' . $this->lastFilledOutCellY, $client['community_resources_tapped']);
                 $spreadsheet->getActiveSheet()->setCellValue('P' . $this->lastFilledOutCellY, $client['assistance_received']);
                 $spreadsheet->getActiveSheet()->setCellValue('S' . $this->lastFilledOutCellY, $client['remarks']);
 
