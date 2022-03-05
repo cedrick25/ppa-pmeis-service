@@ -21,6 +21,7 @@ class Sessions
         private string $period,
         private int $fsg,
         private string $liLo,
+        private string $role,
         private int $createdBy,
         private ?int $treesPlanted = null,
         private ?DateTimeInterface $createdAt = null,
@@ -143,6 +144,15 @@ class Sessions
     public function getLiLo(): string
     {
         return $this->liLo;
+    }
+
+    /**
+     * @Assert\NotBlank
+     * @return string
+     */
+    public function getRole(): string
+    {
+        return $this->role;
     }
 
     /**

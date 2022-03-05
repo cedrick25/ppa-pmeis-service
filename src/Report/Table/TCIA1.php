@@ -154,11 +154,7 @@ class TCIA1 implements Form
 
             $spreadsheet->getActiveSheet()->setCellValue("Z" . $this->lastFilledOutCellY, rtrim($resourcePerson, ','));
 
-            $roles = '';
-            foreach ($part2Row['role'] as $role) {
-                $roles .=  $role . ',';
-            }
-            $spreadsheet->getActiveSheet()->setCellValue("AA" . $this->lastFilledOutCellY, rtrim($roles, ','));
+            $spreadsheet->getActiveSheet()->setCellValue("AA" . $this->lastFilledOutCellY, $part2Row['role']);
 
             $spreadsheet->getActiveSheet()->getStyle("AA" . $this->lastFilledOutCellY)->getAlignment()->setWrapText(true);
             $spreadsheet->getActiveSheet()->setCellValue("AB" . $this->lastFilledOutCellY, $rows['remarks']);

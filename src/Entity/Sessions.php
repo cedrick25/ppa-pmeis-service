@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Entity;
 
 use App\Enum\LiLo;
+use App\Enum\SessionRole;
 use App\Repository\SessionsRepository;
 use DateTimeImmutable;
 use DateTimeInterface;
@@ -83,6 +84,11 @@ class Sessions
      * @ORM\Column(type="string", length=255, columnDefinition="enum('LI', 'LO')")
      */
     private string $liLo;
+
+    /**
+     * @ORM\Column(type="string", length=255, columnDefinition="enum('Resource Person', 'Facilitator')")
+     */
+    private string $role;
 
     /**
      * @ORM\Column(type="integer")
@@ -286,6 +292,29 @@ class Sessions
         }
 
         $this->liLo = $liLo;
+    }
+
+    /**
+     * @return string
+     */
+    public function getRole(): string
+    {
+        return $this->role;
+    }
+
+    /**
+     * @param string $role
+     * @return Sessions
+     * @throws InvalidArgumentException
+     */
+    public function setRole(string $role): Sessions
+    {
+        if (! SessionRole::isValid($role)) {
+            throw new InvalidArgumentException("Invalid Role");
+        }
+
+        $this->role = $role;
+        return $this;
     }
 
     public function getCreatedBy(): ?int

@@ -268,7 +268,6 @@ class QuartersRepository extends ServiceEntityRepository
             $sessionData = $this->getSessionDataByQuarterAndFieldOfficeId($id, $fieldOfficeId);
 
             foreach ($sessionData as $session) {
-                $session['role'] = ['Facilitator'];
                 $session['resource_person'] = $this->getResourcePerson($id, intval($session['session_id']));
                 $session['count'] = $this->getClientSessionCount($id, intval($session['session_id']));
                 $data[$session['session_id']] = $session;
@@ -386,7 +385,7 @@ class QuartersRepository extends ServiceEntityRepository
         $minDate = $minMaxDate['min'];
         $maxDate = $minMaxDate['max'];
 
-        $sql = "SELECT s.session_id, s.field_office_id, s.li_lo FROM sessions as s 
+        $sql = "SELECT s.session_id, s.field_office_id, s.li_lo, s.role FROM sessions as s 
                     WHERE s.date BETWEEN CAST('$minDate' AS DATE) AND CAST('$maxDate' AS DATE) AND s.field_office_id = $fieldOfficeId";
         $stmt = $conn->prepare($sql);
         $query = $stmt->executeQuery();

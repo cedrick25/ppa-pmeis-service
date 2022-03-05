@@ -11,9 +11,7 @@ use App\Entity\Sessions;
 use App\Enum\Response as ResponseEnum;
 use App\Model\Sessions as SessionsModel;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
-use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\Exception\InvalidArgumentException;
-use Doctrine\DBAL\ParameterType;
 use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\ORM\OptimisticLockException;
 use Doctrine\ORM\ORMException;
@@ -72,6 +70,7 @@ class SessionsRepository extends ServiceEntityRepository
         $session->setPeriod($sessionData->getPeriod());
         $session->setFsg($sessionData->getFsg());
         $session->setLiLo($sessionData->getLiLo());
+        $session->setRole($sessionData->getRole());
         $session->setTreesPlanted($sessionData->getTreesPlanted());
         $session->setCreatedBy($sessionData->getCreatedBy());
         $session->setCreatedAt($this->appDateHelper->getCurrentImmutableDate());
@@ -108,6 +107,7 @@ class SessionsRepository extends ServiceEntityRepository
         $session->setPeriod($sessionData->getPeriod());
         $session->setFsg($sessionData->getFsg());
         $session->setLiLo($sessionData->getLiLo());
+        $session->setRole($sessionData->getRole());
         $session->setCreatedBy($sessionData->getCreatedBy());
         $session->setCreatedAt($this->appDateHelper->getCurrentImmutableDate());
 
@@ -282,6 +282,7 @@ class SessionsRepository extends ServiceEntityRepository
         $session->setPeriod($sessionData->getPeriod());
         $session->setFsg($sessionData->getFsg());
         $session->setLiLo($sessionData->getLiLo());
+        $session->setRole($sessionData->getRole());
         $session->setCreatedBy($sessionData->getCreatedBy());
         $session->setCreatedAt($this->appDateHelper->getCurrentImmutableDate());
 
@@ -323,6 +324,7 @@ class SessionsRepository extends ServiceEntityRepository
         $session->setPeriod($sessionData->getPeriod());
         $session->setFsg($sessionData->getFsg());
         $session->setLiLo($sessionData->getLiLo());
+        $session->setRole($sessionData->getRole());
         $session->setCreatedBy($sessionData->getCreatedBy());
         $session->setCreatedAt($this->appDateHelper->getCurrentImmutableDate());
 
