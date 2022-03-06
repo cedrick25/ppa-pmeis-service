@@ -6,7 +6,7 @@ use App\Common\AppFormatter;
 use App\Enum\Response as ResponseEnum;
 use App\Model\ResourceFacilitatorSession as ResourceFacilitatorSessionModel;
 use App\Repository\ClientSessionsRepository;
-use App\Repository\ClientsRepository;
+use App\Repository\QuartersRepository;
 use App\Repository\ResourceFacilitatorSessionRepository;
 use App\Repository\VolunteerRepository;
 use Doctrine\ORM\ORMException;
@@ -18,12 +18,12 @@ use Symfony\Component\Validator\Validator\ValidatorInterface;
 class ResourceFacilitatorSession implements ResourceFacilitatorSessionInterface
 {
     public function __construct(
-        private ValidatorInterface                        $validator,
-        private AppFormatter                              $appFormatter,
-        private ResourceFacilitatorSessionRepository      $repository,
-        private VolunteerRepository                       $volunteerRepository,
-        private ClientSessionsRepository                  $clientSessionsRepository,
-        private ClientsRepository                         $clientsRepository,
+        private ValidatorInterface                   $validator,
+        private AppFormatter                         $appFormatter,
+        private ResourceFacilitatorSessionRepository $repository,
+        private VolunteerRepository                  $volunteerRepository,
+        private ClientSessionsRepository             $clientSessionsRepository,
+        private QuartersRepository                   $quartersRepository,
     ){}
 
     public function create(ResourceFacilitatorSessionModel $resourceFacilitatorSessionData): array
@@ -129,7 +129,13 @@ class ResourceFacilitatorSession implements ResourceFacilitatorSessionInterface
     public function getVPA3(int $fieldOfficeId, int $quarterId): array
     {
         try {
-            $activeVolunteers = $this->repository->getVolunteerIdsByQuarterAndFieldOfficeId($fieldOfficeId, $quarterId);
+            $quarterData = $this->quartersRepository->find($quarterId);
+
+            if ($quarterData === null) {
+                return [];
+            }
+
+            $activeVolunteers = $this->repository->getVolunteerIdsByQuarterAndFieldOfficeId($fieldOfficeId, $quarterData->getName(), intval($quarterData->getYear()));
             $data = [];
 
             foreach ($activeVolunteers as $activeVolunteer) {

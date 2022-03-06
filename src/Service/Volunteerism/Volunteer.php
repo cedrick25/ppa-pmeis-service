@@ -1,10 +1,12 @@
 <?php
 
-namespace App\Service\TherapeuticCommunity;
+namespace App\Service\Volunteerism;
 
 use App\Common\AppDateHelper;
 use App\Common\AppFormatter;
+use App\Entity\Quarters;
 use App\Enum\Response as ResponseEnum;
+use App\Model\Volunteer as VolunteerModel;
 use App\Repository\CivilStatusRepository;
 use App\Repository\EducationBackgroundRepository;
 use App\Repository\FieldOfficesRepository;
@@ -14,16 +16,21 @@ use App\Repository\RegionsRepository;
 use App\Repository\ReligionRepository;
 use App\Repository\ResourceFacilitatorSessionRepository;
 use App\Repository\SessionsRepository;
+use App\Repository\VolunteerOperationsRepository;
 use App\Repository\VolunteerRepository;
 use Doctrine\ORM\Exception\ORMException;
 use Exception;
 use Psr\Cache\CacheException;
 use Psr\Cache\InvalidArgumentException;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
-use \App\Model\Volunteer as VolunteerModel;
 
 class Volunteer implements VolunteerInterface
 {
+    const APPOINTED = 'APPOINTED';
+    const REAPPOINTED = 'REAPPOINTED';
+    const DROPPED = 'DROPPED';
+    const INACTIVE = 'INACTIVE';
+
     public function __construct(
         private ValidatorInterface                   $validator,
         private AppFormatter                         $appFormatter,
@@ -38,6 +45,7 @@ class Volunteer implements VolunteerInterface
         private ReligionRepository                   $religionRepository,
         private OccupationRepository                 $occupationRepository,
         private EducationBackgroundRepository        $educationBackgroundRepository,
+        private VolunteerOperationsRepository        $volunteerOperationsRepository,
     ){}
 
     public function create(VolunteerModel $volunteerData): array
@@ -308,7 +316,8 @@ class Volunteer implements VolunteerInterface
 
     public function getVpaMonitoring(int $quarterId, int $fieldOfficeId): array
     {
-        $startOfQuarterVpa = $this->getStartOfQuarterVpa($quarterId, $fieldOfficeId);
+        $quarterData = $this->quartersRepository->find($quarterId);
+        $startOfQuarterVpa = $this->getStartOfQuarterVpa($quarterData, $fieldOfficeId);
 
         return [];
     }
@@ -319,27 +328,24 @@ class Volunteer implements VolunteerInterface
      * @throws CacheException
      * @throws \Doctrine\DBAL\Exception
      */
-    private function getStartOfQuarterVpa(int $quarterId, int $fieldOfficeId):array
+    private function getStartOfQuarterVpa(?Quarters $quarterData, int $fieldOfficeId):array
     {
-        $activeVolunteers = $this->resourceFacilitatorSessionRepository->getVolunteerIdsByQuarterAndFieldOfficeId($fieldOfficeId, $quarterId);
-        $activeVolunteerIds = array_map(fn($activeVolunteer) => $activeVolunteer['resource_facilitator_id'], $activeVolunteers);
+        if ($quarterData === null) {
+            return [];
+        }
 
-        $volunteers = $this->repository->list();
+        $previousQuarter = $this->quartersRepository->fetchPreviousQuarterByNameAndYear($quarterData->getName(), intval($quarterData->getYear()));
+
+        if ($previousQuarter === null) {
+            return [];
+        }
+
+        $previousActiveVolunteers = $this->resourceFacilitatorSessionRepository
+            ->getVolunteerIdsByQuarterAndFieldOfficeId($fieldOfficeId, $previousQuarter->getName(), intval($quarterData->getYear()));
+        $previousActiveVolunteerIds = array_map(fn($previousActiveVolunteer) => $previousActiveVolunteer['resource_facilitator_id'], $previousActiveVolunteers);
+
         $previousVolunteersCount = [];
 
-        foreach ($volunteers as $volunteer) {
-            // if in active volunteers, skip
-            if (in_array($volunteer['volunteer_id'], $activeVolunteerIds)) {
-                continue;
-            }
-
-            $regionName = $this->fieldOfficesRepository->getRegionByFieldOfficeId($fieldOfficeId)['region_name'];
-            if (! isset($previousVolunteersCount[$regionName])) {
-                $previousVolunteersCount[$regionName] = 0;
-            }
-
-            $previousVolunteersCount[$regionName]++;
-        }
 
         return [];
     }
@@ -386,5 +392,39 @@ class Volunteer implements VolunteerInterface
         }
 
         return $educationBackgrounds;
+    }
+
+    /**
+     * @param int $year
+     * @param int[] $months
+     * @param string $status
+     * @param array<int, array<string, mixed>> $activeVolunteers
+     * @return array<int, array<string, mixed>>
+     * @throws \Doctrine\DBAL\Driver\Exception
+     * @throws \Doctrine\DBAL\Exception
+     */
+    private function getVolunteersIdByStatus(
+        string $status,
+        int $year,
+        array $months,
+        array $activeVolunteers
+    ): array
+    {
+        $volunteersId = [];
+        $activeVolunteersIds = [];
+        $volunteerOperations = $this->volunteerOperationsRepository->findVolunteerIdsByMonthRange($year, $months, $status);
+
+        foreach ($activeVolunteers as $activeVolunteer) {
+            $activeVolunteersIds[] = $activeVolunteer['resource_facilitator_id'];
+        }
+
+        foreach ($volunteerOperations as $volunteerOperation) {
+            if (! in_array(intval($volunteerOperation['volunteer_id']), $activeVolunteersIds)) {
+                continue;
+            }
+            $volunteersId[] = $volunteerOperation['volunteer_id'];
+        }
+
+        return $volunteersId;
     }
 }

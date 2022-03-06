@@ -254,21 +254,16 @@ class ResourceFacilitatorSessionRepository extends ServiceEntityRepository
 
     /**
      * @param int $fieldOfficeId
-     * @param int $quarterId
+     * @param string $quarterName
+     * @param int $quarterYear
      * @return  array<int, array<string, mixed>>
      * @throws \Doctrine\DBAL\Driver\Exception
      * @throws \Doctrine\DBAL\Exception
      */
-    public function getVolunteerIdsByQuarterAndFieldOfficeId(int $fieldOfficeId, int $quarterId): array
+    public function getVolunteerIdsByQuarterAndFieldOfficeId(int $fieldOfficeId, string $quarterName, int $quarterYear): array
     {
-        $quarterData = $this->quartersRepository->find($quarterId);
-
-        if ($quarterData === null) {
-            return [];
-        }
-
-        $quarterMonthsList = [...$this->appDateHelper->getMonthsByQuarterString($quarterData->getName())];
-        $quarterYearList = [intval($quarterData->getYear())];
+        $quarterMonthsList = [...$this->appDateHelper->getMonthsByQuarterString($quarterName)];
+        $quarterYearList = [$quarterYear];
         $minMaxDate = $this->appDateHelper->getMinMaxDateByYearsAndMonths($quarterYearList, $quarterMonthsList);
         $minDate = $minMaxDate['min'];
         $maxDate = $minMaxDate['max'];

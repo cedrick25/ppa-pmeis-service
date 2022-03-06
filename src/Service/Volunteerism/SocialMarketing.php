@@ -97,9 +97,13 @@ class SocialMarketing implements SocialMarketingInterface
             }
 
             $minMaxDate = $this->quartersRepository->getQuarterMinMaxDate($quarter);
-            $idSupports = $this->repository->findByDateRange($minMaxDate, $fieldOfficeId, $type);
+            $socialMarketing = $this->repository->findByDateRange($minMaxDate, $fieldOfficeId, $type);
 
-            return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_SUCCESS, $idSupports);
+            if (sizeof($socialMarketing) <= 0) {
+                return $this->appFormatter->formatResponse(ResponseEnum::NO_DATA, null);
+            }
+
+            return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_SUCCESS, $socialMarketing);
         } catch (\Exception $e) {
             return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_SUCCESS, null, ['app' => $e->getMessage()]);
         } catch (Exception $e) {

@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Service\TherapeuticCommunity;
+namespace App\Service\Volunteerism;
 
 use App\Model\Volunteer;
 

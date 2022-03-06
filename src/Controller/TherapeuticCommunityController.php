@@ -6,16 +6,20 @@ namespace App\Controller;
 
 use App\Common\AppFormatter;
 use App\Common\AppHydrator;
+use App\Model\Clients as ClientModel;
 use App\Model\ClientSessions as ClientSessionModel;
+use App\Model\ClientTypes as ClientTypesModel;
 use App\Model\Quarters as QuartersModel;
 use App\Model\ResourceFacilitatorSession as ResourceFacilitatorSessionModel;
 use App\Model\Sessions as SessionsModel;
+use App\Model\Volunteer as VolunteerModel;
 use App\Service\CivilStatusInterface;
 use App\Service\EducationBackgroundInterface;
 use App\Service\OccupationInterface;
 use App\Service\ReligionInterface;
 use App\Service\TherapeuticCommunity\ClientRemarksInterface;
 use App\Service\TherapeuticCommunity\ClientSessionsInterface;
+use App\Service\TherapeuticCommunity\ClientsInterface;
 use App\Service\TherapeuticCommunity\ClientTypesInterface;
 use App\Service\TherapeuticCommunity\FieldOfficesInterface;
 use App\Service\TherapeuticCommunity\GenerateTableInterface;
@@ -28,16 +32,12 @@ use App\Service\TherapeuticCommunity\SessionRemarksInterface;
 use App\Service\TherapeuticCommunity\SessionsInterface;
 use App\Service\TherapeuticCommunity\TreatmentCategoriesInterface;
 use App\Service\TherapeuticCommunity\VenuesInterface;
-use App\Service\TherapeuticCommunity\ClientsInterface;
-use App\Service\TherapeuticCommunity\VolunteerInterface;
-use Symfony\Component\Routing\Annotation\Route;
+use App\Service\Volunteerism\VolunteerInterface;
 use ReflectionException;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
-use App\Model\ClientTypes as ClientTypesModel;
-use App\Model\Clients as ClientModel;
-use App\Model\Volunteer as VolunteerModel;
+use Symfony\Component\Routing\Annotation\Route;
 
 /**
  * @Route("/api/tc")

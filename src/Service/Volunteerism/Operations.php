@@ -96,7 +96,8 @@ class Operations implements OperationsInterface
             }
 
             $months = $this->appDateHelper->getMonthsByQuarterString($quarter->getName());
-            $activeVolunteers = $this->resourceFacilitatorSessionRepository->getVolunteerIdsByQuarterAndFieldOfficeId($fieldOfficeId, $quarterId);
+            $activeVolunteers = $this->resourceFacilitatorSessionRepository
+                ->getVolunteerIdsByQuarterAndFieldOfficeId($fieldOfficeId, $quarter->getName(), intval($quarter->getYear()));
             $params = [
                 $fieldOfficeId,
                 intval($quarter->getYear()),
