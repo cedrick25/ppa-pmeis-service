@@ -60,7 +60,7 @@ class SocioDemographicGenderCivilReligion implements Form
                 'M' => 'B',
                 'F' => 'C'
             ],
-            'civilStatus' => [
+            'civil_status' => [
                 'Single' => 'E',
                 'Married' => 'F',
                 'Widowed' => 'G',
@@ -107,8 +107,8 @@ class SocioDemographicGenderCivilReligion implements Form
             }
 
             $civilStatusTotal = 0;
-            foreach ($row['civilStatus'] as $civilStatus=>$value) {
-                $cellColumn = $coordinates['civilStatus'][$civilStatus];
+            foreach ($row['civil_status'] as $civilStatus=>$value) {
+                $cellColumn = $coordinates['civil_status'][$civilStatus];
                 if ($civilStatus === 'Not Indicated') {
                     $total['civil_' . $civilStatus] += $value;
                 } else {
@@ -180,7 +180,7 @@ class SocioDemographicGenderCivilReligion implements Form
             'N1' => 'PPA-CSD-FR-011-00',
             'A2' => 'VPA SOCIO-DEMOGRAPHIC REPORT',
             'A3' => 'As of________20__',
-            'A5' => 'Region',
+            'A5' => 'Field Office',
             'B5' => 'GENDER',
             'E5' => 'CIVIL STATUS',
             'K5' => 'RELIGION',

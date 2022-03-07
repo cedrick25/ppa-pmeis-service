@@ -890,11 +890,11 @@ class TherapeuticCommunityController extends AbstractController
     }
 
     /**
-     * @Route("/volunteer/socio-demographic/by/quarter-id/{quarterId}", methods={"GET"})
+     * @Route("/volunteer/socio-demographic/by/region-id/{regionId}", methods={"GET"})
      */
     public function getConsolidatedSocioDemographic(Request $request): Response
     {
-        return $this->json($this->volunteerService->getConsolidatedSocioDemographic((int) $request->get("quarterId")));
+        return $this->json($this->volunteerService->getConsolidatedSocioDemographic((int) $request->get("regionId")));
     }
 
     /**

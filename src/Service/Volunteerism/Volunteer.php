@@ -204,23 +204,14 @@ class Volunteer implements VolunteerInterface
         }
     }
 
-    public function getConsolidatedSocioDemographic(int $quarterId): array
+    public function getConsolidatedSocioDemographic(int $regionId): array
     {
         try {
-            $quarterData = $this->quartersRepository->find($quarterId);
+            $volunteers = $this->repository->findByRegionId($regionId);
 
-            if ($quarterData === null) {
+            if (sizeof($volunteers) <= 0) {
                 return $this->appFormatter->formatResponse(ResponseEnum::NO_DATA, null);
             }
-
-            $sessionIds = $this->sessionsRepository->findSessionsIdsByQuarter($quarterData);
-            $sessionIds = array_map(fn($sessionId) => $sessionId['session_id'], $sessionIds);
-
-            $volunteerIds = $this->resourceFacilitatorSessionRepository->getVolunteerIdsBySessionIds($sessionIds);
-            $volunteerIds = array_map(fn($volunteerId) => $volunteerId['resourceFacilitatorId'], $volunteerIds);
-
-            // TODO: Add per region
-            $volunteers = $this->repository->findByIds($volunteerIds);
 
             $educationBackgrounds = $this->getEducationBackgrounds();
             $civilStatuses = $this->getCivilStatuses();
@@ -229,37 +220,37 @@ class Volunteer implements VolunteerInterface
 
             $data = [];
             foreach ($volunteers as $volunteer) {
-                $regionName = $this->fieldOfficesRepository->getRegionByFieldOfficeId($volunteer['fieldOfficeId'])['region_name'];
-                $civilStatus = $civilStatuses[$volunteer['civilStatus']];
+                $fieldOffice = $volunteer['field_office'];
+                $civilStatus = $civilStatuses[$volunteer['civil_status']];
                 $religion = $religions[$volunteer['religion']];
                 $occupation = $occupations[$volunteer['occupation']];
-                $educationBackground = $educationBackgrounds[$volunteer['educationAttainment']];
+                $educationBackground = $educationBackgrounds[$volunteer['education_attainment']];
 
-                if (! isset($data[$regionName]['gender'][$volunteer['gender']])) {
-                    $data[$regionName]['gender'][$volunteer['gender']] = 0;
+                if (! isset($data[$fieldOffice]['gender'][$volunteer['gender']])) {
+                    $data[$fieldOffice]['gender'][$volunteer['gender']] = 0;
                 }
 
-                if (! isset($data[$regionName]['civilStatus'][$civilStatus])) {
-                    $data[$regionName]['civilStatus'][$civilStatus] = 0;
+                if (! isset($data[$fieldOffice]['civil_status'][$civilStatus])) {
+                    $data[$fieldOffice]['civil_status'][$civilStatus] = 0;
                 }
 
-                if (! isset($data[$regionName]['religion'][$religion])) {
-                    $data[$regionName]['religion'][$religion] = 0;
+                if (! isset($data[$fieldOffice]['religion'][$religion])) {
+                    $data[$fieldOffice]['religion'][$religion] = 0;
                 }
 
-                if (! isset($data[$regionName]['occupation'][$occupation])) {
-                    $data[$regionName]['occupation'][$occupation] = 0;
+                if (! isset($data[$fieldOffice]['occupation'][$occupation])) {
+                    $data[$fieldOffice]['occupation'][$occupation] = 0;
                 }
 
-                if (! isset($data[$regionName]['educationAttainment'][$educationBackground])) {
-                    $data[$regionName]['educationAttainment'][$educationBackground] = 0;
+                if (! isset($data[$fieldOffice]['education_attainment'][$educationBackground])) {
+                    $data[$fieldOffice]['education_attainment'][$educationBackground] = 0;
                 }
 
-                $data[$regionName]['gender'][$volunteer['gender']]++;
-                $data[$regionName]['civilStatus'][$civilStatus]++;
-                $data[$regionName]['religion'][$religion]++;
-                $data[$regionName]['occupation'][$occupation]++;
-                $data[$regionName]['educationAttainment'][$educationBackground]++;
+                $data[$fieldOffice]['gender'][$volunteer['gender']]++;
+                $data[$fieldOffice]['civil_status'][$civilStatus]++;
+                $data[$fieldOffice]['religion'][$religion]++;
+                $data[$fieldOffice]['occupation'][$occupation]++;
+                $data[$fieldOffice]['education_attainment'][$educationBackground]++;
             }
 
             return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_SUCCESS, $data);
@@ -277,13 +268,16 @@ class Volunteer implements VolunteerInterface
             ];
             $region = $this->regionsRepository->find($regionId);
             $data['header']['region'] = $region->getName();
+            $volunteers = $this->repository->findByRegionId($regionId);
+
+            if (sizeof($volunteers) <= 0) {
+                return $this->appFormatter->formatResponse(ResponseEnum::NO_DATA, null);
+            }
 
             $educationBackgrounds = $this->getEducationBackgrounds();
             $civilStatuses = $this->getCivilStatuses();
             $occupations = $this->getOccupations();
             $religions = $this->getReligions();
-
-            $volunteers = $this->repository->findByRegionId($regionId);
 
             foreach ($volunteers as $volunteer) {
                 $volunteer['religion'] = $religions[$volunteer['religion']];

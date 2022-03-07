@@ -56,7 +56,7 @@ class SocioDemographicEducationalAge implements Form
         $spreadsheet = $this->header();
 
         $coordinates = [
-            'educationAttainment' => [
+            'education_attainment' => [
                 'Post Graduate' => 'B',
                 'College Graduate' => 'C',
                 'College Level' => 'D',
@@ -85,8 +85,8 @@ class SocioDemographicEducationalAge implements Form
             $spreadsheet->getActiveSheet()->setCellValue("A" . $this->lastFilledOutCellY, $region);
 
             $totalScore = 0;
-            foreach ($row['educationAttainment'] as $educationAttainment=>$value) {
-                $cellColumn = $coordinates['educationAttainment'][$educationAttainment];
+            foreach ($row['education_attainment'] as $educationAttainment=>$value) {
+                $cellColumn = $coordinates['education_attainment'][$educationAttainment];
                 $total[$educationAttainment] += $value;
                 $spreadsheet->getActiveSheet()->setCellValue($cellColumn . $this->lastFilledOutCellY, $value);
                 $totalScore += $value;
@@ -132,7 +132,7 @@ class SocioDemographicEducationalAge implements Form
             'N1' => 'PPA-CSD-FR-011-00',
             'A2' => 'VPA SOCIO-DEMOGRAPHIC REPORT',
             'A3' => 'As of________20__',
-            'A5' => 'Region',
+            'A5' => 'Field Office',
             'B5' => 'EDUCATIONAL BACKGROUND',
             'K5' => 'AGE',
             'B6' => 'Post Graduate',

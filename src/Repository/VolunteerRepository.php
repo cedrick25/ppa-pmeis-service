@@ -401,7 +401,7 @@ class VolunteerRepository extends ServiceEntityRepository
     public function findByRegionId(int $regionId): array
     {
         $conn = $this->getEntityManager()->getConnection();
-        $sql = "SELECT * FROM volunteer
+        $sql = "SELECT volunteer.*, fo.name as field_office FROM volunteer
                 LEFT JOIN field_offices as fo ON volunteer.field_office_id = fo.field_office_id
                 LEFT JOIN regions as rg ON fo.region_id = rg.region_id
                 WHERE rg.region_id = $regionId AND volunteer.deleted_at IS NULL";
