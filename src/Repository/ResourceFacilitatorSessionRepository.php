@@ -253,6 +253,32 @@ class ResourceFacilitatorSessionRepository extends ServiceEntityRepository
     }
 
     /**
+     * @param string $quarterName
+     * @param int $quarterYear
+     * @return  array<int, array<string, mixed>>
+     * @throws \Doctrine\DBAL\Driver\Exception
+     * @throws \Doctrine\DBAL\Exception
+     */
+    public function getVolunteerIdsByQuarter(string $quarterName, int $quarterYear): array
+    {
+        $quarterMonthsList = [...$this->appDateHelper->getMonthsByQuarterString($quarterName)];
+        $quarterYearList = [$quarterYear];
+        $minMaxDate = $this->appDateHelper->getMinMaxDateByYearsAndMonths($quarterYearList, $quarterMonthsList);
+        $minDate = $minMaxDate['min'];
+        $maxDate = $minMaxDate['max'];
+
+        $conn = $this->getEntityManager()->getConnection();
+        $sql = "SELECT rfs.resource_facilitator_id, rfs.resource_facilitator_type, s.session_id FROM sessions as s
+                LEFT JOIN resource_facilitator_session as rfs ON s.session_id = rfs.session_id
+                WHERE rfs.resource_facilitator_type = 'VPA' AND s.date BETWEEN CAST('$minDate' AS DATE) AND CAST('$maxDate' AS DATE)";
+
+        $stmt = $conn->prepare($sql);
+        $query = $stmt->executeQuery();
+
+        return $query->fetchAllAssociative();
+    }
+
+    /**
      * @param int $fieldOfficeId
      * @param string $quarterName
      * @param int $quarterYear

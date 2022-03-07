@@ -28,5 +28,5 @@ interface VolunteerInterface
 
     public function getVPADatabase(int $quarterId, int $fieldOfficeId): array;
 
-    public function getVpaMonitoring(int $quarterId, int $fieldOfficeId): array;
+    public function getVpaMonitoring(int $quarterId): array;
 }

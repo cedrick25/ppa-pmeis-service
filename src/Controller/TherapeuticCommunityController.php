@@ -917,12 +917,11 @@ class TherapeuticCommunityController extends AbstractController
     }
 
     /**
-     * @Route("/volunteer/monitoring/{quarterId}/{fieldOfficeId}", methods={"GET"})
+     * @Route("/volunteer/monitoring/{quarterId}", methods={"GET"})
      */
     public function getVpaMonitoring(Request $request): Response
     {
         return $this->json($this->volunteerService->getVpaMonitoring(
-            (int) $request->get("fieldOfficeId"),
             (int) $request->get("quarterId")
         ));
     }

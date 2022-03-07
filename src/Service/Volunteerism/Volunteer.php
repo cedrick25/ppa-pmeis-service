@@ -314,21 +314,19 @@ class Volunteer implements VolunteerInterface
         }
     }
 
-    public function getVpaMonitoring(int $quarterId, int $fieldOfficeId): array
+    public function getVpaMonitoring(int $quarterId): array
     {
         $quarterData = $this->quartersRepository->find($quarterId);
-        $startOfQuarterVpa = $this->getStartOfQuarterVpa($quarterData, $fieldOfficeId);
+        $startOfQuarterVpa = $this->getStartOfQuarterVpa($quarterData);
 
         return [];
     }
 
     /**
      * @throws \Doctrine\DBAL\Driver\Exception
-     * @throws InvalidArgumentException
-     * @throws CacheException
      * @throws \Doctrine\DBAL\Exception
      */
-    private function getStartOfQuarterVpa(?Quarters $quarterData, int $fieldOfficeId):array
+    private function getStartOfQuarterVpa(?Quarters $quarterData):array
     {
         if ($quarterData === null) {
             return [];
@@ -341,10 +339,33 @@ class Volunteer implements VolunteerInterface
         }
 
         $previousActiveVolunteers = $this->resourceFacilitatorSessionRepository
-            ->getVolunteerIdsByQuarterAndFieldOfficeId($fieldOfficeId, $previousQuarter->getName(), intval($quarterData->getYear()));
-        $previousActiveVolunteerIds = array_map(fn($previousActiveVolunteer) => $previousActiveVolunteer['resource_facilitator_id'], $previousActiveVolunteers);
+            ->getVolunteerIdsByQuarter($previousQuarter->getName(), intval($previousQuarter->getYear()));
 
+        $previousActiveVolunteerIds = [];
+
+        $months = $this->appDateHelper->getMonthsByQuarterString($previousQuarter->getName());
+
+        $previousDroppedVolunteerIds = $this->getVolunteersIdByStatus(
+            self::DROPPED,
+            intval($previousQuarter->getYear()),
+            $months,
+            $previousActiveVolunteers
+        );
+
+        foreach ($previousActiveVolunteers as $previousActiveVolunteer) {
+            if (in_array($previousActiveVolunteer['resource_facilitator_id'], $previousDroppedVolunteerIds)) {
+                continue;
+            }
+
+            $previousActiveVolunteerIds[] = $previousActiveVolunteer['resource_facilitator_id'];
+        }
         $previousVolunteersCount = [];
+        $volunteers = $this->repository->findByIds($previousActiveVolunteerIds);
+
+        foreach ($volunteers as $volunteer) {
+
+        }
+
 
 
         return [];
