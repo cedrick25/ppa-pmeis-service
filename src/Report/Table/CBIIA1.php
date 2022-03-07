@@ -53,105 +53,47 @@ class CBIIA1 implements Form
     {
         $spreadsheet = $this->header();
 
-        $quarter = $this->data['quarter'];
-        $fieldOffice = $this->data['field_office_id'];
-        $data = [
-            'FIRST_2022' => [
-                '1' => [
-                    ['A.  Training on  Therapeutic Community', '', '', '', '', '', '', '', '', '', ''],
-                    ['None', '', '', '', '', '', '', '', '', '', ''],
-                    ['B.  Training on  Restorative Justice', '', '', '', '', '', '', '', '', '', ''],
-                    ['None', '', '', '', '', '', '', '', '', '', ''],
-                    ['C.  Training on Volunteerism' , '', '', '', '', '', '', '', '', '', ''],
-                    ['None', '', '', '', '', '', '', '', '', '', ''],
-                    ['D.  Training on GAD' , '', '', '', '', '', '', '', '', '', ''],
-                    ['Embracing Quality Performance ' , 'January 9-10, 2022', '5', 'Gerone Mabagay', '', '', '', '', '/', '16', ''],
-                    ['Management System Towards GAD ' , '', '', 'Daniel Agbat', '', '', '', '', '/', '16', ''],
-                    ['Responsive Work Environment' , '', '',  'Troy Terono','', '', '', '', '/', '16', ''],
-                    ['' , '', '', 'Jeffrey Magbantay', '/', '', '', '', '/', '16', ''],
-                    ['' , '', '', 'Melissa Femiliano', '', '', '', '', '/', '16', ''],
-                    ['E.  Other Training  Courses/ Seminars/', '', '', '', '', '', '', '', '', '', ''],
-                    ['      Fora/Symposia' , '', '', '', '', '', '', '', '', '', ''],
-                    ['Information System Testing' , 'January 9, 2022', '5', 'Gerone Mabagay', '', '', '', '', '/', '8', ''],
-                    ['' , '', '', 'Daniel Agbat', '/', '', '', '', '/', '8', ''],
-                    ['' , '', '', 'Troy Terono', '', '', '', '', '/', '8', ''],
-                    ['' , '', '', 'Jeffrey Magbantay', '/', '', '', '', '/', '8', ''],
-                    ['' , '', '', 'Melissa Femiliano', '', '', '', '', '/', '8', ''],
-                    ['Public Consultation of the Draft ' , 'January 23, 2022', '1', 'Jeffrey Magbantay', '', '/', '', '', '/', '8', ''],
-                    ['Implementing Rules and Regulations of RA No. 11362' , '', '', '', '', '', '', '', '', '', ''],
-                    ['F.  Conferences/Conventions' , '', '', '', '', '', '', '', '', '', ''],
-                    ['None', '', '', '', '', '', '', '', '', '', ''],
-                    ['G.  Staff/ Committee  Meetings with Professional Devt' , '', '', '', '', '', '', '', '', '', ''],
-                    ['SRCPPO Staff Meetings' , 'January 28, 2022', '5', 'Gerone Mabagay', '', '', '', '', '/', '2', ''],
-                    ['' , '', '', 'Daniel Agbat', '', '', '', '', '/', '2', ''],
-                    ['' , '', '', 'Troy Terono', '', '', '', '', '/', '2', ''],
-                    ['' , '', '', 'Jeffrey Magbantay', '', '/', '', '', '/', '2', ''],
-                    ['' , '', '', 'Melissa Femiliano', '', '', '', '', '/', '2', ''],
-                    ['' , 'January 29, 2022', '5', 'Gerone Mabagay', '', '', '', '', '/', '2', ''],
-                    ['' , '', '', 'Daniel Agbat', '', '', '', '', '/', '2', ''],
-                    ['' , '', '', 'Troy Terono', '', '', '', '', '/', '2', ''],
-                    ['' , '', '', 'Jeffrey Magbantay', '', '/', '', '', '/', '2', ''],
-                    ['' , '', '', 'Melissa Femiliano', '', '', '', '', '/', '2', ''],
-                    ['' , 'January 30, 2022', '5', 'Gerone Mabagay', '', '', '', '', '/', '', ''],
-                    ['' , '', '', 'Daniel Agbat', '', '', '', '', '/', '', ''],
-                    ['' , '', '', 'Troy Terono', '', '', '', '', '/', '', ''],
-                    ['' , '', '', 'Jeffrey Magbantay', '', '/', '', '', '/', '', ''],
-                    ['' , '', '', 'Melissa Femiliano', '', '', '', '', '/', '', ''],
-                ],
-            ],
-            'FOURTH_2021' => [
-                '1' => [
-                    ['A.  Training on  Therapeutic Community', '', '', '', '', '', '', '', '', '', ''],
-                    ['None', '', '', '', '', '', '', '', '', '', ''],
-                    ['B.  Training on  Restorative Justice', '', '', '', '', '', '', '', '', '', ''],
-                    ['None', '', '', '', '', '', '', '', '', '', ''],
-                    ['C.  Training on Volunteerism' , '', '', '', '', '', '', '', '', '', ''],
-                    ['None', '', '', '', '', '', '', '', '', '', ''],
-                    ['D.  Training on GAD' , '', '', '', '', '', '', '', '', '', ''],
-                    ['Quality MAnagement System' , 'December 2-3, 2021', '5', 'Gerone Mabagay', '', '', '', '', '/', '16', ''],
-                    ['' , '', '', 'Daniel Agbat', '', '', '', '', '/', '16', ''],
-                    ['' , '', '', 'Troy Terono', '', '', '', '', '/', '16', ''],
-                    ['' , '', '', 'Jeffrey Magbantay', '', '/', '', '', '/', '16', ''],
-                    ['' , '', '', 'Melissa Femiliano', '', '', '', '', '/', '16', ''],
-                    ['E.  Other Training  Courses/ Seminars/', '', '', '', '', '', '', '', '', '', ''],
-                    ['      Fora/Symposia' , '', '', '', '', '', '', '', '', '', ''],
-                    ['Skill-Building Training' , 'November 28, 2021', '5', 'Gerone Mabagay', '', '', '', '', '/', '8', ''],
-                    ['' , '', '', 'Daniel Agbat', '', '', '', '', '/', '16', ''],
-                    ['' , '', '', 'Troy Terono', '', '', '', '', '/', '8', ''],
-                    ['' , '', '', 'Jeffrey Magbantay', '', '/', '', '', '/', '8', ''],
-                    ['' , '', '', 'Melissa Femiliano', '', '', '', '', '/', '8', ''],
-                    ['Implementing Rules and Regulations of RA No. 11362' , '', '', '', '', '', '', '', '', '', ''],
-                    ['F.  Conferences/Conventions' , '', '', '', '', '', '', '', '', '', ''],
-                    ['None', '', '', '', '', '', '', '', '', '', ''],
-                    ['G.  Staff/ Committee  Meetings with Professional Devt' , '', '', '', '', '', '', '', '', '', ''],
-                    ['None', '', '', '', '', '', '', '', '', '', ''],
-                ],
-            ],
-        ];
+        $total = ['nop' => 0, 'technical' => 0, 'foundation' => 0];
 
-        $rows = $data[$quarter][$fieldOffice];
-        foreach ($rows as $row) {
+        foreach ($this->data['rows'] as $subtype=>$rows) {
             $this->lastFilledOutCellY++;
-            $spreadsheet->getActiveSheet()->setCellValue("A" . $this->lastFilledOutCellY, $row[0]);
-            $spreadsheet->getActiveSheet()->setCellValue("b" . $this->lastFilledOutCellY, $row[1]);
-            $spreadsheet->getActiveSheet()->setCellValue("c" . $this->lastFilledOutCellY, $row[2]);
-            $spreadsheet->getActiveSheet()->setCellValue("d" . $this->lastFilledOutCellY, $row[3]);
-            $spreadsheet->getActiveSheet()->setCellValue("e" . $this->lastFilledOutCellY, $row[4]);
-            $spreadsheet->getActiveSheet()->setCellValue("f" . $this->lastFilledOutCellY, $row[5]);
-            $spreadsheet->getActiveSheet()->setCellValue("g" . $this->lastFilledOutCellY, $row[6]);
-            $spreadsheet->getActiveSheet()->setCellValue("h" . $this->lastFilledOutCellY, $row[7]);
-            $spreadsheet->getActiveSheet()->setCellValue("i" . $this->lastFilledOutCellY, $row[8]);
-            $spreadsheet->getActiveSheet()->setCellValue("j" . $this->lastFilledOutCellY, $row[9]);
-            $spreadsheet->getActiveSheet()->setCellValue("k" . $this->lastFilledOutCellY, $row[10]);
+            $spreadsheet->getActiveSheet()->setCellValue("A" . $this->lastFilledOutCellY, $subtype);
+
+            foreach ($rows as $row) {
+                $this->lastFilledOutCellY++;
+                $spreadsheet->getActiveSheet()->setCellValue("A" . $this->lastFilledOutCellY, $row['title']);
+                $spreadsheet->getActiveSheet()->setCellValue("b" . $this->lastFilledOutCellY, $row['date']);
+                $spreadsheet->getActiveSheet()->setCellValue("c" . $this->lastFilledOutCellY, $row['no_of_participants']);
+                $total['nop'] += intval($row['no_of_participants']);
+                $spreadsheet->getActiveSheet()->setCellValue("d" . $this->lastFilledOutCellY, $row['names']);
+                if (intval($row['is_pwd']) > 0) {
+                    $spreadsheet->getActiveSheet()->setCellValue("e" . $this->lastFilledOutCellY, '/');
+                }
+                if (intval($row['is_senior_citizen']) > 0) {
+                    $spreadsheet->getActiveSheet()->setCellValue("f" . $this->lastFilledOutCellY, '/');
+                }
+                $spreadsheet->getActiveSheet()->setCellValue("g" . $this->lastFilledOutCellY, $row['not_managerial_supervisory']);
+
+                if (intval($row['not_technical']) > 0) {
+                    $spreadsheet->getActiveSheet()->setCellValue("h" . $this->lastFilledOutCellY, '/');
+                    $total['technical']++;
+                }
+                if (intval($row['not_foundation']) > 0) {
+                    $spreadsheet->getActiveSheet()->setCellValue("i" . $this->lastFilledOutCellY, '/');
+                    $total['foundation']++;
+                }
+                $spreadsheet->getActiveSheet()->setCellValue("j" . $this->lastFilledOutCellY, $row['no_of_training_hours']);
+                $spreadsheet->getActiveSheet()->setCellValue("k" . $this->lastFilledOutCellY, $row['remarks']);
+            }
         }
 
         $this->lastFilledOutCellY++;
         $spreadsheet->getActiveSheet()->setCellValue('A' . $this->lastFilledOutCellY, 'TOTAL (Headcount)');
-        $spreadsheet->getActiveSheet()->setCellValue('c' . $this->lastFilledOutCellY, '5');
+        $spreadsheet->getActiveSheet()->setCellValue('c' . $this->lastFilledOutCellY, $total['nop']);
         $spreadsheet->getActiveSheet()->mergeCells('A' . $this->lastFilledOutCellY . ':b' . $this->lastFilledOutCellY);
         $spreadsheet->getActiveSheet()->setCellValue('g' . $this->lastFilledOutCellY, 'TOTAL:');
-        $spreadsheet->getActiveSheet()->setCellValue('h' . $this->lastFilledOutCellY, '5');
-        $spreadsheet->getActiveSheet()->setCellValue('i' . $this->lastFilledOutCellY, '5');
+        $spreadsheet->getActiveSheet()->setCellValue('h' . $this->lastFilledOutCellY, $total['technical']);
+        $spreadsheet->getActiveSheet()->setCellValue('i' . $this->lastFilledOutCellY, $total['foundation']);
 
         $spreadsheet->getActiveSheet()->getStyle('A8:k' . $this->lastFilledOutCellY)->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
         $spreadsheet->getActiveSheet()

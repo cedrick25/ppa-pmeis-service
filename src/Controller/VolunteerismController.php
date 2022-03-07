@@ -13,6 +13,7 @@ use App\Model\VolunteerId as VolunteerIdModel;
 use App\Model\ProgramMaterialsDevelopment as ProgramMaterialsDevelopmentModel;
 use App\Model\JailDecongestion as JailDecongestionModel;
 use App\Model\SpecialAssignment as SpecialAssignmentModel;
+use App\Service\Volunteerism\CapabilityBuildingInterface;
 use App\Service\Volunteerism\IdInterface;
 use App\Service\Volunteerism\IdSupportInterface;
 use App\Service\Volunteerism\JailDecongestionInterface;
@@ -29,6 +30,7 @@ use App\Service\Volunteerism\TechnicalAssistanceInterface;
 use App\Model\SocialMarketing as SocialMarketingModel;
 use App\Model\SupportOfRegionToFieldOffice as SupportOfRegionToFieldOfficeModel;
 use App\Model\VolunteerSupervisions as VolunteerSupervisionsModel;
+use App\Model\CapabilityBuilding as CapabilityBuildingModel;
 use App\Service\Volunteerism\VolunteerSupervisionsInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -56,6 +58,7 @@ class VolunteerismController extends AbstractController
         private SpecialAssignmentInterface              $specialAssignmentService,
         private SupportOfRegionToFieldOfficeInterface   $supportOfRegionToFieldOfficeService,
         private VolunteerSupervisionsInterface          $volunteerSupervisionsService,
+        private CapabilityBuildingInterface             $capabilityBuildingService,
     ){}
 
     /**
@@ -627,6 +630,43 @@ class VolunteerismController extends AbstractController
         return $this->json($this->volunteerSupervisionsService->getReport(
             (int) $request->get("quarterId"),
             (int) $request->get("fieldOfficeId")
+        ));
+    }
+
+    /**
+     * @Route("/capability-building/create", methods={"POST"})
+     */
+    public function createCapabilityBuilding(Request $request): Response
+    {
+        try {
+            $data = json_decode($request->getContent(), true);
+
+            /** @var CapabilityBuildingModel $capabilityBuilding */
+            $capabilityBuilding = $this->appHydrator->convertArrayToObject($data, CapabilityBuildingModel::class);
+
+            return $this->json($this->capabilityBuildingService->create($capabilityBuilding));
+        } catch (\ReflectionException $exception) {
+            return $this->json($this->appFormatter->formatResponse('Creating capability building failed', null, ['reflection' => $exception->getMessage()]));
+        }
+    }
+
+    /**
+     * @Route("/capability-building/list", methods={"GET"})
+     */
+    public function getAllCapabilityBuildings(): Response
+    {
+        return $this->json($this->capabilityBuildingService->getAll());
+    }
+
+    /**
+     * @Route("/capability-building/report/full/{quarterId}/{fieldOfficeId}/{type}", methods={"GET"})
+     */
+    public function getCapabilityBuildingReport(Request $request): Response
+    {
+        return $this->json($this->capabilityBuildingService->getReport(
+            (int) $request->get("quarterId"),
+            (int) $request->get("fieldOfficeId"),
+            $request->get("type")
         ));
     }
 }

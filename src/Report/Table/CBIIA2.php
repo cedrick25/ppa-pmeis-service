@@ -60,79 +60,36 @@ class CBIIA2 implements Form
     {
         $spreadsheet = $this->header();
 
-        $quarter = $this->data['quarter'];
-        $fieldOffice = $this->data['field_office_id'];
-        $data = [
-            'FIRST_2022' => [
-                '1' => [
-                    ['A.  Training on  Therapeutic Community', '', '', '', '', '', '', '', '', '',],
-                    ['None', '', '', '', '', '', '', '', '', '',],
-                    ['B.  Training on  Restorative Justice', '', '', '', '', '', '', '', '', '',],
-                    ['None', '', '', '', '', '', '', '', '', '',],
-                    ['C.  Training on Volunteerism' , '', '', '', '', '', '', '', '', ''],
-                    ['None', '', '', '', '', '', '', '', '', '',],
-                    ['D.  Training on GAD' , '', '', '', '', '', '', '', '', '',],
-                    ['None', '', '', '', '', '', '', '', '', '',],
-                    ['E.  Other Training  Courses/ Seminars/', '', '', '', '', '', '', '', '', '',],
-                    ['      Fora/Symposia' , '', '', '', '', '', '', '', '', '',],
-                    ['None', '', '', '', '', '', '', '', '', '',],
-                    ['F.  Conferences/ Conventions/ Congress' , '', '', '', '', '', '', '', '', '',],
-                    ['None', '', '', '', '', '', '', '', '', '',],
-                    ['G.  VPA Meetings/ Assemblies' , '', '', '', '', '', '', '', '', '',],
-                    ['Monthly Meeting', 'January 8, 2022', '7', 'Luka Skylar', '', '', 'FO/RO', '', '8', ''],
-                    ['', '', '', 'Pedro Pandacan', '', '/', 'FO/RO', '', '8', ''],
-                    ['', '', '', 'Mari Sumapay', '', '', 'FO/RO', '', '8', ''],
-                    ['', '', '', 'Renzo Melodez', '', '', 'FO/RO', '', '8', ''],
-                    ['', '', '', 'Danzo Malapay', '', '/', 'FO/RO', '', '8', ''],
-                    ['', '', '', 'Marichu Balonzo', '', '', 'FO/RO', '', '8', ''],
-                    ['', '', '', 'Benjo Relaza', '', '', 'FO/RO', '', '8', ''],
-                ],
-            ],
-            'FOURTH_2021' => [
-                '1' => [
-                    ['A.  Training on  Therapeutic Community', '', '', '', '', '', '', '', '', '',],
-                    ['None', '', '', '', '', '', '', '', '', '',],
-                    ['B.  Training on  Restorative Justice', '', '', '', '', '', '', '', '', '',],
-                    ['None', '', '', '', '', '', '', '', '', '',],
-                    ['C.  Training on Volunteerism' , '', '', '', '', '', '', '', '', ''],
-                    ['None', '', '', '', '', '', '', '', '', '',],
-                    ['D.  Training on GAD' , '', '', '', '', '', '', '', '', '',],
-                    ['None', '', '', '', '', '', '', '', '', '',],
-                    ['E.  Other Training  Courses/ Seminars/', '', '', '', '', '', '', '', '', '',],
-                    ['      Fora/Symposia' , '', '', '', '', '', '', '', '', '',],
-                    ['None', '', '', '', '', '', '', '', '', '',],
-                    ['F.  Conferences/ Conventions/ Congress' , '', '', '', '', '', '', '', '', '',],
-                    ['None', '', '', '', '', '', '', '', '', '',],
-                    ['G.  VPA Meetings/ Assemblies' , '', '', '', '', '', '', '', '', '',],
-                    ['VPA Character Building Training', 'November 7, 2021', '7', 'Luka Skylar', '', '', 'FO/RO', '', '8', ''],
-                    ['', '', '', 'Pedro Pandacan', '', '/', 'FO/RO', '', '8', ''],
-                    ['', '', '', 'Mari Sumapay', '', '', 'FO/RO', '', '8', ''],
-                    ['', '', '', 'Renzo Melodez', '', '', 'FO/RO', '', '8', ''],
-                    ['', '', '', 'Danzo Malapay', '', '/', 'FO/RO', '', '8', ''],
-                    ['', '', '', 'Marichu Balonzo', '', '', 'FO/RO', '', '8', ''],
-                    ['', '', '', 'Benjo Relaza', '', '', 'FO/RO', '', '8', ''],
-                ],
-            ],
-        ];
+        $total = ['nop' => 0];
 
-        $rows = $data[$quarter][$fieldOffice];
-        foreach ($rows as $row) {
+        foreach ($this->data['rows'] as $subtype=>$rows) {
             $this->lastFilledOutCellY++;
-            $spreadsheet->getActiveSheet()->setCellValue("a" . $this->lastFilledOutCellY, $row[0]);
-            $spreadsheet->getActiveSheet()->setCellValue("b" . $this->lastFilledOutCellY, $row[1]);
-            $spreadsheet->getActiveSheet()->setCellValue("c" . $this->lastFilledOutCellY, $row[2]);
-            $spreadsheet->getActiveSheet()->setCellValue("d" . $this->lastFilledOutCellY, $row[3]);
-            $spreadsheet->getActiveSheet()->setCellValue("e" . $this->lastFilledOutCellY, $row[4]);
-            $spreadsheet->getActiveSheet()->setCellValue("f" . $this->lastFilledOutCellY, $row[5]);
-            $spreadsheet->getActiveSheet()->setCellValue("g" . $this->lastFilledOutCellY, $row[6]);
-            $spreadsheet->getActiveSheet()->setCellValue("h" . $this->lastFilledOutCellY, $row[7]);
-            $spreadsheet->getActiveSheet()->setCellValue("i" . $this->lastFilledOutCellY, $row[8]);
-            $spreadsheet->getActiveSheet()->setCellValue("j" . $this->lastFilledOutCellY, $row[9]);
+            $spreadsheet->getActiveSheet()->setCellValue("A" . $this->lastFilledOutCellY, $subtype);
+
+            foreach ($rows as $row) {
+                $this->lastFilledOutCellY++;
+                $spreadsheet->getActiveSheet()->setCellValue("A" . $this->lastFilledOutCellY, $row['title']);
+                $spreadsheet->getActiveSheet()->setCellValue("b" . $this->lastFilledOutCellY, $row['date']);
+                $spreadsheet->getActiveSheet()->setCellValue("c" . $this->lastFilledOutCellY, $row['no_of_participants']);
+                $total['nop'] += intval($row['no_of_participants']);
+                $spreadsheet->getActiveSheet()->setCellValue("d" . $this->lastFilledOutCellY, $row['names']);
+                if (intval($row['is_pwd']) > 0) {
+                    $spreadsheet->getActiveSheet()->setCellValue("e" . $this->lastFilledOutCellY, '/');
+                }
+                if (intval($row['is_senior_citizen']) > 0) {
+                    $spreadsheet->getActiveSheet()->setCellValue("f" . $this->lastFilledOutCellY, '/');
+                }
+
+                $spreadsheet->getActiveSheet()->setCellValue("g" . $this->lastFilledOutCellY, $row['tc_in_house']);
+                $spreadsheet->getActiveSheet()->setCellValue("h" . $this->lastFilledOutCellY, $row['tc_out_house']);
+                $spreadsheet->getActiveSheet()->setCellValue("i" . $this->lastFilledOutCellY, $row['no_of_training_hours']);
+                $spreadsheet->getActiveSheet()->setCellValue("j" . $this->lastFilledOutCellY, $row['remarks']);
+            }
         }
 
         $this->lastFilledOutCellY++;
         $spreadsheet->getActiveSheet()->setCellValue('A' . $this->lastFilledOutCellY, 'TOTAL (Headcount)');
-        $spreadsheet->getActiveSheet()->setCellValue('c' . $this->lastFilledOutCellY, '7');
+        $spreadsheet->getActiveSheet()->setCellValue('c' . $this->lastFilledOutCellY, $total['nop']);
         $spreadsheet->getActiveSheet()->mergeCells('A' . $this->lastFilledOutCellY . ':b' . $this->lastFilledOutCellY);
 
         $spreadsheet->getActiveSheet()->getStyle('A8:j' . $this->lastFilledOutCellY)->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);

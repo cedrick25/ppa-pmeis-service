@@ -340,4 +340,9 @@ class CacheHelper
     {
         return 'all_volunteer_supervisions';
     }
+
+    public function getAllCapabilityBuildingsKey(): string
+    {
+        return 'all_capability_buildings';
+    }
 }
