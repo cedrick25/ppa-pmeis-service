@@ -268,44 +268,29 @@ class Volunteer implements VolunteerInterface
         }
     }
 
-    public function getVPADatabase(int $quarterId, int $fieldOfficeId): array
+    public function getVPADatabase(int $regionId): array
     {
         try {
             $data = [
                 'header' => [],
                 'volunteers' => []
             ];
-            $quarterData = $this->quartersRepository->find($quarterId);
-            $fieldOffice = $this->fieldOfficesRepository->find($fieldOfficeId);
-            $region = $this->regionsRepository->find($fieldOffice->getRegionId());
-            $data['header']['fieldOffice'] = $fieldOffice->getName();
+            $region = $this->regionsRepository->find($regionId);
             $data['header']['region'] = $region->getName();
-
-            if ($quarterData === null) {
-                return $this->appFormatter->formatResponse(ResponseEnum::NO_DATA, null);
-            }
 
             $educationBackgrounds = $this->getEducationBackgrounds();
             $civilStatuses = $this->getCivilStatuses();
             $occupations = $this->getOccupations();
             $religions = $this->getReligions();
 
-            $sessionIds = $this->sessionsRepository->findSessionsIdsByQuarter($quarterData);
-            $sessionIds = array_map(fn($sessionId) => $sessionId['session_id'], $sessionIds);
-
-            $volunteerIds = $this->resourceFacilitatorSessionRepository->getVolunteerIdsBySessionIds($sessionIds);
-            $volunteerIds = array_map(fn($volunteerId) => $volunteerId['resourceFacilitatorId'], $volunteerIds);
-
-            $volunteers = $this->repository->findByIdsV2($volunteerIds);
+            $volunteers = $this->repository->findByRegionId($regionId);
 
             foreach ($volunteers as $volunteer) {
-                if ($volunteer['fieldOfficeId'] === $fieldOfficeId) {
-                    $volunteer['religion'] = $religions[$volunteer['religion']];
-                    $volunteer['occupation'] = $occupations[$volunteer['occupation']];
-                    $volunteer['educationAttainment'] = $educationBackgrounds[$volunteer['educationAttainment']];
-                    $volunteer['civilStatus'] = $civilStatuses[$volunteer['civilStatus']];
-                    $data['volunteers'][] = $volunteer;
-                }
+                $volunteer['religion'] = $religions[$volunteer['religion']];
+                $volunteer['occupation'] = $occupations[$volunteer['occupation']];
+                $volunteer['education_attainment'] = $educationBackgrounds[$volunteer['education_attainment']];
+                $volunteer['civil_status'] = $civilStatuses[$volunteer['civil_status']];
+                $data['volunteers'][] = $volunteer;
             }
 
             return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_SUCCESS, $data);

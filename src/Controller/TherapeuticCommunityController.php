@@ -906,13 +906,12 @@ class TherapeuticCommunityController extends AbstractController
     }
 
     /**
-     * @Route("/volunteer/database/{fieldOfficeId}/{quarterId}", methods={"GET"})
+     * @Route("/volunteer/database/by/{regionId}", methods={"GET"})
      */
     public function getVPADatabase(Request $request): Response
     {
         return $this->json($this->volunteerService->getVPADatabase(
-            (int) $request->get("quarterId"),
-            (int) $request->get("fieldOfficeId")
+            (int) $request->get("regionId"),
         ));
     }
 

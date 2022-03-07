@@ -57,27 +57,27 @@ class VPADatabase implements Form
     {
         $spreadsheet = $this->header();
 
-        foreach ($this->data['volunteers']['volunteers'] as $volunteer) {
+        foreach ($this->data['volunteers'] as $volunteer) {
             $this->lastFilledOutCellY++;
 
-            $middleInitial = $volunteer['middleName'] != null ? substr($volunteer['middleName'], 0, 1) . '.' : '';
-            $fullName = $volunteer['lastName'] . ', ' . $volunteer['firstName'] . ' ' . $middleInitial;
-            $dateAppointed = $this->appDateHelper->convertStringToImmutableDate($volunteer['dateAppointed']);
-            $dateOfBirth = $this->appDateHelper->convertStringToImmutableDate($volunteer['dateOfBirth']);
+            $middleInitial = $volunteer['middle_name'] != null ? substr($volunteer['middle_name'], 0, 1) . '.' : '';
+            $fullName = $volunteer['last_name'] . ', ' . $volunteer['last_name'] . ' ' . $middleInitial;
+            $dateAppointed = $this->appDateHelper->convertStringToImmutableDate($volunteer['date_appointed']);
+            $dateOfBirth = $this->appDateHelper->convertStringToImmutableDate($volunteer['date_of_birth']);
 
             $spreadsheet->getActiveSheet()->setCellValue("A" . $this->lastFilledOutCellY, $fullName);
             // TODO: replaced with volunteer_id -> id_no
-            $spreadsheet->getActiveSheet()->setCellValue("B" . $this->lastFilledOutCellY, $volunteer['volunteerId']);
+            $spreadsheet->getActiveSheet()->setCellValue("B" . $this->lastFilledOutCellY, $volunteer['volunteer_id']);
             $spreadsheet->getActiveSheet()->setCellValue("C" . $this->lastFilledOutCellY, $dateAppointed->format('y-M-d'));
-            $spreadsheet->getActiveSheet()->setCellValue("D" . $this->lastFilledOutCellY, $volunteer['presentAddress']);
+            $spreadsheet->getActiveSheet()->setCellValue("D" . $this->lastFilledOutCellY, $volunteer['present_address']);
             $spreadsheet->getActiveSheet()->setCellValue("E" . $this->lastFilledOutCellY, $volunteer['height']);
             $spreadsheet->getActiveSheet()->setCellValue("F" . $this->lastFilledOutCellY, $volunteer['weight']);
             $spreadsheet->getActiveSheet()->setCellValue("G" . $this->lastFilledOutCellY, $volunteer['gender']);
             $spreadsheet->getActiveSheet()->setCellValue("H" . $this->lastFilledOutCellY, $dateOfBirth->format('y-M-d'));
             $spreadsheet->getActiveSheet()->setCellValue("I" . $this->lastFilledOutCellY, $volunteer['age']);
-            $spreadsheet->getActiveSheet()->setCellValue("J" . $this->lastFilledOutCellY, $volunteer['civilStatus']);
+            $spreadsheet->getActiveSheet()->setCellValue("J" . $this->lastFilledOutCellY, $volunteer['civil_status']);
             $spreadsheet->getActiveSheet()->setCellValue("K" . $this->lastFilledOutCellY, $volunteer['religion']);
-            $spreadsheet->getActiveSheet()->setCellValue("L" . $this->lastFilledOutCellY, $volunteer['educationAttainment']);
+            $spreadsheet->getActiveSheet()->setCellValue("L" . $this->lastFilledOutCellY, $volunteer['education_attainment']);
             $spreadsheet->getActiveSheet()->setCellValue("M" . $this->lastFilledOutCellY, $volunteer['occupation']);
         }
 
@@ -104,8 +104,8 @@ class VPADatabase implements Form
 
         $textAndCoordinates = [
             'L1' => 'PPA-CSD-FR-009-01', 'A2' => 'VPA DATABASE', 'A3' => 'REGION: ' . $this->data['header']['region'],
-            'A4' => 'OFFICE: ' . $this->data['header']['fieldOffice'], 'A5' => 'NAME', 'B5' => 'ID Number', 'C5' => 'Date of Appointment',
-            'D5' => 'Address', 'E5' => 'Ht.', 'F5' => 'Wt.', 'G5' => 'Gender', 'H5' => 'Date of Birth', 'I5' => 'Age', 'J5' => 'Civil Status',
+            'A5' => 'NAME', 'B5' => 'ID Number', 'C5' => 'Date of Appointment', 'D5' => 'Address', 'E5' => 'Ht.',
+            'F5' => 'Wt.', 'G5' => 'Gender', 'H5' => 'Date of Birth', 'I5' => 'Age', 'J5' => 'Civil Status',
             'K5' => 'Religion', 'L5' => 'Education', 'M5' => 'Occupation'
         ];
         $mergesCoordinates = ['A2:M2'];

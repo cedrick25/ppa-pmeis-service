@@ -393,6 +393,25 @@ class VolunteerRepository extends ServiceEntityRepository
     }
 
     /**
+     * @param int $regionId
+     * @return array<int, mixed>
+     * @throws \Doctrine\DBAL\Exception
+     * @throws \Doctrine\DBAL\Driver\Exception
+     */
+    public function findByRegionId(int $regionId): array
+    {
+        $conn = $this->getEntityManager()->getConnection();
+        $sql = "SELECT * FROM volunteer
+                LEFT JOIN field_offices as fo ON volunteer.field_office_id = fo.field_office_id
+                LEFT JOIN regions as rg ON fo.region_id = rg.region_id
+                WHERE rg.region_id = $regionId AND volunteer.deleted_at IS NULL";
+        $stmt = $conn->prepare($sql);
+        $query = $stmt->executeQuery();
+
+        return $query->fetchAllAssociative();
+    }
+
+    /**
      * @return Volunteer[]
      */
     public function findApplicants(): array
