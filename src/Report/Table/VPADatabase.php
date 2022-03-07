@@ -57,10 +57,10 @@ class VPADatabase implements Form
     {
         $spreadsheet = $this->header();
 
-        foreach ($this->data['volunteers'] as $volunteer) {
+        foreach ($this->data['volunteers']['volunteers'] as $volunteer) {
             $this->lastFilledOutCellY++;
 
-            $middleInitial = ! isset($volunteer['middleName']) ? substr($volunteer['middleName'], 0, 1) . '.' : '';
+            $middleInitial = $volunteer['middleName'] != null ? substr($volunteer['middleName'], 0, 1) . '.' : '';
             $fullName = $volunteer['lastName'] . ', ' . $volunteer['firstName'] . ' ' . $middleInitial;
             $dateAppointed = $this->appDateHelper->convertStringToImmutableDate($volunteer['dateAppointed']);
             $dateOfBirth = $this->appDateHelper->convertStringToImmutableDate($volunteer['dateOfBirth']);
