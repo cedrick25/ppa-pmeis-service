@@ -298,10 +298,11 @@ class VolunteerRepository extends ServiceEntityRepository
      * @param int $fieldOfficeId
      * @param int $year
      * @param int[] $months
-     * @return bool|array<string, mixed>
+     * @return Volunteer[]
      */
-    public function findByFieldOfficeAndMonthRange(int $fieldOfficeId, int $year, array $months): bool|array
+    public function findByFieldOfficeAndMonthRange(int $fieldOfficeId, int $year, array $months): array
     {
+        /** @var Volunteer[] */
         return $this->createQueryBuilder('v')
             ->where('v.fieldOfficeId = :fieldOfficeId')
             ->andWhere('YEAR(v.dateRecruited) = :year')
@@ -336,6 +337,52 @@ class VolunteerRepository extends ServiceEntityRepository
 
         foreach ($activeVolunteers as $activeVolunteer) {
             $activeVolunteerIds[] = $activeVolunteer['resource_facilitator_id'];
+        }
+
+        foreach ($appointedVolunteers as $appointedVolunteer) {
+            if (! in_array(intval($appointedVolunteer['volunteer_id']), $activeVolunteerIds)) {
+                $inActiveVolunteerIds[] = intval($appointedVolunteer['volunteer_id']);
+            }
+        }
+
+        foreach ($reAppointedVolunteers as $reAppointedVolunteer) {
+            if (! in_array(intval($reAppointedVolunteer['volunteer_id']), $activeVolunteerIds)) {
+                $inActiveVolunteerIds[] = intval($reAppointedVolunteer['volunteer_id']);
+            }
+        }
+
+        return $this->createQueryBuilder('v')
+            ->where('v.volunteerId IN (:inActiveVolunteerIds)')
+            ->andWhere('v.fieldOfficeId = :fieldOfficeId')
+            ->andWhere('v.deletedAt IS NULL')
+            ->setParameter('fieldOfficeId', $fieldOfficeId)
+            ->setParameter('inActiveVolunteerIds', $inActiveVolunteerIds, Connection::PARAM_INT_ARRAY)
+            ->getQuery()
+            ->getResult();
+    }
+
+    /**
+     * @param int $fieldOfficeId
+     * @param int $year
+     * @param array $months
+     * @param Volunteer[] $activeVolunteers
+     * @return Volunteer[]
+     * @throws \Doctrine\DBAL\Driver\Exception
+     * @throws \Doctrine\DBAL\Exception
+     */
+    public function findInactiveVolunteersByFieldOfficeAndMonthRangeV2(
+        int $fieldOfficeId,
+        int $year,
+        array $months,
+        array $activeVolunteers
+    ): array {
+        $appointedVolunteers = $this->volunteerOperationsRepository->findVolunteerIdsByMonthRange($year, $months, 'APPOINTED');
+        $reAppointedVolunteers = $this->volunteerOperationsRepository->findVolunteerIdsByMonthRange($year, $months, 'REAPPOINTED');
+        $inActiveVolunteerIds = [];
+        $activeVolunteerIds = [];
+
+        foreach ($activeVolunteers as $activeVolunteer) {
+            $activeVolunteerIds[] = $activeVolunteer->getVolunteerId();
         }
 
         foreach ($appointedVolunteers as $appointedVolunteer) {
@@ -449,13 +496,6 @@ class VolunteerRepository extends ServiceEntityRepository
         $this->cache->invalidateTags([self::CACHE_TAG]);
 
         return ResponseEnum::OK;
-    }
-
-    public function getVpaStartOfQuarter()
-    {
-        // get vpas in previous quarter
-
-        //
     }
 
     private function isExisting(VolunteerModel $volunteerData): bool

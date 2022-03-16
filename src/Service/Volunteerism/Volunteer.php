@@ -293,61 +293,109 @@ class Volunteer implements VolunteerInterface
         }
     }
 
-    public function getVpaMonitoring(int $quarterId): array
+    /**
+     * @throws \Doctrine\DBAL\Driver\Exception
+     * @throws \Doctrine\DBAL\Exception
+     */
+    public function getVpaMonitoring(int $quarterId, int $fieldOfficeId): array
     {
         $quarterData = $this->quartersRepository->find($quarterId);
-        $startOfQuarterVpa = $this->getStartOfQuarterVpa($quarterData);
+        if ($quarterData === null) {
+            return [];
+        }
 
-        return [];
+        $months = $this->appDateHelper->getMonthsByQuarterString($quarterData->getName());
+        $activeVolunteers = $this->repository
+            ->findByFieldOfficeAndMonthRange($fieldOfficeId, intval($quarterData->getYear()), $months);
+
+        $quarterYear = intval($quarterData->getYear());
+        $startOfQuarterVpa = $this->getStartOfQuarterVpa($quarterData, $fieldOfficeId);
+        $newAppointed = $this->getMonitoringByStatus($quarterYear, self::APPOINTED, $months, $activeVolunteers);
+        $reappointed = $this->getMonitoringByStatus($quarterYear, self::REAPPOINTED, $months, $activeVolunteers);
+        $dropped = $this->getMonitoringByStatus($quarterYear, self::DROPPED, $months, $activeVolunteers);
+        $totalNumberOfVpa = ($startOfQuarterVpa + $newAppointed) - $dropped;
+        $inactive = $this->repository->findInactiveVolunteersByFieldOfficeAndMonthRangeV2(
+            $fieldOfficeId,
+            intval($quarterData->getYear()),
+            $months,
+            $activeVolunteers
+        );
+        $totalActiveVpa = $totalNumberOfVpa - count($inactive);
+        $percentOfVpaMobilized = ($totalActiveVpa / $totalNumberOfVpa) * 100;
+
+        return [
+            'start_of_quarter_vpa' => $startOfQuarterVpa,
+            'new_appointed' => $newAppointed,
+            'reappointed' => $reappointed,
+            'dropped' => $dropped,
+            'total_number_of_vpa_during_quarter' => $totalNumberOfVpa,
+            'inactive' => count($inactive),
+            'total_active_vpa' => $totalActiveVpa,
+            'percentage_of_vpa_mobilized' => $percentOfVpaMobilized,
+        ];
     }
 
     /**
      * @throws \Doctrine\DBAL\Driver\Exception
      * @throws \Doctrine\DBAL\Exception
      */
-    private function getStartOfQuarterVpa(?Quarters $quarterData):array
+    private function getStartOfQuarterVpa(?Quarters $quarterData, int $fieldOfficeId): int
     {
-        if ($quarterData === null) {
-            return [];
-        }
-
         $previousQuarter = $this->quartersRepository->fetchPreviousQuarterByNameAndYear($quarterData->getName(), intval($quarterData->getYear()));
 
         if ($previousQuarter === null) {
-            return [];
+            return 0;
         }
-
-        $previousActiveVolunteers = $this->resourceFacilitatorSessionRepository
-            ->getVolunteerIdsByQuarter($previousQuarter->getName(), intval($previousQuarter->getYear()));
-
-        $previousActiveVolunteerIds = [];
-
-        $months = $this->appDateHelper->getMonthsByQuarterString($previousQuarter->getName());
+        $previousMonths = $this->appDateHelper->getMonthsByQuarterString($previousQuarter->getName());
+        $previousActiveVolunteers = $this->repository
+            ->findByFieldOfficeAndMonthRange($fieldOfficeId, intval($previousQuarter->getYear()), $previousMonths);
 
         $previousDroppedVolunteerIds = $this->getVolunteersIdByStatus(
             self::DROPPED,
             intval($previousQuarter->getYear()),
-            $months,
+            $previousMonths,
             $previousActiveVolunteers
         );
 
+        $results = 0;
         foreach ($previousActiveVolunteers as $previousActiveVolunteer) {
-            if (in_array($previousActiveVolunteer['resource_facilitator_id'], $previousDroppedVolunteerIds)) {
+            if (in_array($previousActiveVolunteer->getVolunteerId(), $previousDroppedVolunteerIds)) {
                 continue;
             }
 
-            $previousActiveVolunteerIds[] = $previousActiveVolunteer['resource_facilitator_id'];
-        }
-        $previousVolunteersCount = [];
-        $volunteers = $this->repository->findByIds($previousActiveVolunteerIds);
-
-        foreach ($volunteers as $volunteer) {
-
+            $results++;
         }
 
+        return $results;
+    }
 
+    /**
+     * @param int[] $months
+     * @param \App\Entity\Volunteer[] $activeVolunteers
+     * @throws \Doctrine\DBAL\Driver\Exception
+     * @throws \Doctrine\DBAL\Exception
+     */
+    private function getMonitoringByStatus(
+        int $year,
+        string $status,
+        array $months,
+        array $activeVolunteers,
+    ): int {
+        $newVolunteersId = $this->getVolunteersIdByStatus(
+            $status,
+            $year,
+            $months,
+            $activeVolunteers
+        );
 
-        return [];
+        $results = 0;
+        foreach ($activeVolunteers as $activeVolunteer) {
+            if (in_array($activeVolunteer->getVolunteerId(), $newVolunteersId)) {
+                $results++;
+            }
+        }
+
+        return $results;
     }
 
     private function getCivilStatuses(): array
@@ -398,7 +446,7 @@ class Volunteer implements VolunteerInterface
      * @param int $year
      * @param int[] $months
      * @param string $status
-     * @param array<int, array<string, mixed>> $activeVolunteers
+     * @param \App\Entity\Volunteer[] $activeVolunteers
      * @return array<int, array<string, mixed>>
      * @throws \Doctrine\DBAL\Driver\Exception
      * @throws \Doctrine\DBAL\Exception
@@ -408,14 +456,13 @@ class Volunteer implements VolunteerInterface
         int $year,
         array $months,
         array $activeVolunteers
-    ): array
-    {
+    ): array {
         $volunteersId = [];
         $activeVolunteersIds = [];
         $volunteerOperations = $this->volunteerOperationsRepository->findVolunteerIdsByMonthRange($year, $months, $status);
 
         foreach ($activeVolunteers as $activeVolunteer) {
-            $activeVolunteersIds[] = $activeVolunteer['resource_facilitator_id'];
+            $activeVolunteersIds[] = $activeVolunteer->getVolunteerId();
         }
 
         foreach ($volunteerOperations as $volunteerOperation) {
