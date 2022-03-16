@@ -321,7 +321,7 @@ class Volunteer implements VolunteerInterface
             $activeVolunteers
         );
         $totalActiveVpa = $totalNumberOfVpa - count($inactive);
-        $percentOfVpaMobilized = ($totalActiveVpa / $totalNumberOfVpa) * 100;
+        $percentOfVpaMobilized = $totalNumberOfVpa > 0 ? ($totalActiveVpa / $totalNumberOfVpa) * 100 : 0;
 
         return [
             'start_of_quarter_vpa' => $startOfQuarterVpa,
