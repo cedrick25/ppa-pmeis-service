@@ -54,36 +54,26 @@ class VPAMonitoring implements Form
     {
         $spreadsheet = $this->header();
         $this->lastFilledOutCellY++;
-        $startOfQuarter = 3;
-        $appointed = 8;
-        $reAppointed = 0;
-        $dropped = 0;
-        $numberOfVpaDuringQuarter = ($startOfQuarter + $appointed + $reAppointed) - $dropped;
-        $inactiveDuringQuarter = 1;
-        $activeVpaDuringQuarter = $numberOfVpaDuringQuarter - $inactiveDuringQuarter;
-        $vpaSuperVisingClient = $activeVpaDuringQuarter;
-        $vpaActingResource = 3;
-        $actingBothResourceAndVpa = 1;
-        $numberOfClientsSupervised = 10;
-        $numberOfServicesRendered = 5;
 
-        $spreadsheet->getActiveSheet()->setCellValue('A' . $this->lastFilledOutCellY, '3');
-        $spreadsheet->getActiveSheet()->setCellValue('B' . $this->lastFilledOutCellY, '8');
-        $spreadsheet->getActiveSheet()->setCellValue('C' . $this->lastFilledOutCellY, '0');
-        $spreadsheet->getActiveSheet()->setCellValue('D' . $this->lastFilledOutCellY, '0');
-        $spreadsheet->getActiveSheet()->setCellValue('E' . $this->lastFilledOutCellY, $numberOfVpaDuringQuarter . '%');
-        $spreadsheet->getActiveSheet()->setCellValue('F' . $this->lastFilledOutCellY, $inactiveDuringQuarter);
-        $spreadsheet->getActiveSheet()->setCellValue('G' . $this->lastFilledOutCellY, $activeVpaDuringQuarter . '%');
-        $spreadsheet->getActiveSheet()->setCellValue('H' . $this->lastFilledOutCellY, number_format($activeVpaDuringQuarter/$numberOfVpaDuringQuarter, 2) . '%');
-        $spreadsheet->getActiveSheet()->setCellValue('I' . $this->lastFilledOutCellY, $vpaSuperVisingClient);
-        $spreadsheet->getActiveSheet()->setCellValue('J' . $this->lastFilledOutCellY, $vpaSuperVisingClient/$activeVpaDuringQuarter . '%');
-        $spreadsheet->getActiveSheet()->setCellValue('K' . $this->lastFilledOutCellY, $vpaActingResource);
-        $spreadsheet->getActiveSheet()->setCellValue('L' . $this->lastFilledOutCellY, $vpaActingResource/$activeVpaDuringQuarter . '%');
-        $spreadsheet->getActiveSheet()->setCellValue('M' . $this->lastFilledOutCellY, $actingBothResourceAndVpa);
-        $spreadsheet->getActiveSheet()->setCellValue('N' . $this->lastFilledOutCellY, $actingBothResourceAndVpa/$activeVpaDuringQuarter . '%');
-        $spreadsheet->getActiveSheet()->setCellValue('O' . $this->lastFilledOutCellY, $numberOfClientsSupervised);
-        $spreadsheet->getActiveSheet()->setCellValue('P' . $this->lastFilledOutCellY, $numberOfServicesRendered);
-        $spreadsheet->getActiveSheet()->setCellValue('Q' . $this->lastFilledOutCellY, $numberOfServicesRendered/$activeVpaDuringQuarter . '%');
+        foreach ($this->data['rows'] as $row) {
+            $spreadsheet->getActiveSheet()->setCellValue('A' . $this->lastFilledOutCellY, $row['start_of_quarter_vpa']);
+            $spreadsheet->getActiveSheet()->setCellValue('B' . $this->lastFilledOutCellY, $row['new_appointed']);
+            $spreadsheet->getActiveSheet()->setCellValue('C' . $this->lastFilledOutCellY, $row['reappointed']);
+            $spreadsheet->getActiveSheet()->setCellValue('D' . $this->lastFilledOutCellY, $row['dropped']);
+            $spreadsheet->getActiveSheet()->setCellValue('E' . $this->lastFilledOutCellY, $row['total_number_of_vpa_during_quarter']);
+            $spreadsheet->getActiveSheet()->setCellValue('F' . $this->lastFilledOutCellY, $row['inactive']);
+            $spreadsheet->getActiveSheet()->setCellValue('G' . $this->lastFilledOutCellY, $row['total_active_vpa']);
+            $spreadsheet->getActiveSheet()->setCellValue('H' . $this->lastFilledOutCellY, $row['percentage_of_vpa_mobilized'] . '%');
+//        $spreadsheet->getActiveSheet()->setCellValue('I' . $this->lastFilledOutCellY, $vpaSuperVisingClient);
+//        $spreadsheet->getActiveSheet()->setCellValue('J' . $this->lastFilledOutCellY, $vpaSuperVisingClient/$activeVpaDuringQuarter . '%');
+//        $spreadsheet->getActiveSheet()->setCellValue('K' . $this->lastFilledOutCellY, $vpaActingResource);
+//        $spreadsheet->getActiveSheet()->setCellValue('L' . $this->lastFilledOutCellY, $vpaActingResource/$activeVpaDuringQuarter . '%');
+//        $spreadsheet->getActiveSheet()->setCellValue('M' . $this->lastFilledOutCellY, $actingBothResourceAndVpa);
+//        $spreadsheet->getActiveSheet()->setCellValue('N' . $this->lastFilledOutCellY, $actingBothResourceAndVpa/$activeVpaDuringQuarter . '%');
+//        $spreadsheet->getActiveSheet()->setCellValue('O' . $this->lastFilledOutCellY, $numberOfClientsSupervised);
+//        $spreadsheet->getActiveSheet()->setCellValue('P' . $this->lastFilledOutCellY, $numberOfServicesRendered);
+//        $spreadsheet->getActiveSheet()->setCellValue('Q' . $this->lastFilledOutCellY, $numberOfServicesRendered/$activeVpaDuringQuarter . '%');
+        }
 
         $spreadsheet->getActiveSheet()->getStyle('A'. $this->lastFilledOutCellY .':Q' . $this->lastFilledOutCellY)->getAlignment()->setHorizontal('center');
         $spreadsheet->getActiveSheet()->getStyle('A'. $this->lastFilledOutCellY .':Q' . $this->lastFilledOutCellY)->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
