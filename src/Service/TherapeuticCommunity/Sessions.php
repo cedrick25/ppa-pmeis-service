@@ -282,7 +282,8 @@ class Sessions implements SessionsInterface
                 'percentageOfClientsAttendingTC' => $percentageOfClientsAttendingTC
             ]);
         } catch (Exception $e) {
-            return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_FAILED, null, ['app' => $e->getMessage(), $e->getLine(), $e->getTrace()]);
+            return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_FAILED, null, [
+                'app' => $e->getMessage(), $e->getFile(), $e->getLine(), $e->getTrace(),]);
         } catch (\Doctrine\DBAL\Driver\Exception $e) {
             return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_FAILED, null, ['orm' => $e->getMessage()]);
         }
