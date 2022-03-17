@@ -14,8 +14,6 @@ use App\Repository\OccupationRepository;
 use App\Repository\QuartersRepository;
 use App\Repository\RegionsRepository;
 use App\Repository\ReligionRepository;
-use App\Repository\ResourceFacilitatorSessionRepository;
-use App\Repository\SessionsRepository;
 use App\Repository\VolunteerOperationsRepository;
 use App\Repository\VolunteerRepository;
 use Doctrine\ORM\Exception\ORMException;
@@ -23,6 +21,7 @@ use Exception;
 use Psr\Cache\CacheException;
 use Psr\Cache\InvalidArgumentException;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
+use TCPDF;
 
 class Volunteer implements VolunteerInterface
 {
@@ -37,15 +36,13 @@ class Volunteer implements VolunteerInterface
         private VolunteerRepository                  $repository,
         private QuartersRepository                   $quartersRepository,
         private AppDateHelper                        $appDateHelper,
-        private SessionsRepository                   $sessionsRepository,
-        private ResourceFacilitatorSessionRepository $resourceFacilitatorSessionRepository,
-        private FieldOfficesRepository               $fieldOfficesRepository,
         private RegionsRepository                    $regionsRepository,
         private CivilStatusRepository                $civilStatusRepository,
         private ReligionRepository                   $religionRepository,
         private OccupationRepository                 $occupationRepository,
         private EducationBackgroundRepository        $educationBackgroundRepository,
         private VolunteerOperationsRepository        $volunteerOperationsRepository,
+        private FieldOfficesRepository               $fieldOfficesRepository,
     ){}
 
     public function create(VolunteerModel $volunteerData): array
@@ -333,6 +330,56 @@ class Volunteer implements VolunteerInterface
             'total_active_vpa' => $totalActiveVpa,
             'percentage_of_vpa_mobilized' => $percentOfVpaMobilized,
         ];
+    }
+
+    public function getCertificate(int $id): string
+    {
+        $volunteer = $this->repository->find($id);
+        $fullName = $volunteer->getFirstName() . ' ' . $volunteer->getMiddleName() . ' ' . $volunteer->getLastName();
+        $fieldOffice = $this->fieldOfficesRepository->find($volunteer->getFieldOfficeId())->getName();
+
+        $pdf = new TCPDF(PDF_PAGE_ORIENTATION, PDF_UNIT, false, 'UTF-8', false);
+        $pdf->setCreator(PDF_CREATOR);
+        $pdf->setAuthor('PPA');
+        $pdf->setTitle('Testing');
+        $pdf->setPrintHeader(false);
+        $pdf->setPrintFooter(false);
+        $pdf->startPage();
+        $logo = dirname(__DIR__ ) . '/../../assets/ppa.png';
+        $heading = <<<EOD
+            <h3 style="text-align: right">PPA-CSD-FR-001-00</h3>
+            <h3 style="text-align: center">Republic of the Philippines</h3>
+            <h3 style="text-align: center">Department of Justice</h3>
+            <h2 style="text-align: center">PAROLE AND PROBATION ADMINISTRATION</h2>
+            <h5 style="text-align: center">DOJ Agencies Building</h5>
+            <h5 style="text-align: center">NIA Road corner East Avenue, Diliman</h5>
+            <h5 style="text-align: center">110 Quezon City</h5>
+        EOD;
+
+
+        $pdf->writeHTMLCell(0, 0, '', '', $heading);
+        $pdf->Image($logo,  85, 75, 40, 40, '', '', 'T', false, 300, '', false, false, 1, false, false, false);
+        $body = <<<EOD
+            <h2 style="text-align: center"><i>Certificate of Appointment</i></h2>
+            <h2 style="text-align: center;font-size: 15px;font-weight: normal">$fullName</h2>
+            <h2 style="text-align: center"><i>of</i></h2>
+            <h2 style="text-align: center;font-size: 15px;font-weight: normal">$fieldOffice</div>
+            <h2 style="text-align: center">Department</h2>
+            <h4 style="text-align: center">is hereby appointed as <span style="font-size: 13px">VOLUNTEER PROBATION ASSISTANT</span> of the</h4>
+            <h3 style="text-align: center"><i>Parole and Probation Office</i></h3>
+            <h3 style="text-align: center"><i>Region</i></h3>
+            <div></div>
+            <h2 style="text-align: center">Date of Appointment</h2>
+            <div></div>
+            <div></div>
+            <h2 style="text-align: center">DR. MANUEL G. CO, CESO I</h2>
+            <h2 style="text-align: center">Administrator</h2>
+        EOD;
+
+        $pdf->SetXY(110, 200);
+        $pdf->writeHTMLCell(0, 0, 0, 120, $body);
+        $pdf->endPage();
+        return $pdf->Output('certificate.pdf', 'I');
     }
 
     /**

@@ -927,6 +927,14 @@ class TherapeuticCommunityController extends AbstractController
     }
 
     /**
+     * @Route("/volunteer/download-certificate/by/id/{id}", methods={"GET"})
+     */
+    public function downloadCertificate(Request $request): Response
+    {
+        return $this->json($this->volunteerService->getCertificate((int) $request->get("id")));
+    }
+
+    /**
      * @Route("/resource-facilitator-session/create", methods={"POST"})
      */
     public function createResourceFacilitatorSession(Request $request): Response
