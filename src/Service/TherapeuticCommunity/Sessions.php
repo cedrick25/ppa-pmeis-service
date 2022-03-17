@@ -588,6 +588,10 @@ class Sessions implements SessionsInterface
         $result = [];
 
         foreach ($totalAdjustedSupervisionCaseLoad as $clientTypeId=>$score) {
+            if (! isset($clientsAttendingTC[$clientTypeId])) {
+                continue;
+            }
+
             $result[$clientTypeId] = ($clientsAttendingTC[$clientTypeId] / $score) * 100;
         }
 
