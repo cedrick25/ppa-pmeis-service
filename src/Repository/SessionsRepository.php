@@ -558,4 +558,22 @@ class SessionsRepository extends ServiceEntityRepository
 
         return false;
     }
+
+
+    /**
+     * @throws \Doctrine\DBAL\Driver\Exception
+     * @throws \Doctrine\DBAL\Exception
+     */
+    public function fetchTC1FieldOfficeSummary(string $minDate, string $maxDate, int $fieldOfficeId): ?array
+    {
+        $conn = $this->getEntityManager()->getConnection();
+        $sql = "SELECT tc.name as treatment_category FROM sessions as s 
+                    LEFT JOIN treatment_categories as tc ON s.treatment_category_id = tc.treatment_category_id
+                    WHERE s.date BETWEEN CAST('$minDate' AS DATE) AND CAST('$maxDate' AS DATE)
+                    AND s.field_office_id = $fieldOfficeId";
+        $stmt = $conn->prepare($sql);
+        $query = $stmt->executeQuery();
+
+        return $query->fetchAllAssociative();
+    }
 }

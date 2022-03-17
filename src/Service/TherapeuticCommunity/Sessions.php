@@ -592,7 +592,7 @@ class Sessions implements SessionsInterface
                 continue;
             }
 
-            $result[$clientTypeId] = ($clientsAttendingTC[$clientTypeId] / $score) * 100;
+            $result[$clientTypeId] = $score > 0 ? ($clientsAttendingTC[$clientTypeId] / $score) * 100 : 0;
         }
 
         return $result;

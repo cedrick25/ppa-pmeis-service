@@ -21,6 +21,7 @@ class Quarters implements QuartersInterface
         private AppFormatter       $appFormatter,
         private QuartersRepository $repository,
     ){}
+
     public function create(QuartersModel $quarters): array
     {
         try {
