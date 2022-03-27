@@ -38,7 +38,12 @@ class CapabilityBuilding
     /**
      * @ORM\Column(type="date")
      */
-    private \DateTimeInterface $date;
+    private \DateTimeInterface $startDate;
+
+    /**
+     * @ORM\Column(type="date")
+     */
+    private \DateTimeInterface $endDate;
 
     /**
      * @ORM\Column(type="integer")
@@ -164,15 +169,39 @@ class CapabilityBuilding
         return $this;
     }
 
-    public function getDate(): ?\DateTimeInterface
+    /**
+     * @return \DateTimeInterface
+     */
+    public function getStartDate(): \DateTimeInterface
     {
-        return $this->date;
+        return $this->startDate;
     }
 
-    public function setDate(\DateTimeInterface $date): self
+    /**
+     * @param \DateTimeInterface $startDate
+     * @return CapabilityBuilding
+     */
+    public function setStartDate(\DateTimeInterface $startDate): CapabilityBuilding
     {
-        $this->date = $date;
+        $this->startDate = $startDate;
+        return $this;
+    }
 
+    /**
+     * @return \DateTimeInterface
+     */
+    public function getEndDate(): \DateTimeInterface
+    {
+        return $this->endDate;
+    }
+
+    /**
+     * @param \DateTimeInterface $endDate
+     * @return CapabilityBuilding
+     */
+    public function setEndDate(\DateTimeInterface $endDate): CapabilityBuilding
+    {
+        $this->endDate = $endDate;
         return $this;
     }
 

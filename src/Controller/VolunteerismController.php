@@ -30,7 +30,6 @@ use App\Service\Volunteerism\TechnicalAssistanceInterface;
 use App\Model\SocialMarketing as SocialMarketingModel;
 use App\Model\SupportOfRegionToFieldOffice as SupportOfRegionToFieldOfficeModel;
 use App\Model\VolunteerSupervisions as VolunteerSupervisionsModel;
-use App\Model\CapabilityBuilding as CapabilityBuildingModel;
 use App\Service\Volunteerism\VolunteerSupervisionsInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -641,10 +640,7 @@ class VolunteerismController extends AbstractController
         try {
             $data = json_decode($request->getContent(), true);
 
-            /** @var CapabilityBuildingModel $capabilityBuilding */
-            $capabilityBuilding = $this->appHydrator->convertArrayToObject($data, CapabilityBuildingModel::class);
-
-            return $this->json($this->capabilityBuildingService->create($capabilityBuilding));
+            return $this->json($this->capabilityBuildingService->create($data));
         } catch (\ReflectionException $exception) {
             return $this->json($this->appFormatter->formatResponse('Creating capability building failed', null, ['reflection' => $exception->getMessage()]));
         }

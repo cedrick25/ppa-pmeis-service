@@ -4,33 +4,27 @@ namespace App\Service\Volunteerism;
 
 use App\Common\AppFormatter;
 use App\Enum\Response as ResponseEnum;
-use App\Model\CapabilityBuilding as CapabilityBuildingModel;
 use App\Repository\CapabilityBuildingRepository;
 use App\Repository\QuartersRepository;
 use Doctrine\DBAL\Driver\Exception;
 use Psr\Cache\CacheException;
 use Psr\Cache\InvalidArgumentException;
-use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 class CapabilityBuilding implements CapabilityBuildingInterface
 {
     public function __construct(
-        private ValidatorInterface           $validator,
         private AppFormatter                 $appFormatter,
         private CapabilityBuildingRepository $repository,
         private QuartersRepository           $quartersRepository,
     ){}
 
-    public function create(CapabilityBuildingModel $data): array
+    /**
+     * @param array<string, mixed> $data
+     */
+    public function create(array $data): array
     {
         try {
-            $errors = $this->validator->validate($data);
-
-            if (count($errors) > 0) {
-                return $this->appFormatter->formatResponse(ResponseEnum::VALIDATING_FAILED, null, $this->appFormatter->formatErrors($errors));
-            }
-
-            $this->repository->create($data);
+            $this->repository->batchCreate($data);
 
             return $this->appFormatter->formatResponse(ResponseEnum::CREATING_SUCCESS, []);
         } catch (InvalidArgumentException $exception) {

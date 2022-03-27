@@ -2,11 +2,12 @@
 
 namespace App\Service\Volunteerism;
 
-use App\Model\CapabilityBuilding as CapabilityBuildingModel;
-
 interface CapabilityBuildingInterface
 {
-    public function create(CapabilityBuildingModel $data): array;
+    /**
+     * @param array<string, mixed> $data
+     */
+    public function create(array $data): array;
 
     public function getAll(): array;
 

@@ -5,7 +5,6 @@ namespace App\Repository;
 use App\Common\AppDateHelper;
 use App\Common\CacheHelper;
 use App\Entity\CapabilityBuilding;
-use App\Model\CapabilityBuilding as CapabilityBuildingModel;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\ORM\ORMException;
 use Doctrine\Persistence\ManagerRegistry;
@@ -55,36 +54,45 @@ class CapabilityBuildingRepository extends ServiceEntityRepository
     }
 
     /**
+     * @throws \Doctrine\ORM\OptimisticLockException
      * @throws InvalidArgumentException
      * @throws ORMException
+     * @throws \Doctrine\Persistence\Mapping\MappingException
+     * @throws \Doctrine\DBAL\Exception\InvalidArgumentException
      * @throws \Exception
      */
-    public function create(CapabilityBuildingModel $data): void
+    public function batchCreate(array $data): void
     {
-        $this->cache->invalidateTags([self::CACHE_TAG]);
+        $participantCount = count($data['participants']);
 
-        $newCapabilityBuilding = new CapabilityBuilding();
-        $newCapabilityBuilding->setType($data->getType());
-        $newCapabilityBuilding->setSubtype($data->getSubtype());
-        $newCapabilityBuilding->setTitle($data->getTitle());
-        $newCapabilityBuilding->setDate($this->appDateHelper->convertStringToImmutableDate($data->getDate()));
-        $newCapabilityBuilding->setNoOfParticipants($data->getNoOfParticipants());
-        $newCapabilityBuilding->setNames($data->getNames());
-        $newCapabilityBuilding->setIsPwd($data->isPwd());
-        $newCapabilityBuilding->setIsSeniorCitizen($data->isSeniorCitizen());
-        $newCapabilityBuilding->setNotManagerialSupervisory($data->getNotManagerialSupervisory());
-        $newCapabilityBuilding->setNotTechnical($data->getNotTechnical());
-        $newCapabilityBuilding->setNotFoundation($data->getNotFoundation());
-        $newCapabilityBuilding->setNoOfTrainingHours($data->getNoOfTrainingHours());
-        $newCapabilityBuilding->setTcInHouse($data->getTcInHouse());
-        $newCapabilityBuilding->setTcOutHouse($data->getTcOutHouse());
-        $newCapabilityBuilding->setRemarks($data->getRemarks());
-        $newCapabilityBuilding->setFieldOfficeId($data->getFieldOfficeId());
-        $newCapabilityBuilding->setCreatedAt($this->appDateHelper->getCurrentImmutableDate());
+        foreach ($data['participants'] as $participant) {
+            $newCapabilityBuilding = new CapabilityBuilding();
+            $newCapabilityBuilding->setType($data['type']);
+            $newCapabilityBuilding->setSubtype($data['subtype']);
+            $newCapabilityBuilding->setTitle($data['title']);
+            $newCapabilityBuilding->setStartDate($this->appDateHelper->convertStringToImmutableDate($data['startDate']));
+            $newCapabilityBuilding->setEndDate($this->appDateHelper->convertStringToImmutableDate($data['endDate']));
+            $newCapabilityBuilding->setNoOfParticipants($participantCount);
+            $newCapabilityBuilding->setNames($participant['id']['label']);
+            // TODO: Fetch from real table base type
+            $newCapabilityBuilding->setIsPwd(false);
+            $newCapabilityBuilding->setIsSeniorCitizen(false);
+            $newCapabilityBuilding->setNotManagerialSupervisory($data['notManagerialSupervisory'] ?? '');
+            $newCapabilityBuilding->setNotTechnical($data['notTechnical'] ?? '');
+            $newCapabilityBuilding->setNotFoundation($data['notFoundation'] ?? '');
+            $newCapabilityBuilding->setNoOfTrainingHours($data['noOfTrainingHours']);
+            $newCapabilityBuilding->setTcInHouse($data['tcInHouse'] ?? '');
+            $newCapabilityBuilding->setTcOutHouse($data['tcOutHouse'] ?? '');
+            $newCapabilityBuilding->setRemarks($participant['remarks']);
+            $newCapabilityBuilding->setFieldOfficeId($data['fieldOfficeId']);
+            $newCapabilityBuilding->setCreatedAt($this->appDateHelper->getCurrentImmutableDate());
 
-        $this->getEntityManager()->persist($newCapabilityBuilding);
+            $this->getEntityManager()->persist($newCapabilityBuilding);
+        }
+
         $this->getEntityManager()->flush();
-        $this->getEntityManager()->clear();
+        $this->getEntityManager()->clear(CapabilityBuilding::class);
+        $this->cache->invalidateTags([self::CACHE_TAG]);
     }
 
     /**
@@ -100,7 +108,7 @@ class CapabilityBuildingRepository extends ServiceEntityRepository
         $sql = "SELECT cb.* FROM capability_building as cb
                 WHERE cb.field_office_id = $fieldOfficeId
                   AND cb.type = '$type'
-                  AND cb.date BETWEEN CAST('$min' AS DATE) AND CAST('$max' AS DATE)";
+                  AND cb.start_date >= CAST('$min' AS DATE) AND cb.end_date <= CAST('$max' AS DATE)";
         $stmt = $conn->prepare($sql);
         $query = $stmt->executeQuery();
 
