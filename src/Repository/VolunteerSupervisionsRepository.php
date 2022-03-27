@@ -132,4 +132,61 @@ class VolunteerSupervisionsRepository extends ServiceEntityRepository
 
         return $query->fetchAllAssociative();
     }
+
+    /**
+     * @param int $quarterId
+     * @param int $fieldOfficeId
+     * @return int[]
+     * @throws \Doctrine\DBAL\Driver\Exception
+     * @throws \Doctrine\DBAL\Exception
+     */
+    public function findVpaInvolveByQuarter(int $quarterId, int $fieldOfficeId): array
+    {
+        $conn = $this->getEntityManager()->getConnection();
+        $sql = "SELECT DISTINCT(volunteer_id) FROM volunteer_supervisions 
+                WHERE quarter_id = $quarterId AND field_office_id = $fieldOfficeId";
+        $stmt = $conn->prepare($sql);
+        $query = $stmt->executeQuery();
+        $result = $query->fetchAllAssociative();
+
+        return array_map(fn($volunteerSupervision) => intval($volunteerSupervision['volunteer_id']), $result);
+    }
+
+    /**
+     * @param int $quarterId
+     * @param int $fieldOfficeId
+     * @return int[]
+     * @throws \Doctrine\DBAL\Driver\Exception
+     * @throws \Doctrine\DBAL\Exception
+     */
+    public function findClientsSupervisedByQuarter(int $quarterId, int $fieldOfficeId): array
+    {
+        $conn = $this->getEntityManager()->getConnection();
+        $sql = "SELECT DISTINCT(client_id) FROM volunteer_supervisions 
+                WHERE quarter_id = $quarterId AND field_office_id = $fieldOfficeId";
+        $stmt = $conn->prepare($sql);
+        $query = $stmt->executeQuery();
+        $result = $query->fetchAllAssociative();
+
+        return array_map(fn($volunteerSupervision) => intval($volunteerSupervision['client_id']), $result);
+    }
+
+    /**
+     * @param int $quarterId
+     * @param int $fieldOfficeId
+     * @return int[]
+     * @throws \Doctrine\DBAL\Driver\Exception
+     * @throws \Doctrine\DBAL\Exception
+     */
+    public function findServicesRenderedByQuarter(int $quarterId, int $fieldOfficeId): array
+    {
+        $conn = $this->getEntityManager()->getConnection();
+        $sql = "SELECT services_rendered_id FROM volunteer_supervisions 
+                WHERE quarter_id = $quarterId AND field_office_id = $fieldOfficeId";
+        $stmt = $conn->prepare($sql);
+        $query = $stmt->executeQuery();
+        $result = $query->fetchAllAssociative();
+
+        return array_map(fn($volunteerSupervision) => intval($volunteerSupervision['services_rendered_id']), $result);
+    }
 }

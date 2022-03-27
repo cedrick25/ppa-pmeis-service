@@ -14,12 +14,15 @@ use App\Repository\OccupationRepository;
 use App\Repository\QuartersRepository;
 use App\Repository\RegionsRepository;
 use App\Repository\ReligionRepository;
+use App\Repository\ResourceFacilitatorSessionRepository;
 use App\Repository\VolunteerOperationsRepository;
 use App\Repository\VolunteerRepository;
+use App\Repository\VolunteerSupervisionsRepository;
 use Doctrine\ORM\Exception\ORMException;
 use Exception;
 use Psr\Cache\CacheException;
 use Psr\Cache\InvalidArgumentException;
+use Symfony\Component\HttpFoundation\BinaryFileResponse;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 use TCPDF;
 
@@ -43,6 +46,8 @@ class Volunteer implements VolunteerInterface
         private EducationBackgroundRepository        $educationBackgroundRepository,
         private VolunteerOperationsRepository        $volunteerOperationsRepository,
         private FieldOfficesRepository               $fieldOfficesRepository,
+        private VolunteerSupervisionsRepository      $volunteerSupervisionsRepository,
+        private ResourceFacilitatorSessionRepository $resourceFacilitatorSessionRepository,
     ){}
 
     public function create(VolunteerModel $volunteerData): array
@@ -305,6 +310,9 @@ class Volunteer implements VolunteerInterface
         $activeVolunteers = $this->repository
             ->findByFieldOfficeAndMonthRange($fieldOfficeId, intval($quarterData->getYear()), $months);
 
+        $sessions = $this->quartersRepository->getSessionDataByQuarterAndFieldOfficeId($quarterId, $fieldOfficeId);
+        $sessionIds = array_map(fn($session) => intval($session['session_id']), $sessions);
+
         $quarterYear = intval($quarterData->getYear());
         $startOfQuarterVpa = $this->getStartOfQuarterVpa($quarterData, $fieldOfficeId);
         $newAppointed = $this->getMonitoringByStatus($quarterYear, self::APPOINTED, $months, $activeVolunteers);
@@ -319,6 +327,19 @@ class Volunteer implements VolunteerInterface
         );
         $totalActiveVpa = $totalNumberOfVpa - count($inactive);
         $percentOfVpaMobilized = $totalNumberOfVpa > 0 ? ($totalActiveVpa / $totalNumberOfVpa) * 100 : 0;
+        $vpaSupervisingClients = $this->volunteerSupervisionsRepository->findVpaInvolveByQuarter($quarterId, $fieldOfficeId);
+        $noOfVpaSupervisingClients = count($vpaSupervisingClients);
+        $noOfVpaSupervisingClientsPercentage = $totalActiveVpa > 0 ? ($noOfVpaSupervisingClients / $totalActiveVpa) : 0;
+        $vpaActingAsResourceIndividuals = $this->resourceFacilitatorSessionRepository->getDistinctVolunteerIdsBySessionIds($sessionIds);
+        $noOfVpaActingAsResourceIndividuals = count($vpaActingAsResourceIndividuals);
+        $noOfVpaActingAsResourceIndividualsPercentage = $totalActiveVpa > 0 ? ($noOfVpaActingAsResourceIndividuals / $totalActiveVpa) : 0;
+        $vpaActingBothSupervisingAndResourceIndividual = count($this
+            ->getVpaActingBothSupervisingAndResourceIndividual($vpaSupervisingClients, $vpaActingAsResourceIndividuals));
+        $percentageOfVpaActingBothSupervisingAndResourceIndividual = $totalActiveVpa > 0 ?
+            ($vpaActingBothSupervisingAndResourceIndividual / $totalActiveVpa) : 0;
+        $totalNumberOfClientsSupervised = count($this->volunteerSupervisionsRepository->findClientsSupervisedByQuarter($quarterId, $fieldOfficeId));
+        $noOfServicesRenderedByVpa = count($this->volunteerSupervisionsRepository->findServicesRenderedByQuarter($quarterId, $fieldOfficeId));
+        $noOfServicesRenderedByVpaPercentage = $totalActiveVpa > 0 ? ($noOfServicesRenderedByVpa / $totalActiveVpa) : 0;
 
         return [
             'start_of_quarter_vpa' => $startOfQuarterVpa,
@@ -329,10 +350,19 @@ class Volunteer implements VolunteerInterface
             'inactive' => count($inactive),
             'total_active_vpa' => $totalActiveVpa,
             'percentage_of_vpa_mobilized' => $percentOfVpaMobilized,
+            'no_of_vpa_supervising_clients' => $noOfVpaSupervisingClients,
+            'no_of_vpa_supervising_clients_percentage' => $noOfVpaSupervisingClientsPercentage,
+            'no_of_vpa_acting_as_resource_individuals' => $noOfVpaActingAsResourceIndividuals,
+            'no_of_vpa_acting_as_resource_individuals_percentage' => $noOfVpaActingAsResourceIndividualsPercentage,
+            'vpa_acting_both_supervising_and_resource_individual' => $vpaActingBothSupervisingAndResourceIndividual,
+            'percentage_of_vpa_acting_both_supervising_and_resource_individual' => $percentageOfVpaActingBothSupervisingAndResourceIndividual,
+            'total_number_of_clients_supervised' => $totalNumberOfClientsSupervised,
+            'no_of_services_rendered_by_vpa' => $noOfServicesRenderedByVpa,
+            'no_of_services_rendered_by_vpa_percentage' => $noOfServicesRenderedByVpaPercentage,
         ];
     }
 
-    public function getCertificate(int $id): string
+    public function getCertificate(int $id): BinaryFileResponse
     {
         $volunteer = $this->repository->find($id);
         $fullName = $volunteer->getFirstName() . ' ' . $volunteer->getMiddleName() . ' ' . $volunteer->getLastName();
@@ -379,7 +409,8 @@ class Volunteer implements VolunteerInterface
         $pdf->SetXY(110, 200);
         $pdf->writeHTMLCell(0, 0, 0, 120, $body);
         $pdf->endPage();
-        return $pdf->Output('certificate.pdf', 'I');
+
+        return new BinaryFileResponse($pdf->Output('certificate.pdf', 'I'));
     }
 
     /**
@@ -520,5 +551,22 @@ class Volunteer implements VolunteerInterface
         }
 
         return $volunteersId;
+    }
+
+    private function getVpaActingBothSupervisingAndResourceIndividual(
+        array $vpaSupervisingClients,
+        array $vpaActingAsResourceIndividuals,
+    ): array {
+        $result = [];
+
+        foreach ($vpaActingAsResourceIndividuals as $actingAsResourceIndividual) {
+            if (! in_array($actingAsResourceIndividual['resourceFacilitatorId'], $vpaSupervisingClients)) {
+                continue;
+            }
+
+            $result[] = $actingAsResourceIndividual['resourceFacilitatorId'];
+        }
+
+        return $result;
     }
 }

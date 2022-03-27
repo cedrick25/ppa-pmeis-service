@@ -372,7 +372,7 @@ class QuartersRepository extends ServiceEntityRepository
      * @throws \Doctrine\DBAL\Exception
      * @throws \Doctrine\DBAL\Driver\Exception
      */
-    private function getSessionDataByQuarterAndFieldOfficeId(int $id, int $fieldOfficeId): array
+    public function getSessionDataByQuarterAndFieldOfficeId(int $id, int $fieldOfficeId): array
     {
         $conn = $this->getEntityManager()->getConnection();
         $quarterData = $this->find($id);

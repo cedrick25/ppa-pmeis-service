@@ -3,6 +3,7 @@
 namespace App\Service\Volunteerism;
 
 use App\Model\Volunteer;
+use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
 interface VolunteerInterface
 {
@@ -30,5 +31,5 @@ interface VolunteerInterface
 
     public function getVpaMonitoring(int $quarterId, int $fieldOfficeId): array;
 
-    public function getCertificate(int $id): string;
+    public function getCertificate(int $id): BinaryFileResponse;
 }

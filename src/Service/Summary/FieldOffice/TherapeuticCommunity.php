@@ -22,7 +22,6 @@ class TherapeuticCommunity
      */
     public function getTC1(int $quarterId, int $fieldOfficeId): array
     {
-
         $quarterData = $this->quartersRepository->find($quarterId);
 
         if ($quarterData === null) {

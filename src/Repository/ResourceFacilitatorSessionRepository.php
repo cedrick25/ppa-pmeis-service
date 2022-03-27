@@ -308,10 +308,23 @@ class ResourceFacilitatorSessionRepository extends ServiceEntityRepository
 
     public function getVolunteerIdsBySessionIds(array $sessionIds): array
     {
-        return $this->createQueryBuilder('rfr')
-            ->select('rfr.resourceFacilitatorId')
-            ->where('rfr.sessionId IN (:ids)')
+        return $this->createQueryBuilder('rfs')
+            ->select('rfs.resourceFacilitatorId')
+            ->where("rfs.resourceFacilitatorType = 'VPA'")
+            ->andWhere('rfs.sessionId IN (:ids)')
             ->setParameter('ids', $sessionIds, Connection::PARAM_INT_ARRAY)
+            ->getQuery()
+            ->getResult();
+    }
+
+    public function getDistinctVolunteerIdsBySessionIds(array $sessionIds): array
+    {
+        return $this->createQueryBuilder('rfs')
+            ->select('rfs.resourceFacilitatorId')
+            ->where("rfs.resourceFacilitatorType = 'VPA'")
+            ->andWhere('rfs.sessionId IN (:ids)')
+            ->setParameter('ids', $sessionIds, Connection::PARAM_INT_ARRAY)
+            ->distinct()
             ->getQuery()
             ->getResult();
     }

@@ -64,15 +64,15 @@ class VPAMonitoring implements Form
             $spreadsheet->getActiveSheet()->setCellValue('F' . $this->lastFilledOutCellY, $row['inactive']);
             $spreadsheet->getActiveSheet()->setCellValue('G' . $this->lastFilledOutCellY, $row['total_active_vpa']);
             $spreadsheet->getActiveSheet()->setCellValue('H' . $this->lastFilledOutCellY, $row['percentage_of_vpa_mobilized'] . '%');
-//        $spreadsheet->getActiveSheet()->setCellValue('I' . $this->lastFilledOutCellY, $vpaSuperVisingClient);
-//        $spreadsheet->getActiveSheet()->setCellValue('J' . $this->lastFilledOutCellY, $vpaSuperVisingClient/$activeVpaDuringQuarter . '%');
-//        $spreadsheet->getActiveSheet()->setCellValue('K' . $this->lastFilledOutCellY, $vpaActingResource);
-//        $spreadsheet->getActiveSheet()->setCellValue('L' . $this->lastFilledOutCellY, $vpaActingResource/$activeVpaDuringQuarter . '%');
-//        $spreadsheet->getActiveSheet()->setCellValue('M' . $this->lastFilledOutCellY, $actingBothResourceAndVpa);
-//        $spreadsheet->getActiveSheet()->setCellValue('N' . $this->lastFilledOutCellY, $actingBothResourceAndVpa/$activeVpaDuringQuarter . '%');
-//        $spreadsheet->getActiveSheet()->setCellValue('O' . $this->lastFilledOutCellY, $numberOfClientsSupervised);
-//        $spreadsheet->getActiveSheet()->setCellValue('P' . $this->lastFilledOutCellY, $numberOfServicesRendered);
-//        $spreadsheet->getActiveSheet()->setCellValue('Q' . $this->lastFilledOutCellY, $numberOfServicesRendered/$activeVpaDuringQuarter . '%');
+            $spreadsheet->getActiveSheet()->setCellValue('I' . $this->lastFilledOutCellY, $row['no_of_vpa_supervising_clients']);
+            $spreadsheet->getActiveSheet()->setCellValue('J' . $this->lastFilledOutCellY, $row['no_of_vpa_supervising_clients_percentage'] . '%');
+            $spreadsheet->getActiveSheet()->setCellValue('K' . $this->lastFilledOutCellY, $row['no_of_vpa_acting_as_resource_individuals']);
+            $spreadsheet->getActiveSheet()->setCellValue('L' . $this->lastFilledOutCellY, $row['no_of_vpa_acting_as_resource_individuals_percentage'] . '%');
+            $spreadsheet->getActiveSheet()->setCellValue('M' . $this->lastFilledOutCellY, $row['vpa_acting_both_supervising_and_resource_individual']);
+            $spreadsheet->getActiveSheet()->setCellValue('N' . $this->lastFilledOutCellY, $row['percentage_of_vpa_acting_both_supervising_and_resource_individual'] . '%');
+            $spreadsheet->getActiveSheet()->setCellValue('O' . $this->lastFilledOutCellY, $row['total_number_of_clients_supervised']);
+            $spreadsheet->getActiveSheet()->setCellValue('P' . $this->lastFilledOutCellY, $row['no_of_services_rendered_by_vpa']);
+            $spreadsheet->getActiveSheet()->setCellValue('Q' . $this->lastFilledOutCellY, $row['no_of_services_rendered_by_vpa_percentage'] . '%');
         }
 
         $spreadsheet->getActiveSheet()->getStyle('A'. $this->lastFilledOutCellY .':Q' . $this->lastFilledOutCellY)->getAlignment()->setHorizontal('center');

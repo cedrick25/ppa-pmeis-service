@@ -931,7 +931,7 @@ class TherapeuticCommunityController extends AbstractController
      */
     public function downloadCertificate(Request $request): Response
     {
-        return new Response($this->volunteerService->getCertificate((int) $request->get("id")));
+        return $this->volunteerService->getCertificate((int) $request->get("id"));
     }
 
     /**
