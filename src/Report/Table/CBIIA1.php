@@ -62,7 +62,7 @@ class CBIIA1 implements Form
             foreach ($rows as $row) {
                 $this->lastFilledOutCellY++;
                 $spreadsheet->getActiveSheet()->setCellValue("A" . $this->lastFilledOutCellY, $row['title']);
-                $spreadsheet->getActiveSheet()->setCellValue("b" . $this->lastFilledOutCellY, $row['date']);
+                $spreadsheet->getActiveSheet()->setCellValue("b" . $this->lastFilledOutCellY, $row['start_date'] . ' - ' . $row['end_date']);
                 $spreadsheet->getActiveSheet()->setCellValue("c" . $this->lastFilledOutCellY, $row['no_of_participants']);
                 $total['nop'] += intval($row['no_of_participants']);
                 $spreadsheet->getActiveSheet()->setCellValue("d" . $this->lastFilledOutCellY, $row['names']);
