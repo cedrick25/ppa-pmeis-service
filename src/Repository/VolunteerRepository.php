@@ -489,6 +489,10 @@ class VolunteerRepository extends ServiceEntityRepository
             $volunteer->setDateAppointed($this->appDateHelper->convertStringToImmutableDate($data['dateAppointed']));
         }
 
+        if ($data['status'] === 'REAPPOINTED') {
+            $data['status'] = 'APPOINTED';
+        }
+
         $volunteer->setVpaStatus($data['status']);
         $volunteer->setUpdatedAt($this->appDateHelper->getCurrentImmutableDate());
 

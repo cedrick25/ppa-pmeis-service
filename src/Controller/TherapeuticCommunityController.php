@@ -946,7 +946,7 @@ class TherapeuticCommunityController extends AbstractController
     /**
      * @Route("/generate-cert/{volunteerId}", methods={"GET"})
      */
-    public function noId(Request $request): Response
+    public function getCertificate(Request $request): Response
     {
         return $this->json($this->volunteerService->getCertificate((int) $request->get("volunteerId")));
     }
