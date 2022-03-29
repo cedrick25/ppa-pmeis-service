@@ -949,9 +949,6 @@ class TherapeuticCommunityController extends AbstractController
     public function noId(Request $request): Response
     {
         return $this->json($this->volunteerService->getCertificate((int) $request->get("volunteerId")));
-
-//        return $this->json($request->get("volunteerId"));
-//        return $this->json(base64_decode($file));
     }
 
     /**

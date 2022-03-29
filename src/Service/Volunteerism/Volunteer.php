@@ -386,7 +386,6 @@ class Volunteer implements VolunteerInterface
             <h5 style="text-align: center">110 Quezon City</h5>
         EOD;
 
-
         $pdf->writeHTMLCell(0, 0, '', '', $heading);
         $pdf->Image($logo,  85, 75, 40, 40, '', '', 'T', false, 300, '', false, false, 1, false, false, false);
         $body = <<<EOD
@@ -410,7 +409,7 @@ class Volunteer implements VolunteerInterface
         $pdf->writeHTMLCell(0, 0, 0, 120, $body);
         $pdf->endPage();
 
-        return $pdf->Output('aa.pdf', 'E');
+        return $pdf->Output('mark.pdf', 'E');
     }
 
     /**
