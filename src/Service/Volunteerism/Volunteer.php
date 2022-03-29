@@ -317,7 +317,7 @@ class Volunteer implements VolunteerInterface
         $startOfQuarterVpa = $this->getStartOfQuarterVpa($quarterData, $fieldOfficeId);
         $newAppointed = $this->getMonitoringByStatus($quarterYear, self::APPOINTED, $months, $activeVolunteers);
         $reappointed = $this->getMonitoringByStatus($quarterYear, self::REAPPOINTED, $months, $activeVolunteers);
-        $dropped = $this->getMonitoringByStatus($quarterYear, self::DROPPED, $months, $activeVolunteers);
+        $dropped = $this->getDroppedVolunteers($quarterData, $fieldOfficeId);
         $totalNumberOfVpa = ($startOfQuarterVpa + $newAppointed) - $dropped;
         $inactive = $this->repository->findInactiveVolunteersByFieldOfficeAndMonthRangeV2(
             $fieldOfficeId,
@@ -428,12 +428,10 @@ class Volunteer implements VolunteerInterface
         $previousActiveVolunteers = $this->repository
             ->findByFieldOfficeAndMonthRange($fieldOfficeId, intval($previousQuarter->getYear()), $previousMonths);
 
-        $previousDroppedVolunteerIds = $this->getVolunteersIdByStatus(
-            self::DROPPED,
-            intval($previousQuarter->getYear()),
-            $previousMonths,
-            $previousActiveVolunteers
-        );
+        $prevMinMaxDate = $this->quartersRepository->getQuarterMinMaxDate($previousQuarter);
+        $previousDroppedVolunteers = $this->repository->getDroppedVolunteer($prevMinMaxDate, $fieldOfficeId);
+        $previousDroppedVolunteerIds = array_map(fn($previousDroppedVolunteer)
+                                            => intval($previousDroppedVolunteer['volunteer_id']), $previousDroppedVolunteers);
 
         $results = 0;
         foreach ($previousActiveVolunteers as $previousActiveVolunteer) {
@@ -568,5 +566,14 @@ class Volunteer implements VolunteerInterface
         }
 
         return $result;
+    }
+
+    private function getDroppedVolunteers(
+        Quarters $quarterData,
+        int $fieldOfficeId
+    ): int {
+        $minMaxDate = $this->quartersRepository->getQuarterMinMaxDate($quarterData);
+
+        return count($this->repository->getDroppedVolunteer($minMaxDate, $fieldOfficeId));
     }
 }

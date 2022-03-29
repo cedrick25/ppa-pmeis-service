@@ -498,6 +498,26 @@ class VolunteerRepository extends ServiceEntityRepository
         return ResponseEnum::OK;
     }
 
+    /**
+     * @throws \Doctrine\DBAL\Driver\Exception
+     * @throws \Doctrine\DBAL\Exception
+     */
+    public function getDroppedVolunteer(array $minMaxDate, int $fieldOfficeId): array
+    {
+        $conn = $this->getEntityManager()->getConnection();
+        $min = $minMaxDate['min'];
+        $max = $minMaxDate['max'];
+
+        $sql = "SELECT v.volunteer_id FROM volunteer AS v
+                WHERE v.field_office_id = $fieldOfficeId
+                  AND v.vpa_status = 'DROPPED'
+                  AND v.updated_at BETWEEN CAST('$min' AS DATE) AND CAST('$max' AS DATE)";
+        $stmt = $conn->prepare($sql);
+        $query = $stmt->executeQuery();
+
+        return $query->fetchAllAssociative();
+    }
+
     private function isExisting(VolunteerModel $volunteerData): bool
     {
         $volunteer = $this->findOneBy([
