@@ -927,14 +927,6 @@ class TherapeuticCommunityController extends AbstractController
     }
 
     /**
-     * @Route("/volunteer/download-certificate/by/id/{id}", methods={"GET"})
-     */
-    public function downloadCertificate(Request $request): Response
-    {
-        return $this->volunteerService->getCertificate((int) $request->get("id"));
-    }
-
-    /**
      * @Route("/resource-facilitator-session/create", methods={"POST"})
      */
     public function createResourceFacilitatorSession(Request $request): Response
@@ -949,6 +941,17 @@ class TherapeuticCommunityController extends AbstractController
         } catch (ReflectionException $exception) {
             return $this->json($this->appFormatter->formatResponse('Creating resource facilitator session failed', null, ['reflection' => $exception->getMessage()]));
         }
+    }
+
+    /**
+     * @Route("/generate-cert/{volunteerId}", methods={"GET"})
+     */
+    public function noId(Request $request): Response
+    {
+        return $this->json($this->volunteerService->getCertificate((int) $request->get("volunteerId")));
+
+//        return $this->json($request->get("volunteerId"));
+//        return $this->json(base64_decode($file));
     }
 
     /**

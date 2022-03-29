@@ -64,7 +64,7 @@ class CBIIA1 implements Form
                 $spreadsheet->getActiveSheet()->setCellValue("A" . $this->lastFilledOutCellY, $row['title']);
                 $spreadsheet->getActiveSheet()->setCellValue("b" . $this->lastFilledOutCellY, $row['start_date'] . ' - ' . $row['end_date']);
                 $spreadsheet->getActiveSheet()->setCellValue("c" . $this->lastFilledOutCellY, $row['no_of_participants']);
-                $total['nop'] += intval($row['no_of_participants']);
+                $total['nop']++;
                 $spreadsheet->getActiveSheet()->setCellValue("d" . $this->lastFilledOutCellY, $row['names']);
                 if (intval($row['is_pwd']) > 0) {
                     $spreadsheet->getActiveSheet()->setCellValue("e" . $this->lastFilledOutCellY, '/');

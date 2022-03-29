@@ -362,13 +362,13 @@ class Volunteer implements VolunteerInterface
         ];
     }
 
-    public function getCertificate(int $id): BinaryFileResponse
+    public function getCertificate(int $id): string
     {
         $volunteer = $this->repository->find($id);
         $fullName = $volunteer->getFirstName() . ' ' . $volunteer->getMiddleName() . ' ' . $volunteer->getLastName();
         $fieldOffice = $this->fieldOfficesRepository->find($volunteer->getFieldOfficeId())->getName();
 
-        $pdf = new TCPDF(PDF_PAGE_ORIENTATION, PDF_UNIT, false, 'UTF-8', false);
+        $pdf = new TCPDF();
         $pdf->setCreator(PDF_CREATOR);
         $pdf->setAuthor('PPA');
         $pdf->setTitle('Testing');
@@ -410,7 +410,7 @@ class Volunteer implements VolunteerInterface
         $pdf->writeHTMLCell(0, 0, 0, 120, $body);
         $pdf->endPage();
 
-        return new BinaryFileResponse($pdf->Output('certificate.pdf', 'I'));
+        return $pdf->Output('aa.pdf', 'E');
     }
 
     /**
