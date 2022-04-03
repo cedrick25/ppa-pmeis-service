@@ -70,7 +70,6 @@ class SessionsRepository extends ServiceEntityRepository
         $session->setPeriod($sessionData->getPeriod());
         $session->setFsg($sessionData->getFsg());
         $session->setLiLo($sessionData->getLiLo());
-        $session->setRole($sessionData->getRole());
         $session->setTreesPlanted($sessionData->getTreesPlanted());
         $session->setCreatedBy($sessionData->getCreatedBy());
         $session->setCreatedAt($this->appDateHelper->getCurrentImmutableDate());
@@ -107,7 +106,6 @@ class SessionsRepository extends ServiceEntityRepository
         $session->setPeriod($sessionData->getPeriod());
         $session->setFsg($sessionData->getFsg());
         $session->setLiLo($sessionData->getLiLo());
-        $session->setRole($sessionData->getRole());
         $session->setCreatedBy($sessionData->getCreatedBy());
         $session->setCreatedAt($this->appDateHelper->getCurrentImmutableDate());
 
@@ -115,7 +113,8 @@ class SessionsRepository extends ServiceEntityRepository
         $this->getEntityManager()->flush();
 
         $this->clientSessionsRepository->batchCreate($session->getSessionId(), $sessionData->getClientSession());
-        $this->resourceFacilitatorSessionRepository->batchCreate($session->getSessionId(), $sessionData->getResourceFacilitator());
+        $this->clientSessionsRepository->batchCreateAbsentees($session->getSessionId(), $sessionData->getAbsentees());
+        $this->resourceFacilitatorSessionRepository->batchCreate($session->getSessionId(), $sessionData->getFacilitators());
 
         return $session->getSessionId();
     }
@@ -282,7 +281,6 @@ class SessionsRepository extends ServiceEntityRepository
         $session->setPeriod($sessionData->getPeriod());
         $session->setFsg($sessionData->getFsg());
         $session->setLiLo($sessionData->getLiLo());
-        $session->setRole($sessionData->getRole());
         $session->setCreatedBy($sessionData->getCreatedBy());
         $session->setCreatedAt($this->appDateHelper->getCurrentImmutableDate());
 
@@ -324,7 +322,6 @@ class SessionsRepository extends ServiceEntityRepository
         $session->setPeriod($sessionData->getPeriod());
         $session->setFsg($sessionData->getFsg());
         $session->setLiLo($sessionData->getLiLo());
-        $session->setRole($sessionData->getRole());
         $session->setCreatedBy($sessionData->getCreatedBy());
         $session->setCreatedAt($this->appDateHelper->getCurrentImmutableDate());
 
@@ -332,9 +329,10 @@ class SessionsRepository extends ServiceEntityRepository
 
         $this->clientSessionsRepository->deleteBySessionId($session->getSessionId());
         $this->clientSessionsRepository->batchCreate($session->getSessionId(), $sessionData->getClientSession());
+        $this->clientSessionsRepository->batchCreateAbsentees($session->getSessionId(), $sessionData->getAbsentees());
 
         $this->resourceFacilitatorSessionRepository->deleteBySessionId($session->getSessionId());
-        $this->resourceFacilitatorSessionRepository->batchCreate($session->getSessionId(), $sessionData->getResourceFacilitator());
+        $this->resourceFacilitatorSessionRepository->batchCreate($session->getSessionId(), $sessionData->getFacilitators());
 
         return ResponseEnum::OK;
     }

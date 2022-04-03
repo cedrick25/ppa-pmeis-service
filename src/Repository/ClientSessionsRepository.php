@@ -91,6 +91,33 @@ class ClientSessionsRepository extends ServiceEntityRepository
     }
 
     /**
+     * @param int $sessionId
+     * @param array<string, mixed> $absentees
+     * @throws \Doctrine\DBAL\Exception\InvalidArgumentException
+     * @throws ORMException
+     * @throws MappingException
+     * @throws InvalidArgumentException
+     */
+    public function batchCreateAbsentees(int $sessionId, array $absentees): void
+    {
+        foreach ($absentees as $absentee) {
+            $clientSession = new ClientSessions();
+            $clientSession->setSessionId($sessionId);
+            $clientSession->setClientId($absentee['id']['value']);
+            $clientSession->setRole($this->convertClientRole($absentee['type']['label']));
+            $clientSession->setClientRemarksId($absentee['remarks']['value']);
+            $clientSession->setOtherRemarks($absentee['otherRemarks']);
+
+            $this->getEntityManager()->persist($clientSession);
+        }
+
+        $this->getEntityManager()->flush();
+        $this->getEntityManager()->clear(ClientSessions::class);
+
+        $this->cache->invalidateTags([self::CACHE_TAG]);
+    }
+
+    /**
      * @throws \Doctrine\DBAL\Driver\Exception
      * @throws \Doctrine\DBAL\Exception
      */
@@ -153,7 +180,7 @@ class ClientSessionsRepository extends ServiceEntityRepository
                     continue;
                 }
 
-                array_push($data[$clientSession['role']], $clientSession['clientId']);
+                $data[$clientSession['role']][] = $clientSession['clientId'];
             }
 
             return $data;
@@ -347,5 +374,20 @@ class ClientSessionsRepository extends ServiceEntityRepository
         }
 
         return false;
+    }
+
+    private function convertClientRole(string $fullRole): string
+    {
+        $conversions = [
+            'Probationers' => 'PS',
+            'Parolees' => 'PR',
+            'Pardonees' => 'PD',
+            'FTMDOs' => 'FTMDO',
+            'Petitioners' => 'PET',
+            'Terminated' => 'Term',
+            'JICLs' => 'JICL'
+        ];
+
+        return $conversions[$fullRole];
     }
 }

@@ -67,23 +67,22 @@ class ResourceFacilitatorSessionRepository extends ServiceEntityRepository
 
     /**
      * @param int $sessionId
-     * @param array<string, int[]> $resourceFacilitatorSessionIds
+     * @param array<string, mixed> $facilitators
      * @throws \Doctrine\DBAL\Exception\InvalidArgumentException
      * @throws ORMException
      * @throws MappingException
      * @throws InvalidArgumentException
      */
-    public function batchCreate(int $sessionId, array $resourceFacilitatorSessionIds): void
+    public function batchCreate(int $sessionId, array $facilitators): void
     {
-        foreach ($resourceFacilitatorSessionIds as $type => $resourceFacilitatorIds) {
-            foreach ($resourceFacilitatorIds as $resourceFacilitatorId) {
-                $clientSession = new ResourceFacilitatorSession();
-                $clientSession->setSessionId($sessionId);
-                $clientSession->setResourceFacilitatorId($resourceFacilitatorId);
-                $clientSession->setResourceFacilitatorType(strtoupper($type));
+        foreach ($facilitators as $facilitator) {
+            $clientSession = new ResourceFacilitatorSession();
+            $clientSession->setSessionId($sessionId);
+            $clientSession->setResourceFacilitatorId((int) $facilitator['id']['value']);
+            $clientSession->setResourceFacilitatorType(strtoupper($facilitator['type']['value']));
+            $clientSession->setRole(strtoupper($facilitator['role']));
 
-                $this->getEntityManager()->persist($clientSession);
-            }
+            $this->getEntityManager()->persist($clientSession);
         }
 
         $this->getEntityManager()->flush();

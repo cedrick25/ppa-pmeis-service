@@ -36,6 +36,16 @@ class ClientSessions
      */
     private string $role;
 
+    /**
+     * @ORM\Column(type="integer", nullable=true)
+     */
+    private ?int $clientRemarksId;
+
+    /**
+     * @ORM\Column(type="text", nullable=true)
+     */
+    private ?string $otherRemarks;
+
     public function getClientSessionId(): ?int
     {
         return $this->clientSessionId;
@@ -80,6 +90,42 @@ class ClientSessions
         }
         $this->role = $role;
 
+        return $this;
+    }
+
+    /**
+     * @return int|null
+     */
+    public function getClientRemarksId(): ?int
+    {
+        return $this->clientRemarksId;
+    }
+
+    /**
+     * @param int|null $clientRemarksId
+     * @return ClientSessions
+     */
+    public function setClientRemarksId(?int $clientRemarksId): ClientSessions
+    {
+        $this->clientRemarksId = $clientRemarksId;
+        return $this;
+    }
+
+    /**
+     * @return string|null
+     */
+    public function getOtherRemarks(): ?string
+    {
+        return $this->otherRemarks;
+    }
+
+    /**
+     * @param string|null $otherRemarks
+     * @return ClientSessions
+     */
+    public function setOtherRemarks(?string $otherRemarks): ClientSessions
+    {
+        $this->otherRemarks = $otherRemarks;
         return $this;
     }
 }

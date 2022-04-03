@@ -21,14 +21,14 @@ class Sessions
         private string $period,
         private int $fsg,
         private string $liLo,
-        private string $role,
         private int $createdBy,
         private ?int $treesPlanted = null,
         private ?DateTimeInterface $createdAt = null,
         private ?DateTimeInterface $updatedAt = null,
         private ?DateTimeInterface $deletedAt = null,
         private ?array $clientSession = null,
-        private ?array $resourceFacilitator = null,
+        private ?array $facilitators = null,
+        private ?array $absentees = null,
     ){}
 
     /**
@@ -148,15 +148,6 @@ class Sessions
 
     /**
      * @Assert\NotBlank
-     * @return string
-     */
-    public function getRole(): string
-    {
-        return $this->role;
-    }
-
-    /**
-     * @Assert\NotBlank
      * @Assert\GreaterThan(0)
      * @return int
      */
@@ -198,10 +189,18 @@ class Sessions
     }
 
     /**
-     * @return array<string, int[]>|null
+     * @return array<string, mixed>|null
      */
-    public function getResourceFacilitator(): ?array
+    public function getFacilitators(): ?array
     {
-        return $this->resourceFacilitator;
+        return $this->facilitators;
+    }
+
+    /**
+     * @return array<string, mixed>|null
+     */
+    public function getAbsentees(): ?array
+    {
+        return $this->absentees;
     }
 }

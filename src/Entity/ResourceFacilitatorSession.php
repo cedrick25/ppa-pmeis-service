@@ -34,6 +34,11 @@ class ResourceFacilitatorSession
      */
     private string $resourceFacilitatorType;
 
+    /**
+     * @ORM\Column(type="text", nullable=true)
+     */
+    private ?string $role;
+
     public function getResourceFacilitatorSessionId(): ?int
     {
         return $this->resourceFacilitatorSessionId;
@@ -79,6 +84,24 @@ class ResourceFacilitatorSession
 
         $this->resourceFacilitatorType = $resourceFacilitatorType;
 
+        return $this;
+    }
+
+    /**
+     * @return string|null
+     */
+    public function getRole(): ?string
+    {
+        return $this->role;
+    }
+
+    /**
+     * @param string|null $role
+     * @return ResourceFacilitatorSession
+     */
+    public function setRole(?string $role): ResourceFacilitatorSession
+    {
+        $this->role = $role;
         return $this;
     }
 }
