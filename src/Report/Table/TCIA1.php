@@ -161,28 +161,19 @@ class TCIA1 implements Form
                     $this->lastFilledOutCellY++;
                 }
 
-                if ($resource['full_name'] != null) {
-
-                    if ('VPA' === $resource['type']) {
-                        $footer['vpa_headcount'][] = $resource['full_name'];
-                        $hasVpa = true;
-                    }
-
-                    if ('ERP' === $resource['type']) {
-                        $spreadsheet->getActiveSheet()->setCellValue(
-                            "Z" . $this->lastFilledOutCellY,
-                            'ERP - ' .$resource['erp_name'] . ' - Non-TC Trained'
-                        );
-                    } else {
-                        $spreadsheet->getActiveSheet()->setCellValue(
-                            "Z" . $this->lastFilledOutCellY,
-                            $resource['type'] . ' - ' . $resource['full_name'] . ' - Non-TC Trained'
-                        );
-                    }
-                    $spreadsheet->getActiveSheet()->setCellValue("AA" . $this->lastFilledOutCellY, $resource['role']);
-                    $spreadsheet->getActiveSheet()->getStyle("AA" . $this->lastFilledOutCellY)->getAlignment()->setWrapText(true);
-                    $spreadsheet->getActiveSheet()->setCellValue("AB" . $this->lastFilledOutCellY, $rows['remarks']);
+                if ('VPA' === $resource['type']) {
+                    $footer['vpa_headcount'][] = $resource['full_name'];
+                    $hasVpa = true;
                 }
+
+                $name = 'ERP' === $resource['type']
+                    ? 'ERP - ' .$resource['erp_name'] . ' - Non-TC Trained'
+                    : $resource['type'] . ' - ' . $resource['full_name'] . ' - Non-TC Trained';
+
+                $spreadsheet->getActiveSheet()->setCellValue("Z" . $this->lastFilledOutCellY, $name);
+                $spreadsheet->getActiveSheet()->setCellValue("AA" . $this->lastFilledOutCellY, $resource['role']);
+                $spreadsheet->getActiveSheet()->getStyle("AA" . $this->lastFilledOutCellY)->getAlignment()->setWrapText(true);
+                $spreadsheet->getActiveSheet()->setCellValue("AB" . $this->lastFilledOutCellY, $rows['remarks']);
             }
 
             if ($hasVpa) {
@@ -237,8 +228,10 @@ class TCIA1 implements Form
         $spreadsheet->getActiveSheet()->setCellValue('Z' . $this->lastFilledOutCellY + 5, '5)  Community Services and Other Related Activities');
         $spreadsheet->getActiveSheet()->setCellValue('Z' . $this->lastFilledOutCellY + 6, '6) Coop./ Self-Help Asso.');
 
-        $spreadsheet->getActiveSheet()->setCellValue('AB' . $this->lastFilledOutCellY + 1, sizeof($vpas));
-        $spreadsheet->getActiveSheet()->setCellValue('AB' . $this->lastFilledOutCellY + 2, $this->data['footer']['frequency_of_vpa_involvement']);
+        // Cover: Temporary fix, might come back later.
+        $spreadsheet->getActiveSheet()->setCellValue('AB' . $this->lastFilledOutCellY + 1, $this->data['footer']['frequency_of_vpa_involvement']);
+        $spreadsheet->getActiveSheet()->setCellValue('AB' . $this->lastFilledOutCellY + 2, sizeof($vpas));
+
         $spreadsheet->getActiveSheet()->setCellValue('AB' . $this->lastFilledOutCellY + 3, $this->data['footer']['trees_planted']);
         $spreadsheet->getActiveSheet()->setCellValue('AB' . $this->lastFilledOutCellY + 4, $this->data['footer']['clients_involve_in_tree_planting']);
         $spreadsheet->getActiveSheet()->setCellValue('AB' . $this->lastFilledOutCellY + 5, $this->data['footer']['community_services_and_other']);
