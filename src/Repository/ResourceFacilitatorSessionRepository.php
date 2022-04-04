@@ -77,14 +77,15 @@ class ResourceFacilitatorSessionRepository extends ServiceEntityRepository
     {
         foreach ($facilitators as $facilitator) {
             $type = $facilitator['type']['value'];
+            $id = 'ERP' === $type ? 0 : (int) $facilitator['id']['value'];
 
             $clientSession = new ResourceFacilitatorSession();
             $clientSession->setSessionId($sessionId);
-            $clientSession->setResourceFacilitatorId((int) $facilitator['id']['value']);
+            $clientSession->setResourceFacilitatorId($id);
             $clientSession->setResourceFacilitatorType(strtoupper($type));
             $clientSession->setRole(strtoupper($facilitator['role']));
 
-            if ($type === 'ERP') {
+            if ('ERP' === $type) {
                 $clientSession->setErpName(strtoupper($facilitator['name']));
             }
 

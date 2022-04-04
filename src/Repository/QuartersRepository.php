@@ -329,7 +329,7 @@ class QuartersRepository extends ServiceEntityRepository
     {
         $conn = $this->getEntityManager()->getConnection();
         $sql = "SELECT DISTINCT v.first_name, v.middle_name, v.last_name, v.suffix, rfs.resource_facilitator_type as type,
-                    rfs.role, v.volunteer_id FROM quarters as q
+                    rfs.role, rfs.erp_name, v.volunteer_id FROM quarters as q
                 LEFT JOIN sessions as s ON s.session_id = $sessionId
                 LEFT JOIN resource_facilitator_session as rfs ON s.session_id = rfs.session_id
                 LEFT JOIN pmeis.volunteer as v ON rfs.resource_facilitator_id = v.volunteer_id
@@ -385,7 +385,7 @@ class QuartersRepository extends ServiceEntityRepository
         $minDate = $minMaxDate['min'];
         $maxDate = $minMaxDate['max'];
 
-        $sql = "SELECT s.session_id, s.field_office_id, s.li_lo, s.role FROM sessions as s 
+        $sql = "SELECT s.session_id, s.field_office_id, s.li_lo FROM sessions as s 
                     WHERE s.date BETWEEN CAST('$minDate' AS DATE) AND CAST('$maxDate' AS DATE) AND s.field_office_id = $fieldOfficeId";
         $stmt = $conn->prepare($sql);
         $query = $stmt->executeQuery();
