@@ -428,8 +428,23 @@ class SessionsRepository extends ServiceEntityRepository
             $session = $query->fetchAssociative();
 
             $session['quarter_name'] = $this->appDateHelper->getQuarterByMonth(intval($session['quarter_month']));
-            $session['client_session'] = $this->clientSessionsRepository->listBySessionId($id);
-            $session['resource_facilitator'] = $this->resourceFacilitatorSessionRepository->listBySessionId($id);
+            $clients = $this->clientSessionsRepository->listBySessionId($id);
+            foreach ($clients as $role=>$client) {
+                if (null === $client[1]) {
+                    $session['absentees'][$role][] =  [
+                        'client_id' => $client[0],
+                        'client_session_id' => $client[2],
+                    ];
+
+                    continue;
+                }
+
+                $session['clients'][$role][] = [
+                    'client_id' => $client[0],
+                    'client_session_id' => $client[2],
+                ];
+            }
+            $session['facilitators'] = $this->resourceFacilitatorSessionRepository->listBySessionId($id);
 
             return $session;
         });

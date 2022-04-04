@@ -156,11 +156,17 @@ class ResourceFacilitatorSessionRepository extends ServiceEntityRepository
 
             foreach ($facilitators as $facilitator) {
                 if (!isset($data[$facilitator['resourceFacilitatorType']])) {
-                    $data[$facilitator['resourceFacilitatorType']] = [$facilitator['resourceFacilitatorId']];
+                    $data[$facilitator['resourceFacilitatorType']] = [
+                        'resource_facilitator_id' => $facilitator['resourceFacilitatorId'],
+                        'resource_facilitator_session_id' => $facilitator['resourceFacilitatorSessionId'],
+                    ];
                     continue;
                 }
 
-                array_push($data[$facilitator['resourceFacilitatorType']], $facilitator['resourceFacilitatorId']);
+                $data[$facilitator['resourceFacilitatorType']][] = [
+                    'resource_facilitator_id' => $facilitator['resourceFacilitatorId'],
+                    'resource_facilitator_session_id' => $facilitator['resourceFacilitatorSessionId'],
+                ];
             }
 
             return $data;

@@ -134,30 +134,29 @@ class TCIA1 implements Form
             $spreadsheet->getActiveSheet()->setCellValue("X" . $this->lastFilledOutCellY, $part2Row['count']['petitioners']);
             $spreadsheet->getActiveSheet()->setCellValue("Y" . $this->lastFilledOutCellY, $part2Row['count']['terminated']);
 
-            $resourcePerson = '';
-
             $hasVpa = false;
-            foreach ($part2Row['resource_person'] as $resource) {
+            foreach ($part2Row['resource_person'] as $i=>$resource) {
+                if ($i !== 0) {
+                    $this->lastFilledOutCellY++;
+                }
+
                 if ($resource['full_name'] != null) {
-                    $resourcePerson .=  $resource['full_name'] . ',';
 
                     if ($resource['type'] === 'VPA') {
                         $footer['vpa_headcount'][] = $resource['full_name'];
                         $hasVpa = true;
                     }
+
+                    $spreadsheet->getActiveSheet()->setCellValue("Z" . $this->lastFilledOutCellY, $resource['full_name']);
+                    $spreadsheet->getActiveSheet()->setCellValue("AA" . $this->lastFilledOutCellY, $resource['role']);
+                    $spreadsheet->getActiveSheet()->getStyle("AA" . $this->lastFilledOutCellY)->getAlignment()->setWrapText(true);
+                    $spreadsheet->getActiveSheet()->setCellValue("AB" . $this->lastFilledOutCellY, $rows['remarks']);
                 }
             }
 
             if ($hasVpa) {
                 $footer['frequency_of_vpa_involvement']++;
             }
-
-            $spreadsheet->getActiveSheet()->setCellValue("Z" . $this->lastFilledOutCellY, rtrim($resourcePerson, ','));
-
-            $spreadsheet->getActiveSheet()->setCellValue("AA" . $this->lastFilledOutCellY, $part2Row['role']);
-
-            $spreadsheet->getActiveSheet()->getStyle("AA" . $this->lastFilledOutCellY)->getAlignment()->setWrapText(true);
-            $spreadsheet->getActiveSheet()->setCellValue("AB" . $this->lastFilledOutCellY, $rows['remarks']);
 
             $spreadsheet->getActiveSheet()->getStyle("A". $this->lastFilledOutCellY .":AB" . $this->lastFilledOutCellY)->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
         }
