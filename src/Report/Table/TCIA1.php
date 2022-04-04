@@ -142,12 +142,15 @@ class TCIA1 implements Form
 
                 if ($resource['full_name'] != null) {
 
-                    if ($resource['type'] === 'VPA') {
+                    if ('VPA' === $resource['type']) {
                         $footer['vpa_headcount'][] = $resource['full_name'];
                         $hasVpa = true;
                     }
 
                     $spreadsheet->getActiveSheet()->setCellValue("Z" . $this->lastFilledOutCellY, $resource['full_name']);
+                    if ('ERP' === $resource['type']) {
+                        $spreadsheet->getActiveSheet()->setCellValue("Z" . $this->lastFilledOutCellY, $resource['erp_name']);
+                    }
                     $spreadsheet->getActiveSheet()->setCellValue("AA" . $this->lastFilledOutCellY, $resource['role']);
                     $spreadsheet->getActiveSheet()->getStyle("AA" . $this->lastFilledOutCellY)->getAlignment()->setWrapText(true);
                     $spreadsheet->getActiveSheet()->setCellValue("AB" . $this->lastFilledOutCellY, $rows['remarks']);

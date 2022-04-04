@@ -159,6 +159,7 @@ class ResourceFacilitatorSessionRepository extends ServiceEntityRepository
                     $data[$facilitator['resourceFacilitatorType']] = [
                         'resource_facilitator_id' => $facilitator['resourceFacilitatorId'],
                         'resource_facilitator_session_id' => $facilitator['resourceFacilitatorSessionId'],
+                        'erp_name' => $facilitator['erpName'],
                     ];
                     continue;
                 }
@@ -166,6 +167,7 @@ class ResourceFacilitatorSessionRepository extends ServiceEntityRepository
                 $data[$facilitator['resourceFacilitatorType']][] = [
                     'resource_facilitator_id' => $facilitator['resourceFacilitatorId'],
                     'resource_facilitator_session_id' => $facilitator['resourceFacilitatorSessionId'],
+                    'erp_name' => $facilitator['erpName'],
                 ];
             }
 
