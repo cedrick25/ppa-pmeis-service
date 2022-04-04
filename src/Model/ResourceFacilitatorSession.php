@@ -9,7 +9,9 @@ class ResourceFacilitatorSession
     public function __construct(
         private int $sessionId,
         private int $resourceFacilitatorId,
-        private string $resourceFacilitatorType
+        private string $resourceFacilitatorType,
+        private ?string $role,
+        private ?string $erpName,
     ){}
 
     /**
@@ -40,5 +42,21 @@ class ResourceFacilitatorSession
     public function getResourceFacilitatorType(): string
     {
         return $this->resourceFacilitatorType;
+    }
+
+    /**
+     * @return string|null
+     */
+    public function getRole(): ?string
+    {
+        return $this->role;
+    }
+
+    /**
+     * @return string|null
+     */
+    public function getErpName(): ?string
+    {
+        return $this->erpName;
     }
 }

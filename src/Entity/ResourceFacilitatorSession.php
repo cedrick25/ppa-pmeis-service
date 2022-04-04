@@ -39,6 +39,11 @@ class ResourceFacilitatorSession
      */
     private ?string $role;
 
+    /**
+     * @ORM\Column(type="text", nullable=true)
+     */
+    private ?string $erpName;
+
     public function getResourceFacilitatorSessionId(): ?int
     {
         return $this->resourceFacilitatorSessionId;
@@ -102,6 +107,24 @@ class ResourceFacilitatorSession
     public function setRole(?string $role): ResourceFacilitatorSession
     {
         $this->role = $role;
+        return $this;
+    }
+
+    /**
+     * @return string|null
+     */
+    public function getErpName(): ?string
+    {
+        return $this->erpName;
+    }
+
+    /**
+     * @param string|null $erpName
+     * @return ResourceFacilitatorSession
+     */
+    public function setErpName(?string $erpName): ResourceFacilitatorSession
+    {
+        $this->erpName = $erpName;
         return $this;
     }
 }

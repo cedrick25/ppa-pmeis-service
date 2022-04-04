@@ -76,11 +76,17 @@ class ResourceFacilitatorSessionRepository extends ServiceEntityRepository
     public function batchCreate(int $sessionId, array $facilitators): void
     {
         foreach ($facilitators as $facilitator) {
+            $type = $facilitator['type']['value'];
+
             $clientSession = new ResourceFacilitatorSession();
             $clientSession->setSessionId($sessionId);
             $clientSession->setResourceFacilitatorId((int) $facilitator['id']['value']);
-            $clientSession->setResourceFacilitatorType(strtoupper($facilitator['type']['value']));
+            $clientSession->setResourceFacilitatorType(strtoupper($type));
             $clientSession->setRole(strtoupper($facilitator['role']));
+
+            if ($type === 'ERP') {
+                $clientSession->setErpName(strtoupper($facilitator['name']));
+            }
 
             $this->getEntityManager()->persist($clientSession);
         }

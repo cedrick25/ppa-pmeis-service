@@ -329,7 +329,7 @@ class QuartersRepository extends ServiceEntityRepository
     {
         $conn = $this->getEntityManager()->getConnection();
         $sql = "SELECT DISTINCT v.first_name, v.middle_name, v.last_name, v.suffix, rfs.resource_facilitator_type as type,
-                    v.volunteer_id FROM quarters as q
+                    rfs.role, v.volunteer_id FROM quarters as q
                 LEFT JOIN sessions as s ON s.session_id = $sessionId
                 LEFT JOIN resource_facilitator_session as rfs ON s.session_id = rfs.session_id
                 LEFT JOIN pmeis.volunteer as v ON rfs.resource_facilitator_id = v.volunteer_id
