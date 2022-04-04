@@ -84,6 +84,16 @@ class TCIA1 implements Form
             ]
         ];
 
+        $totals = [
+            'MTCS-RBM' => 0, 'MTCS-AEP' => 0, 'MTCS-S' => 0, 'MTCS-CI' => 0, 'MTCS-PVS' => 0, 'RA-RBM' => 0, 'RA-AEP' => 0,
+            'RA-S' => 0, 'RA-CI' => 0, 'RA-PVS' => 0, 'FSG' => 0,
+        ];
+
+        $frequencies = [
+            'probationers' => 0, 'parolees' => 0, 'pardonees' => 0, 'jicl' => 0, 'ftmdo' => 0,
+            'total' => 0, 'petitioners' => 0, 'terminated' => 0,
+        ];
+
         $footer = [
             'vpa_headcount' => [],
             'frequency_of_vpa_involvement' => 0,
@@ -109,6 +119,8 @@ class TCIA1 implements Form
             $this->lastFilledOutCellY++;
             $treatmentCategory = $this->treatmentCategoriesRepository->find($rows['treatment_category_id']);
             $tcExplodedName = explode('-', $treatmentCategory->getName());
+            $totals[$treatmentCategory->getName()]++;
+            $totals['FSG'] += intval($rows['fsg']);
 
             $spreadsheet->getActiveSheet()->setCellValue("A" . $this->lastFilledOutCellY, $rows['phase_name']);
             $spreadsheet->getActiveSheet()->setCellValue("B" . $this->lastFilledOutCellY, $rows['batch']);
@@ -124,8 +136,8 @@ class TCIA1 implements Form
 
             $part2Row = $this->data['part2'][$index];
             $spreadsheet->getActiveSheet()->setCellValue($liLOColumn[$part2Row['count']['li_lo']] . $this->lastFilledOutCellY,"√");
-            $spreadsheet->getActiveSheet()->setCellValue("R" . $this->lastFilledOutCellY, $part2Row['count']['parolees']);
-            $spreadsheet->getActiveSheet()->setCellValue("S" . $this->lastFilledOutCellY, $part2Row['count']['probationers']);
+            $spreadsheet->getActiveSheet()->setCellValue("R" . $this->lastFilledOutCellY, $part2Row['count']['probationers']);
+            $spreadsheet->getActiveSheet()->setCellValue("S" . $this->lastFilledOutCellY, $part2Row['count']['parolees']);
             $spreadsheet->getActiveSheet()->setCellValue("T" . $this->lastFilledOutCellY, $part2Row['count']['pardonees']);
             $spreadsheet->getActiveSheet()->setCellValue("U" . $this->lastFilledOutCellY, $part2Row['count']['jicl']);
             $spreadsheet->getActiveSheet()->setCellValue("V" . $this->lastFilledOutCellY, $part2Row['count']['ftmdo']);
@@ -133,6 +145,15 @@ class TCIA1 implements Form
             $spreadsheet->getActiveSheet()->setCellValue("W" . $this->lastFilledOutCellY, $total);
             $spreadsheet->getActiveSheet()->setCellValue("X" . $this->lastFilledOutCellY, $part2Row['count']['petitioners']);
             $spreadsheet->getActiveSheet()->setCellValue("Y" . $this->lastFilledOutCellY, $part2Row['count']['terminated']);
+
+            $frequencies['probationers'] += $part2Row['count']['probationers'];
+            $frequencies['parolees'] += $part2Row['count']['parolees'];
+            $frequencies['pardonees'] += $part2Row['count']['pardonees'];
+            $frequencies['jicl'] += $part2Row['count']['jicl'];
+            $frequencies['ftmdo'] += $part2Row['count']['ftmdo'];
+            $frequencies['total'] += $total;
+            $frequencies['petitioners'] += $part2Row['count']['petitioners'];
+            $frequencies['terminated'] += $part2Row['count']['terminated'];
 
             $hasVpa = false;
             foreach ($part2Row['resource_person'] as $i=>$resource) {
@@ -170,6 +191,30 @@ class TCIA1 implements Form
 
             $spreadsheet->getActiveSheet()->getStyle("A". $this->lastFilledOutCellY .":AB" . $this->lastFilledOutCellY)->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
         }
+
+        $this->lastFilledOutCellY++;
+        $spreadsheet->getActiveSheet()->setCellValue("C" . $this->lastFilledOutCellY, 'TOTAL');
+        $spreadsheet->getActiveSheet()->setCellValue("D" . $this->lastFilledOutCellY, $totals['MTCS-RBM']);
+        $spreadsheet->getActiveSheet()->setCellValue("E" . $this->lastFilledOutCellY, $totals['MTCS-AEP']);
+        $spreadsheet->getActiveSheet()->setCellValue("F" . $this->lastFilledOutCellY, $totals['MTCS-S']);
+        $spreadsheet->getActiveSheet()->setCellValue("G" . $this->lastFilledOutCellY, $totals['MTCS-CI']);
+        $spreadsheet->getActiveSheet()->setCellValue("H" . $this->lastFilledOutCellY, $totals['MTCS-PVS']);
+        $spreadsheet->getActiveSheet()->setCellValue("I" . $this->lastFilledOutCellY, $totals['RA-RBM']);
+        $spreadsheet->getActiveSheet()->setCellValue("J" . $this->lastFilledOutCellY, $totals['RA-AEP']);
+        $spreadsheet->getActiveSheet()->setCellValue("K" . $this->lastFilledOutCellY, $totals['RA-S']);
+        $spreadsheet->getActiveSheet()->setCellValue("L" . $this->lastFilledOutCellY, $totals['RA-CI']);
+        $spreadsheet->getActiveSheet()->setCellValue("M" . $this->lastFilledOutCellY, $totals['RA-PVS']);
+        $spreadsheet->getActiveSheet()->setCellValue("N" . $this->lastFilledOutCellY, $totals['FSG']);
+        $spreadsheet->getActiveSheet()->mergeCells("O" . $this->lastFilledOutCellY . ':Q' . $this->lastFilledOutCellY);
+        $spreadsheet->getActiveSheet()->setCellValue("O" . $this->lastFilledOutCellY, 'FREQUENCY');
+        $spreadsheet->getActiveSheet()->setCellValue("R" . $this->lastFilledOutCellY, $frequencies['probationers']);
+        $spreadsheet->getActiveSheet()->setCellValue("S" . $this->lastFilledOutCellY, $frequencies['parolees']);
+        $spreadsheet->getActiveSheet()->setCellValue("T" . $this->lastFilledOutCellY, $frequencies['pardonees']);
+        $spreadsheet->getActiveSheet()->setCellValue("U" . $this->lastFilledOutCellY, $frequencies['jicl']);
+        $spreadsheet->getActiveSheet()->setCellValue("V" . $this->lastFilledOutCellY, $frequencies['ftmdo']);
+        $spreadsheet->getActiveSheet()->setCellValue("W" . $this->lastFilledOutCellY, $frequencies['total']);
+        $spreadsheet->getActiveSheet()->setCellValue("X" . $this->lastFilledOutCellY, $frequencies['petitioners']);
+        $spreadsheet->getActiveSheet()->setCellValue("Y" . $this->lastFilledOutCellY, $frequencies['terminated']);
 
         $this->data['footer'] = $footer;
 
