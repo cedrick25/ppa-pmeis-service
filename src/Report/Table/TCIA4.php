@@ -65,7 +65,6 @@ class TCIA4 implements Form
         $currentRowNumber12 = $currentRowNumber + 11;
         $currentRowNumber13 = $currentRowNumber + 12;
 
-
         $summaryCoordinates = [
             'FIRST' => [
                 'I' => "C$currentRowNumber5", 'II' => "C$currentRowNumber6",
@@ -148,7 +147,7 @@ class TCIA4 implements Form
         }
 
         $supervisionCasesDropped = $this->data['footer']['Terminated'] + $this->data['footer']['Revoked'] + $this->data['footer']['Transferred'];
-        $spreadsheet->getActiveSheet()->setCellValue('AF' . $currentRowNumber3, $this->data['footer']['On CS to other FOs to other FOs']);
+        $spreadsheet->getActiveSheet()->setCellValue('AF' . $currentRowNumber3, $this->data['footer']['On CS to other FOs']);
         $spreadsheet->getActiveSheet()->setCellValue('AF' . $currentRowNumber4, $this->data['footer']['Died']);
         $spreadsheet->getActiveSheet()->setCellValue('AF' . $currentRowNumber5, $this->data['footer']['Absconded']);
         $spreadsheet->getActiveSheet()->setCellValue('AF' . $currentRowNumber6, $this->data['footer']['In Jail with no report']);
@@ -160,11 +159,8 @@ class TCIA4 implements Form
         $spreadsheet->getActiveSheet()->setCellValue('AF' . $currentRowNumber13, array_sum($this->data['footer']));
 
         $spreadsheet->getActiveSheet()->getStyle("A$currentRowNumber:T$currentRowNumber")->getAlignment()->setHorizontal('center');
-
         $spreadsheet->getActiveSheet()->getStyle("A" . $currentRowNumber . ":T" . $currentRowNumber10)->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
-
         $spreadsheet->getActiveSheet()->getStyle("A" . $currentRowNumber13 + 1 . ":AF" . $currentRowNumber13 + 1)->getBorders()->getBottom()->setBorderStyle(Border::BORDER_MEDIUM);
-
         $spreadsheet->getActiveSheet()->getStyle("X$currentRowNumber:AF$currentRowNumber13")->getAlignment()->setHorizontal('left');
 
         return $spreadsheet;
@@ -206,6 +202,7 @@ class TCIA4 implements Form
             'Terminated' => 0, 'Revoked' => 0, 'On CS to other FOs' => 0, 'Transferred' => 0, 'Absconded' => 0, 'Died' => 0, 'In Jail with no report' => 0,
             'With Serious Ailment' => 0, 'On Travel Abroad (with permit)' => 0, 'Case/ s pending in Court' => 0, 'Others' => 0,
         ];
+
         $rowNumber = 1;
         foreach ($this->data['rows'] as $row) {
             $this->lastFilledOutCellY++;
@@ -272,7 +269,7 @@ class TCIA4 implements Form
                 $monthlyTotal[$quarter]['FSI']++;
             }
 
-            $spreadsheet->getActiveSheet()->setCellValue("AF" . $this->lastFilledOutCellY, $row['remarks']);
+            $spreadsheet->getActiveSheet()->setCellValue("AF" . $this->lastFilledOutCellY, $row['remarks'] . ' ' . $row['other_remarks']);
 
             $spreadsheet->getActiveSheet()->getStyle("A" . $this->lastFilledOutCellY . ":AF" . $this->lastFilledOutCellY)->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
 
@@ -281,7 +278,9 @@ class TCIA4 implements Form
             }
 
             $this->summaryData[$row['quarter']][$row['phase']]++;
-            $footer[$row['remarks']]++;
+            if (null !== $row['remarks']) {
+                $footer[$row['remarks']]++;
+            }
 
             $rowNumber++;
         }

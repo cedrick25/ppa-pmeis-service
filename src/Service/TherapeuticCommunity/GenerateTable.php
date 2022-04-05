@@ -25,7 +25,7 @@ class GenerateTable implements GenerateTableInterface
             // TODO: remove generated file
             return $this->appFormatter->formatResponse(ResponseEnum::GENERATING_SUCCESS, $fileData);
         } catch (\Exception $exception) {
-            return $this->appFormatter->formatResponse(ResponseEnum::GENERATING_FAILED, null, ['app' => $exception->getMessage()]);
+            return $this->appFormatter->formatResponse(ResponseEnum::GENERATING_FAILED, null, ['app' => $exception]);
         }
     }
 }

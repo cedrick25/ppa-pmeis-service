@@ -270,7 +270,7 @@ class TCIA8 implements Form
                 $monthlyTotal[$quarter]['FSI']++;
             }
 
-            $spreadsheet->getActiveSheet()->setCellValue("AD" . $this->lastFilledOutCellY, $row['remarks']);
+            $spreadsheet->getActiveSheet()->setCellValue("AD" . $this->lastFilledOutCellY, $row['remarks'] . ' ' . $row['other_remarks']);
             $spreadsheet->getActiveSheet()
                 ->getStyle("A" . $this->lastFilledOutCellY . ":AD" . $this->lastFilledOutCellY)
                 ->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);

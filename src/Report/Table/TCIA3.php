@@ -272,7 +272,7 @@ class TCIA3 implements Form
                 $monthlyTotal[$quarter]['FSI']++;
             }
 
-            $spreadsheet->getActiveSheet()->setCellValue("AF" . $this->lastFilledOutCellY, $row['remarks']);
+            $spreadsheet->getActiveSheet()->setCellValue("AF" . $this->lastFilledOutCellY, $row['remarks'] . ' ' . $row['other_remarks']);
             $spreadsheet->getActiveSheet()->getStyle("A" . $this->lastFilledOutCellY . ":AF" . $this->lastFilledOutCellY)->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
 
             if (!isset($this->summaryData[$row['quarter']][$row['phase']])) {
@@ -280,7 +280,9 @@ class TCIA3 implements Form
             }
 
             $this->summaryData[$row['quarter']][$row['phase']]++;
-            $footer[$row['remarks']]++;
+            if (null !== $row['remarks']) {
+                $footer[$row['remarks']]++;
+            }
 
             $rowNumber++;
         }
