@@ -68,7 +68,6 @@ class SessionsRepository extends ServiceEntityRepository
         $session->setDate($this->appDateHelper->convertStringToImmutableDate($sessionData->getDate()));
         $session->setVenueId($sessionData->getVenueId());
         $session->setPeriod($sessionData->getPeriod());
-        $session->setFsg($sessionData->getFsg());
         $session->setLiLo($sessionData->getLiLo());
         $session->setTreesPlanted($sessionData->getTreesPlanted());
         $session->setCreatedBy($sessionData->getCreatedBy());
@@ -104,7 +103,6 @@ class SessionsRepository extends ServiceEntityRepository
         $session->setDate($this->appDateHelper->convertStringToImmutableDate($sessionData->getDate()));
         $session->setVenueId($sessionData->getVenueId());
         $session->setPeriod($sessionData->getPeriod());
-        $session->setFsg($sessionData->getFsg());
         $session->setLiLo($sessionData->getLiLo());
         $session->setCreatedBy($sessionData->getCreatedBy());
         $session->setCreatedAt($this->appDateHelper->getCurrentImmutableDate());
@@ -112,7 +110,7 @@ class SessionsRepository extends ServiceEntityRepository
         $this->getEntityManager()->persist($session);
         $this->getEntityManager()->flush();
 
-        $this->clientSessionsRepository->batchCreate($session->getSessionId(), $sessionData->getClientSession());
+        $this->clientSessionsRepository->batchCreate($session->getSessionId(), $sessionData->getAttendees());
         $this->clientSessionsRepository->batchCreateAbsentees($session->getSessionId(), $sessionData->getAbsentees());
         $this->resourceFacilitatorSessionRepository->batchCreate($session->getSessionId(), $sessionData->getFacilitators());
 
@@ -279,7 +277,6 @@ class SessionsRepository extends ServiceEntityRepository
         $session->setDate($this->appDateHelper->convertStringToImmutableDate($sessionData->getDate()));
         $session->setVenueId($sessionData->getVenueId());
         $session->setPeriod($sessionData->getPeriod());
-        $session->setFsg($sessionData->getFsg());
         $session->setLiLo($sessionData->getLiLo());
         $session->setCreatedBy($sessionData->getCreatedBy());
         $session->setCreatedAt($this->appDateHelper->getCurrentImmutableDate());
@@ -320,7 +317,6 @@ class SessionsRepository extends ServiceEntityRepository
         $session->setDate($this->appDateHelper->convertStringToImmutableDate($sessionData->getDate()));
         $session->setVenueId($sessionData->getVenueId());
         $session->setPeriod($sessionData->getPeriod());
-        $session->setFsg($sessionData->getFsg());
         $session->setLiLo($sessionData->getLiLo());
         $session->setCreatedBy($sessionData->getCreatedBy());
         $session->setCreatedAt($this->appDateHelper->getCurrentImmutableDate());

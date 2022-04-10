@@ -46,6 +46,16 @@ class ClientSessions
      */
     private ?string $otherRemarks;
 
+    /**
+     * @ORM\Column(type="boolean", nullable=true)
+     */
+    private ?bool $fsi;
+
+    /**
+     * @ORM\Column(type="date", nullable=true)
+     */
+    private ?\DateTimeInterface $remarksDate;
+
     public function getClientSessionId(): ?int
     {
         return $this->clientSessionId;
@@ -126,6 +136,42 @@ class ClientSessions
     public function setOtherRemarks(?string $otherRemarks): ClientSessions
     {
         $this->otherRemarks = $otherRemarks;
+        return $this;
+    }
+
+    /**
+     * @return bool|null
+     */
+    public function getFsi(): ?bool
+    {
+        return $this->fsi;
+    }
+
+    /**
+     * @param bool|null $fsi
+     * @return ClientSessions
+     */
+    public function setFsi(?bool $fsi): ClientSessions
+    {
+        $this->fsi = $fsi;
+        return $this;
+    }
+
+    /**
+     * @return \DateTimeInterface|null
+     */
+    public function getRemarksDate(): ?\DateTimeInterface
+    {
+        return $this->remarksDate;
+    }
+
+    /**
+     * @param \DateTimeInterface|null $remarksDate
+     * @return ClientSessions
+     */
+    public function setRemarksDate(?\DateTimeInterface $remarksDate): ClientSessions
+    {
+        $this->remarksDate = $remarksDate;
         return $this;
     }
 }

@@ -19,14 +19,13 @@ class Sessions
         private string $date,
         private int $venueId,
         private string $period,
-        private int $fsg,
         private string $liLo,
         private int $createdBy,
         private ?int $treesPlanted = null,
         private ?DateTimeInterface $createdAt = null,
         private ?DateTimeInterface $updatedAt = null,
         private ?DateTimeInterface $deletedAt = null,
-        private ?array $clientSession = null,
+        private ?array $attendees = null,
         private ?array $facilitators = null,
         private ?array $absentees = null,
     ){}
@@ -129,15 +128,6 @@ class Sessions
 
     /**
      * @Assert\NotBlank
-     * @return int
-     */
-    public function getFsg(): int
-    {
-        return $this->fsg;
-    }
-
-    /**
-     * @Assert\NotBlank
      * @Assert\Length(2)
      * @return string
      */
@@ -183,9 +173,9 @@ class Sessions
     /**
      * @return array<string, int[]>|null
      */
-    public function getClientSession(): ?array
+    public function getAttendees(): ?array
     {
-        return $this->clientSession;
+        return $this->attendees;
     }
 
     /**

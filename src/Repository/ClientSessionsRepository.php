@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Repository;
 
+use App\Common\AppDateHelper;
 use App\Common\CacheHelper;
 use App\Entity\ClientSessions;
 use App\Enum\Response as ResponseEnum;
@@ -34,6 +35,7 @@ class ClientSessionsRepository extends ServiceEntityRepository
         private TagAwareCacheInterface $cache,
         private CacheHelper $cacheHelper,
         private Helper $helper,
+        private AppDateHelper $appDateHelper,
     ){
         parent::__construct($registry, ClientSessions::class);
     }
@@ -65,23 +67,22 @@ class ClientSessionsRepository extends ServiceEntityRepository
 
     /**
      * @param int $sessionId
-     * @param array<string, int[]> $clientSessionIds
+     * @param array<string, mixed> $attendees
      * @throws \Doctrine\DBAL\Exception\InvalidArgumentException
      * @throws ORMException
      * @throws MappingException
      * @throws InvalidArgumentException
      */
-    public function batchCreate(int $sessionId, array $clientSessionIds): void
+    public function batchCreate(int $sessionId, array $attendees): void
     {
-        foreach ($clientSessionIds as $role => $clientIds) {
-            foreach ($clientIds as $clientId) {
-                $clientSession = new ClientSessions();
-                $clientSession->setSessionId($sessionId);
-                $clientSession->setClientId($clientId);
-                $clientSession->setRole(strtoupper($role));
+        foreach ($attendees as $attendee) {
+            $clientSession = new ClientSessions();
+            $clientSession->setSessionId($sessionId);
+            $clientSession->setClientId($attendee['id']['value']);
+            $clientSession->setRole($this->convertClientRole($attendee['type']['label']));
+            $clientSession->setFsi($attendee['fsi']['value']);
 
-                $this->getEntityManager()->persist($clientSession);
-            }
+            $this->getEntityManager()->persist($clientSession);
         }
 
         $this->getEntityManager()->flush();
@@ -106,6 +107,7 @@ class ClientSessionsRepository extends ServiceEntityRepository
             $clientSession->setClientId($absentee['id']['value']);
             $clientSession->setRole($this->convertClientRole($absentee['type']['label']));
             $clientSession->setClientRemarksId($absentee['remarks']['value']);
+            $clientSession->setRemarksDate($this->appDateHelper->convertStringToImmutableDate($absentee['remarksDate']));
             $clientSession->setOtherRemarks($absentee['otherRemarks']);
 
             $this->getEntityManager()->persist($clientSession);

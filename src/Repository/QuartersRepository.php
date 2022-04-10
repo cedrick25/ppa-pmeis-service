@@ -238,7 +238,7 @@ class QuartersRepository extends ServiceEntityRepository
         return $this->helper->createCachedResponseCustomQuery($params, function() use ($id, $fieldOfficeId, $minDate, $maxDate) {
             $conn = $this->getEntityManager()->getConnection();
 
-            $sql = "SELECT q.*, s.session_id, sa.name as session_activity_title, s.treatment_category_id, s.fsg, sr.name as remarks, s.remarks_id,
+            $sql = "SELECT q.*, s.session_id, sa.name as session_activity_title, s.treatment_category_id, sr.name as remarks, s.remarks_id,
                        s.trees_planted, s.field_office_id, p.name as phase_name, s.batch ,v.name as venue, s.date, s.period FROM quarters as q 
                     LEFT JOIN sessions as s ON s.date BETWEEN CAST('$minDate' AS DATE) AND CAST('$maxDate' AS DATE) 
                     LEFT JOIN session_activities as sa ON s.session_activity_id = sa.session_activity_id 

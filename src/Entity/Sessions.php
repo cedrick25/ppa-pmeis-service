@@ -76,11 +76,6 @@ class Sessions
     private string $period;
 
     /**
-     * @ORM\Column(type="integer")
-     */
-    private int $fsg;
-
-    /**
      * @ORM\Column(type="string", length=255, columnDefinition="enum('LI', 'LO')")
      */
     private string $liLo;
@@ -255,22 +250,6 @@ class Sessions
         $this->period = $period;
 
         return $this;
-    }
-
-    /**
-     * @return int
-     */
-    public function getFsg(): int
-    {
-        return $this->fsg;
-    }
-
-    /**
-     * @param int $fsg
-     */
-    public function setFsg(int $fsg): void
-    {
-        $this->fsg = $fsg;
     }
 
     /**

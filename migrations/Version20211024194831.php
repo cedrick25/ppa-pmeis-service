@@ -21,6 +21,8 @@ final class Version20211024194831 extends AbstractMigration
                     role enum(\'PS\', \'PR\', \'PD\', \'JICL\', \'FTMDO\', \'PET\', \'TERM\'),
                     client_remarks_id INT NULL,  
                     other_remarks TEXT NULL,  
+                    fsi TINYINT(1) DEFAULT NULL,  
+                    remarks_date DATE NULL,  
                     PRIMARY KEY(client_session_id)) DEFAULT CHARACTER SET utf8mb4 COLLATE `utf8mb4_unicode_ci` ENGINE = InnoDB'
         );
         $this->addSql('CREATE TABLE client_types (client_type_id INT AUTO_INCREMENT NOT NULL, code VARCHAR(255) NOT NULL, description VARCHAR(255) NOT NULL, PRIMARY KEY(client_type_id)) DEFAULT CHARACTER SET utf8mb4 COLLATE `utf8mb4_unicode_ci` ENGINE = InnoDB');
