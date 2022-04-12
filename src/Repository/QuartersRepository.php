@@ -256,20 +256,43 @@ class QuartersRepository extends ServiceEntityRepository
     /**
      * @throws CacheException
      */
-    public function fetchTCA1Part2(int $id, int $fieldOfficeId): ?array
+    public function fetchTCA1Part2(int $quarterId, int $fieldOfficeId): ?array
     {
         $params = [
-            'cacheKey' => $this->cacheHelper->getQuartersTCA1Part2Key($id, $fieldOfficeId),
+            'cacheKey' => $this->cacheHelper->getQuartersTCA1Part2Key($quarterId, $fieldOfficeId),
             'cacheTag' => self::SESSION_CACHE_TAG
         ];
 
-        return $this->helper->createCachedResponseCustomQuery($params, function() use ($id, $fieldOfficeId) {
+        return $this->helper->createCachedResponseCustomQuery($params, function() use ($quarterId, $fieldOfficeId) {
             $data = [];
-            $sessionData = $this->getSessionDataByQuarterAndFieldOfficeId($id, $fieldOfficeId);
+            $erpFacilitators = [];
+            $resourcePeopleId = [];
+            $sessions = $this->getSessionDataByQuarterAndFieldOfficeId($quarterId, $fieldOfficeId);
+            $sessionsIds = array_map(fn(array $session) => intval($session['session_id']), $sessions);
+            $resourceFacilitators = $this->getResourceFacilitatorIds($sessionsIds);
 
-            foreach ($sessionData as $session) {
-                $session['resource_person'] = $this->getResourcePerson($id, intval($session['session_id']));
-                $session['count'] = $this->getClientSessionCount($id, intval($session['session_id']));
+            foreach ($resourceFacilitators as $resourceFacilitator) {
+                $type = $resourceFacilitator['resource_facilitator_type'];
+                $sessionId = $resourceFacilitator['session_id'];
+                if ('ERP' === $type) {
+                    $erpFacilitators[$sessionId][] = [
+                        'name' => $resourceFacilitator['erp_name'],
+                        'role' => $resourceFacilitator['role']
+                    ];
+                    continue;
+                }
+
+                $resourcePeopleId[$type][$sessionId][] = [
+                    'id' => (int) $resourceFacilitator['resource_facilitator_id'],
+                    'role' => $resourceFacilitator['role']
+                ];
+            }
+
+            foreach ($sessions as $session) {
+                $session['vpa_resource_person'] = $this->getVpaResourcePeople($resourcePeopleId['VPA'][$session['session_id']]);
+                $session['ppo_resource_person'] = $this->getPpoResourcePeople($resourcePeopleId['PPO'][$session['session_id']]);
+                $session['erp_resource_person'] = $erpFacilitators[$session['session_id']];
+                $session['count'] = $this->getClientSessionCount($quarterId, intval($session['session_id']));
                 $data[$session['session_id']] = $session;
             }
 
@@ -322,23 +345,83 @@ class QuartersRepository extends ServiceEntityRepository
     }
 
     /**
+     * @param int[] $sessionIds
+     * @return array
      * @throws \Doctrine\DBAL\Driver\Exception
      * @throws \Doctrine\DBAL\Exception
      */
-    private function getResourcePerson(int $id, int $sessionId): array
+    private function getResourceFacilitatorIds(array $sessionIds): array
     {
         $conn = $this->getEntityManager()->getConnection();
-        $sql = "SELECT DISTINCT v.first_name, v.middle_name, v.last_name, v.suffix, rfs.resource_facilitator_type as type,
-                    rfs.role, rfs.erp_name, v.volunteer_id FROM quarters as q
-                LEFT JOIN sessions as s ON s.session_id = $sessionId
-                LEFT JOIN resource_facilitator_session as rfs ON s.session_id = rfs.session_id
-                LEFT JOIN pmeis.volunteer as v ON rfs.resource_facilitator_id = v.volunteer_id
-                WHERE q.quarter_id = $id AND s.session_id = $sessionId ORDER BY v.first_name";
+        $sessionIds = implode(',', $sessionIds);
+        $sql = "SELECT rfs.*  FROM resource_facilitator_session as rfs WHERE rfs.session_id IN ($sessionIds)";
+        $stmt = $conn->prepare($sql);
+        $query = $stmt->executeQuery();
+
+        return $query->fetchAllAssociative();
+    }
+
+    /**
+     * @param array<string, mixed> $volunteerData
+     * @return array
+     * @throws \Doctrine\DBAL\Driver\Exception
+     * @throws \Doctrine\DBAL\Exception
+     */
+    private function getVpaResourcePeople(array $volunteerData): array
+    {
+        $roles = [];
+        $volunteerIds = [];
+        foreach ($volunteerData as $volunteerDatum) {
+            $roles[$volunteerDatum['id']] = $volunteerDatum['role'];
+
+            if (! in_array($volunteerDatum['id'], $volunteerIds)) {
+                $volunteerIds[] = $volunteerDatum['id'];
+            }
+        }
+
+        $conn = $this->getEntityManager()->getConnection();
+        $volunteerIds = implode(',', $volunteerIds);
+        $sql = "SELECT DISTINCT v.first_name, v.middle_name, v.last_name, v.suffix, v.volunteer_id
+                FROM volunteer as v WHERE v.volunteer_id IN ($volunteerIds) ORDER BY v.first_name";
         $stmt = $conn->prepare($sql);
         $query = $stmt->executeQuery();
         $data = $query->fetchAllAssociative();
 
         foreach ($data as $index=>$row) {
+            $data[$index]['role'] = $roles[$row['volunteer_id']];
+            $data[$index]['full_name'] = $row['first_name'] . ' ' . $row['middle_name'] . ' ' . $row['last_name'] . ' ' . $row['suffix'];
+        }
+
+        return $data;
+    }
+
+    /**
+     * @param array<string, mixed> $userData
+     * @return array
+     * @throws \Doctrine\DBAL\Driver\Exception
+     * @throws \Doctrine\DBAL\Exception
+     */
+    private function getPpoResourcePeople(array $userData): array
+    {
+        $roles = [];
+        $userIds = [];
+        foreach ($userData as $userDatum) {
+            $roles[$userDatum['id']] = $userDatum['role'];
+
+            if (! in_array($userDatum['id'], $userIds)) {
+                $userIds[] = $userDatum['id'];
+            }
+        }
+        $conn = $this->getEntityManager()->getConnection();
+        $userIds = implode(',', $userIds);
+        $sql = "SELECT DISTINCT ud.first_name, ud.middle_name, ud.last_name, ud.suffix, ud.user_account_id
+                FROM pmeis.user_details as ud WHERE ud.user_account_id IN ($userIds) ORDER BY ud.first_name";
+        $stmt = $conn->prepare($sql);
+        $query = $stmt->executeQuery();
+        $data = $query->fetchAllAssociative();
+
+        foreach ($data as $index=>$row) {
+            $data[$index]['role'] = $roles[$row['user_account_id']];
             $data[$index]['full_name'] = $row['first_name'] . ' ' . $row['middle_name'] . ' ' . $row['last_name'] . ' ' . $row['suffix'];
         }
 

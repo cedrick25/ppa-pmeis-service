@@ -156,21 +156,31 @@ class TCIA1 implements Form
             $frequencies['terminated'] += $part2Row['count']['terminated'];
 
             $hasVpa = false;
-            foreach ($part2Row['resource_person'] as $i=>$resource) {
-                if ($i !== 0) {
-                    $this->lastFilledOutCellY++;
-                }
+            foreach ($part2Row['vpa_resource_person'] as $resource) {
+                $this->lastFilledOutCellY++;
 
-                if ('VPA' === $resource['type']) {
-                    $footer['vpa_headcount'][] = $resource['full_name'];
-                    $hasVpa = true;
-                }
+                $footer['vpa_headcount'][] = $resource['full_name'];
+                $hasVpa = true;
 
-                $name = 'ERP' === $resource['type']
-                    ? 'ERP - ' .$resource['erp_name'] . ' - Non-TC Trained'
-                    : $resource['type'] . ' - ' . $resource['full_name'] . ' - Non-TC Trained';
+                $spreadsheet->getActiveSheet()->setCellValue("Z" . $this->lastFilledOutCellY, 'VPA - ' . $resource['full_name'] . ' - Non-TC Trained');
+                $spreadsheet->getActiveSheet()->setCellValue("AA" . $this->lastFilledOutCellY, $resource['role']);
+                $spreadsheet->getActiveSheet()->getStyle("AA" . $this->lastFilledOutCellY)->getAlignment()->setWrapText(true);
+                $spreadsheet->getActiveSheet()->setCellValue("AB" . $this->lastFilledOutCellY, $rows['remarks']);
+            }
 
-                $spreadsheet->getActiveSheet()->setCellValue("Z" . $this->lastFilledOutCellY, $name);
+            foreach ($part2Row['ppo_resource_person'] as $resource) {
+                $this->lastFilledOutCellY++;
+
+                $spreadsheet->getActiveSheet()->setCellValue("Z" . $this->lastFilledOutCellY,'PPO - ' . $resource['full_name']);
+                $spreadsheet->getActiveSheet()->setCellValue("AA" . $this->lastFilledOutCellY, $resource['role']);
+                $spreadsheet->getActiveSheet()->getStyle("AA" . $this->lastFilledOutCellY)->getAlignment()->setWrapText(true);
+                $spreadsheet->getActiveSheet()->setCellValue("AB" . $this->lastFilledOutCellY, $rows['remarks']);
+            }
+
+            foreach ($part2Row['erp_resource_person'] as $resource) {
+                $this->lastFilledOutCellY++;
+
+                $spreadsheet->getActiveSheet()->setCellValue("Z" . $this->lastFilledOutCellY,'ERP - ' . $resource['name']);
                 $spreadsheet->getActiveSheet()->setCellValue("AA" . $this->lastFilledOutCellY, $resource['role']);
                 $spreadsheet->getActiveSheet()->getStyle("AA" . $this->lastFilledOutCellY)->getAlignment()->setWrapText(true);
                 $spreadsheet->getActiveSheet()->setCellValue("AB" . $this->lastFilledOutCellY, $rows['remarks']);

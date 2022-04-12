@@ -198,7 +198,8 @@ class Quarters implements QuartersInterface
         /**
          * Criteria:
          *  Per Session ID
-         *  Same session, client (Verify the scenario where there is 2 fsi of the same client in the same session)
+         *  Same session, client
+         *  TODO: Verify the scenario where there is 2 fsi of the same client in the same session
          *  For now every fsi is counted as 1 regardless of
          */
         $data = [];
