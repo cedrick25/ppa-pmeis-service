@@ -204,7 +204,6 @@ final class Version20211103175853 extends AbstractMigration
             . "('Paranaque City Parole And Probation Office', 1, '{$currentDate}'),"
             . "('Muntinlupa City Parole And Probation Office', 1, '{$currentDate}'),"
             . "('Pasay City Parole And Probation Office', 1, '{$currentDate}'),"
-            . "('Quezon City Parole And Probation Office No. 1', 1, '{$currentDate}'),"
             . "('Pasig City Parole And Probation Office', 1, '{$currentDate}'),"
             . "('Quezon City Parole And Probation Office No. 2', 1, '{$currentDate}'),"
             . "('Taguig City Parole And Probation Office', 1, '{$currentDate}'),"

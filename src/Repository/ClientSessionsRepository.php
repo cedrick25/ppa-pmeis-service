@@ -357,6 +357,21 @@ class ClientSessionsRepository extends ServiceEntityRepository
         return $query->fetchAllAssociative();
     }
 
+    public function getFsiBySessionIds(array $sessionIds): array
+    {
+        $ids = implode(',', $sessionIds);
+        $conn = $this->getEntityManager()->getConnection();
+        $sql = "SELECT cs.session_id FROM client_sessions cs 
+            WHERE cs.session_id IN ($ids) 
+              AND cs.fsi IS NOT FALSE 
+              AND cs.fsi IS NOT NULL";
+
+        $stmt = $conn->prepare($sql);
+        $query = $stmt->executeQuery();
+
+        return $query->fetchAllAssociative();
+    }
+
     private function isExisting(ClientSessionModel $clientSessionData): bool
     {
         $clientSession = $this->findOneBy([

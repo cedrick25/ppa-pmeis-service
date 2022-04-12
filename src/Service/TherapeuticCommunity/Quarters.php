@@ -7,6 +7,7 @@ namespace App\Service\TherapeuticCommunity;
 use App\Common\AppFormatter;
 use App\Enum\Response as ResponseEnum;
 use App\Model\Quarters as QuartersModel;
+use App\Repository\ClientSessionsRepository;
 use App\Repository\QuartersRepository;
 use Doctrine\ORM\ORMException;
 use Exception;
@@ -17,9 +18,10 @@ use Symfony\Component\Validator\Validator\ValidatorInterface;
 class Quarters implements QuartersInterface
 {
     public function __construct(
-        private ValidatorInterface $validator,
-        private AppFormatter       $appFormatter,
-        private QuartersRepository $repository,
+        private ValidatorInterface       $validator,
+        private AppFormatter             $appFormatter,
+        private QuartersRepository       $repository,
+        private ClientSessionsRepository $clientSessionsRepository,
     ){}
 
     public function create(QuartersModel $quarters): array
@@ -138,13 +140,22 @@ class Quarters implements QuartersInterface
     public function getTCA1Part1(int $id, int $fieldOfficeId): array
     {
         try {
-            $quarter = $this->repository->fetchTCA1Part1($id, $fieldOfficeId);
+            $sessions = $this->repository->fetchTCA1Part1($id, $fieldOfficeId);
 
-            if (!$quarter) {
+            if (null === $sessions) {
                 return $this->appFormatter->formatResponse(ResponseEnum::NO_DATA, null);
             }
 
-            return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_SUCCESS, $quarter);
+            $sessionsIds = array_map(fn(array $session) => intval($session['session_id']), $sessions);
+            $fsgNumbers = $this->getFsgNumbersBySessionId($sessionsIds);
+
+            $sessions = array_map(function(array $session) use($fsgNumbers) {
+                $session['fsg'] = $fsgNumbers[$session['session_id']];
+
+                return $session;
+            }, $sessions);
+
+            return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_SUCCESS, $sessions);
         } catch (CacheException $e) {
             return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_FAILED, null, ['cache' => $e->getMessage()]);
         }
@@ -176,5 +187,31 @@ class Quarters implements QuartersInterface
         }
 
         return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_SUCCESS, $quarters);
+    }
+
+    /**
+     * @param int[] $sessionIds
+     * @return array<string, int>
+     */
+    private function getFsgNumbersBySessionId(array $sessionIds): array
+    {
+        /**
+         * Criteria:
+         *  Per Session ID
+         *  Same session, client (Verify the scenario where there is 2 fsi of the same client in the same session)
+         *  For now every fsi is counted as 1 regardless of
+         */
+        $data = [];
+        $clientsSessionSessionIds = $this->clientSessionsRepository->getFsiBySessionIds($sessionIds);
+
+        foreach ($clientsSessionSessionIds as $clientsSessionSessionId) {
+            if (! isset($data[$clientsSessionSessionId['session_id']])) {
+                $data[$clientsSessionSessionId['session_id']] = 0;
+            }
+
+            $data[$clientsSessionSessionId['session_id']]++;
+        }
+
+        return $data;
     }
 }
