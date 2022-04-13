@@ -225,11 +225,15 @@ class Sessions implements SessionsInterface
                 $monthIdentifier = $quarter . '_' . $monthInitial;
 
                 if (! isset($rows[$rowIdentifier])) {
-                    $session["month_quarter"] = [$monthIdentifier];
+                    $session['month_quarter'] = [];
                     $rows[$rowIdentifier] = $session;
-                } else {
-                    $rows[$rowIdentifier]["month_quarter"][] = $monthIdentifier;
                 }
+
+                if (null !== $session['remarks']) {
+                    continue;
+                }
+
+                $rows[$rowIdentifier]["month_quarter"][] = $monthIdentifier;
             }
 
             return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_SUCCESS, $rows);
