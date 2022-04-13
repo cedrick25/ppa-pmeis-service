@@ -477,7 +477,7 @@ class SessionsRepository extends ServiceEntityRepository
 
         $sql = "SELECT c.last_name, c.first_name, c.middle_name, c.suffix, c.gender, c.is_pwd, c.is_senior_citizen, c.date_of_birth, cr.name as remarks,
                 c.offense_category, ct.code as client_type ,c.supervision_start, c.supervision_end, p.name as phase, se.date, YEAR(se.date) as quarter_year,
-                cs.other_remarks
+                cs.other_remarks, cs.fsi
                 FROM sessions as se 
                 LEFT JOIN client_sessions as cs ON se.session_id = cs.session_id 
                 LEFT JOIN clients as c ON cs.client_id = c.client_id 
@@ -487,7 +487,7 @@ class SessionsRepository extends ServiceEntityRepository
                 WHERE cs.role = '$role' AND c.client_id IS NOT NULL
                   AND se.field_office_id = $fieldOfficeId
                   AND se.date BETWEEN CAST('$minDate' AS DATE) AND CAST('$maxDate' AS DATE) 
-                  ORDER BY ct.code";
+                  ORDER BY ct.code, se.session_id";
 
         $stmt = $conn->prepare($sql);
         $query = $stmt->executeQuery();

@@ -229,6 +229,16 @@ class Sessions implements SessionsInterface
                     $rows[$rowIdentifier] = $session;
                 }
 
+                // override based on the latest record, key is the order by from the query
+                $rows[$rowIdentifier]['phase'] = $session['phase'];
+                $rows[$rowIdentifier]['remarks'] = $session['remarks'];
+                $rows[$rowIdentifier]['other_remarks'] = $session['other_remarks'];
+                $rows[$rowIdentifier]['fsi'] = false;
+
+                if ($session['fsi']) {
+                    $rows[$rowIdentifier]['fsi'] = true;
+                }
+
                 if (null !== $session['remarks']) {
                     continue;
                 }
