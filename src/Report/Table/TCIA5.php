@@ -258,15 +258,13 @@ class TCIA5 implements Form
                 $monthlyTotal[$row['quarter']][$monthInitial]++;
             }
 
-            foreach ($row['month_quarter_fsi'] as $monthQuarter) {
-                $spreadsheet->getActiveSheet()->setCellValue($fsiCoordinates[$monthQuarter] . $this->lastFilledOutCellY, '√');
-                $quarter = explode('_', $monthQuarter)[0];
-
-                if (!isset($monthlyTotal[$quarter]['FSI'])) {
-                    $monthlyTotal[$quarter]['FSI'] = 0;
+            if ($row['fsi']) {
+                if (!isset($monthlyTotal[$row['quarter']]['FSI'])) {
+                    $monthlyTotal[$row['quarter']]['FSI'] = 0;
                 }
 
-                $monthlyTotal[$quarter]['FSI']++;
+                $spreadsheet->getActiveSheet()->setCellValue($fsiCoordinates[$row['quarter']] . $this->lastFilledOutCellY, '√');
+                $monthlyTotal[$row['quarter']]['FSI']++;
             }
 
             $spreadsheet->getActiveSheet()->setCellValue("AF" . $this->lastFilledOutCellY, $row['remarks'] . ' ' . $row['other_remarks']);
