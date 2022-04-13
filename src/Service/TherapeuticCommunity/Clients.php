@@ -60,6 +60,21 @@ class Clients implements ClientsInterface
         }
     }
 
+    public function getAllByFieldOffice(int $listByFieldOffice): array
+    {
+        try {
+            $clients = $this->repository->listByFieldOffice($listByFieldOffice);
+
+            if ($clients == null) {
+                return $this->appFormatter->formatResponse(ResponseEnum::NO_DATA, null);
+            }
+
+            return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_SUCCESS, $clients);
+        } catch (CacheException | InvalidArgumentException $exception) {
+            return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_FAILED, null, ['cache' => $exception->getMessage()]);
+        }
+    }
+
     public function deleteById(int $id): array
     {
         try {

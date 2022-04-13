@@ -10,6 +10,8 @@ interface ClientsInterface
 
     public function getAll(): array;
 
+    public function getAllByFieldOffice(int $listByFieldOffice): array;
+
     public function deleteById(int $id): array;
 
     public function updateById(int $id, Clients $clientData):array;
