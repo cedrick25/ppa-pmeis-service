@@ -430,10 +430,9 @@ class SessionsRepository extends ServiceEntityRepository
 
             foreach ($clients as $client) {
                 if (null === $client->getClientRemarksId()) {
-                    $session['absentees'][] =  [
+                    $session['attendees'][] =  [
                         'id' => $client->getClientId(),
-                        'other_remarks' => $client->getOtherRemarks(),
-                        'remarks_date' => $client->getRemarksDate(),
+                        'fsi' => $client->getFsi(),
                         'type' => $client->getRole(),
                         'client_type_id' => $clientTypes[strtoupper($client->getRole())],
                     ];
@@ -441,12 +440,14 @@ class SessionsRepository extends ServiceEntityRepository
                     continue;
                 }
 
-                $session['attendees'][] = [
-                    'fsi' => $client->getFsi(),
+                $session['absentees'][] = [
                     'id' => $client->getClientId(),
-                    'client_remarks_id' => $client->getClientRemarksId(),
+                    'fsi' => $client->getFsi(),
                     'type' => $client->getRole(),
                     'client_type_id' => $clientTypes[strtoupper($client->getRole())],
+                    'client_remarks_id' => $client->getClientRemarksId(),
+                    'other_remarks' => $client->getOtherRemarks(),
+                    'remarks_date' => $client->getRemarksDate(),
                 ];
             }
             $session['facilitators'] = $this->resourceFacilitatorSessionRepository->listBySessionId($id);
