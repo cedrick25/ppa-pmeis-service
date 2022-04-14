@@ -161,24 +161,41 @@ class ResourceFacilitatorSessionRepository extends ServiceEntityRepository
 
             foreach ($facilitators as $facilitator) {
                 $name = "";
+                $type = [];
 
                 switch ($facilitator->getResourceFacilitatorType()) {
                     case 'ERP':
                         $name = $facilitator->getErpName();
+                        $type = [
+                            'label' => 'ERP (External Resource Person)',
+                            'value' => 'ERP'
+                        ];
                         break;
                     case 'PPO':
                         $name = $users[$facilitator->getResourceFacilitatorId()];
+                        $type = [
+                            'label' => 'PPO (Parole Probation Officer)',
+                            'value' => 'PPO'
+                        ];
                         break;
                     case 'VPA':
                         $name = $volunteers[$facilitator->getResourceFacilitatorId()];
+                        $type = [
+                            'label' => 'VPA (Volunteer Probation Assistant)',
+                            'value' => 'VPA'
+                        ];
                         break;
                 }
 
                 $data[] = [
-                    'id' => $facilitator->getResourceFacilitatorId(),
+                    'type' => $type,
+                    'id' => 'ERP' !== $facilitator->getResourceFacilitatorType() ?
+                        [
+                            'label' => $name,
+                            'value' => $facilitator->getResourceFacilitatorId()
+                        ] : null,
                     'name' => $name,
                     'role' => $facilitator->getRole(),
-                    'type' => $facilitator->getResourceFacilitatorType(),
                 ];
             }
 

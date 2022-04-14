@@ -40,6 +40,8 @@ class SessionsRepository extends ServiceEntityRepository
         private ResourceFacilitatorSessionRepository $resourceFacilitatorSessionRepository,
         private QuartersRepository $quartersRepository,
         private ClientTypesRepository $clientTypesRepository,
+        private ClientsRepository $clientsRepository,
+        private ClientRemarksRepository $clientRemarksRepository,
     ){
         parent::__construct($registry, Sessions::class);
     }
@@ -400,13 +402,16 @@ class SessionsRepository extends ServiceEntityRepository
      */
     public function fetchById(int $id): ?array
     {
-        $clientTypes = $this->getAllClientTypesId();
+        $clientTypes = $this->getAllClientTypes();
+        $clientNames = $this->geClientNames();
+        $clientRemarks = $this->geClientRemarks();
+
         $params = [
             'cacheKey' => $this->cacheHelper->getSessionsById($id),
             'cacheTag' => self::CACHE_TAG
         ];
 
-        return $this->helper->createCachedResponseCustomQuery($params, function() use ($clientTypes, $id) {
+        return $this->helper->createCachedResponseCustomQuery($params, function() use ($clientTypes, $clientNames, $clientRemarks, $id) {
             $conn = $this->getEntityManager()->getConnection();
 
             $sql = "SELECT se.*, sr.name as remarks, MONTH(se.date) as quarter_month, YEAR(se.date) as quarter_year, fe.name as field_office_name,
@@ -431,23 +436,42 @@ class SessionsRepository extends ServiceEntityRepository
             foreach ($clients as $client) {
                 if (null === $client->getClientRemarksId()) {
                     $session['attendees'][] =  [
-                        'id' => $client->getClientId(),
-                        'fsi' => $client->getFsi(),
-                        'type' => $client->getRole(),
-                        'client_type_id' => $clientTypes[strtoupper($client->getRole())],
+                        'type' => [
+                            'label' => $clientTypes[strtoupper($client->getRole())][1],
+                            'value' => $clientTypes[strtoupper($client->getRole())][0]
+                        ],
+                        'id' => [
+                            'label' => $clientNames[$client->getClientId()],
+                            'value' => $client->getClientId()
+                        ],
+                        'fsi' => [
+                            'label' => $client->getFsi() ? 'Yes' : 'No',
+                            'value' => $client->getFsi()
+                        ],
                     ];
 
                     continue;
                 }
 
                 $session['absentees'][] = [
-                    'id' => $client->getClientId(),
-                    'fsi' => $client->getFsi(),
-                    'type' => $client->getRole(),
-                    'client_type_id' => $clientTypes[strtoupper($client->getRole())],
-                    'client_remarks_id' => $client->getClientRemarksId(),
-                    'other_remarks' => $client->getOtherRemarks(),
-                    'remarks_date' => $client->getRemarksDate(),
+                    'type' => [
+                        'label' => $clientTypes[strtoupper($client->getRole())][1],
+                        'value' => $clientTypes[strtoupper($client->getRole())][0]
+                    ],
+                    'id' => [
+                        'label' => $clientNames[$client->getClientId()],
+                        'value' => $client->getClientId()
+                    ],
+                    'fsi' => [
+                        'label' => $client->getFsi() ? 'Yes' : 'No',
+                        'value' => $client->getFsi()
+                    ],
+                    'remarks' => [
+                        'label' => $clientRemarks[$client->getClientRemarksId()],
+                        'value' => $client->getClientRemarksId()
+                    ],
+                    'otherRemarks' => ['value' => $client->getOtherRemarks()],
+                    'remarksDate' => ['value' => $client->getRemarksDate()],
                 ];
             }
             $session['facilitators'] = $this->resourceFacilitatorSessionRepository->listBySessionId($id);
@@ -598,15 +622,48 @@ class SessionsRepository extends ServiceEntityRepository
     }
 
     /**
-     * @return array<string, int>
+     * @return array<string, mixed>
      */
-    private function getAllClientTypesId(): array
+    private function getAllClientTypes(): array
     {
         $data = [];
         $clientTypes = $this->clientTypesRepository->findAll();
 
         foreach ($clientTypes as $clientType) {
-            $data[strtoupper($clientType->getCode())] = $clientType->getClientTypeId();
+            $data[strtoupper($clientType->getCode())] = [
+                $clientType->getClientTypeId(),
+                $clientType->getDescription()
+            ];
+        }
+
+        return $data;
+    }
+
+    /**
+     * @return array<int, string>
+     */
+    private function geClientNames(): array
+    {
+        $data = [];
+
+        $clients = $this->clientsRepository->findAll();
+        foreach ($clients as $client) {
+            $data[$client->getClientId()] = $client->getLastName() . ', ' . $client->getLastName() . ' ' . $client->getLastName();
+        }
+
+        return $data;
+    }
+
+    /**
+     * @return array<int, string>
+     */
+    private function geClientRemarks(): array
+    {
+        $data = [];
+
+        $clientRemarks = $this->clientRemarksRepository->findAll();
+        foreach ($clientRemarks as $clientRemark) {
+            $data[$clientRemark->getClientRemarksId()] = $clientRemark->getName();
         }
 
         return $data;
