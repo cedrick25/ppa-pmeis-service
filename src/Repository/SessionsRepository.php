@@ -648,7 +648,7 @@ class SessionsRepository extends ServiceEntityRepository
 
         $clients = $this->clientsRepository->findAll();
         foreach ($clients as $client) {
-            $data[$client->getClientId()] = $client->getLastName() . ', ' . $client->getLastName() . ' ' . $client->getLastName();
+            $data[$client->getClientId()] = $client->getLastName() . ', ' . $client->getFirstName() . ' ' . $client->getMiddleName();
         }
 
         return $data;
