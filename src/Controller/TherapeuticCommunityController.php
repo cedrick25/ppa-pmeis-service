@@ -665,11 +665,14 @@ class TherapeuticCommunityController extends AbstractController
     }
 
     /**
-     * @Route("/client/list/{fieldOfficeId}", methods={"GET"})
+     * @Route("/client/list/{fieldOfficeId}/{clientType}", methods={"GET"})
      */
     public function getAllByFieldOffice(Request $request): Response
     {
-        return $this->json($this->clientService->getAllByFieldOffice((int) $request->get("fieldOfficeId")));
+        return $this->json($this->clientService->getAllByFieldOffice(
+            (int) $request->get("fieldOfficeId"),
+            (int) $request->get("clientType")
+        ));
     }
 
     /**

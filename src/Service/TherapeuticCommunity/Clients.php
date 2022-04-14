@@ -60,10 +60,10 @@ class Clients implements ClientsInterface
         }
     }
 
-    public function getAllByFieldOffice(int $listByFieldOffice): array
+    public function getAllByFieldOffice(int $listByFieldOffice, int $clientTypeId): array
     {
         try {
-            $clients = $this->repository->listByFieldOffice($listByFieldOffice);
+            $clients = $this->repository->listByFieldOffice($listByFieldOffice, $clientTypeId);
 
             if ($clients == null) {
                 return $this->appFormatter->formatResponse(ResponseEnum::NO_DATA, null);

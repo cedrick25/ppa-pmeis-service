@@ -110,14 +110,14 @@ class ClientsRepository extends ServiceEntityRepository
      * @throws CacheException
      * @throws InvalidArgumentException
      */
-    public function listByFieldOffice(int $fieldOfficeId): ?array
+    public function listByFieldOffice(int $fieldOfficeId, int $clientTypeId): ?array
     {
         $params = [
             'cacheKey' => $this->cacheHelper->getAllClientsByFieldOfficeKey($fieldOfficeId),
             'cacheTag' => self::CACHE_TAG
         ];
 
-        return $this->helper->createCachedResponseCustomQuery($params, function() use($fieldOfficeId) {
+        return $this->helper->createCachedResponseCustomQuery($params, function() use($fieldOfficeId, $clientTypeId) {
             $conn = $this->getEntityManager()->getConnection();
 
             $sql = "SELECT c.*, ct.code as client_type_code, ct.description as client_type_description, fo.name as field_office_name,
@@ -125,7 +125,9 @@ class ClientsRepository extends ServiceEntityRepository
                  LEFT JOIN client_types as ct ON c.client_type_id = ct.client_type_id
                  LEFT JOIN field_offices as fo ON c.field_office_id = fo.field_office_id
                  LEFT JOIN regions as rg ON fo.region_id = rg.region_id
-                 WHERE c.field_office_id = $fieldOfficeId AND c.deleted_at IS NULL ORDER BY c.client_id DESC";
+                 WHERE c.field_office_id = $fieldOfficeId
+                   AND c.client_type_id = $clientTypeId
+                   AND c.deleted_at IS NULL ORDER BY c.client_id DESC";
             $stmt = $conn->prepare($sql);
             $query = $stmt->executeQuery();
 
