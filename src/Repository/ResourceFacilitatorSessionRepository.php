@@ -7,6 +7,8 @@ namespace App\Repository;
 use App\Common\AppDateHelper;
 use App\Common\CacheHelper;
 use App\Entity\ResourceFacilitatorSession;
+use App\Entity\UserDetails;
+use App\Entity\Volunteer;
 use App\Enum\Response as ResponseEnum;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\DBAL\Connection;
@@ -17,7 +19,6 @@ use Doctrine\Persistence\Mapping\MappingException;
 use Exception;
 use Psr\Cache\CacheException;
 use Psr\Cache\InvalidArgumentException;
-use App\Enum\ResourceFacilitatorType;
 use Symfony\Contracts\Cache\TagAwareCacheInterface;
 
 /**
@@ -35,7 +36,8 @@ class ResourceFacilitatorSessionRepository extends ServiceEntityRepository
         private TagAwareCacheInterface $cache,
         private CacheHelper            $cacheHelper,
         private Helper                 $helper,
-        private QuartersRepository     $quartersRepository,
+        private VolunteerRepository    $volunteerRepository,
+        private UserDetailsRepository  $userDetailsRepository,
         private AppDateHelper          $appDateHelper,
     ){
         parent::__construct($registry, ResourceFacilitatorSession::class);
@@ -138,36 +140,45 @@ class ResourceFacilitatorSessionRepository extends ServiceEntityRepository
      */
     public function listBySessionId(int $id): array
     {
+        $users = $this->getUserNames();
+        $volunteers = $this->getVolunteerNames();
         $params = [
             'cacheKey' => $this->cacheHelper->getAllResourceFacilitatorSessionsBySessionIdKey($id),
             'expiration' => $this->cacheHelper->getExpirationDateTime(),
             'cacheTag' => self::CACHE_TAG
         ];
 
-        return $this->helper->createCachedResponse($params, function() use ($id) {
+        return $this->helper->createCachedResponse($params, function() use ($users, $volunteers, $id) {
             $data = [];
 
+            /** @var ResourceFacilitatorSession[] $facilitators */
             $facilitators = $this->createQueryBuilder('rfs')
                 ->where('rfs.sessionId = :id')
                 ->setParameter('id', $id)
                 ->orderBy('rfs.resourceFacilitatorSessionId', 'DESC')
                 ->getQuery()
-                ->getArrayResult();
+                ->getResult();
 
             foreach ($facilitators as $facilitator) {
-                if (!isset($data[$facilitator['resourceFacilitatorType']])) {
-                    $data[$facilitator['resourceFacilitatorType']] = [
-                        'resource_facilitator_id' => $facilitator['resourceFacilitatorId'],
-                        'resource_facilitator_session_id' => $facilitator['resourceFacilitatorSessionId'],
-                        'erp_name' => $facilitator['erpName'],
-                    ];
-                    continue;
+                $name = "";
+
+                switch ($facilitator->getResourceFacilitatorType()) {
+                    case 'ERP':
+                        $name = $facilitator->getErpName();
+                        break;
+                    case 'PPO':
+                        $name = $users[$facilitator->getResourceFacilitatorId()];
+                        break;
+                    case 'VPA':
+                        $name = $volunteers[$facilitator->getResourceFacilitatorId()];
+                        break;
                 }
 
-                $data[$facilitator['resourceFacilitatorType']][] = [
-                    'resource_facilitator_id' => $facilitator['resourceFacilitatorId'],
-                    'resource_facilitator_session_id' => $facilitator['resourceFacilitatorSessionId'],
-                    'erp_name' => $facilitator['erpName'],
+                $data[] = [
+                    'id' => $facilitator->getResourceFacilitatorId(),
+                    'name' => $name,
+                    'role' => $facilitator->getRole(),
+                    'type' => $facilitator->getResourceFacilitatorType(),
                 ];
             }
 
@@ -364,5 +375,35 @@ class ResourceFacilitatorSessionRepository extends ServiceEntityRepository
         }
 
         return false;
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    private function getUserNames(): array
+    {
+        $data = [];
+
+        $userDetails = $this->userDetailsRepository->findAll();
+        foreach ($userDetails as $userDetail) {
+            $data[$userDetail->getUserAccountId()] = $userDetail->getFirstName() . ' ' . $userDetail->getMiddleName() . ' ' . $userDetail->getLastName();
+        }
+
+        return $data;
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    private function getVolunteerNames(): array
+    {
+        $data = [];
+
+        $volunteers = $this->volunteerRepository->findAll();
+        foreach ($volunteers as $volunteer) {
+            $data[$volunteer->getVolunteerId()] = $volunteer->getFirstName() . ' ' . $volunteer->getMiddleName() . ' ' . $volunteer->getLastName();
+        }
+
+        return $data;
     }
 }

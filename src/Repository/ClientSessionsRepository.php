@@ -153,7 +153,7 @@ class ClientSessionsRepository extends ServiceEntityRepository
     }
 
     /**
-     * @return array<string, mixed>
+     * @return ClientSessions[]
      * @throws CacheException
      * @throws InvalidArgumentException
      */
@@ -166,35 +166,12 @@ class ClientSessionsRepository extends ServiceEntityRepository
         ];
 
         return $this->helper->createCachedResponse($params, function() use ($id) {
-            $data = [];
-
-            $clientSessions = $this->createQueryBuilder('cs')
-                ->select('cs.clientSessionId, cs.clientRemarksId, cs.role, cs.clientId')
+            return $this->createQueryBuilder('cs')
                 ->where('cs.sessionId = :id')
                 ->setParameter('id', $id)
                 ->orderBy('cs.clientSessionId', 'DESC')
                 ->getQuery()
-                ->getArrayResult();
-
-            foreach ($clientSessions as $clientSession) {
-                if (!isset($data[$clientSession['role']])) {
-                    $data[$clientSession['role']] = [
-                        $clientSession['clientId'],
-                        $clientSession['clientRemarksId'],
-                        $clientSession['clientSessionId'],
-                    ];
-
-                    continue;
-                }
-
-                $data[$clientSession['role']][] = [
-                    $clientSession['clientId'],
-                    $clientSession['clientRemarksId'],
-                    $clientSession['clientSessionId'],
-                ];
-            }
-
-            return $data;
+                ->getResult();
         });
     }
 
