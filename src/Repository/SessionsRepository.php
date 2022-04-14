@@ -606,7 +606,7 @@ class SessionsRepository extends ServiceEntityRepository
         $clientTypes = $this->clientTypesRepository->findAll();
 
         foreach ($clientTypes as $clientType) {
-            $data[$clientType->getCode()] = $clientType->getClientTypeId();
+            $data[strtoupper($clientType->getCode())] = $clientType->getClientTypeId();
         }
 
         return $data;
