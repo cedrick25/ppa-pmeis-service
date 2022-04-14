@@ -325,7 +325,7 @@ class SessionsRepository extends ServiceEntityRepository
         $this->getEntityManager()->flush();
 
         $this->clientSessionsRepository->deleteBySessionId($session->getSessionId());
-        $this->clientSessionsRepository->batchCreate($session->getSessionId(), $sessionData->getFacilitators());
+        $this->clientSessionsRepository->batchCreate($session->getSessionId(), $sessionData->getAttendees());
         $this->clientSessionsRepository->batchCreateAbsentees($session->getSessionId(), $sessionData->getAbsentees());
 
         $this->resourceFacilitatorSessionRepository->deleteBySessionId($session->getSessionId());
