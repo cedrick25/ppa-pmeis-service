@@ -429,9 +429,8 @@ class SessionsRepository extends ServiceEntityRepository
                 if (null === $client->getClientRemarksId()) {
                     $session['absentees'][] =  [
                         'id' => $client->getClientId(),
-                        'client_session_id' => $client->getClientSessionId(),
-                        'otherRemarks' => $client->getOtherRemarks(),
-                        'remarksDate' => $client->getRemarksDate(),
+                        'other_remarks' => $client->getOtherRemarks(),
+                        'remarks_date' => $client->getRemarksDate(),
                         'type' => $client->getRole(),
                     ];
 
@@ -441,6 +440,7 @@ class SessionsRepository extends ServiceEntityRepository
                 $session['attendees'][] = [
                     'fsi' => $client->getFsi(),
                     'id' => $client->getClientId(),
+                    'client_remarks_id' => $client->getClientRemarksId(),
                     'type' => $client->getRole(),
                 ];
             }
