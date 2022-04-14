@@ -410,7 +410,7 @@ class ClientSessionsRepository extends ServiceEntityRepository
             'Pardonees' => 'PD',
             'FTMDOs' => 'FTMDO',
             'Petitioners' => 'PET',
-            'Terminated' => 'Term',
+            'Terminated' => 'TERM',
             'JICLs' => 'JICL'
         ];
 
