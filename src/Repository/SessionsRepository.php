@@ -470,8 +470,8 @@ class SessionsRepository extends ServiceEntityRepository
                         'label' => $clientRemarks[$client->getClientRemarksId()],
                         'value' => $client->getClientRemarksId()
                     ],
-                    'otherRemarks' => ['value' => $client->getOtherRemarks()],
-                    'remarksDate' => ['value' => $client->getRemarksDate()],
+                    'otherRemarks' => $client->getOtherRemarks(),
+                    'remarksDate' => $client->getRemarksDate(),
                 ];
             }
             $session['facilitators'] = $this->resourceFacilitatorSessionRepository->listBySessionId($id);
