@@ -150,7 +150,9 @@ class Quarters implements QuartersInterface
             $fsgNumbers = $this->getFsgNumbersBySessionId($sessionsIds);
 
             $sessions = array_map(function(array $session) use($fsgNumbers) {
-                $session['fsg'] = $fsgNumbers[$session['session_id']];
+                if (isset($fsgNumbers[$session['session_id']])) {
+                    $session['fsg'] = $fsgNumbers[$session['session_id']];
+                }
 
                 return $session;
             }, $sessions);
