@@ -157,9 +157,9 @@ class CacheHelper
         return 'clients_all';
     }
 
-    public function getAllClientsByFieldOfficeKey(int $fieldOfficeId): string
+    public function getAllClientsByFieldOfficeKeyAndClientTypeId(int $fieldOfficeId, int $clientTypeId): string
     {
-        return 'clients_all_by_field_office_' . $fieldOfficeId;
+        return 'clients_all_by_field_office_' . $fieldOfficeId . '_' . $clientTypeId;
     }
 
     public function getClientsPaginatedKey(int $page, int $size): string

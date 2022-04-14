@@ -113,7 +113,7 @@ class ClientsRepository extends ServiceEntityRepository
     public function listByFieldOffice(int $fieldOfficeId, int $clientTypeId): ?array
     {
         $params = [
-            'cacheKey' => $this->cacheHelper->getAllClientsByFieldOfficeKey($fieldOfficeId),
+            'cacheKey' => $this->cacheHelper->getAllClientsByFieldOfficeKeyAndClientTypeId($fieldOfficeId, $clientTypeId),
             'cacheTag' => self::CACHE_TAG
         ];
 
