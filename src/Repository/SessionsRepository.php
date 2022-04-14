@@ -39,6 +39,7 @@ class SessionsRepository extends ServiceEntityRepository
         private ClientSessionsRepository $clientSessionsRepository,
         private ResourceFacilitatorSessionRepository $resourceFacilitatorSessionRepository,
         private QuartersRepository $quartersRepository,
+        private ClientTypesRepository $clientTypesRepository,
     ){
         parent::__construct($registry, Sessions::class);
     }
@@ -399,12 +400,13 @@ class SessionsRepository extends ServiceEntityRepository
      */
     public function fetchById(int $id): ?array
     {
+        $clientTypes = $this->getAllClientTypesId();
         $params = [
             'cacheKey' => $this->cacheHelper->getSessionsById($id),
             'cacheTag' => self::CACHE_TAG
         ];
 
-        return $this->helper->createCachedResponseCustomQuery($params, function() use ($id) {
+        return $this->helper->createCachedResponseCustomQuery($params, function() use ($clientTypes, $id) {
             $conn = $this->getEntityManager()->getConnection();
 
             $sql = "SELECT se.*, sr.name as remarks, MONTH(se.date) as quarter_month, YEAR(se.date) as quarter_year, fe.name as field_office_name,
@@ -425,6 +427,7 @@ class SessionsRepository extends ServiceEntityRepository
 
             $session['quarter_name'] = $this->appDateHelper->getQuarterByMonth(intval($session['quarter_month']));
             $clients = $this->clientSessionsRepository->listBySessionId($id);
+
             foreach ($clients as $client) {
                 if (null === $client->getClientRemarksId()) {
                     $session['absentees'][] =  [
@@ -432,6 +435,7 @@ class SessionsRepository extends ServiceEntityRepository
                         'other_remarks' => $client->getOtherRemarks(),
                         'remarks_date' => $client->getRemarksDate(),
                         'type' => $client->getRole(),
+                        'client_type_id' => $clientTypes[strtoupper($client->getRole())],
                     ];
 
                     continue;
@@ -442,6 +446,7 @@ class SessionsRepository extends ServiceEntityRepository
                     'id' => $client->getClientId(),
                     'client_remarks_id' => $client->getClientRemarksId(),
                     'type' => $client->getRole(),
+                    'client_type_id' => $clientTypes[strtoupper($client->getRole())],
                 ];
             }
             $session['facilitators'] = $this->resourceFacilitatorSessionRepository->listBySessionId($id);
@@ -589,5 +594,20 @@ class SessionsRepository extends ServiceEntityRepository
         $query = $stmt->executeQuery();
 
         return $query->fetchAllAssociative();
+    }
+
+    /**
+     * @return array<string, int>
+     */
+    private function getAllClientTypesId(): array
+    {
+        $data = [];
+        $clientTypes = $this->clientTypesRepository->findAll();
+
+        foreach ($clientTypes as $clientType) {
+            $data[$clientType->getCode()] = $clientType->getClientTypeId();
+        }
+
+        return $data;
     }
 }
