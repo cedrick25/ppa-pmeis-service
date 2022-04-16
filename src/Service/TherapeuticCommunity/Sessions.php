@@ -203,7 +203,7 @@ class Sessions implements SessionsInterface
          * Session activities from selected quarter and previous quarter in the same year
          */
         try {
-            $sessions = $this->repository->fetchTCIA2($quarterId, $fieldOfficeId, $role);
+            $sessions = $this->repository->fetchTCIA2($quarterId, $fieldOfficeId, strtoupper($role));
 
             if ($sessions == null) {
                 return $this->appFormatter->formatResponse(ResponseEnum::NO_DATA, null);
