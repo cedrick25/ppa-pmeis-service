@@ -268,6 +268,10 @@ class QuartersRepository extends ServiceEntityRepository
             $erpFacilitators = [];
             $resourcePeopleId = [];
             $sessions = $this->getSessionDataByQuarterAndFieldOfficeId($quarterId, $fieldOfficeId);
+            if (count($sessions) < 1) {
+                return [];
+            }
+
             $sessionsIds = array_map(fn(array $session) => intval($session['session_id']), $sessions);
             $resourceFacilitators = $this->getResourceFacilitatorIds($sessionsIds);
 
