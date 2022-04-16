@@ -289,8 +289,12 @@ class QuartersRepository extends ServiceEntityRepository
             }
 
             foreach ($sessions as $session) {
-                $session['vpa_resource_person'] = $this->getVpaResourcePeople($resourcePeopleId['VPA'][$session['session_id']]);
-                $session['ppo_resource_person'] = $this->getPpoResourcePeople($resourcePeopleId['PPO'][$session['session_id']]);
+                if (isset($resourcePeopleId['VPA'])) {
+                    $session['vpa_resource_person'] = $this->getVpaResourcePeople($resourcePeopleId['VPA'][$session['session_id']]);
+                }
+                if (isset($resourcePeopleId['PPO'])) {
+                    $session['ppo_resource_person'] = $this->getPpoResourcePeople($resourcePeopleId['PPO'][$session['session_id']]);
+                }
                 $session['erp_resource_person'] = $erpFacilitators[$session['session_id']];
                 $session['count'] = $this->getClientSessionCount($quarterId, intval($session['session_id']));
                 $data[$session['session_id']] = $session;
