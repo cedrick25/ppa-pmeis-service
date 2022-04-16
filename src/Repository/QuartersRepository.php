@@ -366,7 +366,7 @@ class QuartersRepository extends ServiceEntityRepository
     {
         $conn = $this->getEntityManager()->getConnection();
         $sessionIds = implode(',', $sessionIds);
-        $sql = "SELECT rfs.*  FROM resource_facilitator_session as rfs WHERE rfs.session_id IN ($sessionIds)";
+        $sql = "SELECT * FROM resource_facilitator_session WHERE session_id IN ($sessionIds)";
         $stmt = $conn->prepare($sql);
         $query = $stmt->executeQuery();
 
