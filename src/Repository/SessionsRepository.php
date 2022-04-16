@@ -203,10 +203,13 @@ class SessionsRepository extends ServiceEntityRepository
     }
 
     /**
-     * @throws OptimisticLockException
-     * @throws \Psr\Cache\InvalidArgumentException
+     * @param int $id
+     * @return bool
      * @throws ORMException
-     * @throws NonUniqueResultException
+     * @throws OptimisticLockException
+     * @throws \Doctrine\DBAL\Driver\Exception
+     * @throws \Doctrine\DBAL\Exception
+     * @throws \Psr\Cache\InvalidArgumentException
      */
     public function delete(int $id): bool
     {
@@ -215,10 +218,10 @@ class SessionsRepository extends ServiceEntityRepository
         if (! $session) {
             return false;
         }
-
-        // TODO: check if existing in client sessions, resource facilitator sessions
-
         $this->cache->invalidateTags([self::CACHE_TAG]);
+
+        $this->resourceFacilitatorSessionRepository->deleteBySessionId($id);
+        $this->clientSessionsRepository->deleteBySessionId($id);
 
         $this->getEntityManager()->remove($session);
         $this->getEntityManager()->flush();

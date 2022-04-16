@@ -115,7 +115,7 @@ class Sessions implements SessionsInterface
     public function deleteById(int $id): array
     {
         try {
-            $isDeleted = $this->repository->softDelete($id);
+            $isDeleted = $this->repository->delete($id);
 
             if (! $isDeleted) {
                 return $this->appFormatter->formatResponse(ResponseEnum::DELETING_FAILED, null, ['app' => ResponseEnum::NO_DATA]);
@@ -124,7 +124,7 @@ class Sessions implements SessionsInterface
             return $this->appFormatter->formatResponse(ResponseEnum::DELETING_SUCCESS, null);
         } catch (\Psr\Cache\InvalidArgumentException $exception) {
             return $this->appFormatter->formatResponse(ResponseEnum::DELETING_FAILED, null, ['cache' => $exception->getMessage()]);
-        } catch (Exception $exception) {
+        } catch (\Doctrine\DBAL\Driver\Exception | Exception $exception) {
             return $this->appFormatter->formatResponse(ResponseEnum::DELETING_FAILED, null, ['orm' => $exception->getMessage()]);
         }
     }
