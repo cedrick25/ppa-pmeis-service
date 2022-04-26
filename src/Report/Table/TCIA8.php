@@ -218,9 +218,7 @@ class TCIA8 implements Form
             $fullName = $row['last_name'] . ', ' . $row['first_name'] . ' ' . $middleInitial;
 
             $spreadsheet->getActiveSheet()->setCellValue("A" . $this->lastFilledOutCellY, $rowNumber);
-            if (isset($row['docket_number'])) {
-                $spreadsheet->getActiveSheet()->setCellValue("B" . $this->lastFilledOutCellY, $row['docket_number']);
-            }
+            $spreadsheet->getActiveSheet()->setCellValue("B" . $this->lastFilledOutCellY, $row['docket_number'] ?? '');
             $spreadsheet->getActiveSheet()->setCellValue("C" . $this->lastFilledOutCellY, $fullName);
 
             if ($row['gender'] === 'F') {

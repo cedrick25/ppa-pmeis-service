@@ -19,7 +19,7 @@ final class Version20220110150622 extends AbstractMigration
             . "('PR', 'Parolees'),"
             . "('PD', 'Pardonees'),"
             . "('JICL', 'JICLs'),"
-            . "('FTMDC', 'FTMDOs'),"
+            . "('FTMDO', 'FTMDOs'),"
             . "('Pet', 'Petitioners'),"
             . "('Term', 'Terminated')"
         );

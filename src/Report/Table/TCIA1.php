@@ -6,6 +6,7 @@ namespace App\Report\Table;
 
 use App\Repository\FieldOfficesRepository;
 use App\Repository\TreatmentCategoriesRepository;
+use App\Service\TherapeuticCommunity\QuartersInterface;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Style\Border;
 use PhpOffice\PhpSpreadsheet\Writer\Exception;
@@ -25,6 +26,7 @@ class TCIA1 implements Form
     public function __construct(
         private FieldOfficesRepository $fieldOfficesRepository,
         private TreatmentCategoriesRepository $treatmentCategoriesRepository,
+        private QuartersInterface $quartersService,
         private int $lastFilledOutCellY = 14,
         private array $data = [],
     ){}
@@ -42,7 +44,7 @@ class TCIA1 implements Form
      */
     public function generate(array $data): BinaryFileResponse
     {
-        $this->data = $data;
+        $this->data = $this->getData($data);
 
         $spreadsheet = $this->footer();
         $writer = IOFactory::createWriter($spreadsheet, "Xlsx");
@@ -404,5 +406,22 @@ class TCIA1 implements Form
         }
 
         return $spreadsheet;
+    }
+
+    private function getData(array $data): array
+    {
+        $result = [];
+
+        $part1 = $this->quartersService->getTCA1Part1(
+            (int) $data['id'],
+            (int) $data['field_office_id']
+        );
+
+        $part2 = $this->quartersService->getTCA1Part2(
+            (int) $data['id'],
+            (int) $data['field_office_id']
+        );
+
+        return $result;
     }
 }
