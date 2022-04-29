@@ -36,6 +36,7 @@ class ClientSessionsRepository extends ServiceEntityRepository
         private CacheHelper $cacheHelper,
         private Helper $helper,
         private AppDateHelper $appDateHelper,
+        private ClientsRepository $clientsRepository,
     ){
         parent::__construct($registry, ClientSessions::class);
     }
@@ -75,15 +76,19 @@ class ClientSessionsRepository extends ServiceEntityRepository
      */
     public function batchCreate(int $sessionId, array $attendees): void
     {
+        $clientIds = [];
         foreach ($attendees as $attendee) {
             $clientSession = new ClientSessions();
             $clientSession->setSessionId($sessionId);
             $clientSession->setClientId($attendee['id']['value']);
             $clientSession->setRole($this->convertClientRole($attendee['type']['label']));
             $clientSession->setFsi($attendee['fsi']['value']);
+            $clientIds[] = intval($attendee['id']['value']);
 
             $this->getEntityManager()->persist($clientSession);
         }
+
+        $this->clientsRepository->batchDateUpdate($clientIds);
 
         $this->getEntityManager()->flush();
         $this->getEntityManager()->clear(ClientSessions::class);
@@ -101,6 +106,7 @@ class ClientSessionsRepository extends ServiceEntityRepository
      */
     public function batchCreateAbsentees(int $sessionId, array $absentees): void
     {
+        $clientIds = [];
         foreach ($absentees as $absentee) {
             $clientSession = new ClientSessions();
             $clientSession->setSessionId($sessionId);
@@ -109,9 +115,12 @@ class ClientSessionsRepository extends ServiceEntityRepository
             $clientSession->setClientRemarksId($absentee['remarks']['value']);
             $clientSession->setRemarksDate($this->appDateHelper->convertStringToImmutableDate($absentee['remarksDate']));
             $clientSession->setOtherRemarks($absentee['otherRemarks']);
+            $clientIds[] = intval($absentee['id']['value']);
 
             $this->getEntityManager()->persist($clientSession);
         }
+
+        $this->clientsRepository->batchDateUpdate($clientIds);
 
         $this->getEntityManager()->flush();
         $this->getEntityManager()->clear(ClientSessions::class);

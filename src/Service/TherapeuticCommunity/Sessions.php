@@ -327,11 +327,11 @@ class Sessions implements SessionsInterface
         $clients = $this->clientsRepository->findBySupervisionPeriodDateRange($previousQuarterDates, 'END', $fieldOfficeId, $clientRemarksId);
 
         foreach ($clients as $client) {
-            if (! isset($result[$client->getClientTypeId()])) {
-                $result[$client->getClientTypeId()] = 0;
+            if (! isset($result[$client['client_type_id']])) {
+                $result[$client['client_type_id']] = 0;
             }
 
-            $result[$client->getClientTypeId()]++;
+            $result[$client['client_type_id']]++;
         }
 
         return $result;
@@ -342,6 +342,8 @@ class Sessions implements SessionsInterface
      * @param int $fieldOfficeId
      * @param int|null $clientRemarksId
      * @return int[][]
+     * @throws \Doctrine\DBAL\Driver\Exception
+     * @throws \Doctrine\DBAL\Exception
      */
     private function getSupervisionReferrals(\App\Entity\Quarters $quarter, int $fieldOfficeId, ?int $clientRemarksId = null): array
     {
@@ -358,13 +360,14 @@ class Sessions implements SessionsInterface
         $clients = $this->clientsRepository->findBySupervisionPeriodDateRange($quarterMinMaxDate, 'START', $fieldOfficeId, $clientRemarksId);
 
         foreach ($clients as $client) {
-            $supervisionMonth = intval($client->getSupervisionStart()->format('m'));
+            $supervisionStart = $this->appDateHelper->convertStringToImmutableDate($client['supervision_start']);
+            $supervisionMonth = intval($supervisionStart->format('m'));
 
-            if (! isset($result[$supervisionMonth][$client->getClientTypeId()])) {
-                $result[$supervisionMonth][$client->getClientTypeId()] = 0;
+            if (! isset($result[$supervisionMonth][$client['client_type_id']])) {
+                $result[$supervisionMonth][$client['client_type_id']] = 0;
             }
 
-            $result[$supervisionMonth][$client->getClientTypeId()]++;
+            $result[$supervisionMonth][$client['client_type_id']]++;
         }
 
         return $result;
@@ -391,13 +394,14 @@ class Sessions implements SessionsInterface
             ->findSupervisionCasesDropBySupervisionPeriodEndDateRange($quarterMinMaxDate,  $fieldOfficeId);
 
         foreach ($clients as $client) {
-            $supervisionMonth = intval($client->getSupervisionStart()->format('m'));
+            $supervisionStart = $this->appDateHelper->convertStringToImmutableDate($client['supervision_start']);
+            $supervisionMonth = intval($supervisionStart->format('m'));
 
-            if (! isset($result[$supervisionMonth][$client->getClientTypeId()])) {
-                $result[$supervisionMonth][$client->getClientTypeId()] = 0;
+            if (! isset($result[$supervisionMonth][$client['client_type_id']])) {
+                $result[$supervisionMonth][$client['client_type_id']] = 0;
             }
 
-            $result[$supervisionMonth][$client->getClientTypeId()]++;
+            $result[$supervisionMonth][$client['client_type_id']]++;
         }
 
         return $result;
@@ -502,15 +506,17 @@ class Sessions implements SessionsInterface
         $sessionClientIds = array_map(fn($client) => $client['client_id'], $sessionClients);
 
         foreach ($clients as $client) {
-            if (in_array($client->getClientId(), $sessionClientIds)) {
+            $clientRemarksId = $client['client_remarks_id'];
+            $clientTypeId = $client['client_type_id'];
+            if (in_array($client['client_id'], $sessionClientIds)) {
                 continue;
             }
 
-            if (! isset( $result[$client->getClientRemarksId()][$client->getClientTypeId()] )) {
-                $result[$client->getClientRemarksId()][$client->getClientTypeId()] = 0;
+            if (! isset( $result[$clientRemarksId][$clientTypeId] )) {
+                $result[$clientRemarksId][$clientTypeId] = 0;
             }
 
-            $result[$client->getClientRemarksId()][$client->getClientTypeId()]++;
+            $result[$clientRemarksId][$clientTypeId]++;
         }
 
         return $result;
@@ -524,7 +530,7 @@ class Sessions implements SessionsInterface
     {
         $result = [];
 
-        foreach ($less as $clientRemarksId=>$les) {
+        foreach ($less as $les) {
             foreach ($les as $clientTypeId=>$score) {
                 if (! isset($result[$clientTypeId])) {
                     $result[$clientTypeId] = 0;

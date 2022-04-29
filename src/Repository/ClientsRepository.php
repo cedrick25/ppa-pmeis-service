@@ -70,6 +70,7 @@ class ClientsRepository extends ServiceEntityRepository
         $newClient->setSupervisionEnd($this->appDateHelper->convertStringToImmutableDate($clientData->getSupervisionEnd()));
         $newClient->setClientRemarksId($clientData->getClientRemarksId());
         $newClient->setCreatedAt($this->appDateHelper->getCurrentImmutableDate());
+        $newClient->setUpdatedAt($this->appDateHelper->getCurrentImmutableDate());
 
         $this->getEntityManager()->persist($newClient);
         $this->getEntityManager()->flush();
@@ -326,54 +327,80 @@ class ClientsRepository extends ServiceEntityRepository
      * @param string $direction
      * @param int $fieldOfficeId
      * @param int|null $clientRemarksId
-     * @return Clients[]
+     * @return array<int, array<string, mixed>>
+     * @throws \Doctrine\DBAL\Driver\Exception
+     * @throws \Doctrine\DBAL\Exception
      */
     public function findBySupervisionPeriodDateRange(array $minMaxDate, string $direction, int $fieldOfficeId, ?int $clientRemarksId): array
     {
-        $supervisionDirection = (strtoupper($direction) === 'END') ? 'supervisionEnd' : 'supervisionStart';
-        $predicate = "c.$supervisionDirection BETWEEN CAST(:minDate AS DATE) AND CAST(:maxDate AS DATE)";
-        $clientRemarksIdWhere = ($clientRemarksId === null) ? "c.clientRemarksId IS NULL" : "c.clientRemarksId = $clientRemarksId";
+        $supervisionDirection = (strtoupper($direction) === 'END') ? 'supervision_end' : 'supervision_start';
+        $predicate = 'c.'.$supervisionDirection.' BETWEEN CAST("'.$minMaxDate['min'].'" AS DATE) AND CAST("'.$minMaxDate['max'].'" AS DATE)';
+        $clientRemarksIdWhere = ($clientRemarksId === null) ? "cs.client_remarks_id IS NULL" : "cs.client_remarks_id = $clientRemarksId";
 
-        return $this->createQueryBuilder('c')
-            ->where($predicate)
-            ->andWhere('c.fieldOfficeId = :fieldOfficeId')
-            ->andWhere($clientRemarksIdWhere)
-            ->andWhere('c.deletedAt IS NULL')
-            ->setParameter('fieldOfficeId', $fieldOfficeId)
-            ->setParameter('minDate', $minMaxDate['min'], 'string')
-            ->setParameter('maxDate', $minMaxDate['max'], 'string')
-            ->getQuery()
-            ->getResult();
+        $conn = $this->getEntityManager()->getConnection();
+        $sql = "SELECT c.client_type_id, c.supervision_start, c.supervision_end FROM client_sessions as cs
+                LEFT JOIN clients c on cs.client_id = c.client_id
+                WHERE $predicate AND c.field_office_id = $fieldOfficeId
+                AND c.deleted_at IS NULL AND $clientRemarksIdWhere";
+
+        $stmt = $conn->prepare($sql);
+        $query = $stmt->executeQuery();
+
+        return $query->fetchAllAssociative();
     }
 
     public function findSupervisionCasesDropBySupervisionPeriodEndDateRange(array $minMaxDate, int $fieldOfficeId): array
     {
-        return $this->createQueryBuilder('c')
-            ->where('c.updatedAt BETWEEN CAST(:minDate AS DATE) AND CAST(:maxDate AS DATE)')
-            ->andWhere('c.fieldOfficeId = :fieldOfficeId')
-            ->andWhere('c.clientRemarksId = 2 OR c.clientRemarksId = 3 OR c.clientRemarksId = 5')
-            ->andWhere('c.deletedAt IS NULL')
-            ->setParameter('fieldOfficeId', $fieldOfficeId)
-            ->setParameter('minDate', $minMaxDate['min'], 'string')
-            ->setParameter('maxDate', $minMaxDate['max'], 'string')
-            ->getQuery()
-            ->getResult();
+        $predicate = 'c.updated_at BETWEEN CAST("'.$minMaxDate['min'].'" AS DATE) AND CAST("'.$minMaxDate['max'].'" AS DATE)';
+        $conn = $this->getEntityManager()->getConnection();
+        $sql = "SELECT c.client_type_id, c.supervision_start, c.supervision_end FROM client_sessions as cs
+                LEFT JOIN clients c on cs.client_id = c.client_id
+                WHERE (c.field_office_id = $fieldOfficeId AND $predicate AND cs.client_remarks_id = 2 AND c.deleted_at IS NULL)
+                   OR (c.field_office_id = $fieldOfficeId AND $predicate AND cs.client_remarks_id = 3 AND c.deleted_at IS NULL)
+                   OR (c.field_office_id = $fieldOfficeId AND $predicate AND cs.client_remarks_id = 5 AND c.deleted_at IS NULL)";
+
+        $stmt = $conn->prepare($sql);
+        $query = $stmt->executeQuery();
+
+        return $query->fetchAllAssociative();
     }
 
     public function findSupervisionCasesDropBySupervisionPeriodEndDateRangeLess(array $minMaxDate, int $fieldOfficeId): array
     {
-        return $this->createQueryBuilder('c')
-            ->where('c.updatedAt BETWEEN CAST(:minDate AS DATE) AND CAST(:maxDate AS DATE)')
-            ->andWhere('c.fieldOfficeId = :fieldOfficeId')
-            ->andWhere('c.clientRemarksId = 13 OR c.clientRemarksId = 7 OR c.clientRemarksId = 6 
-                        OR c.clientRemarksId = 7 OR c.clientRemarksId = 8 OR c.clientRemarksId = 9 OR c.clientRemarksId = 10
-                        OR c.clientRemarksId = 11 OR c.clientRemarksId = 12')
-            ->andWhere('c.deletedAt IS NULL')
-            ->setParameter('fieldOfficeId', $fieldOfficeId)
-            ->setParameter('minDate', $minMaxDate['min'], 'string')
-            ->setParameter('maxDate', $minMaxDate['max'], 'string')
-            ->getQuery()
-            ->getResult();
+        $predicate = 'c.updated_at BETWEEN CAST("'.$minMaxDate['min'].'" AS DATE) AND CAST("'.$minMaxDate['max'].'" AS DATE)';
+        $conn = $this->getEntityManager()->getConnection();
+        $sql = "SELECT c.client_id, c.client_type_id, cs.client_remarks_id, c.supervision_start, c.supervision_end FROM client_sessions as cs
+                LEFT JOIN clients c on cs.client_id = c.client_id
+                WHERE (c.field_office_id = $fieldOfficeId AND $predicate AND cs.client_remarks_id = 13 AND c.deleted_at IS NULL)
+                   OR (c.field_office_id = $fieldOfficeId AND $predicate AND cs.client_remarks_id = 7 AND c.deleted_at IS NULL)
+                   OR (c.field_office_id = $fieldOfficeId AND $predicate AND cs.client_remarks_id = 6 AND c.deleted_at IS NULL)
+                   OR (c.field_office_id = $fieldOfficeId AND $predicate AND cs.client_remarks_id = 8 AND c.deleted_at IS NULL)
+                   OR (c.field_office_id = $fieldOfficeId AND $predicate AND cs.client_remarks_id = 9 AND c.deleted_at IS NULL)
+                   OR (c.field_office_id = $fieldOfficeId AND $predicate AND cs.client_remarks_id = 10 AND c.deleted_at IS NULL)
+                   OR (c.field_office_id = $fieldOfficeId AND $predicate AND cs.client_remarks_id = 11 AND c.deleted_at IS NULL)
+                   OR (c.field_office_id = $fieldOfficeId AND $predicate AND cs.client_remarks_id = 12 AND c.deleted_at IS NULL)";
+
+        $stmt = $conn->prepare($sql);
+        $query = $stmt->executeQuery();
+
+        return $query->fetchAllAssociative();
+    }
+
+    /**
+     * @param int[] $ids
+     * @return void
+     * @throws \Doctrine\DBAL\Driver\Exception
+     * @throws \Doctrine\DBAL\Exception
+     */
+    public function batchDateUpdate(array $ids): void
+    {
+        $clientIds = implode(',', $ids);
+        $currentDate = $this->appDateHelper->getCurrentImmutableDate()->format('Y-m-d H:m:s');
+        $conn = $this->getEntityManager()->getConnection();
+        $sql = "UPDATE clients SET clients.updated_at = '$currentDate' WHERE clients.client_id IN ($clientIds)";
+        $stmt = $conn->prepare($sql);
+
+        $stmt->executeQuery();
     }
 
     private function isExisting(ClientModel $clientData): bool
