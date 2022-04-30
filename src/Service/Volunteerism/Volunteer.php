@@ -315,8 +315,8 @@ class Volunteer implements VolunteerInterface
 
         $quarterYear = intval($quarterData->getYear());
         $startOfQuarterVpa = $this->getStartOfQuarterVpa($quarterData, $fieldOfficeId);
-        $newAppointed = $this->getMonitoringByStatus($quarterYear, self::APPOINTED, $months, $activeVolunteers);
-        $reappointed = $this->getMonitoringByStatus($quarterYear, self::REAPPOINTED, $months, $activeVolunteers);
+        $newAppointed = $this->getMonitoringByStatus($quarterYear, self::APPOINTED, $months);
+        $reappointed = $this->getMonitoringByStatus($quarterYear, self::REAPPOINTED, $months);
         $dropped = $this->getDroppedVolunteers($quarterData, $fieldOfficeId);
         $totalNumberOfVpa = ($startOfQuarterVpa + $newAppointed) - $dropped;
         $inactive = $this->repository->findInactiveVolunteersByFieldOfficeAndMonthRangeV2(
@@ -446,7 +446,6 @@ class Volunteer implements VolunteerInterface
 
     /**
      * @param int[] $months
-     * @param \App\Entity\Volunteer[] $activeVolunteers
      * @throws \Doctrine\DBAL\Driver\Exception
      * @throws \Doctrine\DBAL\Exception
      */
@@ -454,23 +453,14 @@ class Volunteer implements VolunteerInterface
         int $year,
         string $status,
         array $months,
-        array $activeVolunteers,
     ): int {
         $newVolunteersId = $this->getVolunteersIdByStatus(
             $status,
             $year,
-            $months,
-            $activeVolunteers
+            $months
         );
 
-        $results = 0;
-        foreach ($activeVolunteers as $activeVolunteer) {
-            if (in_array($activeVolunteer->getVolunteerId(), $newVolunteersId)) {
-                $results++;
-            }
-        }
-
-        return $results;
+        return count($newVolunteersId);
     }
 
     private function getCivilStatuses(): array
@@ -521,33 +511,18 @@ class Volunteer implements VolunteerInterface
      * @param int $year
      * @param int[] $months
      * @param string $status
-     * @param \App\Entity\Volunteer[] $activeVolunteers
-     * @return array<int, array<string, mixed>>
+     * @return int[]
      * @throws \Doctrine\DBAL\Driver\Exception
      * @throws \Doctrine\DBAL\Exception
      */
     private function getVolunteersIdByStatus(
         string $status,
         int $year,
-        array $months,
-        array $activeVolunteers
+        array $months
     ): array {
-        $volunteersId = [];
-        $activeVolunteersIds = [];
         $volunteerOperations = $this->volunteerOperationsRepository->findVolunteerIdsByMonthRange($year, $months, $status);
 
-        foreach ($activeVolunteers as $activeVolunteer) {
-            $activeVolunteersIds[] = $activeVolunteer->getVolunteerId();
-        }
-
-        foreach ($volunteerOperations as $volunteerOperation) {
-            if (! in_array(intval($volunteerOperation['volunteer_id']), $activeVolunteersIds)) {
-                continue;
-            }
-            $volunteersId[] = $volunteerOperation['volunteer_id'];
-        }
-
-        return $volunteersId;
+        return array_map(fn($volunteerOperation) => intval($volunteerOperation['volunteer_id']), $volunteerOperations);
     }
 
     private function getVpaActingBothSupervisingAndResourceIndividual(

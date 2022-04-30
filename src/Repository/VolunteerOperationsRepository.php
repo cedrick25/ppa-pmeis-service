@@ -97,7 +97,7 @@ class VolunteerOperationsRepository extends ServiceEntityRepository
     {
         $months = implode(',', $months);
         $conn = $this->getEntityManager()->getConnection();
-        $sql = "SELECT volunteer_id, date, reason, date_endorsed from volunteer_operations WHERE volunteer_operation_id IN
+        $sql = "SELECT volunteer_id, status, date, reason, date_endorsed from volunteer_operations WHERE volunteer_operation_id IN
                 (SELECT MAX(volunteer_operation_id) FROM volunteer_operations GROUP BY volunteer_id) AND
                 YEAR(date) = $year AND MONTH(date) IN ($months) AND status = '$status'";
 

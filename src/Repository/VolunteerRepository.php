@@ -302,11 +302,13 @@ class VolunteerRepository extends ServiceEntityRepository
      */
     public function findByFieldOfficeAndMonthRange(int $fieldOfficeId, int $year, array $months): array
     {
+        // also needed to be appointed status in operations
         /** @var Volunteer[] */
         return $this->createQueryBuilder('v')
             ->where('v.fieldOfficeId = :fieldOfficeId')
             ->andWhere('YEAR(v.dateRecruited) = :year')
             ->andWhere('MONTH(v.dateRecruited) IN (:months)')
+            ->andWhere("v.vpaStatus <> 'DROPPED' ")
             ->andWhere('v.dateAppointed IS NOT NULL')
             ->setParameter('fieldOfficeId', $fieldOfficeId)
             ->setParameter('year', $year)
@@ -422,21 +424,6 @@ class VolunteerRepository extends ServiceEntityRepository
             ->setParameter('ids', $ids, Connection::PARAM_INT_ARRAY)
             ->getQuery()
             ->getResult();
-    }
-
-    /**
-     * @param int[] $ids
-     * @return Volunteer[]
-     */
-    public function findByIdsV2(array $ids): array
-    {
-        return $this->createQueryBuilder('v')
-            ->where('v.volunteerId IN (:ids)')
-            ->andWhere('v.deletedAt IS NULL')
-            ->andWhere('v.dateAppointed IS NOT NULL')
-            ->setParameter('ids', $ids, Connection::PARAM_INT_ARRAY)
-            ->getQuery()
-            ->getArrayResult();
     }
 
     /**
