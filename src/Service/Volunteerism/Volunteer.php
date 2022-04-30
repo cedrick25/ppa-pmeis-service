@@ -424,17 +424,14 @@ class Volunteer implements VolunteerInterface
             return 0;
         }
         $previousMonths = $this->appDateHelper->getMonthsByQuarterString($previousQuarter->getName());
+        $currentMonths = $this->appDateHelper->getMonthsByQuarterString($quarterData->getName());
         $previousActiveVolunteers = $this->repository
             ->findByFieldOfficeAndMonthRange($fieldOfficeId, intval($previousQuarter->getYear()), $previousMonths);
-
-        $prevMinMaxDate = $this->quartersRepository->getQuarterMinMaxDate($previousQuarter);
-        $previousDroppedVolunteers = $this->repository->getDroppedVolunteer($prevMinMaxDate, $fieldOfficeId);
-        $previousDroppedVolunteerIds = array_map(fn($previousDroppedVolunteer)
-                                            => intval($previousDroppedVolunteer['volunteer_id']), $previousDroppedVolunteers);
+        $reappointedVolunteersId = $this->getVolunteersIdByStatus(self::REAPPOINTED, intval($quarterData->getYear()), $currentMonths);
 
         $results = 0;
         foreach ($previousActiveVolunteers as $previousActiveVolunteer) {
-            if (in_array($previousActiveVolunteer->getVolunteerId(), $previousDroppedVolunteerIds)) {
+            if (in_array($previousActiveVolunteer->getVolunteerId(), $reappointedVolunteersId)) {
                 continue;
             }
 
