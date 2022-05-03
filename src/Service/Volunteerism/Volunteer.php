@@ -15,6 +15,7 @@ use App\Repository\QuartersRepository;
 use App\Repository\RegionsRepository;
 use App\Repository\ReligionRepository;
 use App\Repository\ResourceFacilitatorSessionRepository;
+use App\Repository\SocialMarketingRepository;
 use App\Repository\VolunteerOperationsRepository;
 use App\Repository\VolunteerRepository;
 use App\Repository\VolunteerSupervisionsRepository;
@@ -48,6 +49,7 @@ class Volunteer implements VolunteerInterface
         private FieldOfficesRepository               $fieldOfficesRepository,
         private VolunteerSupervisionsRepository      $volunteerSupervisionsRepository,
         private ResourceFacilitatorSessionRepository $resourceFacilitatorSessionRepository,
+        private SocialMarketingRepository            $socialMarketingRepository,
     ){}
 
     public function create(VolunteerModel $volunteerData): array
@@ -330,9 +332,26 @@ class Volunteer implements VolunteerInterface
         $vpaSupervisingClients = $this->volunteerSupervisionsRepository->findVpaInvolveByQuarter($quarterId, $fieldOfficeId);
         $noOfVpaSupervisingClients = count($vpaSupervisingClients);
         $noOfVpaSupervisingClientsPercentage = $totalActiveVpa > 0 ? ($noOfVpaSupervisingClients / $totalActiveVpa) : 0;
+
+        // Column 10 = 1.A.1 + 1.B.2 + 1.C.4 + 3.A.1
+        // Table 1.A.1
         $vpaActingAsResourceIndividuals = $this->resourceFacilitatorSessionRepository->getDistinctVolunteerIdsBySessionIds($sessionIds);
-        $noOfVpaActingAsResourceIndividuals = count($vpaActingAsResourceIndividuals);
+        $vpaActingAsResourceIndividualsIds = array_map(fn($vpa) => $vpa['resourceFacilitatorId'], $vpaActingAsResourceIndividuals);
+        
+        // Table 1.B.2
+
+
+        // Table 1.C.4
+
+
+        // Table 3.A.1
+        $minMaxDate = $this->quartersRepository->getQuarterMinMaxDate($quarterData);
+        $vpasInvolvedInSocialMarketing = $this->socialMarketingRepository->getVolunteerIdsByDateRange($minMaxDate, $fieldOfficeId, 'INFORMATION_DISSEMINATION');
+        $vpasInvolvedInSocialMarketingIds = array_map(fn($vpa) => $vpa['volunteer_id'], $vpasInvolvedInSocialMarketing);
+
+        $noOfVpaActingAsResourceIndividuals = count($vpaActingAsResourceIndividualsIds) + count($vpasInvolvedInSocialMarketingIds);
         $noOfVpaActingAsResourceIndividualsPercentage = $totalActiveVpa > 0 ? ($noOfVpaActingAsResourceIndividuals / $totalActiveVpa) : 0;
+
         $vpaActingBothSupervisingAndResourceIndividual = count($this
             ->getVpaActingBothSupervisingAndResourceIndividual($vpaSupervisingClients, $vpaActingAsResourceIndividuals));
         $percentageOfVpaActingBothSupervisingAndResourceIndividual = $totalActiveVpa > 0 ?
