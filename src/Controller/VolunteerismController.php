@@ -30,7 +30,10 @@ use App\Service\Volunteerism\TechnicalAssistanceInterface;
 use App\Model\SocialMarketing as SocialMarketingModel;
 use App\Model\SupportOfRegionToFieldOffice as SupportOfRegionToFieldOfficeModel;
 use App\Model\VolunteerSupervisions as VolunteerSupervisionsModel;
+use App\Model\VpaAssociationInitiatedActivities as VpaAssociationInitiatedActivitiesModel;
 use App\Service\Volunteerism\VolunteerSupervisionsInterface;
+use App\Service\Volunteerism\VpaAssociationInitiatedActivities;
+use App\Service\Volunteerism\VpaAssociationInitiatedActivitiesInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -42,22 +45,23 @@ use Symfony\Component\Routing\Annotation\Route;
 class VolunteerismController extends AbstractController
 {
     public function __construct(
-        private AppHydrator                             $appHydrator,
-        private AppFormatter                            $appFormatter,
-        private OperationsInterface                     $operationService,
-        private IdInterface                             $idService,
-        private ServicesRenderedInterface               $servicesRenderedService,
-        private IdSupportInterface                      $idSupportService,
-        private TechnicalAssistanceInterface            $technicalAssistanceService,
-        private SocialMarketingActivitiesInterface      $socialMarketingActivitiesService,
-        private SocialMarketingInterface                $socialMarketingService,
-        private ProgramMaterialsDevelopmentInterface    $programMaterialsDevelopmentService,
-        private ResourceMobilizationInterface           $resourceMobilizationService,
-        private JailDecongestionInterface               $jailDecongestionService,
-        private SpecialAssignmentInterface              $specialAssignmentService,
-        private SupportOfRegionToFieldOfficeInterface   $supportOfRegionToFieldOfficeService,
-        private VolunteerSupervisionsInterface          $volunteerSupervisionsService,
-        private CapabilityBuildingInterface             $capabilityBuildingService,
+        private AppHydrator                                $appHydrator,
+        private AppFormatter                               $appFormatter,
+        private OperationsInterface                        $operationService,
+        private IdInterface                                $idService,
+        private ServicesRenderedInterface                  $servicesRenderedService,
+        private IdSupportInterface                         $idSupportService,
+        private TechnicalAssistanceInterface               $technicalAssistanceService,
+        private SocialMarketingActivitiesInterface         $socialMarketingActivitiesService,
+        private SocialMarketingInterface                   $socialMarketingService,
+        private ProgramMaterialsDevelopmentInterface       $programMaterialsDevelopmentService,
+        private ResourceMobilizationInterface              $resourceMobilizationService,
+        private JailDecongestionInterface                  $jailDecongestionService,
+        private SpecialAssignmentInterface                 $specialAssignmentService,
+        private SupportOfRegionToFieldOfficeInterface      $supportOfRegionToFieldOfficeService,
+        private VolunteerSupervisionsInterface             $volunteerSupervisionsService,
+        private CapabilityBuildingInterface                $capabilityBuildingService,
+        private VpaAssociationInitiatedActivitiesInterface $vpaAssociationInitiatedActivities
     ){}
 
     /**
@@ -663,6 +667,42 @@ class VolunteerismController extends AbstractController
             (int) $request->get("quarterId"),
             (int) $request->get("fieldOfficeId"),
             $request->get("type")
+        ));
+    }
+
+    /**
+     * @Route("/vpa-association-initiated-ctivity/create", methods={"POST"})
+     */
+    public function createVpaAssociationInitiatedActivity(Request $request): Response
+    {
+        try {
+            $data = json_decode($request->getContent(), true);
+
+            /** @var VpaAssociationInitiatedActivitiesModel $vpaAssociationInitiatedActivity */
+            $vpaAssociationInitiatedActivity = $this->appHydrator->convertArrayToObject($data, VpaAssociationInitiatedActivitiesModel::class);
+
+            return $this->json($this->vpaAssociationInitiatedActivities->create($vpaAssociationInitiatedActivity));
+        } catch (\ReflectionException $exception) {
+            return $this->json($this->appFormatter->formatResponse('Creating vpa association initiated activities failed', null, ['reflection' => $exception->getMessage()]));
+        }
+    }
+
+    /**
+     * @Route("/vpa-association-initiated-ctivity/delete/{id}", methods={"GET"})
+     */
+    public function deleteVpaAssociationInitiatedActivityById(Request $request): Response
+    {
+        return $this->json($this->vpaAssociationInitiatedActivities->deleteById((int) $request->get("id")));
+    }
+
+    /**
+     * @Route("/vpa-association-initiated-ctivity/report/full/{quarterId}/{fieldOfficeId}", methods={"GET"})
+     */
+    public function getVpaAssociationInitiatedActivity(Request $request): Response
+    {
+        return $this->json($this->vpaAssociationInitiatedActivities->getReport(
+            (int) $request->get("quarterId"),
+            (int) $request->get("fieldOfficeId")
         ));
     }
 }
