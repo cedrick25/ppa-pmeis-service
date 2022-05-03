@@ -366,7 +366,11 @@ class Volunteer implements VolunteerInterface
     {
         $volunteer = $this->repository->find($id);
         $fullName = $volunteer->getFirstName() . ' ' . $volunteer->getMiddleName() . ' ' . $volunteer->getLastName();
-        $fieldOffice = $this->fieldOfficesRepository->find($volunteer->getFieldOfficeId())->getName();
+        $fieldOffice = $this->fieldOfficesRepository->find($volunteer->getFieldOfficeId());
+        $fieldOfficeName = $fieldOffice->getName();
+        $dateOfAppointment = $volunteer->getDateAppointed()->format('d-M-y');
+        $region = $this->regionsRepository->find($fieldOffice->getRegionId());
+        $regionName = $region->getName();
 
         $pdf = new TCPDF();
         $pdf->setCreator(PDF_CREATOR);
@@ -392,13 +396,13 @@ class Volunteer implements VolunteerInterface
             <h2 style="text-align: center"><i>Certificate of Appointment</i></h2>
             <h2 style="text-align: center;font-size: 15px;font-weight: normal">$fullName</h2>
             <h2 style="text-align: center"><i>of</i></h2>
-            <h2 style="text-align: center;font-size: 15px;font-weight: normal">$fieldOffice</div>
+            <h2 style="text-align: center;font-size: 15px;font-weight: normal">$fieldOfficeName</div>
             <h2 style="text-align: center">Department</h2>
             <h4 style="text-align: center">is hereby appointed as <span style="font-size: 13px">VOLUNTEER PROBATION ASSISTANT</span> of the</h4>
             <h3 style="text-align: center"><i>Parole and Probation Office</i></h3>
-            <h3 style="text-align: center"><i>Region</i></h3>
+            <h3 style="text-align: center"><i>$regionName</i></h3>
             <div></div>
-            <h2 style="text-align: center">Date of Appointment</h2>
+            <h2 style="text-align: center">$dateOfAppointment</h2>
             <div></div>
             <div></div>
             <h2 style="text-align: center">DR. MANUEL G. CO, CESO I</h2>
