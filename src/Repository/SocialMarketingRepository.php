@@ -159,4 +159,30 @@ class SocialMarketingRepository extends ServiceEntityRepository
 
         return $result;
     }
+
+    /**
+     * @param string[] $minMaxDate
+     * @param int $fieldOfficeId
+     * @param string $type
+     * @return array<int|string, array<int, array<string, mixed>>>
+     * @throws Exception
+     * @throws \Doctrine\DBAL\Exception
+     */
+    public function getVolunteerIdsByDateRange(array $minMaxDate, int $fieldOfficeId, string $type): array
+    {
+        $conn = $this->getEntityManager()->getConnection();
+        $min = $minMaxDate['min'];
+        $max = $minMaxDate['max'];
+
+        $sql = "SELECT DISTINCT v.volunteer_id 
+                FROM social_marketing as sm
+                LEFT JOIN volunteer as v ON v.volunteer_id = sm.vpa_id
+                WHERE sm.field_office_id = $fieldOfficeId AND sm.type = '$type' 
+                  AND sm.date BETWEEN CAST('$min' AS DATE) AND CAST('$max' AS DATE)";
+        $stmt = $conn->prepare($sql);
+        $query = $stmt->executeQuery();
+        $result = $query->fetchAllAssociative();
+
+        return $result;
+    }
 }

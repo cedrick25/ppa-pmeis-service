@@ -281,8 +281,7 @@ class Sessions implements SessionsInterface
             $totalLess = $this->getTotalLess($less);
             $totalAdjustedSupervisionCaseLoad = $this->getTotalAdjustedSupervisionCaseLoad($totalSupervisionCasesHandled, $totalLess);
             $clientsAttendingTC = $this->getClientsAttendingTC($currentQuarter, $fieldOfficeId);
-            $percentageOfClientsAttendingTC = $this
-                ->getPercentageOfClientsAttendingTC($totalAdjustedSupervisionCaseLoad, $clientsAttendingTC);
+            $percentageOfClientsAttendingTC = $this->getPercentageOfClientsAttendingTC($totalAdjustedSupervisionCaseLoad, $clientsAttendingTC);
 
             return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_SUCCESS, [
                 'activeSupervisions' => $activeSupervisions,
@@ -511,8 +510,6 @@ class Sessions implements SessionsInterface
         $result = [];
         $quarterMinMaxDate = $this->quartersRepository->getQuarterMinMaxDate($quarter);
         /** @var \App\Entity\Clients[] $clients */
-        $clients = $this->clientsRepository
-            ->findSupervisionCasesDropBySupervisionPeriodEndDateRangeLess($quarterMinMaxDate,  $fieldOfficeId);
 
         $sessionIds = $this->repository->findSessionsIdsByQuarter($quarter);
         $sessionIds = array_map(fn($sessionId) => $sessionId['session_id'], $sessionIds);
@@ -520,10 +517,14 @@ class Sessions implements SessionsInterface
         $sessionClients = $this->clientSessionsRepository->findClientsBySessionIds($sessionIds);
         $sessionClientIds = array_map(fn($client) => $client['client_id'], $sessionClients);
 
+        $clients = $this->clientsRepository
+            ->findSupervisionCasesDropBySupervisionPeriodEndDateRangeLess($quarterMinMaxDate, $fieldOfficeId);
+
         foreach ($clients as $client) {
             $clientRemarksId = $client['client_remarks_id'];
             $clientTypeId = $client['client_type_id'];
-            if (in_array($client['client_id'], $sessionClientIds)) {
+            // if (in_array($client['client_id'], $sessionClientIds)) {
+            if (!in_array($client['client_id'], $sessionClientIds)) {
                 continue;
             }
 

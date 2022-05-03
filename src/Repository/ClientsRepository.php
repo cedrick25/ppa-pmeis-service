@@ -367,10 +367,13 @@ class ClientsRepository extends ServiceEntityRepository
 
     public function findSupervisionCasesDropBySupervisionPeriodEndDateRangeLess(array $minMaxDate, int $fieldOfficeId): array
     {
-        $predicate = 'c.updated_at BETWEEN CAST("'.$minMaxDate['min'].'" AS DATE) AND CAST("'.$minMaxDate['max'].'" AS DATE)';
+        // $predicate = 'c.updated_at BETWEEN CAST("'.$minMaxDate['min'].'" AS DATE) AND CAST("'.$minMaxDate['max'].'" AS DATE)';
+        $predicate = 's.date BETWEEN CAST("'.$minMaxDate['min'].'" AS DATE) AND CAST("'.$minMaxDate['max'].'" AS DATE)';
         $conn = $this->getEntityManager()->getConnection();
         $sql = "SELECT c.client_id, c.client_type_id, cs.client_remarks_id, c.supervision_start, c.supervision_end FROM client_sessions as cs
                 LEFT JOIN clients c on cs.client_id = c.client_id
+                LEFT JOIN sessions s on cs.session_id = s.session_id
+
                 WHERE (c.field_office_id = $fieldOfficeId AND $predicate AND cs.client_remarks_id = 13 AND c.deleted_at IS NULL)
                    OR (c.field_office_id = $fieldOfficeId AND $predicate AND cs.client_remarks_id = 7 AND c.deleted_at IS NULL)
                    OR (c.field_office_id = $fieldOfficeId AND $predicate AND cs.client_remarks_id = 6 AND c.deleted_at IS NULL)
