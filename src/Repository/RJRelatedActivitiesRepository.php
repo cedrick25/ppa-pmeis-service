@@ -190,6 +190,36 @@ class RJRelatedActivitiesRepository extends ServiceEntityRepository
         });
     }
 
+    /**
+     * @throws CacheException
+     * @throws InvalidArgumentException
+     */
+    public function getVolunteerIdsByDateRange(int $quarterId, int $fieldOfficeId): ?array
+    {
+        $params = [
+            'cacheKey' => $this->cacheHelper->getRJIB2Key($quarterId, $fieldOfficeId),
+            'cacheTag' => self::CACHE_TAG
+        ];
+
+        return $this->helper->createCachedResponseCustomQuery($params, function() use($quarterId, $fieldOfficeId) {
+            $conn = $this->getEntityManager()->getConnection();
+            $sql = "
+                SELECT DISTINCT v.volunteer_id
+                FROM rjrelated_activities as rjra
+                LEFT JOIN rjvolunteers as rjv ON rjv.related_activity_id = rjra.rj_related_activity_id
+                LEFT JOIN volunteer as v ON v.volunteer_id = rjv.volunteer_id
+                WHERE rjra.quarter_id = $quarterId 
+                AND rjra.field_office_id = $fieldOfficeId
+                AND rjra.deleted_at IS NULL
+            ";
+            $stmt = $conn->prepare($sql);
+            $query = $stmt->executeQuery();
+            $results = $query->fetchAllAssociative();
+
+            return $results;
+        });
+    }
+
     private function isExisting(RJRelatedActivitiesModel $data): bool | RJRelatedActivities
     {
         $RJRelatedActivities = $this->findOneBy([

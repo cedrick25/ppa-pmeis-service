@@ -16,6 +16,8 @@ use App\Repository\RegionsRepository;
 use App\Repository\ReligionRepository;
 use App\Repository\ResourceFacilitatorSessionRepository;
 use App\Repository\SocialMarketingRepository;
+use App\Repository\RJRelatedActivitiesRepository;
+use App\Repository\VpaAssociationInitiatedActivitiesRepository;
 use App\Repository\VolunteerOperationsRepository;
 use App\Repository\VolunteerRepository;
 use App\Repository\VolunteerSupervisionsRepository;
@@ -35,21 +37,23 @@ class Volunteer implements VolunteerInterface
     const INACTIVE = 'INACTIVE';
 
     public function __construct(
-        private ValidatorInterface                   $validator,
-        private AppFormatter                         $appFormatter,
-        private VolunteerRepository                  $repository,
-        private QuartersRepository                   $quartersRepository,
-        private AppDateHelper                        $appDateHelper,
-        private RegionsRepository                    $regionsRepository,
-        private CivilStatusRepository                $civilStatusRepository,
-        private ReligionRepository                   $religionRepository,
-        private OccupationRepository                 $occupationRepository,
-        private EducationBackgroundRepository        $educationBackgroundRepository,
-        private VolunteerOperationsRepository        $volunteerOperationsRepository,
-        private FieldOfficesRepository               $fieldOfficesRepository,
-        private VolunteerSupervisionsRepository      $volunteerSupervisionsRepository,
-        private ResourceFacilitatorSessionRepository $resourceFacilitatorSessionRepository,
-        private SocialMarketingRepository            $socialMarketingRepository,
+        private ValidatorInterface                          $validator,
+        private AppFormatter                                $appFormatter,
+        private VolunteerRepository                         $repository,
+        private QuartersRepository                          $quartersRepository,
+        private AppDateHelper                               $appDateHelper,
+        private RegionsRepository                           $regionsRepository,
+        private CivilStatusRepository                       $civilStatusRepository,
+        private ReligionRepository                          $religionRepository,
+        private OccupationRepository                        $occupationRepository,
+        private EducationBackgroundRepository               $educationBackgroundRepository,
+        private VolunteerOperationsRepository               $volunteerOperationsRepository,
+        private FieldOfficesRepository                      $fieldOfficesRepository,
+        private VolunteerSupervisionsRepository             $volunteerSupervisionsRepository,
+        private ResourceFacilitatorSessionRepository        $resourceFacilitatorSessionRepository,
+        private SocialMarketingRepository                   $socialMarketingRepository,
+        private RJRelatedActivitiesRepository               $rjRelatedActivitiesRepository,
+        private VpaAssociationInitiatedActivitiesRepository $vpaAssociationRepository,
     ){}
 
     public function create(VolunteerModel $volunteerData): array
@@ -335,21 +339,24 @@ class Volunteer implements VolunteerInterface
 
         // Column 10 = 1.A.1 + 1.B.2 + 1.C.4 + 3.A.1
         // Table 1.A.1
-        $vpaActingAsResourceIndividuals = $this->resourceFacilitatorSessionRepository->getDistinctVolunteerIdsBySessionIds($sessionIds);
-        $vpaActingAsResourceIndividualsIds = array_map(fn($vpa) => $vpa['resourceFacilitatorId'], $vpaActingAsResourceIndividuals);
+        $vpaActingAsResourceIndividualsInSessions = $this->resourceFacilitatorSessionRepository->getDistinctVolunteerIdsBySessionIds($sessionIds);
+        $vpaActingAsResourceIndividualsInSessionsIds = $vpaActingAsResourceIndividualsInSessions ? array_map(fn($vpa) => $vpa['resourceFacilitatorId'], $vpaActingAsResourceIndividualsInSessions) : [];
         
         // Table 1.B.2
-
+        $vpasInvolvedInRJActivities = $this->rjRelatedActivitiesRepository->getVolunteerIdsByDateRange($quarterId, $fieldOfficeId);
+        $vpasInvolvedInRJActivitiesIds = $vpasInvolvedInRJActivities ? array_map(fn($vpa) => $vpa['volunteer_id'], $vpasInvolvedInRJActivities) : [];
 
         // Table 1.C.4
-
+        $vpasInvolvedInAssociationActivities = $this->vpaAssociationRepository->getVolunteerIdsByDateRange($quarterId, $fieldOfficeId);
+        $vpasInvolvedInAssociationActivitiesIds = $vpasInvolvedInAssociationActivities ? array_map(fn($vpa) => $vpa['volunteer_id'], $vpasInvolvedInAssociationActivities) : [];
 
         // Table 3.A.1
         $minMaxDate = $this->quartersRepository->getQuarterMinMaxDate($quarterData);
         $vpasInvolvedInSocialMarketing = $this->socialMarketingRepository->getVolunteerIdsByDateRange($minMaxDate, $fieldOfficeId, 'INFORMATION_DISSEMINATION');
-        $vpasInvolvedInSocialMarketingIds = array_map(fn($vpa) => $vpa['volunteer_id'], $vpasInvolvedInSocialMarketing);
-
-        $noOfVpaActingAsResourceIndividuals = count($vpaActingAsResourceIndividualsIds) + count($vpasInvolvedInSocialMarketingIds);
+        $vpasInvolvedInSocialMarketingIds = $vpasInvolvedInSocialMarketing ? array_map(fn($vpa) => $vpa['volunteer_id'], $vpasInvolvedInSocialMarketing) : [];
+        
+        $vpaActingAsResourceIndividuals = array_unique(array_merge($vpaActingAsResourceIndividualsInSessionsIds, $vpasInvolvedInRJActivitiesIds, $vpasInvolvedInAssociationActivitiesIds, $vpasInvolvedInSocialMarketingIds));
+        $noOfVpaActingAsResourceIndividuals = count($vpaActingAsResourceIndividuals);
         $noOfVpaActingAsResourceIndividualsPercentage = $totalActiveVpa > 0 ? ($noOfVpaActingAsResourceIndividuals / $totalActiveVpa) : 0;
 
         $vpaActingBothSupervisingAndResourceIndividual = count($this
@@ -607,11 +614,13 @@ class Volunteer implements VolunteerInterface
         $result = [];
 
         foreach ($vpaActingAsResourceIndividuals as $actingAsResourceIndividual) {
-            if (! in_array($actingAsResourceIndividual['resourceFacilitatorId'], $vpaSupervisingClients)) {
+            // if (! in_array($actingAsResourceIndividual['resourceFacilitatorId'], $vpaSupervisingClients)) {
+            if (! in_array($actingAsResourceIndividual, $vpaSupervisingClients)) {
                 continue;
             }
 
-            $result[] = $actingAsResourceIndividual['resourceFacilitatorId'];
+            // $result[] = $actingAsResourceIndividual['resourceFacilitatorId'];
+            $result[] = $actingAsResourceIndividual;
         }
 
         return $result;
