@@ -28,11 +28,12 @@ class RJRelatedActivitiesRepository extends ServiceEntityRepository
     protected const CACHE_TAG = "rj_related_activities";
 
     public function __construct(
-        ManagerRegistry $registry,
-        private TagAwareCacheInterface $cache,
-        private CacheHelper $cacheHelper,
-        private Helper $helper,
-        private AppDateHelper $appDateHelper,
+        ManagerRegistry                 $registry,
+        private TagAwareCacheInterface  $cache,
+        private CacheHelper             $cacheHelper,
+        private Helper                  $helper,
+        private AppDateHelper           $appDateHelper,
+        private RJVolunteersRepository  $RJVolunteersRepository
     ){
         parent::__construct($registry, RJRelatedActivities::class);
     }
@@ -95,7 +96,10 @@ class RJRelatedActivitiesRepository extends ServiceEntityRepository
         $this->getEntityManager()->persist($newRjRelatedActivity);
         $this->getEntityManager()->flush();
 
-        return $newRjRelatedActivity->getRjRelatedActivityId();
+        $id = $newRjRelatedActivity->getRjRelatedActivityId();
+        $this->RJVolunteersRepository->batchCreate($id, $data->getVolunteersId());
+
+        return $id;
     }
 
     /**
@@ -165,18 +169,24 @@ class RJRelatedActivitiesRepository extends ServiceEntityRepository
         return $this->helper->createCachedResponseCustomQuery($params, function() use($quarterId, $fieldOfficeId) {
             $conn = $this->getEntityManager()->getConnection();
             $sql = "SELECT rjra.*, c.first_name, c.middle_name, c.last_name, c.gender, c.is_pwd, c.is_senior_citizen ,o.name as offense, rjp.name as rj_process, v.name as venue, rjo.name as outcome
-                    FROM rjrelated_activities as rjra " .
-                "LEFT JOIN clients as c ON rjra.client_id = c.client_id " .
-                "LEFT JOIN offenses as o ON rjra.offense_id = o.offenses_id " .
-                "LEFT JOIN rjprocesses as rjp ON rjra.rjp_id = rjp.id_rjprocesses " .
-                "LEFT JOIN rjoutcomes as rjo ON rjra.rjo_id = rjo.rj_outcome_id " .
-                "LEFT JOIN venues as v ON rjra.venue_id = v.venue_id " .
-                "WHERE rjra.quarter_id = $quarterId AND rjra.field_office_id = $fieldOfficeId ".
-                "AND rjra.deleted_at IS NULL ORDER BY rjra.rj_group";
+                    FROM rjrelated_activities as rjra
+                LEFT JOIN clients as c ON rjra.client_id = c.client_id
+                LEFT JOIN offenses as o ON rjra.offense_id = o.offenses_id
+                LEFT JOIN rjprocesses as rjp ON rjra.rjp_id = rjp.id_rjprocesses
+                LEFT JOIN rjoutcomes as rjo ON rjra.rjo_id = rjo.rj_outcome_id
+                LEFT JOIN venues as v ON rjra.venue_id = v.venue_id
+                WHERE rjra.quarter_id = $quarterId AND rjra.field_office_id = $fieldOfficeId
+                AND rjra.deleted_at IS NULL ORDER BY rjra.rj_group";
             $stmt = $conn->prepare($sql);
             $query = $stmt->executeQuery();
+            $data = [];
+            $results = $query->fetchAllAssociative();
+            foreach ($results as $result) {
+                $result['persons_involved'] = $this->RJVolunteersRepository->getVolunteersByRelatedActivityId((int) $result['rj_related_activity_id']);
+                $data[] = $result;
+            }
 
-            return $query->fetchAllAssociative();
+            return $data;
         });
     }
 

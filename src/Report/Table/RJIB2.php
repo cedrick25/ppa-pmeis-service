@@ -204,9 +204,14 @@ class RJIB2 implements Form
             $spreadsheet->getActiveSheet()->setCellValue('H' . $this->lastFilledOutCellY, $row['rj_process']);
             $totalData[$row['rj_group']]['rjp_process']++;
 
-            $spreadsheet->getActiveSheet()->setCellValue('H' . $this->lastFilledOutCellY, $row['venue_date'] . '/' . $row['venue']);
-            $spreadsheet->getActiveSheet()->setCellValue('H' . $this->lastFilledOutCellY, $row['stakeholders']);
-            $spreadsheet->getActiveSheet()->setCellValue('H' . $this->lastFilledOutCellY, $row['outcome']);
+            $spreadsheet->getActiveSheet()->setCellValue('I' . $this->lastFilledOutCellY, $row['venue_date'] . '/' . $row['venue']);
+            $persons_involved = [];
+            foreach ($row['persons_involved'] as $person_involved) {
+                $persons_involved[] = $person_involved['first_name'] . ' ' . $person_involved['middle_name'] . ' ' . $person_involved['last_name'];
+            }
+
+            $spreadsheet->getActiveSheet()->setCellValue('H' . $this->lastFilledOutCellY, implode(', ', $persons_involved));
+            $spreadsheet->getActiveSheet()->setCellValue('K' . $this->lastFilledOutCellY, $row['outcome']);
             $spreadsheet->getActiveSheet()
                 ->getStyle("A" . $this->lastFilledOutCellY . ":K" . $this->lastFilledOutCellY)
                 ->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
