@@ -18,6 +18,7 @@ class TCIA7 implements Form
     public function __construct(
         private int   $lastFilledOutCellY = 5,
         private array $data = [],
+        private string $currentQuarter = "1st",
     ){}
 
     public function supports(string $tableName): bool
@@ -31,6 +32,8 @@ class TCIA7 implements Form
     public function generate(array $data): BinaryFileResponse
     {
         $this->data = $data;
+        $quarter = explode(' ', $data['quarter']);
+        $this->currentQuarter = $quarter[0];
 
         $spreadsheet = $this->footer();
         $writer = IOFactory::createWriter($spreadsheet, "Xlsx");
@@ -44,27 +47,6 @@ class TCIA7 implements Form
     public function footer(): Spreadsheet
     {
         $spreadsheet = $this->body();
-//        $this->lastFilledOutCellY++;
-//         $this->lastFilledOutCellY++;
-//         $this->lastFilledOutCellY++;
-//         $lastFilledOutCellY = $this->lastFilledOutCellY;
-//
-//         $spreadsheet->getActiveSheet()->setCellValue('a' . $this->lastFilledOutCellY, 'TABLE I.A.7  COMPUTATION OF THE PERCENTAGE OF TC CLIENTS VIS-À-VIS SUPERVISION CASELOAD');
-//         $spreadsheet->getActiveSheet()->mergeCells('a' . $this->lastFilledOutCellY . ':f' . $this->lastFilledOutCellY);
-//         $spreadsheet->getActiveSheet()->getStyle('a' . $lastFilledOutCellY . ':g' . $this->lastFilledOutCellY)->getFont()->setBold(true);
-//         $this->lastFilledOutCellY++;
-//         $this->lastFilledOutCellY++;
-//         $this->lastFilledOutCellY++;
-//
-//         $spreadsheet->getActiveSheet()->setCellValue('a' . $this->lastFilledOutCellY, 'Source/s :  1.  Monthly Supervision Caseload Report of the FO (F 5, 21, 44 & 45)');
-//         $this->lastFilledOutCellY++;
-//         $spreadsheet->getActiveSheet()->setCellValue('a' . $this->lastFilledOutCellY, '                    2.  Tables IA.2 to Tables I.A.6 of this form (bottom part of each table)');
-//         $this->lastFilledOutCellY++;
-//         $this->lastFilledOutCellY++;
-//
-//         $spreadsheet->getActiveSheet()->setCellValue('a' . $this->lastFilledOutCellY, 'Computation :  Fill in the spaces with appropriate data from above sources and compute the percentage of clients involvement in TC program');
-//         $this->lastFilledOutCellY++;
-//         $spreadsheet->getActiveSheet()->setCellValue('a' . $this->lastFilledOutCellY, '                           using the formula provided in Table I.A.7');
         return $spreadsheet;
 
     }
@@ -118,6 +100,13 @@ class TCIA7 implements Form
      */
     private function prepare(): Spreadsheet
     {
+        $monthPerQuarter = [
+            '1st' => ['JANUARY', 'FEBRUARY', 'MARCH'],
+            '2nd' => ['APRIL', 'MAY', 'JUNE'],
+            '3rd' => ['JULY', 'AUGUST', 'SEPTEMBER'],
+            '4th' => ['OCTOBER', 'NOVEMBER', 'DECEMBER'],
+        ];
+        $months = $monthPerQuarter[$this->currentQuarter];
         $spreadsheet = new Spreadsheet();
         $textAndCoordinates = [
             'f1' => 'PPA- PLD-FR-004',
@@ -133,19 +122,19 @@ class TCIA7 implements Form
             'a8' => '              b.   Active Courtesy Supervision',
             'a9' => '2.   ADD',
             'a10' => '             a.   New Supervision Referrals ',
-            'a11' => '                         Month 1   JANUARY',
-            'a12' => '                         Month 2  FEBRUARY',
-            'a13' => '                         Month 3   MARCH',
+            'a11' => '                         Month 1   ' . $months[0],
+            'a12' => '                         Month 2   ' . $months[1],
+            'a13' => '                         Month 3   ' . $months[2],
             'a14' => ' ',
             'a15' => '             b.   New Courtesy Supervision Referrals',
-            'a16' => '                         Month 1   JANUARY',
-            'a17' => '                         Month 2  FEBRUARY',
-            'a18' => '                          Month 3   MARCH',
+            'a16' => '                         Month 1   ' . $months[0],
+            'a17' => '                         Month 2   ' . $months[1],
+            'a18' => '                          Month 3  ' . $months[2],
             'a19' => ' ',
             'a20' => '3.  LESS:   Supervision cases dropped (Terminated, Revoked, Transferred)',
-            'a21' => '                         Month 1   JANUARY',
-            'a22' => '                         Month 2  FEBRUARY',
-            'a23' => '                         Month 3   MARCH',
+            'a21' => '                         Month 1   ' . $months[0],
+            'a22' => '                         Month 2   ' . $months[1],
+            'a23' => '                         Month 3   ' . $months[2],
             'a24' => '3.   Total Supervision Cases Handled',
             'a25' => '  ',
             'a26' => '4.     LESS:   Clients under the following circumstances  ',
