@@ -27,4 +27,6 @@ interface SessionsInterface
     public function getTCIA2(int $quarterId, int $fieldOfficeId, string $role): array;
 
     public function getTC7(int $quarterId, int $fieldOfficeId):array;
+
+    public function duplicateWithSessionAndFacilitator(int $id): array;
 }

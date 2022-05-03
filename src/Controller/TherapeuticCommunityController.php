@@ -521,6 +521,14 @@ class TherapeuticCommunityController extends AbstractController
     }
 
     /**
+     * @Route("/session/duplicate/with-client-facilitator/{id}", methods={"GET"})
+     */
+    public function duplicateSessionWithClientAndFacilitatorById(Request $request): Response
+    {
+        return $this->json($this->sessionService->duplicateWithSessionAndFacilitator((int) $request->get("id")));
+    }
+
+    /**
      * @Route("/session-remarks/list", methods={"GET"})
      */
     public function getAllSessionRemarks(): Response

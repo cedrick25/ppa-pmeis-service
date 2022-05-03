@@ -11,6 +11,7 @@ use App\Model\Sessions as SessionsModel;
 use App\Repository\ClientSessionsRepository;
 use App\Repository\ClientsRepository;
 use App\Repository\QuartersRepository;
+use App\Repository\ResourceFacilitatorSessionRepository;
 use App\Repository\SessionsRepository;
 use Doctrine\DBAL\Exception\InvalidArgumentException;
 use Doctrine\ORM\ORMException;
@@ -23,13 +24,14 @@ class Sessions implements SessionsInterface
     const ON_CS_CLIENT_TYPE_ID = 4;
 
     public function __construct(
-        private AppFormatter             $appFormatter,
-        private SessionsRepository       $repository,
-        private ValidatorInterface       $validator,
-        private AppDateHelper            $appDateHelper,
-        private QuartersRepository       $quartersRepository,
-        private ClientsRepository        $clientsRepository,
-        private ClientSessionsRepository $clientSessionsRepository,
+        private AppFormatter                         $appFormatter,
+        private SessionsRepository                   $repository,
+        private ValidatorInterface                   $validator,
+        private AppDateHelper                        $appDateHelper,
+        private QuartersRepository                   $quartersRepository,
+        private ClientsRepository                    $clientsRepository,
+        private ClientSessionsRepository             $clientSessionsRepository,
+        private ResourceFacilitatorSessionRepository $resourceFacilitatorSessionRepository,
     ){}
 
     public function create(SessionsModel $sessionData): array
@@ -299,6 +301,19 @@ class Sessions implements SessionsInterface
                 'app' => $e->getMessage(), $e->getFile(), $e->getLine(), $e->getTrace(),]);
         } catch (\Doctrine\DBAL\Driver\Exception $e) {
             return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_FAILED, null, ['orm' => $e->getMessage()]);
+        }
+    }
+
+    public function duplicateWithSessionAndFacilitator(int $id): array
+    {
+        try {
+            $newId = $this->repository->duplicate($id);
+            $this->clientSessionsRepository->duplicate($id, intval($newId));
+            $this->resourceFacilitatorSessionRepository->duplicate($id, intval($newId));
+
+            return $this->appFormatter->formatResponse("Duplicating Successful", []);
+        } catch (\Doctrine\DBAL\Driver\Exception | \Doctrine\DBAL\Exception $e) {
+            return $this->appFormatter->formatResponse(ResponseEnum::UPDATING_FAILED, null, ['cache' => $e->getMessage()]);
         }
     }
 

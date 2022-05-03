@@ -358,6 +358,22 @@ class ClientSessionsRepository extends ServiceEntityRepository
         return $query->fetchAllAssociative();
     }
 
+    /**
+     * @throws \Doctrine\DBAL\Exception
+     * @throws \Doctrine\DBAL\Driver\Exception
+     */
+    public function duplicate(int $sessionId, int $newSessionId): void
+    {
+        $conn = $this->getEntityManager()->getConnection();
+        $sql = "INSERT INTO client_sessions 
+                    (client_id, session_id, role, client_remarks_id, other_remarks, fsi, remarks_date)
+                SELECT  client_id, $newSessionId, role, client_remarks_id, other_remarks, fsi, remarks_date
+                FROM client_sessions WHERE session_id = $sessionId";
+        $stmt = $conn->prepare($sql);
+
+        $stmt->executeQuery();
+    }
+
     private function isExisting(ClientSessionModel $clientSessionData): bool
     {
         $clientSession = $this->findOneBy([
