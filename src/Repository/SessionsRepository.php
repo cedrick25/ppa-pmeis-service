@@ -561,6 +561,25 @@ class SessionsRepository extends ServiceEntityRepository
     }
 
     /**
+     * @throws \Doctrine\DBAL\Exception
+     * @throws \Doctrine\DBAL\Driver\Exception
+     */
+    public function duplicate(int $id): string
+    {
+        $conn = $this->getEntityManager()->getConnection();
+        $sql = "INSERT INTO sessions 
+                    (remarks_id, trees_planted, field_office_id, phase_id, batch, session_activity_id, treatment_category_id, date, 
+                     venue_id, period, li_lo, role, created_by, created_at, updated_at, deleted_at)
+                SELECT remarks_id, trees_planted, field_office_id, phase_id, batch, session_activity_id, treatment_category_id, date, 
+                       venue_id, period, li_lo, role, created_by, created_at, updated_at, deleted_at 
+                FROM sessions WHERE session_id = $id";
+        $stmt = $conn->prepare($sql);
+        $stmt->executeQuery();
+
+        return $conn->lastInsertId();
+    }
+
+    /**
      * @throws NonUniqueResultException
      */
     private function isExisting(SessionsModel $sessionData): bool
