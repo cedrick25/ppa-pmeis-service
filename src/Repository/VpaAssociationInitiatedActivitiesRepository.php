@@ -103,7 +103,30 @@ class VpaAssociationInitiatedActivitiesRepository extends ServiceEntityRepositor
                 LEFT JOIN services_rendered sr on vaia.service_rendered_id = sr.services_rendered_id
                 LEFT JOIN venues v on vaia.venue_id = v.venue_id
                 LEFT JOIN volunteer v2 on vaia.volunteer_id = v2.volunteer_id
-                WHERE vaia.field_office_id = $fieldOfficeId AND vaia.quarter_id = $quarterId";
+                WHERE vaia.field_office_id = $fieldOfficeId 
+                AND vaia.quarter_id = $quarterId 
+                AND vaia.deleted_at IS NULL";
+        $stmt = $conn->prepare($sql);
+        $query = $stmt->executeQuery();
+
+        return $query->fetchAllAssociative();
+    }
+
+        /**
+     * @throws CacheException
+     * @throws InvalidArgumentException
+     */
+    public function getVolunteerIdsByDateRange(int $quarterId, int $fieldOfficeId): ?array
+    {
+        $conn = $this->getEntityManager()->getConnection();
+        $sql = "SELECT 
+                    DISTINCT v.volunteer_id
+                    FROM vpa_association_initiated_activities vaia
+                LEFT JOIN volunteer as v ON v.volunteer_id = vaia.volunteer_id
+                WHERE vaia.quarter_id = $quarterId 
+                AND vaia.field_office_id = $fieldOfficeId
+                AND vaia.deleted_at IS NULL
+                ";
         $stmt = $conn->prepare($sql);
         $query = $stmt->executeQuery();
 
