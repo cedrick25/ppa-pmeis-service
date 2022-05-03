@@ -162,7 +162,7 @@ class VolunteerSupervisionsRepository extends ServiceEntityRepository
     public function findClientsSupervisedByQuarter(int $quarterId, int $fieldOfficeId): array
     {
         $conn = $this->getEntityManager()->getConnection();
-        $sql = "SELECT DISTINCT(client_id) FROM volunteer_supervisions 
+        $sql = "SELECT client_id FROM volunteer_supervisions 
                 WHERE quarter_id = $quarterId AND field_office_id = $fieldOfficeId";
         $stmt = $conn->prepare($sql);
         $query = $stmt->executeQuery();
