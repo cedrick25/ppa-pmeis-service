@@ -417,6 +417,60 @@ class Volunteer implements VolunteerInterface
         return $pdf->Output('mark.pdf', 'E');
     }
 
+    public function getId(int $id): string
+    {
+        $volunteer = $this->repository->find($id);
+        $idNo = $volunteer->getVolunteerId();
+        $fullName = $volunteer->getFirstName() . ' ' . $volunteer->getMiddleName() . ' ' . $volunteer->getLastName();
+        $fieldOffice = $this->fieldOfficesRepository->find($volunteer->getFieldOfficeId());
+        $fieldOfficeName = $fieldOffice->getName();
+        $dateOfAppointment = $volunteer->getDateAppointed()->format('d-M-y');
+        $region = $this->regionsRepository->find($fieldOffice->getRegionId());
+        $regionName = $region->getName();
+
+        $pdf = new TCPDF();
+        $pdf->setCreator(PDF_CREATOR);
+        $pdf->setAuthor('PPA');
+        $pdf->setTitle('Testing');
+        $pdf->setPrintHeader(false);
+        $pdf->setPrintFooter(false);
+        $pdf->startPage();
+        $logo = dirname(__DIR__ ) . '/../../assets/ppa.png';
+        $picture = dirname(__DIR__ ) . '/../../assets/placeholder-1x1.gif';
+        $heading = <<<EOD
+            <h4 style="text-align: center">Republic of the Philippines</h4>
+            <h4 style="text-align: center">Department of Justice</h4>
+            <h2 style="text-align: center">PAROLE AND PROBATION ADMINISTRATION</h2>
+        EOD;
+
+        $pdf->writeHTMLCell(0, 0, '', '', $heading);
+        $pdf->Image($logo,  10, 10, 25, 25, '', '', 'T', false, 300, '', false, false, 1, false, false, false);
+        $pdf->Image($picture,  85, 50, 40, 40, '', '', 'T', false, 300, '', false, false, 1, false, false, false);
+        $body = <<<EOD
+            <h3>
+                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                &nbsp;&nbsp;
+                ID No.: $idNo
+            </h3>
+            <h2 style="text-align: center;font-size: 15px;font-weight: normal;background-color: #f7ef4d;">$fullName</h2>
+            <h2 style="text-align: center;font-weight: bold;background-color: #e9ad63;color: #fff;">Volunteer Probation Assistant</h2>
+            <h3 style="text-align: center;"><i>$fieldOfficeName</i></h3>
+            <h3 style="text-align: center"><i>$regionName</i></h3>
+            <div></div>
+            <div></div>
+            <div></div>
+            <h2 style="text-align: center">DR. MANUEL G. CO, CESO I</h2>
+            <h3 style="text-align: center;font-weight: normal;">Administrator</h3>
+        EOD;
+
+        $pdf->SetXY(110, 200);
+        $pdf->writeHTMLCell(0, 0, 0, 120, $body);
+        $pdf->endPage();
+
+        return $pdf->Output('mark.pdf', 'E');
+    }
+
     /**
      * @throws \Doctrine\DBAL\Driver\Exception
      * @throws \Doctrine\DBAL\Exception

@@ -971,6 +971,14 @@ class TherapeuticCommunityController extends AbstractController
     }
 
     /**
+     * @Route("/generate-id/{volunteerId}", methods={"GET"})
+     */
+    public function getId(Request $request): Response
+    {
+        return $this->json($this->volunteerService->getId((int) $request->get("volunteerId")));
+    }
+
+    /**
      * @Route("/resource-facilitator-session/list", methods={"GET"})
      */
     public function getAllResourceFacilitatorSessions(): Response
