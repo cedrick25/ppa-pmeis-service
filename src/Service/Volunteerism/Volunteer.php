@@ -365,6 +365,7 @@ class Volunteer implements VolunteerInterface
     public function getCertificate(int $id): string
     {
         $volunteer = $this->repository->find($id);
+        $address = $volunteer->getPresentAddress();
         $fullName = $volunteer->getFirstName() . ' ' . $volunteer->getMiddleName() . ' ' . $volunteer->getLastName();
         $fieldOffice = $this->fieldOfficesRepository->find($volunteer->getFieldOfficeId());
         $fieldOfficeName = $fieldOffice->getName();
@@ -396,10 +397,10 @@ class Volunteer implements VolunteerInterface
             <h2 style="text-align: center"><i>Certificate of Appointment</i></h2>
             <h2 style="text-align: center;font-size: 15px;font-weight: normal">$fullName</h2>
             <h2 style="text-align: center"><i>of</i></h2>
-            <h2 style="text-align: center;font-size: 15px;font-weight: normal">$fieldOfficeName</div>
+            <h2 style="text-align: center;font-size: 15px;font-weight: normal">$address</div>
             <h2 style="text-align: center">Department</h2>
             <h4 style="text-align: center">is hereby appointed as <span style="font-size: 13px">VOLUNTEER PROBATION ASSISTANT</span> of the</h4>
-            <h3 style="text-align: center"><i>Parole and Probation Office</i></h3>
+            <h3 style="text-align: center"><i>$fieldOfficeName</i></h3>
             <h3 style="text-align: center"><i>$regionName</i></h3>
             <div></div>
             <h2 style="text-align: center">$dateOfAppointment</h2>
