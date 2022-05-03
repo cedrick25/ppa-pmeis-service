@@ -350,4 +350,9 @@ class CacheHelper
     {
         return 'all_capability_buildings';
     }
+
+    public function getAllVpaAssociationInitiatedActivities(): string
+    {
+        return 'all_vpa_association_initiated_activities';
+    }
 }

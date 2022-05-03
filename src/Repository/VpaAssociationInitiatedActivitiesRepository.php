@@ -4,12 +4,12 @@ namespace App\Repository;
 
 use App\Common\AppDateHelper;
 use App\Common\CacheHelper;
-use App\Entity\RJConductProcesses;
 use App\Entity\VpaAssociationInitiatedActivities;
 use App\Model\VpaAssociationInitiatedActivities as VpaAssociationInitiatedActivitiesModel;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\ORM\ORMException;
 use Doctrine\Persistence\ManagerRegistry;
+use Psr\Cache\CacheException;
 use Psr\Cache\InvalidArgumentException;
 use Symfony\Contracts\Cache\TagAwareCacheInterface;
 
@@ -31,6 +31,27 @@ class VpaAssociationInitiatedActivitiesRepository extends ServiceEntityRepositor
         private AppDateHelper $appDateHelper,
     ){
         parent::__construct($registry, VpaAssociationInitiatedActivities::class);
+    }
+
+    /**
+     * @return VpaAssociationInitiatedActivities[]
+     * @throws CacheException
+     * @throws InvalidArgumentException
+     */
+    public function list(): array
+    {
+        $params = [
+            'cacheKey' => $this->cacheHelper->getAllVpaAssociationInitiatedActivities(),
+            'expiration' => $this->cacheHelper->getExpirationDateTime(),
+            'cacheTag' => self::CACHE_TAG
+        ];
+
+        return $this->helper->createCachedResponse($params, function() {
+            return $this->createQueryBuilder('vs')
+                ->orderBy('vs.vpaAssociationInitiatedActivityId', 'DESC')
+                ->getQuery()
+                ->getResult();
+        });
     }
 
     /**

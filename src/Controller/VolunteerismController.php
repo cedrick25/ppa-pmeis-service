@@ -688,6 +688,14 @@ class VolunteerismController extends AbstractController
     }
 
     /**
+     * @Route("/vpa-association-initiated-ctivity/list", methods={"GET"})
+     */
+    public function vpaAssociationInitiatedActivities(): Response
+    {
+        return $this->json($this->vpaAssociationInitiatedActivities->getAll());
+    }
+
+    /**
      * @Route("/vpa-association-initiated-ctivity/delete/{id}", methods={"GET"})
      */
     public function deleteVpaAssociationInitiatedActivityById(Request $request): Response

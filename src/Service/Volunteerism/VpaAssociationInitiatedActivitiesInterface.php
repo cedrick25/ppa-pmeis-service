@@ -8,6 +8,8 @@ interface VpaAssociationInitiatedActivitiesInterface
 {
     public function create(VpaAssociationInitiatedActivitiesModel $data): array;
 
+    public function getAll(): array;
+
     public function getById(int $id): array;
 
     public function deleteById(int $id): array;
