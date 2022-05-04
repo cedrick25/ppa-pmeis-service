@@ -245,7 +245,11 @@ class QuartersRepository extends ServiceEntityRepository
                     LEFT JOIN phases as p ON s.phase_id = p.phase_id
                     LEFT JOIN venues as v ON s.venue_id = v.venue_id
                     LEFT JOIN session_remarks as sr ON s.remarks_id = sr.session_remark_id
-                    WHERE q.quarter_id = $id AND s.field_office_id = $fieldOfficeId ORDER BY p.phase_id";
+                    WHERE q.quarter_id = $id 
+                    AND s.field_office_id = $fieldOfficeId 
+                    AND s.deleted_at IS NULL
+                    ORDER BY p.phase_id
+                ";
             $stmt = $conn->prepare($sql);
             $query = $stmt->executeQuery();
 
@@ -305,7 +309,8 @@ class QuartersRepository extends ServiceEntityRepository
                 ) {
                     $session['ppo_resource_person'] = $this->getPpoResourcePeople($resourcePeopleId['PPO'][$session['session_id']]);
                 }
-                if (count($erpFacilitators) > 0) {
+                // if (count($erpFacilitators) > 0) {
+                if (count($erpFacilitators) > 0 && isset($erpFacilitators[$session['session_id']])) {
                     $session['erp_resource_person'] = $erpFacilitators[$session['session_id']];
                 }
                 $session['count'] = $this->getClientSessionCount($quarterId, intval($session['session_id']));
@@ -484,8 +489,17 @@ class QuartersRepository extends ServiceEntityRepository
         $minDate = $minMaxDate['min'];
         $maxDate = $minMaxDate['max'];
 
-        $sql = "SELECT s.session_id, s.field_office_id, s.li_lo FROM sessions as s 
-                    WHERE s.date BETWEEN CAST('$minDate' AS DATE) AND CAST('$maxDate' AS DATE) AND s.field_office_id = $fieldOfficeId";
+        $sql = "SELECT 
+                    s.session_id, 
+                    s.field_office_id, 
+                    s.li_lo 
+                FROM sessions as s 
+                WHERE 
+                    s.date BETWEEN CAST('$minDate' AS DATE) 
+                AND CAST('$maxDate' AS DATE) 
+                AND s.field_office_id = $fieldOfficeId
+                AND s.deleted_at IS NULL
+            ";
         $stmt = $conn->prepare($sql);
         $query = $stmt->executeQuery();
         return $query->fetchAllAssociative();

@@ -335,7 +335,7 @@ class Volunteer implements VolunteerInterface
         $percentOfVpaMobilized = $totalNumberOfVpa > 0 ? ($totalActiveVpa / $totalNumberOfVpa) * 100 : 0;
         $vpaSupervisingClients = $this->volunteerSupervisionsRepository->findVpaInvolveByQuarter($quarterId, $fieldOfficeId);
         $noOfVpaSupervisingClients = count($vpaSupervisingClients);
-        $noOfVpaSupervisingClientsPercentage = $totalActiveVpa > 0 ? ($noOfVpaSupervisingClients / $totalActiveVpa) : 0;
+        $noOfVpaSupervisingClientsPercentage = $totalActiveVpa > 0 ? ($noOfVpaSupervisingClients / $totalActiveVpa) * 100 : 0;
 
         // Column 10 = 1.A.1 + 1.B.2 + 1.C.4 + 3.A.1
         // Table 1.A.1
@@ -357,15 +357,14 @@ class Volunteer implements VolunteerInterface
         
         $vpaActingAsResourceIndividuals = array_unique(array_merge($vpaActingAsResourceIndividualsInSessionsIds, $vpasInvolvedInRJActivitiesIds, $vpasInvolvedInAssociationActivitiesIds, $vpasInvolvedInSocialMarketingIds));
         $noOfVpaActingAsResourceIndividuals = count($vpaActingAsResourceIndividuals);
-        $noOfVpaActingAsResourceIndividualsPercentage = $totalActiveVpa > 0 ? ($noOfVpaActingAsResourceIndividuals / $totalActiveVpa) : 0;
+        $noOfVpaActingAsResourceIndividualsPercentage = $totalActiveVpa > 0 ? ($noOfVpaActingAsResourceIndividuals / $totalActiveVpa) * 100 : 0;
 
-        $vpaActingBothSupervisingAndResourceIndividual = count($this
-            ->getVpaActingBothSupervisingAndResourceIndividual($vpaSupervisingClients, $vpaActingAsResourceIndividuals));
+        $vpaActingBothSupervisingAndResourceIndividual = count($this->getVpaActingBothSupervisingAndResourceIndividual($vpaSupervisingClients, $vpaActingAsResourceIndividuals));
         $percentageOfVpaActingBothSupervisingAndResourceIndividual = $totalActiveVpa > 0 ?
-            ($vpaActingBothSupervisingAndResourceIndividual / $totalActiveVpa) : 0;
+            ($vpaActingBothSupervisingAndResourceIndividual / $totalActiveVpa) * 100 : 0;
         $totalNumberOfClientsSupervised = count($this->volunteerSupervisionsRepository->findClientsSupervisedByQuarter($quarterId, $fieldOfficeId));
         $noOfServicesRenderedByVpa = count($this->volunteerSupervisionsRepository->findServicesRenderedByQuarter($quarterId, $fieldOfficeId));
-        $noOfServicesRenderedByVpaPercentage = $totalActiveVpa > 0 ? ($noOfServicesRenderedByVpa / $totalActiveVpa) : 0;
+        $noOfServicesRenderedByVpaPercentage = $totalActiveVpa > 0 ? ($noOfServicesRenderedByVpa / $totalActiveVpa) * 100 : 0;
 
         return [
             'start_of_quarter_vpa' => count($startOfQuarterVpa),
