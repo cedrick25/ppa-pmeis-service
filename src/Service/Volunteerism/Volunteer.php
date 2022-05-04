@@ -321,10 +321,10 @@ class Volunteer implements VolunteerInterface
 
         $quarterYear = intval($quarterData->getYear());
         $startOfQuarterVpa = $this->getStartOfQuarterVpa($quarterData, $fieldOfficeId);
-        $newAppointed = $this->getMonitoringByStatus($quarterYear, self::APPOINTED, $months);
+        $newAppointed = $this->getMonitoringByStatus($quarterYear, self::APPOINTED, $months, $startOfQuarterVpa);
         $reappointed = $this->getMonitoringByStatus($quarterYear, self::REAPPOINTED, $months);
         $dropped = $this->getDroppedVolunteers($quarterData, $fieldOfficeId);
-        $totalNumberOfVpa = ($startOfQuarterVpa + $newAppointed) - $dropped;
+        $totalNumberOfVpa = (count($startOfQuarterVpa) + $newAppointed) - $dropped;
         $inactive = $this->repository->findInactiveVolunteersByFieldOfficeAndMonthRangeV2(
             $fieldOfficeId,
             intval($quarterData->getYear()),
@@ -368,7 +368,7 @@ class Volunteer implements VolunteerInterface
         $noOfServicesRenderedByVpaPercentage = $totalActiveVpa > 0 ? ($noOfServicesRenderedByVpa / $totalActiveVpa) : 0;
 
         return [
-            'start_of_quarter_vpa' => $startOfQuarterVpa,
+            'start_of_quarter_vpa' => count($startOfQuarterVpa),
             'new_appointed' => $newAppointed,
             'reappointed' => $reappointed,
             'dropped' => $dropped,
@@ -498,15 +498,18 @@ class Volunteer implements VolunteerInterface
     }
 
     /**
+     * @param Quarters|null $quarterData
+     * @param int $fieldOfficeId
+     * @return int[]
      * @throws \Doctrine\DBAL\Driver\Exception
      * @throws \Doctrine\DBAL\Exception
      */
-    private function getStartOfQuarterVpa(?Quarters $quarterData, int $fieldOfficeId): int
+    private function getStartOfQuarterVpa(?Quarters $quarterData, int $fieldOfficeId): array
     {
         $previousQuarter = $this->quartersRepository->fetchPreviousQuarterByNameAndYear($quarterData->getName(), intval($quarterData->getYear()));
 
         if ($previousQuarter === null) {
-            return 0;
+            return [];
         }
         $previousMonths = $this->appDateHelper->getMonthsByQuarterString($previousQuarter->getName());
         $currentMonths = $this->appDateHelper->getMonthsByQuarterString($quarterData->getName());
@@ -514,13 +517,13 @@ class Volunteer implements VolunteerInterface
             ->findByFieldOfficeAndMonthRange($fieldOfficeId, intval($previousQuarter->getYear()), $previousMonths);
         $reappointedVolunteersId = $this->getVolunteersIdByStatus(self::REAPPOINTED, intval($quarterData->getYear()), $currentMonths);
 
-        $results = 0;
+        $results = [];
         foreach ($previousActiveVolunteers as $previousActiveVolunteer) {
             if (in_array($previousActiveVolunteer->getVolunteerId(), $reappointedVolunteersId)) {
                 continue;
             }
 
-            $results++;
+            $results[] = $previousActiveVolunteer->getVolunteerId();
         }
 
         return $results;
@@ -528,6 +531,7 @@ class Volunteer implements VolunteerInterface
 
     /**
      * @param int[] $months
+     * @param int[] $startOfQuarterVpa
      * @throws \Doctrine\DBAL\Driver\Exception
      * @throws \Doctrine\DBAL\Exception
      */
@@ -535,6 +539,7 @@ class Volunteer implements VolunteerInterface
         int $year,
         string $status,
         array $months,
+        array $startOfQuarterVpa,
     ): int {
         $newVolunteersId = $this->getVolunteersIdByStatus(
             $status,
@@ -542,7 +547,15 @@ class Volunteer implements VolunteerInterface
             $months
         );
 
-        return count($newVolunteersId);
+        $count = 0;
+        foreach ($newVolunteersId as $newVolunteerId) {
+            if (in_array($newVolunteerId, $startOfQuarterVpa)) {
+                continue;
+            }
+            $count++;
+        }
+
+        return $count;
     }
 
     private function getCivilStatuses(): array
