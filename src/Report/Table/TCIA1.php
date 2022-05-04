@@ -44,7 +44,8 @@ class TCIA1 implements Form
      */
     public function generate(array $data): BinaryFileResponse
     {
-        $this->data = $this->getData($data);
+        // $this->data = $this->getData($data);
+        $this->data = $data;
 
         $spreadsheet = $this->footer();
         $writer = IOFactory::createWriter($spreadsheet, "Xlsx");
