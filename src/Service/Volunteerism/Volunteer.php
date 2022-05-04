@@ -322,7 +322,7 @@ class Volunteer implements VolunteerInterface
         $quarterYear = intval($quarterData->getYear());
         $startOfQuarterVpa = $this->getStartOfQuarterVpa($quarterData, $fieldOfficeId);
         $newAppointed = $this->getMonitoringByStatus($quarterYear, self::APPOINTED, $months, $startOfQuarterVpa);
-        $reappointed = $this->getMonitoringByStatus($quarterYear, self::REAPPOINTED, $months);
+        $reappointed = $this->getMonitoringByStatus($quarterYear, self::REAPPOINTED, $months, $startOfQuarterVpa);
         $dropped = $this->getDroppedVolunteers($quarterData, $fieldOfficeId);
         $totalNumberOfVpa = (count($startOfQuarterVpa) + $newAppointed) - $dropped;
         $inactive = $this->repository->findInactiveVolunteersByFieldOfficeAndMonthRangeV2(
