@@ -376,7 +376,6 @@ class Volunteer implements VolunteerInterface
             'total_active_vpa' => $totalActiveVpa,
             'percentage_of_vpa_mobilized' => $percentOfVpaMobilized,
             'no_of_vpa_supervising_clients' => $noOfVpaSupervisingClients,
-            'sm' => $this->getVpaActingBothSupervisingAndResourceIndividual($vpaSupervisingClients, $vpaActingAsResourceIndividuals),
             'no_of_vpa_supervising_clients_percentage' => $noOfVpaSupervisingClientsPercentage,
             'no_of_vpa_acting_as_resource_individuals' => $noOfVpaActingAsResourceIndividuals,
             'no_of_vpa_acting_as_resource_individuals_percentage' => $noOfVpaActingAsResourceIndividualsPercentage,
