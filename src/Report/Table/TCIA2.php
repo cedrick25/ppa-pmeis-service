@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Report\Table;
 
 use App\Common\AppDateHelper;
+use App\Service\TherapeuticCommunity\Sessions;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Style\Border;
@@ -18,6 +19,7 @@ class TCIA2 implements Form
 
     public function __construct(
         private AppDateHelper $appDateHelper,
+        private Sessions      $sessionService,
         private int           $lastFilledOutCellY = 8,
         private array         $data = [],
         private array         $summaryData = [],
@@ -34,7 +36,7 @@ class TCIA2 implements Form
      */
     public function generate(array $data): BinaryFileResponse
     {
-        $this->data = $data;
+        $this->data = $this->getData($data);
 
         $spreadsheet = $this->footer();
         $writer = IOFactory::createWriter($spreadsheet, "Xlsx");
@@ -517,5 +519,16 @@ class TCIA2 implements Form
         $spreadsheet->getActiveSheet()->getStyle("AF5:AF8")->getFont()->setSize(9);
 
         return $spreadsheet;
+    }
+
+    private function getData(array $data): array
+    {
+        $result = $this->sessionService->getTCIA2(
+            $data['quarter_id'],
+            $data['field_office_id'],
+            $data['role']
+        );
+
+        return ['rows' => array_values($result['data'])];
     }
 }

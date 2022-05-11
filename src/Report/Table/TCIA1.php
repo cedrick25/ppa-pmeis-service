@@ -44,8 +44,7 @@ class TCIA1 implements Form
      */
     public function generate(array $data): BinaryFileResponse
     {
-        // $this->data = $this->getData($data);
-        $this->data = $data;
+         $this->data = $this->getData($data);
 
         $spreadsheet = $this->footer();
         $writer = IOFactory::createWriter($spreadsheet, "Xlsx");
@@ -414,14 +413,17 @@ class TCIA1 implements Form
         $result = [];
 
         $part1 = $this->quartersService->getTCA1Part1(
-            (int) $data['id'],
+            (int) $data['quarter_id'],
             (int) $data['field_office_id']
         );
 
         $part2 = $this->quartersService->getTCA1Part2(
-            (int) $data['id'],
+            (int) $data['quarter_id'],
             (int) $data['field_office_id']
         );
+
+        $result['part1'] = $part1['data'];
+        $result['part2'] = array_values($part2['data']);
 
         return $result;
     }

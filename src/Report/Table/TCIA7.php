@@ -4,10 +4,12 @@ declare(strict_types=1);
 
 namespace App\Report\Table;
 
+use App\Repository\QuartersRepository;
+use App\Service\TherapeuticCommunity\Quarters;
+use App\Service\TherapeuticCommunity\Sessions;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Style\Border;
-use PhpOffice\PhpSpreadsheet\Style\Fill;
 use PhpOffice\PhpSpreadsheet\Writer\Exception;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
@@ -16,9 +18,10 @@ class TCIA7 implements Form
     private const TABLE_NAME = "TCIA7";
 
     public function __construct(
-        private int   $lastFilledOutCellY = 5,
-        private array $data = [],
-        private string $currentQuarter = "1st",
+        private Sessions            $sessionService,
+        private QuartersRepository  $quartersRepository,
+        private int                 $lastFilledOutCellY = 5,
+        private array               $data = [],
     ){}
 
     public function supports(string $tableName): bool
@@ -31,9 +34,7 @@ class TCIA7 implements Form
      */
     public function generate(array $data): BinaryFileResponse
     {
-        $this->data = $data;
-        $quarter = explode(' ', $data['quarter']);
-        $this->currentQuarter = $quarter[0];
+        $this->data = $this->getData($data);
 
         $spreadsheet = $this->footer();
         $writer = IOFactory::createWriter($spreadsheet, "Xlsx");
@@ -101,12 +102,12 @@ class TCIA7 implements Form
     private function prepare(): Spreadsheet
     {
         $monthPerQuarter = [
-            '1st' => ['JANUARY', 'FEBRUARY', 'MARCH'],
-            '2nd' => ['APRIL', 'MAY', 'JUNE'],
-            '3rd' => ['JULY', 'AUGUST', 'SEPTEMBER'],
-            '4th' => ['OCTOBER', 'NOVEMBER', 'DECEMBER'],
+            'FIRST' => ['JANUARY', 'FEBRUARY', 'MARCH'],
+            'SECOND' => ['APRIL', 'MAY', 'JUNE'],
+            'THIRD' => ['JULY', 'AUGUST', 'SEPTEMBER'],
+            'FOURTH' => ['OCTOBER', 'NOVEMBER', 'DECEMBER'],
         ];
-        $months = $monthPerQuarter[$this->currentQuarter];
+        $months = $monthPerQuarter[$this->data['rows']['quarter']];
         $spreadsheet = new Spreadsheet();
         $textAndCoordinates = [
             'f1' => 'PPA- PLD-FR-004',
@@ -548,5 +549,17 @@ class TCIA7 implements Form
         $spreadsheet->getActiveSheet()->setCellValue('F44', $overallTotal . '%');
 
         return $spreadsheet;
+    }
+
+    private function getData(array $data): array
+    {
+        $result = $this->sessionService->getTC7(
+            $data['quarter_id'],
+            $data['field_office_id']
+        );
+        $quarter = $this->quartersRepository->find($data['quarter_id']);
+        $result['data']['quarter'] = $quarter->getName();
+
+        return ['rows' => $result['data']];
     }
 }
