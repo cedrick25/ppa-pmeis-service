@@ -422,8 +422,8 @@ class TCIA1 implements Form
             (int) $data['field_office_id']
         );
 
-        $result['part1'] = $part1['data'];
-        $result['part2'] = array_values($part2['data']);
+        $result['part1'] = $part1['data'] ?? [];
+        $result['part2'] = array_values($part2['data'] ?? []);
 
         return $result;
     }

@@ -519,7 +519,7 @@ class TCIA8 implements Form
             'Term'
         );
 
-        $result = array_merge(array_values($petitioners['data']), array_values($terminated['data']));
+        $result = array_merge(array_values($petitioners['data'] ?? []), array_values($terminated['data'] ?? []));
 
         return ['rows' => $result];
     }

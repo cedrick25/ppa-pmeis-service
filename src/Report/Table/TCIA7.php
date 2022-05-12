@@ -558,8 +558,9 @@ class TCIA7 implements Form
             $data['field_office_id']
         );
         $quarter = $this->quartersRepository->find($data['quarter_id']);
-        $result['data']['quarter'] = $quarter->getName();
+        $rows = $result['data'] ?? [];
+        $rows['quarter'] = $quarter->getName();
 
-        return ['rows' => $result['data']];
+        return ['rows' => $rows];
     }
 }

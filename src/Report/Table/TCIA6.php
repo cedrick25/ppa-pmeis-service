@@ -536,6 +536,6 @@ class TCIA6 implements Form
             $data['role']
         );
 
-        return ['rows' => array_values($result['data'])];
+        return ['rows' => array_values($result['data'] ?? [])];
     }
 }
