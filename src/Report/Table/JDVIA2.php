@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Report\Table;
 
+use App\Service\Volunteerism\SpecialAssignment;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Style\Border;
@@ -15,8 +16,9 @@ class JDVIA2 implements Form
     private const TABLE_NAME = "JDVIA2";
     
     public function __construct(
-        private int   $lastFilledOutCellY = 4,
-        private array $data = [],
+        private SpecialAssignment   $specialAssignmentService,
+        private int                 $lastFilledOutCellY = 4,
+        private array               $data = [],
     ){}
 
     public function supports(string $tableName): bool
@@ -29,7 +31,7 @@ class JDVIA2 implements Form
      */
     public function generate(array $data): BinaryFileResponse
     {
-        $this->data = $data;
+        $this->data = $this->getData($data);
 
         $spreadsheet = $this->footer();
         $writer = IOFactory::createWriter($spreadsheet, "Xlsx");
@@ -184,5 +186,12 @@ class JDVIA2 implements Form
         $spreadsheet->getActiveSheet()->getStyle('A' . $this->lastFilledOutCellY .':E' . $this->lastFilledOutCellY)->getFont()->setBold(true);
 
         return $spreadsheet;
+    }
+
+    private function getData(array $data): array
+    {
+        $results = $this->specialAssignmentService->getReport($data['quarter_id'], $data['field_office_id']);
+
+        return ['rows' => $results['data'] ?? []];
     }
 }
