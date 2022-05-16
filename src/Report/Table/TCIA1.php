@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Report\Table;
 
 use App\Repository\FieldOfficesRepository;
+use App\Repository\QuartersRepository;
 use App\Repository\TreatmentCategoriesRepository;
 use App\Service\TherapeuticCommunity\QuartersInterface;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
@@ -19,16 +20,22 @@ class TCIA1 implements Form
 
     /**
      * @param FieldOfficesRepository $fieldOfficesRepository
+     * @param QuartersRepository $quartersRepository
      * @param TreatmentCategoriesRepository $treatmentCategoriesRepository
+     * @param QuartersInterface $quartersService
+     * @param int $fieldOfficeId
      * @param int $lastFilledOutCellY
      * @param array<string, mixed> $data
      */
     public function __construct(
-        private FieldOfficesRepository $fieldOfficesRepository,
+        private FieldOfficesRepository        $fieldOfficesRepository,
+        private QuartersRepository            $quartersRepository,
         private TreatmentCategoriesRepository $treatmentCategoriesRepository,
-        private QuartersInterface $quartersService,
-        private int $lastFilledOutCellY = 14,
-        private array $data = [],
+        private QuartersInterface             $quartersService,
+        private int                           $fieldOfficeId = 1,
+        private int                           $quarterId = 1,
+        private int                           $lastFilledOutCellY = 14,
+        private array                         $data = [],
     ){}
 
     public function supports(string $tableName): bool
@@ -44,7 +51,9 @@ class TCIA1 implements Form
      */
     public function generate(array $data): BinaryFileResponse
     {
-         $this->data = $this->getData($data);
+        $this->fieldOfficeId = $data['field_office_id'];
+        $this->quarterId = $data['quarter_id'];
+        $this->data = $this->getData($data);
 
         $spreadsheet = $this->footer();
         $writer = IOFactory::createWriter($spreadsheet, "Xlsx");
@@ -272,19 +281,14 @@ class TCIA1 implements Form
     private function prepare(): Spreadsheet
     {
         $spreadsheet = new Spreadsheet();
-        $fieldOffice = $this->fieldOfficesRepository->find($this->data['part1'][0]['field_office_id']);
-        $quarters = [
-            'FIRST' => '1st',
-            'SECOND' => '2nd',
-            'THIRD' => '3rd',
-            'FOURTH' => '4th'
-        ];
+        $fieldOffice = $this->fieldOfficesRepository->find($this->fieldOfficeId);
+        $quarter = $this->quartersRepository->find($this->quarterId);
 
         $textAndCoordinates = [
             'Z1' => 'FIELD OFFICE IQPR FORM  -  PPA- PLD-FR-004',
             'B2' => 'INTEGRATED QUARTERLY PERFORMANCE REPORT',
             'A3' => 'FIELD OFFICE :  ' . $fieldOffice->getName(),
-            'AA3' => $quarters[$this->data['part1'][0]['name']] . ' Quarter, CY ' . $this->data['part1'][0]['year'],
+            'AA3' => $quarter->getName() . ' Quarter, CY ' . $quarter->getYear(),
             'A5' => 'I.  PROGRAM  IMPLEMENTATION',
             'A7' => 'A.  THERAPEUTIC COMMUNITY LADDERIZED PROGRAM (TCLP)',
             'A8' => "Table I.A.1 - CLIENTS' / FSG INVOLVEMENT BY PHASE/ SESSION/ ACTIVITY/TREATMENT CATEGORY",
