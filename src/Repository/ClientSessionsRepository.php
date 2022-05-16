@@ -312,9 +312,13 @@ class ClientSessionsRepository extends ServiceEntityRepository
     {
         $ids = implode(',', $ids);
         $conn = $this->getEntityManager()->getConnection();
-        $sql = "SELECT c.* FROM client_sessions 
+        $sql = "
+            SELECT 
+                c.* 
+            FROM client_sessions 
             LEFT JOIN clients c on client_sessions.client_id = c.client_id
-            WHERE client_sessions.session_id IN ($ids)";
+            WHERE client_sessions.session_id IN ($ids)
+        ";
 
         $stmt = $conn->prepare($sql);
         $query = $stmt->executeQuery();
@@ -333,9 +337,14 @@ class ClientSessionsRepository extends ServiceEntityRepository
     {
         $ids = implode(',', $ids);
         $conn = $this->getEntityManager()->getConnection();
-        $sql = "SELECT c.* FROM client_sessions 
+        $sql = "
+            SELECT 
+                c.* 
+            FROM client_sessions 
             LEFT JOIN clients c on client_sessions.client_id = c.client_id
-            WHERE c.field_office_id = $fieldOfficeId AND client_sessions.session_id IN ($ids)";
+            WHERE c.field_office_id = $fieldOfficeId 
+            AND client_sessions.session_id IN ($ids)
+        ";
 
         $stmt = $conn->prepare($sql);
         $query = $stmt->executeQuery();

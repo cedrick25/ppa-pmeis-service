@@ -299,6 +299,7 @@ class Sessions implements SessionsInterface
         } catch (Exception $e) {
             return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_FAILED, null, [
                 'app' => $e->getMessage(), $e->getFile(), $e->getLine(), $e->getTrace(),]);
+
         } catch (\Doctrine\DBAL\Driver\Exception $e) {
             return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_FAILED, null, ['orm' => $e->getMessage()]);
         }
@@ -512,27 +513,35 @@ class Sessions implements SessionsInterface
         /** @var \App\Entity\Clients[] $clients */
 
         $sessionIds = $this->repository->findSessionsIdsByQuarter($quarter);
-        $sessionIds = array_map(fn($sessionId) => $sessionId['session_id'], $sessionIds);
 
-        $sessionClients = $this->clientSessionsRepository->findClientsBySessionIds($sessionIds);
-        $sessionClientIds = array_map(fn($client) => $client['client_id'], $sessionClients);
+        if ($sessionIds) {
+            $sessionIds = array_map(fn($sessionId) => $sessionId['session_id'], $sessionIds);
 
-        $clients = $this->clientsRepository
-            ->findSupervisionCasesDropBySupervisionPeriodEndDateRangeLess($quarterMinMaxDate, $fieldOfficeId);
+            $sessionClients = $this->clientSessionsRepository->findClientsBySessionIds($sessionIds);
+            $sessionClientIds = array_map(fn($client) => $client['client_id'], $sessionClients);
 
-        foreach ($clients as $client) {
-            $clientRemarksId = $client['client_remarks_id'];
-            $clientTypeId = $client['client_type_id'];
-            // if (in_array($client['client_id'], $sessionClientIds)) {
-            if (!in_array($client['client_id'], $sessionClientIds)) {
-                continue;
+            $clients = $this->clientsRepository
+                ->findSupervisionCasesDropBySupervisionPeriodEndDateRangeLess($quarterMinMaxDate, $fieldOfficeId);
+            $existingClients = [];
+
+            foreach ($clients as $client) {
+                $clientRemarksId = $client['client_remarks_id'];
+                $clientTypeId = $client['client_type_id'];
+                // if (in_array($client['client_id'], $sessionClientIds)) {
+                if (!in_array($client['client_id'], $sessionClientIds)) {
+                    continue;
+                }
+
+                if (!in_array($client['client_id'], $existingClients)) {
+                    $existingClients[] = $client['client_id'];
+
+                    if (!isset($result[$clientRemarksId][$clientTypeId] )) {
+                        $result[$clientRemarksId][$clientTypeId] = 0;
+                    }
+
+                    $result[$clientRemarksId][$clientTypeId]++;
+                }
             }
-
-            if (! isset( $result[$clientRemarksId][$clientTypeId] )) {
-                $result[$clientRemarksId][$clientTypeId] = 0;
-            }
-
-            $result[$clientRemarksId][$clientTypeId]++;
         }
 
         return $result;
@@ -599,14 +608,17 @@ class Sessions implements SessionsInterface
          */
         $result = [];
         $sessionIds = $this->repository->findSessionsIdsByQuarter($quarter);
-        $sessionIds = array_map(fn($sessionId) => $sessionId['session_id'], $sessionIds);
-        $sessionClients = $this->clientSessionsRepository->findClientsBySessionIdsAndFieldOfficeId($sessionIds, $fieldOfficeId);
 
-        foreach ($sessionClients as $sessionClient) {
-            if (! isset($result[$sessionClient['client_type_id']])) {
-                $result[$sessionClient['client_type_id']] = 0;
+        if ($sessionIds) {
+            $sessionIds = array_map(fn($sessionId) => $sessionId['session_id'], $sessionIds);
+            $sessionClients = $this->clientSessionsRepository->findClientsBySessionIdsAndFieldOfficeId($sessionIds, $fieldOfficeId);
+
+            foreach ($sessionClients as $sessionClient) {
+                if (! isset($result[$sessionClient['client_type_id']])) {
+                    $result[$sessionClient['client_type_id']] = 0;
+                }
+                $result[$sessionClient['client_type_id']]++;
             }
-            $result[$sessionClient['client_type_id']]++;
         }
 
         return $result;
