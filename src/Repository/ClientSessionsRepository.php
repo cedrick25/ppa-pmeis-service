@@ -302,6 +302,22 @@ class ClientSessionsRepository extends ServiceEntityRepository
         return $query->fetchAllAssociative();
     }
 
+    public function getVPA3Report(int $volunteerId): array
+    {
+        $conn = $this->getEntityManager()->getConnection();
+        $sql = "SELECT c.first_name, c.middle_name, c.last_name, c.gender, sr.name as service_rendered, vs.community_resources_tapped,
+                vs.assistance_received, vs.remarks
+            FROM volunteer_supervisions vs
+            LEFT JOIN clients c ON vs.client_id = c.client_id
+            LEFT JOIN services_rendered sr ON vs.services_rendered_id = sr.services_rendered_id
+            WHERE vs.volunteer_id = $volunteerId";
+
+        $stmt = $conn->prepare($sql);
+        $query = $stmt->executeQuery();
+
+        return $query->fetchAllAssociative();
+    }
+
     /**
      * @param int[] $ids
      * @return array<int, array<string, mixed>>

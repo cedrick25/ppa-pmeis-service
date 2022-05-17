@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Report\Table;
 
 use App\Common\AppDateHelper;
+use App\Service\Volunteerism\VpaAssociationInitiatedActivities;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Style\Border;
@@ -17,9 +18,10 @@ class VPAIC4 implements Form
     private const TABLE_NAME = "VPAIC4";
     
     public function __construct(
-        private AppDateHelper $appDateHelper,
-        private int           $lastFilledOutCellY = 8,
-        private array         $data = [],
+        private AppDateHelper                       $appDateHelper,
+        private VpaAssociationInitiatedActivities   $service,
+        private int                                 $lastFilledOutCellY = 8,
+        private array                               $data = [],
     ){}
 
     public function supports(string $tableName): bool
@@ -32,7 +34,7 @@ class VPAIC4 implements Form
      */
     public function generate(array $data): BinaryFileResponse
     {
-        $this->data = $data;
+        $this->data = $this->getData($data);
 
         $spreadsheet = $this->footer();
         $writer = IOFactory::createWriter($spreadsheet, "Xlsx");
@@ -163,5 +165,15 @@ class VPAIC4 implements Form
         }
 
         return $spreadsheet;
+    }
+
+    private function getData(array $data): array
+    {
+        $result = $this->service->getReport(
+            $data['quarter_id'],
+            $data['field_office_id']
+        );
+
+        return ['rows' => $result['data'] ?? []];
     }
 }

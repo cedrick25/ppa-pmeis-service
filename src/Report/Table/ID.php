@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Report\Table;
 
+use App\Service\Volunteerism\IdSupport;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Style\Border;
@@ -13,11 +14,12 @@ use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
 class ID implements Form
 {
-    private const TABLE_NAME = "ID";
+    private const TABLE_NAME = "SupportProgram";
     
     public function __construct(
-        private int   $lastFilledOutCellY = 5,
-        private array $data = [],
+        private IdSupport   $service,
+        private int         $lastFilledOutCellY = 5,
+        private array       $data = [],
     ){}
 
     public function supports(string $tableName): bool
@@ -30,7 +32,7 @@ class ID implements Form
      */
     public function generate(array $data): BinaryFileResponse
     {
-        $this->data = $data;
+        $this->data = $this->getData($data);
 
         $spreadsheet = $this->footer();
         $writer = IOFactory::createWriter($spreadsheet, "Xlsx");
@@ -126,5 +128,15 @@ class ID implements Form
         }
 
         return $spreadsheet;
+    }
+
+    private function getData(array $data): array
+    {
+        $result = $this->service->getIdSupportReport(
+            $data['quarter_id'],
+            $data['field_office_id'],
+        );
+
+        return ['rows' => $result['data'] ?? []];
     }
 }

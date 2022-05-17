@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Report\Table;
 
+use App\Service\RestorativeJustice\ConductProcesses;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Style\Border;
@@ -16,8 +17,9 @@ class RJIB1 implements Form
     private const TABLE_NAME = "RJIB1";
 
     public function __construct(
-        private int   $lastFilledOutCellY = 11,
-        private array $data = [],
+        private ConductProcesses    $service,
+        private int                 $lastFilledOutCellY = 11,
+        private array               $data = [],
     ){}
 
     public function supports(string $tableName): bool
@@ -30,7 +32,7 @@ class RJIB1 implements Form
      */
     public function generate(array $data): BinaryFileResponse
     {
-        $this->data = $data;
+        $this->data = $this->getData($data);
 
         $spreadsheet = $this->footer();
         $writer = IOFactory::createWriter($spreadsheet, "Xlsx");
@@ -380,5 +382,18 @@ class RJIB1 implements Form
         }
 
         return $spreadsheet;
+    }
+
+    private function getData(array $data): array
+    {
+        $conductedProcesses = $this->service->getRJIB1(
+            $data['quarter_id'],
+            $data['field_office_id'],
+        );
+
+        $result['rows'] = $conductedProcesses['data'] ?? [];
+        $result['footer'] = $data['footer'];
+
+        return $result;
     }
 }

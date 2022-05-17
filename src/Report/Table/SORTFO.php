@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Report\Table;
 
 use App\Common\AppDateHelper;
+use App\Service\Volunteerism\SupportOfRegionToFieldOffice;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Style\Border;
@@ -17,9 +18,11 @@ class SORTFO implements Form
     private const TABLE_NAME = "SORTFO";
     
     public function __construct(
-        private AppDateHelper $appDateHelper,
-        private int   $lastFilledOutCellY = 5,
-        private array $data = [],
+        private SupportOfRegionToFieldOffice    $service,
+        private AppDateHelper                   $appDateHelper,
+        private int                             $lastFilledOutCellY = 5,
+        private array                           $data = [],
+        private string                          $category = '',
     ){}
 
     public function supports(string $tableName): bool
@@ -32,7 +35,8 @@ class SORTFO implements Form
      */
     public function generate(array $data): BinaryFileResponse
     {
-        $this->data = $data;
+        $this->category = $data['category'];
+        $this->data = $this->getData($data);
 
         $spreadsheet = $this->footer();
         $writer = IOFactory::createWriter($spreadsheet, "Xlsx");
@@ -97,12 +101,11 @@ class SORTFO implements Form
             'PWDSC' => 'E. PERSONS WITH DISABILITY (PWD) / SENIOR CITIZENS (SC)',
             'OTHERS' => 'F. OTHER ACTIVITIES (TRICON, REGIONAL/ NATIONAL COMMITTEE MEETINGS, FIELD AUDIT, EXECON, ETC.)',
         ];
-        $clientType = $this->data['rows'][0]['category'];
 
         $textAndCoordinates = [
             'B1' => 'FINANCIAL / MATERIAL SUPPORT OF REGIONAL OFFICE TO FIELD OFFICES (To be prepared by the Regional Office)',
             'b2' => '_______________Quarter 20______________',
-            'a4' => $clientTypes[$clientType],
+            'a4' => $clientTypes[$this->category],
             'a5' => 'DATE',
             'b5' => 'FIELD OFFICE(S)',
             'c5' => 'PARTICULARS',
@@ -148,5 +151,16 @@ class SORTFO implements Form
         }
 
         return $spreadsheet;
+    }
+
+    private function getData(array $data): array
+    {
+        $result = $this->service->getReport(
+            $data['quarter_id'],
+            $data['field_office_id'],
+            $data['category']
+        );
+
+        return ['rows' => $result['data'] ?? []];
     }
 }

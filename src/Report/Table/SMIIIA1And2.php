@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace App\Report\Table;
 
+use App\Service\Volunteerism\SocialMarketing;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Style\Border;
-use PhpOffice\PhpSpreadsheet\Style\Fill;
 use PhpOffice\PhpSpreadsheet\Writer\Exception;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
@@ -16,8 +16,9 @@ class SMIIIA1And2 implements Form
     private const TABLE_NAME = "SMIIIA2";
     
     public function __construct(
-        private int   $lastFilledOutCellY = 3,
-        private array $data = [],
+        private SocialMarketing $service,
+        private int             $lastFilledOutCellY = 3,
+        private array           $data = [],
     ){}
 
     public function supports(string $tableName): bool
@@ -30,7 +31,7 @@ class SMIIIA1And2 implements Form
      */
     public function generate(array $data): BinaryFileResponse
     {
-        $this->data = $data;
+        $this->data = $this->getData($data);
 
         $spreadsheet = $this->footer();
         $writer = IOFactory::createWriter($spreadsheet, "Xlsx");
@@ -56,7 +57,7 @@ class SMIIIA1And2 implements Form
     {
         $spreadsheet = $this->header();
 
-        foreach ($this->data['rows'] as $socialMarketingActivityId=>$socialMarketing) {
+        foreach ($this->data['rows'] as $socialMarketing) {
             foreach ($socialMarketing as $index=>$row) {
                 $this->lastFilledOutCellY++;
                 if ($index <= 0) {
@@ -147,5 +148,16 @@ class SMIIIA1And2 implements Form
         }
 
         return $spreadsheet;
+    }
+
+    private function getData(array $data): array
+    {
+        $result = $this->service->getReport(
+            $data['quarter_id'],
+            $data['field_office_id'],
+            $data['type'],
+        );
+
+        return ['rows' => array_values($result['data'] ?? [])];
     }
 }

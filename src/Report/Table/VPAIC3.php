@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Report\Table;
 
+use App\Service\TherapeuticCommunity\ResourceFacilitatorSession;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Style\Border;
@@ -16,8 +17,9 @@ class VPAIC3 implements Form
     private const TABLE_NAME = "VPAIC3";
     
     public function __construct(
-        private int   $lastFilledOutCellY = 6,
-        private array $data = [],
+        private ResourceFacilitatorSession  $service,
+        private int                         $lastFilledOutCellY = 6,
+        private array                       $data = [],
     ){}
 
     public function supports(string $tableName): bool
@@ -30,7 +32,7 @@ class VPAIC3 implements Form
      */
     public function generate(array $data): BinaryFileResponse
     {
-        $this->data = $data;
+        $this->data = $this->getData($data);
 
         $spreadsheet = $this->footer();
         $writer = IOFactory::createWriter($spreadsheet, "Xlsx");
@@ -85,10 +87,12 @@ class VPAIC3 implements Form
             'clients' => ['F' => 0, 'M' => 0],
         ];
 
-        foreach ($this->data['rows'] as $volunteerName=>$row) {
+        foreach ($this->data['rows'] as $row) {
+            $volunteer = $row['volunteer'];
+            $volunteerName = $volunteer['first_name'] . ' ' . $volunteer['middle_name'] . ' ' . $volunteer['last_name'];
             $this->lastFilledOutCellY++;
             $spreadsheet->getActiveSheet()->setCellValue("A" . $this->lastFilledOutCellY, $volunteerName);
-            if ($row['gender'] === 'F') {
+            if ($volunteer['gender'] === 'F') {
                 $spreadsheet->getActiveSheet()->setCellValue('D' . $this->lastFilledOutCellY, '∕');
                 $total['volunteer']['F']++;
             } else {
@@ -109,7 +113,8 @@ class VPAIC3 implements Form
                     $this->lastFilledOutCellY++;
                 }
 
-                $spreadsheet->getActiveSheet()->setCellValue("F" . $this->lastFilledOutCellY, $client['full_name']);
+                $clientFullName = $client['first_name'] . ' ' . $client['middle_name'] . ' ' . $client['last_name'];
+                $spreadsheet->getActiveSheet()->setCellValue("F" . $this->lastFilledOutCellY, $clientFullName);
                 if ($client['gender'] === 'F') {
                     $spreadsheet->getActiveSheet()->setCellValue('I' . $this->lastFilledOutCellY, '∕');
                     $total['clients']['F']++;
@@ -118,7 +123,7 @@ class VPAIC3 implements Form
                     $total['clients']['M']++;
                 }
 
-                $spreadsheet->getActiveSheet()->setCellValue('K' . $this->lastFilledOutCellY, $client['services_rendered']);
+                $spreadsheet->getActiveSheet()->setCellValue('K' . $this->lastFilledOutCellY, $client['service_rendered']);
                 $spreadsheet->getActiveSheet()->setCellValue('M' . $this->lastFilledOutCellY, $client['community_resources_tapped']);
                 $spreadsheet->getActiveSheet()->setCellValue('P' . $this->lastFilledOutCellY, $client['assistance_received']);
                 $spreadsheet->getActiveSheet()->setCellValue('S' . $this->lastFilledOutCellY, $client['remarks']);
@@ -217,5 +222,15 @@ class VPAIC3 implements Form
         }
 
         return $spreadsheet;
+    }
+
+    private function getData(array $data): array
+    {
+        $result = $this->service->getVPA3(
+            $data['field_office_id'],
+            $data['quarter_id']
+        );
+
+        return ['rows' => $result['data'] ?? []];
     }
 }
