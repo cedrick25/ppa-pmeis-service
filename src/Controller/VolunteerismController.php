@@ -32,7 +32,6 @@ use App\Model\SupportOfRegionToFieldOffice as SupportOfRegionToFieldOfficeModel;
 use App\Model\VolunteerSupervisions as VolunteerSupervisionsModel;
 use App\Model\VpaAssociationInitiatedActivities as VpaAssociationInitiatedActivitiesModel;
 use App\Service\Volunteerism\VolunteerSupervisionsInterface;
-use App\Service\Volunteerism\VpaAssociationInitiatedActivities;
 use App\Service\Volunteerism\VpaAssociationInitiatedActivitiesInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
