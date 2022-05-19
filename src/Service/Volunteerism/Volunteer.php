@@ -443,7 +443,7 @@ class Volunteer implements VolunteerInterface
         $pdf->writeHTMLCell(0, 0, 0, 130, $body);
         $pdf->endPage();
 
-        return $pdf->Output('mark.pdf');
+        return $pdf->Output('mark.pdf', 'E');
     }
 
     public function getId(int $id): string
