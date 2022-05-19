@@ -31,7 +31,7 @@ interface VolunteerInterface
 
     public function getVpaMonitoring(int $quarterId, int $fieldOfficeId): array;
 
-    public function getCertificate(int $id): string;
+    public function getCertificate(array $data): string;
 
     public function getId(int $id): string;
 }

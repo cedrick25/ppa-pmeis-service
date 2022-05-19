@@ -963,11 +963,13 @@ class TherapeuticCommunityController extends AbstractController
     }
 
     /**
-     * @Route("/generate-cert/{volunteerId}", methods={"GET"})
+     * @Route("/generate-cert", methods={"POST"})
      */
     public function getCertificate(Request $request): Response
     {
-        return $this->json($this->volunteerService->getCertificate((int) $request->get("volunteerId")));
+        $data = json_decode($request->getContent(), true);
+
+        return $this->json($this->volunteerService->getCertificate($data));
     }
 
     /**

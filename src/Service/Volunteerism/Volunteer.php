@@ -25,7 +25,6 @@ use Doctrine\ORM\Exception\ORMException;
 use Exception;
 use Psr\Cache\CacheException;
 use Psr\Cache\InvalidArgumentException;
-use Symfony\Component\HttpFoundation\BinaryFileResponse;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 use TCPDF;
 
@@ -387,16 +386,18 @@ class Volunteer implements VolunteerInterface
         ];
     }
 
-    public function getCertificate(int $id): string
+    public function getCertificate(array $data): string
     {
-        $volunteer = $this->repository->find($id);
+        $volunteer = $this->repository->find($data['volunteer_id']);
         $address = $volunteer->getPresentAddress();
         $fullName = $volunteer->getFirstName() . ' ' . $volunteer->getMiddleName() . ' ' . $volunteer->getLastName();
         $fieldOffice = $this->fieldOfficesRepository->find($volunteer->getFieldOfficeId());
         $fieldOfficeName = $fieldOffice->getName();
-        $dateOfAppointment = $volunteer->getDateAppointed()->format('d-M-y');
+        $dateOfAppointment = $volunteer->getDateAppointed()->format('F d, Y');
         $region = $this->regionsRepository->find($fieldOffice->getRegionId());
         $regionName = $region->getName();
+        $code = $data['code'];
+        $administrator = $data['administrator'];
 
         $pdf = new TCPDF();
         $pdf->setCreator(PDF_CREATOR);
@@ -407,39 +408,42 @@ class Volunteer implements VolunteerInterface
         $pdf->startPage();
         $logo = dirname(__DIR__ ) . '/../../assets/ppa.png';
         $heading = <<<EOD
-            <h3 style="text-align: right">PPA-CSD-FR-001-00</h3>
-            <h3 style="text-align: center">Republic of the Philippines</h3>
-            <h3 style="text-align: center">Department of Justice</h3>
-            <h2 style="text-align: center">PAROLE AND PROBATION ADMINISTRATION</h2>
-            <h5 style="text-align: center">DOJ Agencies Building</h5>
-            <h5 style="text-align: center">NIA Road corner East Avenue, Diliman</h5>
-            <h5 style="text-align: center">110 Quezon City</h5>
+            <h3 style="text-align: right;">$code</h3>
+            <h3 style="text-align: center;line-height: 5px;">Republic of the Philippines</h3>
+            <h3 style="text-align: center;line-height: 5px;">Department of Justice</h3>
+            <h2 style="text-align: center;line-height: 5px;">PAROLE AND PROBATION ADMINISTRATION</h2>
+            <h5 style="text-align: center;line-height: 5px;">DOJ Agencies Building</h5>
+            <h5 style="text-align: center;line-height: 5px;">NIA Road corner East Avenue, Diliman</h5>
+            <h5 style="text-align: center;line-height: 5px;">110 Quezon City</h5>
         EOD;
 
         $pdf->writeHTMLCell(0, 0, '', '', $heading);
         $pdf->Image($logo,  85, 75, 40, 40, '', '', 'T', false, 300, '', false, false, 1, false, false, false);
         $body = <<<EOD
-            <h2 style="text-align: center"><i>Certificate of Appointment</i></h2>
-            <h2 style="text-align: center;font-size: 15px;font-weight: normal">$fullName</h2>
-            <h2 style="text-align: center"><i>of</i></h2>
-            <h2 style="text-align: center;font-size: 15px;font-weight: normal">$address</div>
-            <h2 style="text-align: center">Department</h2>
-            <h4 style="text-align: center">is hereby appointed as <span style="font-size: 13px">VOLUNTEER PROBATION ASSISTANT</span> of the</h4>
-            <h3 style="text-align: center"><i>$fieldOfficeName</i></h3>
-            <h3 style="text-align: center"><i>$regionName</i></h3>
-            <div></div>
-            <h2 style="text-align: center">$dateOfAppointment</h2>
-            <div></div>
-            <div></div>
-            <h2 style="text-align: center">DR. MANUEL G. CO, CESO I</h2>
-            <h2 style="text-align: center">Administrator</h2>
+            <div>
+                <h2 style="text-align: center;"><i>Certificate of Appointment</i></h2>
+                <h2 style="text-align: center;font-size: 15px;font-weight: normal">$fullName</h2>
+                <h2 style="text-align: center"><i>of</i></h2>
+                <h2 style="text-align: center;font-size: 15px;font-weight: normal">$address</div>
+                <h2 style="text-align: center">Department</h2>
+                <h4 style="text-align: center">is hereby appointed as <span style="font-size: 13px">VOLUNTEER PROBATION ASSISTANT</span> of the</h4>
+                <h3 style="text-align: center;line-height: 5px;"><i>$fieldOfficeName</i></h3>
+                <h3 style="text-align: center;line-height: 5px;"><i>$regionName</i></h3>
+                <div></div>
+                <h2 style="text-align: center">$dateOfAppointment</h2>
+                <div></div>
+                <div></div>
+                <h2 style="text-align: center;line-height: 5px;">$administrator</h2>
+                <h2 style="text-align: center;line-height: 5px;">Administrator</h2>
+            </div>
         EOD;
 
         $pdf->SetXY(110, 200);
-        $pdf->writeHTMLCell(0, 0, 0, 120, $body);
+        $pdf->setMargins(50, 0, 0);
+        $pdf->writeHTMLCell(0, 0, 0, 130, $body);
         $pdf->endPage();
 
-        return $pdf->Output('mark.pdf', 'E');
+        return $pdf->Output('mark.pdf');
     }
 
     public function getId(int $id): string
