@@ -33,5 +33,5 @@ interface VolunteerInterface
 
     public function getCertificate(array $data): string;
 
-    public function getId(int $id): string;
+    public function getId(array $data): string;
 }

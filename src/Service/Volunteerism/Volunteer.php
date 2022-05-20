@@ -446,16 +446,23 @@ class Volunteer implements VolunteerInterface
         return $pdf->Output('mark.pdf', 'E');
     }
 
-    public function getId(int $id): string
+    public function getId(array $data): string
     {
-        $volunteer = $this->repository->find($id);
+        $volunteer = $this->repository->find($data['volunteer_id']);
         $idNo = $volunteer->getVolunteerId();
         $fullName = $volunteer->getFirstName() . ' ' . $volunteer->getMiddleName() . ' ' . $volunteer->getLastName();
         $fieldOffice = $this->fieldOfficesRepository->find($volunteer->getFieldOfficeId());
         $fieldOfficeName = $fieldOffice->getName();
-        $dateOfAppointment = $volunteer->getDateAppointed()->format('d-M-y');
         $region = $this->regionsRepository->find($fieldOffice->getRegionId());
         $regionName = $region->getName();
+        $code = $data['code'];
+        $address = $volunteer->getPresentAddress();
+        $bloodType = $volunteer->getBloodType();
+        $weight = $volunteer->getWeight();
+        $height = $volunteer->getHeight();
+        $emergencyName = $volunteer->getEmergencyName();
+        $emergencyNumber = $volunteer->getEmergencyNumber();
+        $administrator = $data['administrator'];
 
         $pdf = new TCPDF();
         $pdf->setCreator(PDF_CREATOR);
@@ -466,35 +473,118 @@ class Volunteer implements VolunteerInterface
         $pdf->startPage();
         $logo = dirname(__DIR__ ) . '/../../assets/ppa.png';
         $picture = dirname(__DIR__ ) . '/../../assets/placeholder-1x1.gif';
-        $heading = <<<EOD
-            <h4 style="text-align: center">Republic of the Philippines</h4>
-            <h4 style="text-align: center">Department of Justice</h4>
-            <h2 style="text-align: center">PAROLE AND PROBATION ADMINISTRATION</h2>
-        EOD;
 
-        $pdf->writeHTMLCell(0, 0, '', '', $heading);
-        $pdf->Image($logo,  10, 10, 25, 25, '', '', 'T', false, 300, '', false, false, 1, false, false, false);
-        $pdf->Image($picture,  85, 50, 40, 40, '', '', 'T', false, 300, '', false, false, 1, false, false, false);
+        $pdf->writeHTMLCell(0, 0, '', '');
+        $pdf->Image($logo,  2.5, 12.5, 15, 15, '', '', 'T', false, 300, '', false, false, 1, false, false, false);
+        $pdf->Image($picture,  37.5, 40, 25.4, 25.4, '', '', 'T', false, 300, '', false, false, 1, false, false, false);
         $body = <<<EOD
-            <h3>
-                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-                &nbsp;&nbsp;
-                ID No.: $idNo
-            </h3>
-            <h2 style="text-align: center;font-size: 15px;font-weight: normal;background-color: #f7ef4d;">$fullName</h2>
-            <h2 style="text-align: center;font-weight: bold;background-color: #e9ad63;color: #fff;">Volunteer Probation Assistant</h2>
-            <h3 style="text-align: center;"><i>$fieldOfficeName</i></h3>
-            <h3 style="text-align: center"><i>$regionName</i></h3>
-            <div></div>
-            <div></div>
-            <div></div>
-            <h2 style="text-align: center">DR. MANUEL G. CO, CESO I</h2>
-            <h3 style="text-align: center;font-weight: normal;">Administrator</h3>
+            <style>
+                table.back-page {
+                    border-collapse: collapse;
+                }
+                table.back-page > tr {}        
+                table.back-page > tr > td {
+                    border: 1px solid #000000;
+                    text-align: center;
+                }
+                table.back-page > tr > td.back-page-title {
+                    text-align: left !important;
+                    font-size: 12px;
+                    font-weight: bold;
+                }
+                table.back-page > tr > td.force-center {
+                    text-align: center;
+                }
+                table.back-page > tr > td.force-left {
+                    text-align: left;
+                }
+                table.back-page > tr > td.no-border {
+                    border: none;
+                }
+            </style>
+            <table width="100%" cellpadding="0" border="0">
+                <tr>
+                    <td width="50%" style="border: 1px solid #000000;">
+                        <h4 style="text-align: center">Republic of the Philippines</h4>
+                        <h4 style="text-align: center;line-height: 1px">Department of Justice</h4>
+                        <h3 style="text-align: center">PAROLE AND PROBATION ADMINISTRATION</h3>
+                        <div></div>
+                        <div></div>
+                        <div></div>
+                        <div></div>
+                        <div></div>
+                        <div></div>
+                        <div></div>
+                        <h3>
+                            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                            ID No.: $idNo
+                        </h3>
+                        <h2 style="text-align: center;font-size: 15px;font-weight: normal;background-color: #f7ef4d;">$fullName</h2>
+                        <h2 style="text-align: center;font-weight: bold;background-color: #e9ad63;color: #fff;">Volunteer Probation Assistant</h2>
+                        <h3 style="text-align: center;"><i>$fieldOfficeName</i></h3>
+                        <h3 style="text-align: center"><i>$regionName</i></h3>
+                        <div></div>
+                        <h2 style="text-align: center;line-height: 5px;">$administrator</h2>
+                        <h3 style="text-align: center;font-weight: normal;">Administrator</h3>
+                    </td>
+                    <td width="50%">
+                        <table class="back-page">
+                            <tr>
+                                <td colspan="3" style="text-align: right;border: none;">$code</td>
+                            </tr>
+                            <tr>
+                                <td colspan="3" class="back-page-title">&nbsp;ADDRESS: </td>
+                            </tr>
+                            <tr>
+                                <td colspan="3" style="height: 60px;">&nbsp;$address</td>
+                            </tr>
+                            <tr>
+                                <td class="back-page-title force-center">BLOOD TYPE</td>
+                                <td class="back-page-title force-center">HEIGHT</td>
+                                <td class="back-page-title force-center">WEIGHT</td>
+                            </tr>
+                            <tr>
+                                <td style="height: 50px;">$bloodType</td>
+                                <td style="height: 50px;">$weight</td>
+                                <td style="height: 50px;">$height</td>
+                            </tr>
+                            <tr><td colspan="3"></td></tr>
+                            <tr><td colspan="3" class="back-page-title">&nbsp;IN CASE OF EMERGENCY, NOTIFY:</td></tr>
+                            <tr><td colspan="3" style="height: 60px;">&nbsp;$emergencyName</td></tr>
+                            <tr>
+                                <td class="back-page-title">&nbsp;TEL. NO.:</td>
+                                <td colspan="2">&nbsp;$emergencyNumber</td>
+                            </tr>
+                            <tr>
+                                <td colspan="3" class="no-border">* This card is non-transferable and must be worn at all times when supervising clients.</td>
+                            </tr>
+                            <tr>
+                                <td colspan="3" class="no-border">* Heavy penalty for unlawful use pursuant to Article 177 and 179, RPC</td>
+                            </tr>
+                            <tr>
+                                <td colspan="3" class="no-border"></td>
+                            </tr>
+                            <tr>
+                                <td colspan="3" class="no-border">_________________________________</td>
+                            </tr>
+                            <tr>
+                                <td colspan="3" class="no-border">Signature</td>
+                            </tr>
+                            <tr>
+                                <td colspan="3" class="no-border force-left" style="font-weight: bold;">This ID valid from:</td>
+                            </tr>
+                            <tr>
+                                <td colspan="3" class="no-border force-left" style="font-weight: bold;">until:</td>
+                            </tr>
+                        </table>
+                    </td>
+                </tr>
+                <tr><td width="100%" colspan="2"></td></tr>
+            </table>
         EOD;
 
-        $pdf->SetXY(110, 200);
-        $pdf->writeHTMLCell(0, 0, 0, 120, $body);
+        $pdf->writeHTMLCell(0, 0, 0, 0, $body);
         $pdf->endPage();
 
         return $pdf->Output('mark.pdf', 'E');
