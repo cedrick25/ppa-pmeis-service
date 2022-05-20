@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Report\Table;
 
+use App\Service\Volunteerism\ResourceMobilization;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Style\Border;
@@ -16,8 +17,9 @@ class RMIV implements Form
     private const TABLE_NAME = "RMIV";
     
     public function __construct(
-        private int   $lastFilledOutCellY = 8,
-        private array $data = [],
+        private ResourceMobilization    $service,
+        private int                     $lastFilledOutCellY = 8,
+        private array                   $data = [],
     ){}
 
     public function supports(string $tableName): bool
@@ -30,7 +32,7 @@ class RMIV implements Form
      */
     public function generate(array $data): BinaryFileResponse
     {
-        $this->data = $data;
+        $this->data = $this->getData($data);
 
         $spreadsheet = $this->footer();
         $writer = IOFactory::createWriter($spreadsheet, "Xlsx");
@@ -304,5 +306,15 @@ class RMIV implements Form
         }
 
         return $spreadsheet;
+    }
+
+    private function getData(array $data): array
+    {
+        $result = $this->service->getReport(
+            $data['quarter_id'],
+            $data['field_office_id']
+        );
+
+        return ['rows' => $result['data'] ?? []];
     }
 }
