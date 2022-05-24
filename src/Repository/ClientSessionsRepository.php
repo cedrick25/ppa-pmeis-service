@@ -284,17 +284,21 @@ class ClientSessionsRepository extends ServiceEntityRepository
     }
 
     /**
-     * @param int $id
+     * @param int[] $sessionIds
      * @return array<int, array<string, mixed>>
      * @throws \Doctrine\DBAL\Driver\Exception
      * @throws \Doctrine\DBAL\Exception
      */
-    public function findClientsBySessionId(int $id): array
+    public function findBySessionIds(array $sessionIds): array
     {
         $conn = $this->getEntityManager()->getConnection();
-        $sql = "SELECT c.first_name, c.middle_name, c.last_name, c.gender FROM client_sessions 
-            LEFT JOIN clients c on client_sessions.client_id = c.client_id
-            WHERE client_sessions.session_id = $id";
+        $sessionIds = implode(',', $sessionIds);
+
+        $sql = "SELECT cs.*, cr.name as client_remarks, s.trees_planted FROM client_sessions cs 
+            LEFT JOIN clients c on cs.client_id = c.client_id
+            LEFT JOIN client_remarks cr on cs.client_remarks_id = cr.client_remarks_id
+            LEFT JOIN pmeis.sessions s on cs.session_id = s.session_id
+            WHERE cs.session_id IN ($sessionIds)";
 
         $stmt = $conn->prepare($sql);
         $query = $stmt->executeQuery();

@@ -413,6 +413,33 @@ class ClientsRepository extends ServiceEntityRepository
         $stmt->executeQuery();
     }
 
+    /**
+     * @param string[] $minMaxDate
+     * @param int $fieldOfficeId
+     * @return int[]
+     * @throws \Doctrine\DBAL\Driver\Exception
+     * @throws \Doctrine\DBAL\Exception
+     */
+    public function findClientsIdUnderSupervisionPeriod(array $minMaxDate, int $fieldOfficeId): array
+    {
+        $predicate = 'c.supervision_end BETWEEN CAST("'.$minMaxDate['min'].'" AS DATE) AND CAST("'.$minMaxDate['max'].'" AS DATE)';
+
+        $conn = $this->getEntityManager()->getConnection();
+        $sql = "SELECT c.client_id FROM clients c
+                WHERE $predicate AND c.field_office_id = $fieldOfficeId
+                AND c.deleted_at IS NULL";
+
+        $stmt = $conn->prepare($sql);
+        $query = $stmt->executeQuery();
+        $data = [];
+
+        foreach ($query->fetchAllAssociative() as $client) {
+            $data[] = intval($client['client_id']);
+        }
+
+        return $data;
+    }
+
     private function isExisting(ClientModel $clientData): bool
     {
         $client = $this->findOneBy([
