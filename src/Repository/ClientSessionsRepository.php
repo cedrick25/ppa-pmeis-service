@@ -334,9 +334,10 @@ class ClientSessionsRepository extends ServiceEntityRepository
         $conn = $this->getEntityManager()->getConnection();
         $sql = "
             SELECT 
-                c.* 
+                c.*, ct.code client_type_code
             FROM client_sessions 
             LEFT JOIN clients c on client_sessions.client_id = c.client_id
+            LEFT JOIN client_types ct on c.client_type_id = ct.client_type_id
             WHERE client_sessions.session_id IN ($ids)
         ";
 
