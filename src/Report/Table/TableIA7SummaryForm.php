@@ -9,6 +9,7 @@ use App\Repository\FieldOfficesRepository;
 use App\Repository\PhasesRepository;
 use App\Repository\QuartersRepository;
 use App\Repository\SessionsRepository;
+use App\Service\TherapeuticCommunity\Sessions;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Style\Border;
@@ -20,6 +21,7 @@ class TableIA7SummaryForm implements Form
 
 
     public function __construct(
+        private Sessions                    $sessionService,
         private FieldOfficesRepository      $fieldOfficesRepository,
         private QuartersRepository          $quartersRepository,
         private SessionsRepository          $sessionsRepository,
@@ -59,9 +61,12 @@ class TableIA7SummaryForm implements Form
     public function body(): Spreadsheet
     {
         $spreadsheet = $this->header();
-        $cells = [
 
-        ];
+        $spreadsheet->getActiveSheet()->setCellValue('B8', $this->data['total_supervision_cases_handled']);
+        $spreadsheet->getActiveSheet()->setCellValue('B9', $this->data['total_adjusted_supervision_caseLoad']);
+        $spreadsheet->getActiveSheet()->setCellValue('B10', $this->data['clients_attending_tc']);
+        $spreadsheet->getActiveSheet()->setCellValue('B11', $this->data['percentage_of_clients_attending_tc']);
+
 
         return $spreadsheet;
     }
@@ -144,10 +149,37 @@ class TableIA7SummaryForm implements Form
         $this->fieldOffice = $this->fieldOfficesRepository->find($data['field_office_id']);
         $this->quarters = $this->quartersRepository->find($data['quarter_id']);
 
-        $results = [];
-        $quarterData = $this->quartersRepository->find($data['quarter_id']);
-        $sessions = $this->sessionsRepository->findByQuarterData($quarterData);
+        $clientsAttendingTC = 0;
+        $totalSupervisionCasesHandled = 0;
+        $percentageOfClientsAttendingTCScore= 0;
+        $totalAdjustedSupervisionCaseLoad = 0;
+        $tc7 = $this->sessionService->getTC7(intval($data['quarter_id']), intval($data['field_office_id']));
 
-        return $results;
+        foreach ($tc7['data']['totalSupervisionCasesHandled'] as $score) {
+            $totalSupervisionCasesHandled +=  $score;
+        }
+
+        foreach ($tc7['data']['totalAdjustedSupervisionCaseLoad'] as $score) {
+            $totalAdjustedSupervisionCaseLoad +=  $score;
+        }
+
+        foreach ($tc7['data']['clientsAttendingTC'] as $score) {
+            $clientsAttendingTC +=  $score;
+        }
+
+        $percentageOfClientsAttendingTC = $tc7['data']['percentageOfClientsAttendingTC'];
+        foreach ($percentageOfClientsAttendingTC as $score) {
+            $percentageOfClientsAttendingTCScore +=  $score;
+        }
+        $percentageOfClientsAttendingTCScore =  count($percentageOfClientsAttendingTC) > 0
+            ? $percentageOfClientsAttendingTCScore / count($percentageOfClientsAttendingTC)
+            : 0;
+
+        return [
+            'total_supervision_cases_handled' => $totalSupervisionCasesHandled,
+            'total_adjusted_supervision_caseLoad' => $totalAdjustedSupervisionCaseLoad,
+            'clients_attending_tc' => $clientsAttendingTC,
+            'percentage_of_clients_attending_tc' => $percentageOfClientsAttendingTCScore,
+        ];
     }
 }
