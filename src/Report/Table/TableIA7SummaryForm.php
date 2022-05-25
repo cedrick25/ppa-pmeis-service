@@ -14,9 +14,9 @@ use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Style\Border;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
-class FamilySupportInvolvementSummaryForm implements Form
+class TableIA7SummaryForm implements Form
 {
-    private const TABLE_NAME = "FamilySupportInvolvementSummaryForm";
+    private const TABLE_NAME = "TableIA7SummaryForm";
 
 
     public function __construct(
@@ -51,7 +51,7 @@ class FamilySupportInvolvementSummaryForm implements Form
     public function header(): Spreadsheet
     {
         $spreadsheet = $this->prepare();
-        $spreadsheet->getActiveSheet()->getStyle('A7:G15')->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
+        $spreadsheet->getActiveSheet()->getStyle('A7:B11')->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
 
         return $spreadsheet;
     }
@@ -60,19 +60,8 @@ class FamilySupportInvolvementSummaryForm implements Form
     {
         $spreadsheet = $this->header();
         $cells = [
-            'PS' => ['Prep.' => 'B10', 'I' => 'C10', 'II' => 'D10', 'III' => 'E10', 'IV' => 'F10', 'Total' => 'G10'],
-            'PR' => ['Prep.' => 'B11', 'I' => 'C11', 'II' => 'D11', 'III' => 'E11', 'IV' => 'F11', 'Total' => 'G11'],
-            'PD' => ['Prep.' => 'B12', 'I' => 'C12', 'II' => 'D12', 'III' => 'E12', 'IV' => 'F12', 'Total' => 'G12'],
-            'JICL' => ['Prep.' => 'B13', 'I' => 'C13', 'II' => 'D13', 'III' => 'E13', 'IV' => 'F13', 'Total' => 'G13'],
-            'FTMDO' => ['Prep.' => 'B14', 'I' => 'C14', 'II' => 'D14', 'III' => 'E14', 'IV' => 'F14', 'Total' => 'G14'],
-            'Total' => ['Prep.' => 'B15', 'I' => 'C15', 'II' => 'D15', 'III' => 'E15', 'IV' => 'F15', 'Total' => 'G15'],
-        ];
 
-        foreach ($this->data as $role=>$fsi) {
-            foreach ($fsi as $phase=>$score) {
-                $spreadsheet->getActiveSheet()->setCellValue($cells[$role][$phase], $score);
-            }
-        }
+        ];
 
         return $spreadsheet;
     }
@@ -94,42 +83,33 @@ class FamilySupportInvolvementSummaryForm implements Form
             'A3' => $this->quarters->getName() . ' QTR, ' . $this->quarters->getYear(),
             'A4' => 'I.    PROGRAM IMPLEMENTATION',
             'A5' => 'A.1   Therapeutic Community Ladderized Program (TCLP)',
-            'A6' => "FAMILY SUPPORT INVOLVEMENT (Tables I.A.2 - 6)",
-            'A7' => 'Classification',
-            'B7' => 'Total Number of FSI',
-            'G7' => 'Total',
-            'B8' => 'Phase',
-            'B9' => 'Prep.',
-            'C9' => 'I',
-            'D9' => 'II',
-            'E9' => 'III',
-            'F9' => 'IV',
-            'A10' => 'PS',
-            'A11' => 'PR',
-            'A12' => 'PD',
-            'A13' => 'JICL',
-            'A14' => 'FTMDO /SS',
-            'A15' => 'Total'
+            'A6' => "Table I.A.7   COMPUTATION",
+            'A7' => 'Particulars',
+            'B7' => 'Number/Percentage',
+            'A8' => 'Total Supervision Cases Handled',
+            'A9' => 'Total Adjusted Supervision Caseload this Quarter',
+            'A10' => "Total Number of Clients' Attending TC",
+            'A11' => "Percentage of Clients' Attending TC",
         ];
 
         $mergesCoordinates = [
-            'A1:G1','A2:G2','A3:G3', 'A7:A9', 'B7:F7', 'G7:G9', 'B8:F8'
+            'A1:B1','A2:B2','A3:B3'
         ];
 
         $boldCoordinates = [
-            'A1:A7', 'B7', 'G7', 'B8', 'B9:f9', 'A8:A15',
+            'A1:A6', 'A9', 'A11'
         ];
 
         $verticalAlignedCoordinates = [
-            'A1:G1' => 'center', 'A2:G2' => 'center', 'A3:G3' => 'center', 'A7:G15' => 'center'
+            'A1:B1' => 'center', 'A2:B2' => 'center', 'A3:B3' => 'center', 'A7:B7' => 'center'
         ];
 
         $horizontalAlignedCoordinates = [
-            'A1:G1' => 'center', 'A2:G2' => 'center', 'A3:G3' => 'center', 'A7:G15' => 'center'
+            'A1:B1' => 'center', 'A2:B2' => 'center', 'A3:B3' => 'center', 'A7:B7' => 'center'
         ];
 
         $adjustedColumnWidthCoordinates = [
-            'A' => 30, 'G' => 15
+            'A' => 50, 'B' => 35
         ];
 
         foreach ($textAndCoordinates as $coordinate => $text) {
@@ -167,23 +147,6 @@ class FamilySupportInvolvementSummaryForm implements Form
         $results = [];
         $quarterData = $this->quartersRepository->find($data['quarter_id']);
         $sessions = $this->sessionsRepository->findByQuarterData($quarterData);
-
-        foreach ($sessions as $session) {
-            $clientSessions = $this->clientSessionsRepository->findBySessionIds([$session['session_id']]);
-            $phase = $this->phasesRepository->find(intval($session['phase_id']));
-            foreach ($clientSessions as $clientSession) {
-                if (! isset($results[$clientSession['role']]['Total'])) {
-                    $results[$clientSession['role']]['Total'] = 0;
-                }
-
-                if (! isset($results[$clientSession['role']][$phase->getName()])) {
-                    $results[$clientSession['role']][$phase->getName()] = 0;
-                }
-
-                $results[$clientSession['role']]['Total'] += intval($clientSession['fsi']);
-                $results[$clientSession['role']][$phase->getName()] += intval($clientSession['fsi']);
-            }
-        }
 
         return $results;
     }
