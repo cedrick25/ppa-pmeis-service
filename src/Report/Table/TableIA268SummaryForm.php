@@ -5,11 +5,9 @@ namespace App\Report\Table;
 use App\Entity\FieldOffices;
 use App\Entity\Quarters;
 use App\Repository\ClientSessionsRepository;
-use App\Repository\ClientsRepository;
 use App\Repository\FieldOfficesRepository;
 use App\Repository\QuartersRepository;
 use App\Repository\SessionsRepository;
-use App\Service\TherapeuticCommunity\Sessions;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Style\Border;
@@ -25,7 +23,6 @@ class TableIA268SummaryForm implements Form
         private QuartersRepository          $quartersRepository,
         private SessionsRepository          $sessionsRepository,
         private ClientSessionsRepository    $clientSessionsRepository,
-        private ClientsRepository           $clientsRepository,
         private array                       $data = [],
         private array                       $sessionIds = [],
         private ?FieldOffices               $fieldOffice = null,
@@ -186,7 +183,7 @@ class TableIA268SummaryForm implements Form
         ];
 
         $mergesCoordinates = [
-            'A7:H7','I7:O7','A8:A10','B8:B10','C9:C10','D9:D10','E8:E10','F8:F10','G8:H8','G9:H9','G10:H10','I8:I10','J8:J10','K8:K10','L8:L10','M8:N8','O8:O10'
+            'A1:O1','A2:O2','A3:O3', 'A7:H7','I7:O7','A8:A10','B8:B10','C9:C10','D9:D10','E8:E10','F8:F10','G8:H8','G9:H9','G10:H10','I8:I10','J8:J10','K8:K10','L8:L10','M8:N8','O8:O10'
         ];
 
         $boldCoordinates = [
@@ -194,11 +191,11 @@ class TableIA268SummaryForm implements Form
         ];
 
         $verticalAlignedCoordinates = [
-            'A7:O10' => 'center'
+            'A1:O1' => 'center', 'A2:O2' => 'center', 'A3:O3' => 'center', 'A7:O10' => 'center'
         ];
 
         $horizontalAlignedCoordinates = [
-            'A7:O10' => 'center'
+            'A1:O1' => 'center', 'A2:O2' => 'center', 'A3:O3' => 'center', 'A7:O10' => 'center'
         ];
 
         $adjustedColumnWidthCoordinates = [

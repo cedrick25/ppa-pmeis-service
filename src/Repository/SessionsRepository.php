@@ -548,6 +548,25 @@ class SessionsRepository extends ServiceEntityRepository
      * @throws \Doctrine\DBAL\Driver\Exception
      * @throws \Doctrine\DBAL\Exception
      */
+    public function findByQuarterData(Quarters $quarterData): array
+    {
+        $conn = $this->getEntityManager()->getConnection();
+        $minMaxDate = $this->quartersRepository->getQuarterMinMaxDate($quarterData);
+        $minDate = $minMaxDate['min'];
+        $maxDate = $minMaxDate['max'];
+
+        $sql = "SELECT s.* FROM sessions as s WHERE s.date BETWEEN CAST('$minDate' AS DATE) AND CAST('$maxDate' AS DATE)";
+        $stmt = $conn->prepare($sql);
+        $query = $stmt->executeQuery();
+        return $query->fetchAllAssociative();
+    }
+
+    /**
+     * @param Quarters $quarterData
+     * @return array<int, array<string, mixed>>
+     * @throws \Doctrine\DBAL\Driver\Exception
+     * @throws \Doctrine\DBAL\Exception
+     */
     public function findSessionsIdsByQuarter(Quarters $quarterData): array
     {
         $conn = $this->getEntityManager()->getConnection();
@@ -578,6 +597,36 @@ class SessionsRepository extends ServiceEntityRepository
         $stmt->executeQuery();
 
         return $conn->lastInsertId();
+    }
+
+    /**
+     * @throws \Doctrine\DBAL\Driver\Exception
+     * @throws \Doctrine\DBAL\Exception
+     */
+    public function fetchTC1FieldOfficeSummary(string $minDate, string $maxDate, int $fieldOfficeId): ?array
+    {
+        $conn = $this->getEntityManager()->getConnection();
+        $sql = "SELECT tc.name as treatment_category FROM sessions as s 
+                    LEFT JOIN treatment_categories as tc ON s.treatment_category_id = tc.treatment_category_id
+                    WHERE s.date BETWEEN CAST('$minDate' AS DATE) AND CAST('$maxDate' AS DATE)
+                    AND s.field_office_id = $fieldOfficeId";
+        $stmt = $conn->prepare($sql);
+        $query = $stmt->executeQuery();
+
+        return $query->fetchAllAssociative();
+    }
+
+    public function getTableIA1SummaryFormTreatmentCategoryData(string $minDate, string $maxDate, int $fieldOfficeId): array
+    {
+        $conn = $this->getEntityManager()->getConnection();
+        $sql = "SELECT s.session_id, tc.name as treatment_category FROM sessions as s 
+                    LEFT JOIN treatment_categories as tc ON s.treatment_category_id = tc.treatment_category_id
+                    WHERE s.date BETWEEN CAST('$minDate' AS DATE) AND CAST('$maxDate' AS DATE)
+                    AND s.field_office_id = $fieldOfficeId";
+        $stmt = $conn->prepare($sql);
+        $query = $stmt->executeQuery();
+
+        return $query->fetchAllAssociative();
     }
 
     /**
@@ -624,36 +673,6 @@ class SessionsRepository extends ServiceEntityRepository
         }
 
         return false;
-    }
-
-    /**
-     * @throws \Doctrine\DBAL\Driver\Exception
-     * @throws \Doctrine\DBAL\Exception
-     */
-    public function fetchTC1FieldOfficeSummary(string $minDate, string $maxDate, int $fieldOfficeId): ?array
-    {
-        $conn = $this->getEntityManager()->getConnection();
-        $sql = "SELECT tc.name as treatment_category FROM sessions as s 
-                    LEFT JOIN treatment_categories as tc ON s.treatment_category_id = tc.treatment_category_id
-                    WHERE s.date BETWEEN CAST('$minDate' AS DATE) AND CAST('$maxDate' AS DATE)
-                    AND s.field_office_id = $fieldOfficeId";
-        $stmt = $conn->prepare($sql);
-        $query = $stmt->executeQuery();
-
-        return $query->fetchAllAssociative();
-    }
-
-    public function getTableIA1SummaryFormTreatmentCategoryData(string $minDate, string $maxDate, int $fieldOfficeId): array
-    {
-        $conn = $this->getEntityManager()->getConnection();
-        $sql = "SELECT s.session_id, tc.name as treatment_category FROM sessions as s 
-                    LEFT JOIN treatment_categories as tc ON s.treatment_category_id = tc.treatment_category_id
-                    WHERE s.date BETWEEN CAST('$minDate' AS DATE) AND CAST('$maxDate' AS DATE)
-                    AND s.field_office_id = $fieldOfficeId";
-        $stmt = $conn->prepare($sql);
-        $query = $stmt->executeQuery();
-
-        return $query->fetchAllAssociative();
     }
 
     /**

@@ -65,6 +65,7 @@ class TableIA1SummaryForm implements Form
         foreach ($thinBorders as $coordinate) {
             $spreadsheet->getActiveSheet()->getStyle($coordinate)->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
         }
+
         return $spreadsheet;
     }
 
@@ -103,6 +104,7 @@ class TableIA1SummaryForm implements Form
     {
         return $this->body();
     }
+
     /**
      * @throws \PhpOffice\PhpSpreadsheet\Exception
      */
