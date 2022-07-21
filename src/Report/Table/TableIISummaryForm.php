@@ -9,6 +9,7 @@ use App\Repository\ClientsRepository;
 use App\Repository\FieldOfficesRepository;
 use App\Repository\QuartersRepository;
 use App\Repository\SessionsRepository;
+use App\Service\Volunteerism\CapabilityBuilding;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Style\Border;
@@ -21,6 +22,7 @@ class TableIISummaryForm implements Form
 
 
     public function __construct(
+        private CapabilityBuilding          $capabilityBuilding,
         private FieldOfficesRepository      $fieldOfficesRepository,
         private QuartersRepository          $quartersRepository,
         private SessionsRepository          $sessionsRepository,
@@ -71,30 +73,92 @@ class TableIISummaryForm implements Form
     public function body(): Spreadsheet
     {
         $spreadsheet = $this->header();
-        // $treatmentCategoryCells = [
-        //     'MTCS' => [
-        //         'RBM' => 'B10', 'AEP' => 'C10', 'S' => 'D10', 'CI' => 'E10', 'PVS' => 'F10', 'Total' => 'G10',
-        //     ],
-        //     'RA' => [
-        //         'RBM' => 'B11', 'AEP' => 'C11', 'S' => 'D11', 'CI' => 'E11', 'PVS' => 'F11', 'Total' => 'G11',
-        //     ]
-        // ];
 
-        // foreach ($this->data['treatment_categories'] as $category=>$treatmentCategory) {
-        //     foreach ($treatmentCategory as $subCategory=>$score) {
-        //         $spreadsheet->getActiveSheet()->setCellValue($treatmentCategoryCells[$category][$subCategory], $score);
-        //     }
+        $count = 0;
+        // $count = $this->data ? count($this->data['rows']) : 0;
+        // foreach ($this->data['rows'] as $v) {
         // }
-        // $spreadsheet->getActiveSheet()->setCellValue('E14', $this->data['client_frequency_active_supervision']);
-        // $spreadsheet->getActiveSheet()->setCellValue('E17', $this->data['client_frequency_others']);
-        // $spreadsheet->getActiveSheet()->setCellValue('E20', $this->data['fsg_frequency']);
-        // $spreadsheet->getActiveSheet()->setCellValue('E23', 'No Data');
-        // $spreadsheet->getActiveSheet()->setCellValue('E26', 'No Data');
-        // $spreadsheet->getActiveSheet()->setCellValue('E30', 'No Data');
-        // $spreadsheet->getActiveSheet()->setCellValue('E34', 'No Data');
-        // $spreadsheet->getActiveSheet()->setCellValue('E37', 'No Data');
-        // $spreadsheet->getActiveSheet()->setCellValue('E40', 'No Data');
-        // $spreadsheet->getActiveSheet()->setCellValue('E44', 'No Data');
+
+        $spreadsheet->getActiveSheet()->setCellValue('B9', 'No Data');
+        $spreadsheet->getActiveSheet()->setCellValue('B10', 'No Data');
+        $spreadsheet->getActiveSheet()->setCellValue('B11', 'No Data');
+        $spreadsheet->getActiveSheet()->setCellValue('B12', 'No Data');
+        $spreadsheet->getActiveSheet()->setCellValue('B13', 'No Data');
+        $spreadsheet->getActiveSheet()->setCellValue('B14', 'No Data');
+        $spreadsheet->getActiveSheet()->setCellValue('B15', 'No Data');
+        $spreadsheet->getActiveSheet()->setCellValue('B16', 'No Data');
+
+        $spreadsheet->getActiveSheet()->setCellValue('C9', 'No Data');
+        $spreadsheet->getActiveSheet()->setCellValue('C10', 'No Data');
+        $spreadsheet->getActiveSheet()->setCellValue('C11', 'No Data');
+        $spreadsheet->getActiveSheet()->setCellValue('C12', 'No Data');
+        $spreadsheet->getActiveSheet()->setCellValue('C13', 'No Data');
+        $spreadsheet->getActiveSheet()->setCellValue('C14', 'No Data');
+        $spreadsheet->getActiveSheet()->setCellValue('C15', 'No Data');
+        $spreadsheet->getActiveSheet()->setCellValue('C16', 'No Data');
+
+        $spreadsheet->getActiveSheet()->setCellValue('D9', 'No Data');
+        $spreadsheet->getActiveSheet()->setCellValue('D10', 'No Data');
+        $spreadsheet->getActiveSheet()->setCellValue('D11', 'No Data');
+        $spreadsheet->getActiveSheet()->setCellValue('D12', 'No Data');
+        $spreadsheet->getActiveSheet()->setCellValue('D13', 'No Data');
+        $spreadsheet->getActiveSheet()->setCellValue('D14', 'No Data');
+        $spreadsheet->getActiveSheet()->setCellValue('D15', 'No Data');
+        $spreadsheet->getActiveSheet()->setCellValue('D16', 'No Data');
+
+        $spreadsheet->getActiveSheet()->setCellValue('E9', 'No Data');
+        $spreadsheet->getActiveSheet()->setCellValue('E10', 'No Data');
+        $spreadsheet->getActiveSheet()->setCellValue('E11', 'No Data');
+        $spreadsheet->getActiveSheet()->setCellValue('E12', 'No Data');
+        $spreadsheet->getActiveSheet()->setCellValue('E13', 'No Data');
+        $spreadsheet->getActiveSheet()->setCellValue('E14', 'No Data');
+        $spreadsheet->getActiveSheet()->setCellValue('E15', 'No Data');
+        $spreadsheet->getActiveSheet()->setCellValue('E16', 'No Data');
+
+        $spreadsheet->getActiveSheet()->setCellValue('F9', 'No Data');
+        $spreadsheet->getActiveSheet()->setCellValue('F10', 'No Data');
+        $spreadsheet->getActiveSheet()->setCellValue('F11', 'No Data');
+        $spreadsheet->getActiveSheet()->setCellValue('F12', 'No Data');
+        $spreadsheet->getActiveSheet()->setCellValue('F13', 'No Data');
+        $spreadsheet->getActiveSheet()->setCellValue('F14', 'No Data');
+        $spreadsheet->getActiveSheet()->setCellValue('F15', 'No Data');
+        $spreadsheet->getActiveSheet()->setCellValue('F16', 'No Data');
+
+        $spreadsheet->getActiveSheet()->setCellValue('G9', 'No Data');
+        $spreadsheet->getActiveSheet()->setCellValue('G10', 'No Data');
+        $spreadsheet->getActiveSheet()->setCellValue('G11', 'No Data');
+        $spreadsheet->getActiveSheet()->setCellValue('G12', 'No Data');
+        $spreadsheet->getActiveSheet()->setCellValue('G13', 'No Data');
+        $spreadsheet->getActiveSheet()->setCellValue('G14', 'No Data');
+        $spreadsheet->getActiveSheet()->setCellValue('G15', 'No Data');
+        $spreadsheet->getActiveSheet()->setCellValue('G16', 'No Data');
+
+        $spreadsheet->getActiveSheet()->setCellValue('H9', 'No Data');
+        $spreadsheet->getActiveSheet()->setCellValue('H10', 'No Data');
+        $spreadsheet->getActiveSheet()->setCellValue('H11', 'No Data');
+        $spreadsheet->getActiveSheet()->setCellValue('H12', 'No Data');
+        $spreadsheet->getActiveSheet()->setCellValue('H13', 'No Data');
+        $spreadsheet->getActiveSheet()->setCellValue('H14', 'No Data');
+        $spreadsheet->getActiveSheet()->setCellValue('H15', 'No Data');
+        $spreadsheet->getActiveSheet()->setCellValue('H16', 'No Data');
+
+        $spreadsheet->getActiveSheet()->setCellValue('I9', 'No Data');
+        $spreadsheet->getActiveSheet()->setCellValue('I10', 'No Data');
+        $spreadsheet->getActiveSheet()->setCellValue('I11', 'No Data');
+        $spreadsheet->getActiveSheet()->setCellValue('I12', 'No Data');
+        $spreadsheet->getActiveSheet()->setCellValue('I13', 'No Data');
+        $spreadsheet->getActiveSheet()->setCellValue('I14', 'No Data');
+        $spreadsheet->getActiveSheet()->setCellValue('I15', 'No Data');
+        $spreadsheet->getActiveSheet()->setCellValue('I16', 'No Data');
+
+        $spreadsheet->getActiveSheet()->setCellValue('J9', 'No Data');
+        $spreadsheet->getActiveSheet()->setCellValue('J10', 'No Data');
+        $spreadsheet->getActiveSheet()->setCellValue('J11', 'No Data');
+        $spreadsheet->getActiveSheet()->setCellValue('J12', 'No Data');
+        $spreadsheet->getActiveSheet()->setCellValue('J13', 'No Data');
+        $spreadsheet->getActiveSheet()->setCellValue('J14', 'No Data');
+        $spreadsheet->getActiveSheet()->setCellValue('J15', 'No Data');
+        $spreadsheet->getActiveSheet()->setCellValue('J16', 'No Data');
 
         return $spreadsheet;
     }
@@ -236,68 +300,14 @@ class TableIISummaryForm implements Form
         $this->fieldOffice = $this->fieldOfficesRepository->find($data['field_office_id']);
         $this->quarters = $this->quartersRepository->find($data['quarter_id']);
 
-        $quarterData = $this->quartersRepository->find($data['quarter_id']);
-        $minMaxDate = $this->quartersRepository->getQuarterMinMaxDate($quarterData);
-        // has side effect of populating $this->sessionIds
-        $treatmentCategoryTotal = $this->getTreatmentCategoriesData($minMaxDate['min'], $minMaxDate['max'], (int) $data['field_office_id']);
-        $clientSessionsData = $this->getClientSessionsData($minMaxDate, (int) $data['field_office_id']);
+        // $results = $this->capabilityBuilding->getReport(
+        //     $data['quarter_id'],
+        //     $data['field_office_id'],
+        //     'Personnel'
+        // );
 
-        return [
-            'treatment_categories' => $treatmentCategoryTotal,
-            'client_frequency_active_supervision' => $clientSessionsData['client_frequency']['active_supervision'],
-            'client_frequency_others' => $clientSessionsData['client_frequency']['others'],
-            'fsg_frequency' => $clientSessionsData['fsg_frequency'],
-        ];
+        // return ['rows' => array_values($results['data']) ?? []];
+        return [];
     }
 
-    private function getTreatmentCategoriesData(string $minDate, string $maxDate, int $fieldOfficeId): array
-    {
-        $treatmentCategoryTotal = ['MTCS' => ['Total' => 0], 'RA' => ['Total' => 0]];
-        $sessions = $this->sessionsRepository->getTableIA1SummaryFormTreatmentCategoryData($minDate, $maxDate, $fieldOfficeId);
-
-        foreach ($sessions as $session) {
-            $treatmentCategories = explode('-', $session['treatment_category']);
-            // This is bad, it is classified as side effect.
-            $this->sessionIds[] = intval($session['session_id']);
-
-            if (! isset($treatmentCategoryTotal[$treatmentCategories[0]][$treatmentCategories[1]])) {
-                $treatmentCategoryTotal[$treatmentCategories[0]][$treatmentCategories[1]] = 0;
-            }
-
-            $treatmentCategoryTotal[$treatmentCategories[0]]['Total']++;
-            $treatmentCategoryTotal[$treatmentCategories[0]][$treatmentCategories[1]]++;
-        }
-
-        return $treatmentCategoryTotal;
-    }
-
-    private function getClientSessionsData(array $minMaxDate, int $fieldOfficeId): array
-    {
-        $fsgClients = [];
-        $clientsId = ['active_supervision' => [], 'others' => []];
-        $clientSessions = $this->clientSessionsRepository->findBySessionIds($this->sessionIds);
-        $clientsIdUnderSupervision = $this->clientsRepository->findClientsIdUnderSupervisionPeriod($minMaxDate, $fieldOfficeId);
-
-        foreach ($clientSessions as $clientSession) {
-            $clientId = (int) $clientSession['client_id'];
-
-            if (in_array($clientId, $clientsIdUnderSupervision)) {
-                $clientsId['active_supervision'][] = $clientId;
-            } else {
-                $clientsId['others'][] = $clientId;
-            }
-
-            if (intval($clientSession['fsi'])) {
-                $fsgClients[] = $clientId;
-            }
-        }
-
-        $clientsId['active_supervision'] = count(array_unique($clientsId['active_supervision']));
-        $clientsId['others'] = count(array_unique($clientsId['others']));
-
-        return [
-            'client_frequency' => $clientsId,
-            'fsg_frequency' => count(array_unique($fsgClients)),
-        ];
-    }
 }
