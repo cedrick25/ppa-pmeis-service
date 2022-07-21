@@ -4,11 +4,8 @@ namespace App\Report\Table;
 
 use App\Entity\FieldOffices;
 use App\Entity\Quarters;
-use App\Repository\ClientSessionsRepository;
 use App\Repository\FieldOfficesRepository;
-use App\Repository\PhasesRepository;
 use App\Repository\QuartersRepository;
-use App\Repository\SessionsRepository;
 use App\Service\TherapeuticCommunity\Sessions;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
@@ -21,16 +18,13 @@ class TableIA7SummaryForm implements Form
 
 
     public function __construct(
-        private Sessions                    $sessionService,
-        private FieldOfficesRepository      $fieldOfficesRepository,
-        private QuartersRepository          $quartersRepository,
-        private SessionsRepository          $sessionsRepository,
-        private ClientSessionsRepository    $clientSessionsRepository,
-        private PhasesRepository            $phasesRepository,
-        private array                       $data = [],
-        private ?FieldOffices               $fieldOffice = null,
-        private ?Quarters                   $quarters = null,
-    ){}
+        private Sessions               $sessionService,
+        private FieldOfficesRepository $fieldOfficesRepository,
+        private QuartersRepository     $quartersRepository,
+        private array                  $data = [],
+        private ?FieldOffices          $fieldOffice = null,
+        private ?Quarters              $quarters = null,
+    ) {}
 
     public function supports(string $tableName): bool
     {
@@ -98,7 +92,7 @@ class TableIA7SummaryForm implements Form
         ];
 
         $mergesCoordinates = [
-            'A1:B1','A2:B2','A3:B3'
+            'A1:B1', 'A2:B2', 'A3:B3'
         ];
 
         $boldCoordinates = [
@@ -151,27 +145,27 @@ class TableIA7SummaryForm implements Form
 
         $clientsAttendingTC = 0;
         $totalSupervisionCasesHandled = 0;
-        $percentageOfClientsAttendingTCScore= 0;
+        $percentageOfClientsAttendingTCScore = 0;
         $totalAdjustedSupervisionCaseLoad = 0;
         $tc7 = $this->sessionService->getTC7(intval($data['quarter_id']), intval($data['field_office_id']));
 
         foreach ($tc7['data']['totalSupervisionCasesHandled'] as $score) {
-            $totalSupervisionCasesHandled +=  $score;
+            $totalSupervisionCasesHandled += $score;
         }
 
         foreach ($tc7['data']['totalAdjustedSupervisionCaseLoad'] as $score) {
-            $totalAdjustedSupervisionCaseLoad +=  $score;
+            $totalAdjustedSupervisionCaseLoad += $score;
         }
 
         foreach ($tc7['data']['clientsAttendingTC'] as $score) {
-            $clientsAttendingTC +=  $score;
+            $clientsAttendingTC += $score;
         }
 
         $percentageOfClientsAttendingTC = $tc7['data']['percentageOfClientsAttendingTC'];
         foreach ($percentageOfClientsAttendingTC as $score) {
-            $percentageOfClientsAttendingTCScore +=  $score;
+            $percentageOfClientsAttendingTCScore += $score;
         }
-        $percentageOfClientsAttendingTCScore =  count($percentageOfClientsAttendingTC) > 0
+        $percentageOfClientsAttendingTCScore = count($percentageOfClientsAttendingTC) > 0
             ? $percentageOfClientsAttendingTCScore / count($percentageOfClientsAttendingTC)
             : 0;
 
