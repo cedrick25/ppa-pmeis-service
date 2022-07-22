@@ -31,18 +31,19 @@ class SessionsRepository extends ServiceEntityRepository
     protected const CACHE_TAG = "sessions";
 
     public function __construct(
-        ManagerRegistry $registry,
-        private AppDateHelper $appDateHelper,
-        private TagAwareCacheInterface $cache,
-        private CacheHelper $cacheHelper,
-        private Helper $helper,
-        private ClientSessionsRepository $clientSessionsRepository,
+        ManagerRegistry                              $registry,
+        private AppDateHelper                        $appDateHelper,
+        private TagAwareCacheInterface               $cache,
+        private CacheHelper                          $cacheHelper,
+        private Helper                               $helper,
+        private ClientSessionsRepository             $clientSessionsRepository,
         private ResourceFacilitatorSessionRepository $resourceFacilitatorSessionRepository,
-        private QuartersRepository $quartersRepository,
-        private ClientTypesRepository $clientTypesRepository,
-        private ClientsRepository $clientsRepository,
-        private ClientRemarksRepository $clientRemarksRepository,
-    ){
+        private QuartersRepository                   $quartersRepository,
+        private ClientTypesRepository                $clientTypesRepository,
+        private ClientsRepository                    $clientsRepository,
+        private ClientRemarksRepository              $clientRemarksRepository,
+    )
+    {
         parent::__construct($registry, Sessions::class);
     }
 
@@ -51,7 +52,7 @@ class SessionsRepository extends ServiceEntityRepository
      * @throws Exception
      * @throws \Psr\Cache\InvalidArgumentException
      */
-    public function create(SessionsModel $sessionData): int | null
+    public function create(SessionsModel $sessionData): int|null
     {
         $isExist = $this->isExisting($sessionData);
 
@@ -87,7 +88,7 @@ class SessionsRepository extends ServiceEntityRepository
      * @throws Exception
      * @throws \Psr\Cache\InvalidArgumentException
      */
-    public function createWithClientsAndFacilitators(SessionsModel $sessionData): int | null
+    public function createWithClientsAndFacilitators(SessionsModel $sessionData): int|null
     {
         if ($this->isExisting($sessionData)) {
             return null;
@@ -132,7 +133,7 @@ class SessionsRepository extends ServiceEntityRepository
             'cacheTag' => self::CACHE_TAG
         ];
 
-        return $this->helper->createCachedResponseCustomQuery($params, function() {
+        return $this->helper->createCachedResponseCustomQuery($params, function () {
             $conn = $this->getEntityManager()->getConnection();
             $sql = "SELECT se.*, sr.name as remarks, MONTH(se.date) as quarter_month, YEAR(se.date) as quarter_year, fe.name as field_office_name,
                     p.name as phase_name, sa.name as session_activity_name, tc.name as treatment_category_name, v.name as venue_name
@@ -171,7 +172,7 @@ class SessionsRepository extends ServiceEntityRepository
             'cacheTag' => self::CACHE_TAG
         ];
 
-        return $this->helper->createCachedResponse($params, function() {
+        return $this->helper->createCachedResponse($params, function () {
             $conn = $this->getEntityManager()->getConnection();
             $data = [];
 
@@ -215,7 +216,7 @@ class SessionsRepository extends ServiceEntityRepository
     {
         $session = $this->isExistingById($id);
 
-        if (! $session) {
+        if (!$session) {
             return false;
         }
         $this->cache->invalidateTags([self::CACHE_TAG]);
@@ -238,7 +239,7 @@ class SessionsRepository extends ServiceEntityRepository
     {
         $session = $this->isExistingById($id);
 
-        if (! $session) {
+        if (!$session) {
             return false;
         }
 
@@ -263,7 +264,7 @@ class SessionsRepository extends ServiceEntityRepository
     {
         $session = $this->isExistingById($id);
 
-        if (! $session) {
+        if (!$session) {
             return ResponseEnum::NO_RECORD;
         }
 
@@ -303,7 +304,7 @@ class SessionsRepository extends ServiceEntityRepository
     {
         $session = $this->isExistingById($id);
 
-        if (! $session) {
+        if (!$session) {
             return ResponseEnum::NO_RECORD;
         }
 
@@ -339,7 +340,7 @@ class SessionsRepository extends ServiceEntityRepository
         return ResponseEnum::OK;
     }
 
-    public function isExistingById(int $id): bool | Sessions
+    public function isExistingById(int $id): bool|Sessions
     {
         $session = $this->findOneBy([
             'sessionId' => $id,
@@ -366,8 +367,8 @@ class SessionsRepository extends ServiceEntityRepository
             'page' => $page
         ];
 
-        return $this->helper->createPaginatedResponseCustomQuery($params, function() use ($pageSize, $page) {
-            $startOffset = $pageSize * ($page-1);
+        return $this->helper->createPaginatedResponseCustomQuery($params, function () use ($pageSize, $page) {
+            $startOffset = $pageSize * ($page - 1);
             $result = [];
 
             $conn = $this->getEntityManager()->getConnection();
@@ -414,7 +415,7 @@ class SessionsRepository extends ServiceEntityRepository
             'cacheTag' => self::CACHE_TAG
         ];
 
-        return $this->helper->createCachedResponseCustomQuery($params, function() use ($clientTypes, $clientNames, $clientRemarks, $id) {
+        return $this->helper->createCachedResponseCustomQuery($params, function () use ($clientTypes, $clientNames, $clientRemarks, $id) {
             $conn = $this->getEntityManager()->getConnection();
 
             $sql = "SELECT se.*, sr.name as remarks, MONTH(se.date) as quarter_month, YEAR(se.date) as quarter_year, fe.name as field_office_name,
@@ -438,7 +439,7 @@ class SessionsRepository extends ServiceEntityRepository
 
             foreach ($clients as $client) {
                 if (null === $client->getClientRemarksId()) {
-                    $session['attendees'][] =  [
+                    $session['attendees'][] = [
                         'type' => [
                             'label' => $clientTypes[strtoupper($client->getRole())][1],
                             'value' => $clientTypes[strtoupper($client->getRole())][0]
@@ -504,7 +505,7 @@ class SessionsRepository extends ServiceEntityRepository
             ->fetchPreviousQuartersByNameAndYear($quarterData->getName(), $quarterData->getYear());
 
         foreach ($previousQuarters as $quarter) {
-            $quarterMonthsList =  array_merge_recursive($quarterMonthsList, $this->appDateHelper->getMonthsByQuarterString($quarter->getName()));
+            $quarterMonthsList = array_merge_recursive($quarterMonthsList, $this->appDateHelper->getMonthsByQuarterString($quarter->getName()));
             $quarterYearList[] = $quarter->getYear();
         }
 
@@ -547,6 +548,25 @@ class SessionsRepository extends ServiceEntityRepository
      * @throws \Doctrine\DBAL\Driver\Exception
      * @throws \Doctrine\DBAL\Exception
      */
+    public function findByQuarterData(Quarters $quarterData): array
+    {
+        $conn = $this->getEntityManager()->getConnection();
+        $minMaxDate = $this->quartersRepository->getQuarterMinMaxDate($quarterData);
+        $minDate = $minMaxDate['min'];
+        $maxDate = $minMaxDate['max'];
+
+        $sql = "SELECT s.* FROM sessions as s WHERE s.date BETWEEN CAST('$minDate' AS DATE) AND CAST('$maxDate' AS DATE)";
+        $stmt = $conn->prepare($sql);
+        $query = $stmt->executeQuery();
+        return $query->fetchAllAssociative();
+    }
+
+    /**
+     * @param Quarters $quarterData
+     * @return array<int, array<string, mixed>>
+     * @throws \Doctrine\DBAL\Driver\Exception
+     * @throws \Doctrine\DBAL\Exception
+     */
     public function findSessionsIdsByQuarter(Quarters $quarterData): array
     {
         $conn = $this->getEntityManager()->getConnection();
@@ -557,6 +577,55 @@ class SessionsRepository extends ServiceEntityRepository
         $sql = "SELECT s.session_id FROM sessions as s WHERE s.date BETWEEN CAST('$minDate' AS DATE) AND CAST('$maxDate' AS DATE)";
         $stmt = $conn->prepare($sql);
         $query = $stmt->executeQuery();
+        return $query->fetchAllAssociative();
+    }
+
+    /**
+     * @throws \Doctrine\DBAL\Exception
+     * @throws \Doctrine\DBAL\Driver\Exception
+     */
+    public function duplicate(int $id): string
+    {
+        $conn = $this->getEntityManager()->getConnection();
+        $sql = "INSERT INTO sessions 
+                    (remarks_id, trees_planted, field_office_id, phase_id, batch, session_activity_id, treatment_category_id, date, 
+                     venue_id, period, li_lo, role, created_by, created_at, updated_at, deleted_at)
+                SELECT remarks_id, trees_planted, field_office_id, phase_id, batch, session_activity_id, treatment_category_id, date, 
+                       venue_id, period, li_lo, role, created_by, created_at, updated_at, deleted_at 
+                FROM sessions WHERE session_id = $id";
+        $stmt = $conn->prepare($sql);
+        $stmt->executeQuery();
+
+        return $conn->lastInsertId();
+    }
+
+    /**
+     * @throws \Doctrine\DBAL\Driver\Exception
+     * @throws \Doctrine\DBAL\Exception
+     */
+    public function fetchTC1FieldOfficeSummary(string $minDate, string $maxDate, int $fieldOfficeId): ?array
+    {
+        $conn = $this->getEntityManager()->getConnection();
+        $sql = "SELECT tc.name as treatment_category FROM sessions as s 
+                    LEFT JOIN treatment_categories as tc ON s.treatment_category_id = tc.treatment_category_id
+                    WHERE s.date BETWEEN CAST('$minDate' AS DATE) AND CAST('$maxDate' AS DATE)
+                    AND s.field_office_id = $fieldOfficeId";
+        $stmt = $conn->prepare($sql);
+        $query = $stmt->executeQuery();
+
+        return $query->fetchAllAssociative();
+    }
+
+    public function getTableIA1SummaryFormTreatmentCategoryData(string $minDate, string $maxDate, int $fieldOfficeId): array
+    {
+        $conn = $this->getEntityManager()->getConnection();
+        $sql = "SELECT s.session_id, tc.name as treatment_category FROM sessions as s 
+                    LEFT JOIN treatment_categories as tc ON s.treatment_category_id = tc.treatment_category_id
+                    WHERE s.date BETWEEN CAST('$minDate' AS DATE) AND CAST('$maxDate' AS DATE)
+                    AND s.field_office_id = $fieldOfficeId";
+        $stmt = $conn->prepare($sql);
+        $query = $stmt->executeQuery();
+
         return $query->fetchAllAssociative();
     }
 
@@ -577,7 +646,7 @@ class SessionsRepository extends ServiceEntityRepository
             ->andWhere('se.sessionActivityId = :sessionActivityId')
             ->andWhere('se.deletedAt IS NULL')
             ->setParameter('minDate', $minMaxDate['min'], 'string')
-            ->setParameter('maxDate', $minMaxDate['max'],  'string')
+            ->setParameter('maxDate', $minMaxDate['max'], 'string')
             ->setParameter('phaseId', $sessionData->getPhaseId())
             ->setParameter('sessionActivityId', $sessionData->getSessionActivityId())
             ->getQuery()
@@ -604,24 +673,6 @@ class SessionsRepository extends ServiceEntityRepository
         }
 
         return false;
-    }
-
-
-    /**
-     * @throws \Doctrine\DBAL\Driver\Exception
-     * @throws \Doctrine\DBAL\Exception
-     */
-    public function fetchTC1FieldOfficeSummary(string $minDate, string $maxDate, int $fieldOfficeId): ?array
-    {
-        $conn = $this->getEntityManager()->getConnection();
-        $sql = "SELECT tc.name as treatment_category FROM sessions as s 
-                    LEFT JOIN treatment_categories as tc ON s.treatment_category_id = tc.treatment_category_id
-                    WHERE s.date BETWEEN CAST('$minDate' AS DATE) AND CAST('$maxDate' AS DATE)
-                    AND s.field_office_id = $fieldOfficeId";
-        $stmt = $conn->prepare($sql);
-        $query = $stmt->executeQuery();
-
-        return $query->fetchAllAssociative();
     }
 
     /**

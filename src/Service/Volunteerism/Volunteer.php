@@ -15,6 +15,9 @@ use App\Repository\QuartersRepository;
 use App\Repository\RegionsRepository;
 use App\Repository\ReligionRepository;
 use App\Repository\ResourceFacilitatorSessionRepository;
+use App\Repository\SocialMarketingRepository;
+use App\Repository\RJRelatedActivitiesRepository;
+use App\Repository\VpaAssociationInitiatedActivitiesRepository;
 use App\Repository\VolunteerOperationsRepository;
 use App\Repository\VolunteerRepository;
 use App\Repository\VolunteerSupervisionsRepository;
@@ -22,7 +25,6 @@ use Doctrine\ORM\Exception\ORMException;
 use Exception;
 use Psr\Cache\CacheException;
 use Psr\Cache\InvalidArgumentException;
-use Symfony\Component\HttpFoundation\BinaryFileResponse;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 use TCPDF;
 
@@ -34,20 +36,23 @@ class Volunteer implements VolunteerInterface
     const INACTIVE = 'INACTIVE';
 
     public function __construct(
-        private ValidatorInterface                   $validator,
-        private AppFormatter                         $appFormatter,
-        private VolunteerRepository                  $repository,
-        private QuartersRepository                   $quartersRepository,
-        private AppDateHelper                        $appDateHelper,
-        private RegionsRepository                    $regionsRepository,
-        private CivilStatusRepository                $civilStatusRepository,
-        private ReligionRepository                   $religionRepository,
-        private OccupationRepository                 $occupationRepository,
-        private EducationBackgroundRepository        $educationBackgroundRepository,
-        private VolunteerOperationsRepository        $volunteerOperationsRepository,
-        private FieldOfficesRepository               $fieldOfficesRepository,
-        private VolunteerSupervisionsRepository      $volunteerSupervisionsRepository,
-        private ResourceFacilitatorSessionRepository $resourceFacilitatorSessionRepository,
+        private ValidatorInterface                          $validator,
+        private AppFormatter                                $appFormatter,
+        private VolunteerRepository                         $repository,
+        private QuartersRepository                          $quartersRepository,
+        private AppDateHelper                               $appDateHelper,
+        private RegionsRepository                           $regionsRepository,
+        private CivilStatusRepository                       $civilStatusRepository,
+        private ReligionRepository                          $religionRepository,
+        private OccupationRepository                        $occupationRepository,
+        private EducationBackgroundRepository               $educationBackgroundRepository,
+        private VolunteerOperationsRepository               $volunteerOperationsRepository,
+        private FieldOfficesRepository                      $fieldOfficesRepository,
+        private VolunteerSupervisionsRepository             $volunteerSupervisionsRepository,
+        private ResourceFacilitatorSessionRepository        $resourceFacilitatorSessionRepository,
+        private SocialMarketingRepository                   $socialMarketingRepository,
+        private RJRelatedActivitiesRepository               $rjRelatedActivitiesRepository,
+        private VpaAssociationInitiatedActivitiesRepository $vpaAssociationRepository,
     ){}
 
     public function create(VolunteerModel $volunteerData): array
@@ -315,10 +320,10 @@ class Volunteer implements VolunteerInterface
 
         $quarterYear = intval($quarterData->getYear());
         $startOfQuarterVpa = $this->getStartOfQuarterVpa($quarterData, $fieldOfficeId);
-        $newAppointed = $this->getMonitoringByStatus($quarterYear, self::APPOINTED, $months);
-        $reappointed = $this->getMonitoringByStatus($quarterYear, self::REAPPOINTED, $months);
+        $newAppointed = $this->getMonitoringByStatus($quarterYear, self::APPOINTED, $months, $startOfQuarterVpa);
+        $reappointed = $this->getMonitoringByStatus($quarterYear, self::REAPPOINTED, $months, $startOfQuarterVpa);
         $dropped = $this->getDroppedVolunteers($quarterData, $fieldOfficeId);
-        $totalNumberOfVpa = ($startOfQuarterVpa + $newAppointed) - $dropped;
+        $totalNumberOfVpa = (count($startOfQuarterVpa) + $newAppointed) - $dropped;
         $inactive = $this->repository->findInactiveVolunteersByFieldOfficeAndMonthRangeV2(
             $fieldOfficeId,
             intval($quarterData->getYear()),
@@ -329,20 +334,39 @@ class Volunteer implements VolunteerInterface
         $percentOfVpaMobilized = $totalNumberOfVpa > 0 ? ($totalActiveVpa / $totalNumberOfVpa) * 100 : 0;
         $vpaSupervisingClients = $this->volunteerSupervisionsRepository->findVpaInvolveByQuarter($quarterId, $fieldOfficeId);
         $noOfVpaSupervisingClients = count($vpaSupervisingClients);
-        $noOfVpaSupervisingClientsPercentage = $totalActiveVpa > 0 ? ($noOfVpaSupervisingClients / $totalActiveVpa) : 0;
-        $vpaActingAsResourceIndividuals = $this->resourceFacilitatorSessionRepository->getDistinctVolunteerIdsBySessionIds($sessionIds);
+        $noOfVpaSupervisingClientsPercentage = $totalActiveVpa > 0 ? ($noOfVpaSupervisingClients / $totalActiveVpa) * 100 : 0;
+
+        // Column 10 = 1.A.1 + 1.B.2 + 1.C.4 + 3.A.1
+        // Table 1.A.1
+        $vpaActingAsResourceIndividualsInSessions = $this->resourceFacilitatorSessionRepository->getDistinctVolunteerIdsBySessionIds($sessionIds);
+        $vpaActingAsResourceIndividualsInSessionsIds = $vpaActingAsResourceIndividualsInSessions ? array_map(fn($vpa) => $vpa['resourceFacilitatorId'], $vpaActingAsResourceIndividualsInSessions) : [];
+        
+        // Table 1.B.2
+        $vpasInvolvedInRJActivities = $this->rjRelatedActivitiesRepository->getVolunteerIdsByDateRange($quarterId, $fieldOfficeId);
+        $vpasInvolvedInRJActivitiesIds = $vpasInvolvedInRJActivities ? array_map(fn($vpa) => $vpa['volunteer_id'], $vpasInvolvedInRJActivities) : [];
+
+        // Table 1.C.4
+        $vpasInvolvedInAssociationActivities = $this->vpaAssociationRepository->getVolunteerIdsByDateRange($quarterId, $fieldOfficeId);
+        $vpasInvolvedInAssociationActivitiesIds = $vpasInvolvedInAssociationActivities ? array_map(fn($vpa) => $vpa['volunteer_id'], $vpasInvolvedInAssociationActivities) : [];
+
+        // Table 3.A.1
+        $minMaxDate = $this->quartersRepository->getQuarterMinMaxDate($quarterData);
+        $vpasInvolvedInSocialMarketing = $this->socialMarketingRepository->getVolunteerIdsByDateRange($minMaxDate, $fieldOfficeId, 'INFORMATION_DISSEMINATION');
+        $vpasInvolvedInSocialMarketingIds = $vpasInvolvedInSocialMarketing ? array_map(fn($vpa) => $vpa['volunteer_id'], $vpasInvolvedInSocialMarketing) : [];
+        
+        $vpaActingAsResourceIndividuals = array_unique(array_merge($vpaActingAsResourceIndividualsInSessionsIds, $vpasInvolvedInRJActivitiesIds, $vpasInvolvedInAssociationActivitiesIds, $vpasInvolvedInSocialMarketingIds));
         $noOfVpaActingAsResourceIndividuals = count($vpaActingAsResourceIndividuals);
-        $noOfVpaActingAsResourceIndividualsPercentage = $totalActiveVpa > 0 ? ($noOfVpaActingAsResourceIndividuals / $totalActiveVpa) : 0;
-        $vpaActingBothSupervisingAndResourceIndividual = count($this
-            ->getVpaActingBothSupervisingAndResourceIndividual($vpaSupervisingClients, $vpaActingAsResourceIndividuals));
+        $noOfVpaActingAsResourceIndividualsPercentage = $totalActiveVpa > 0 ? ($noOfVpaActingAsResourceIndividuals / $totalActiveVpa) * 100 : 0;
+
+        $vpaActingBothSupervisingAndResourceIndividual = count($this->getVpaActingBothSupervisingAndResourceIndividual($vpaSupervisingClients, $vpaActingAsResourceIndividuals));
         $percentageOfVpaActingBothSupervisingAndResourceIndividual = $totalActiveVpa > 0 ?
-            ($vpaActingBothSupervisingAndResourceIndividual / $totalActiveVpa) : 0;
+            ($vpaActingBothSupervisingAndResourceIndividual / $totalActiveVpa) * 100 : 0;
         $totalNumberOfClientsSupervised = count($this->volunteerSupervisionsRepository->findClientsSupervisedByQuarter($quarterId, $fieldOfficeId));
         $noOfServicesRenderedByVpa = count($this->volunteerSupervisionsRepository->findServicesRenderedByQuarter($quarterId, $fieldOfficeId));
-        $noOfServicesRenderedByVpaPercentage = $totalActiveVpa > 0 ? ($noOfServicesRenderedByVpa / $totalActiveVpa) : 0;
+        $noOfServicesRenderedByVpaPercentage = $totalActiveVpa > 0 ? ($noOfServicesRenderedByVpa / $totalActiveVpa) * 100 : 0;
 
         return [
-            'start_of_quarter_vpa' => $startOfQuarterVpa,
+            'start_of_quarter_vpa' => count($startOfQuarterVpa),
             'new_appointed' => $newAppointed,
             'reappointed' => $reappointed,
             'dropped' => $dropped,
@@ -362,11 +386,18 @@ class Volunteer implements VolunteerInterface
         ];
     }
 
-    public function getCertificate(int $id): string
+    public function getCertificate(array $data): string
     {
-        $volunteer = $this->repository->find($id);
+        $volunteer = $this->repository->find($data['volunteer_id']);
+        $address = $volunteer->getPresentAddress();
         $fullName = $volunteer->getFirstName() . ' ' . $volunteer->getMiddleName() . ' ' . $volunteer->getLastName();
-        $fieldOffice = $this->fieldOfficesRepository->find($volunteer->getFieldOfficeId())->getName();
+        $fieldOffice = $this->fieldOfficesRepository->find($volunteer->getFieldOfficeId());
+        $fieldOfficeName = $fieldOffice->getName();
+        $dateOfAppointment = $volunteer->getDateAppointed()->format('F d, Y');
+        $region = $this->regionsRepository->find($fieldOffice->getRegionId());
+        $regionName = $region->getName();
+        $code = $data['code'];
+        $administrator = $data['administrator'];
 
         $pdf = new TCPDF();
         $pdf->setCreator(PDF_CREATOR);
@@ -377,51 +408,201 @@ class Volunteer implements VolunteerInterface
         $pdf->startPage();
         $logo = dirname(__DIR__ ) . '/../../assets/ppa.png';
         $heading = <<<EOD
-            <h3 style="text-align: right">PPA-CSD-FR-001-00</h3>
-            <h3 style="text-align: center">Republic of the Philippines</h3>
-            <h3 style="text-align: center">Department of Justice</h3>
-            <h2 style="text-align: center">PAROLE AND PROBATION ADMINISTRATION</h2>
-            <h5 style="text-align: center">DOJ Agencies Building</h5>
-            <h5 style="text-align: center">NIA Road corner East Avenue, Diliman</h5>
-            <h5 style="text-align: center">110 Quezon City</h5>
+            <h3 style="text-align: right;">$code</h3>
+            <h3 style="text-align: center;line-height: 5px;">Republic of the Philippines</h3>
+            <h3 style="text-align: center;line-height: 5px;">Department of Justice</h3>
+            <h2 style="text-align: center;line-height: 5px;">PAROLE AND PROBATION ADMINISTRATION</h2>
+            <h5 style="text-align: center;line-height: 5px;">DOJ Agencies Building</h5>
+            <h5 style="text-align: center;line-height: 5px;">NIA Road corner East Avenue, Diliman</h5>
+            <h5 style="text-align: center;line-height: 5px;">110 Quezon City</h5>
         EOD;
 
         $pdf->writeHTMLCell(0, 0, '', '', $heading);
         $pdf->Image($logo,  85, 75, 40, 40, '', '', 'T', false, 300, '', false, false, 1, false, false, false);
         $body = <<<EOD
-            <h2 style="text-align: center"><i>Certificate of Appointment</i></h2>
-            <h2 style="text-align: center;font-size: 15px;font-weight: normal">$fullName</h2>
-            <h2 style="text-align: center"><i>of</i></h2>
-            <h2 style="text-align: center;font-size: 15px;font-weight: normal">$fieldOffice</div>
-            <h2 style="text-align: center">Department</h2>
-            <h4 style="text-align: center">is hereby appointed as <span style="font-size: 13px">VOLUNTEER PROBATION ASSISTANT</span> of the</h4>
-            <h3 style="text-align: center"><i>Parole and Probation Office</i></h3>
-            <h3 style="text-align: center"><i>Region</i></h3>
-            <div></div>
-            <h2 style="text-align: center">Date of Appointment</h2>
-            <div></div>
-            <div></div>
-            <h2 style="text-align: center">DR. MANUEL G. CO, CESO I</h2>
-            <h2 style="text-align: center">Administrator</h2>
+            <div>
+                <h2 style="text-align: center;"><i>Certificate of Appointment</i></h2>
+                <h2 style="text-align: center;font-size: 15px;font-weight: normal">$fullName</h2>
+                <h2 style="text-align: center"><i>of</i></h2>
+                <h2 style="text-align: center;font-size: 15px;font-weight: normal">$address</div>
+                <h2 style="text-align: center">Department</h2>
+                <h4 style="text-align: center">is hereby appointed as <span style="font-size: 13px">VOLUNTEER PROBATION ASSISTANT</span> of the</h4>
+                <h3 style="text-align: center;line-height: 5px;"><i>$fieldOfficeName</i></h3>
+                <h3 style="text-align: center;line-height: 5px;"><i>$regionName</i></h3>
+                <div></div>
+                <h2 style="text-align: center">$dateOfAppointment</h2>
+                <div></div>
+                <div></div>
+                <h2 style="text-align: center;line-height: 5px;">$administrator</h2>
+                <h2 style="text-align: center;line-height: 5px;">Administrator</h2>
+            </div>
         EOD;
 
         $pdf->SetXY(110, 200);
-        $pdf->writeHTMLCell(0, 0, 0, 120, $body);
+        $pdf->setMargins(50, 0, 0);
+        $pdf->writeHTMLCell(0, 0, 0, 130, $body);
+        $pdf->endPage();
+
+        return $pdf->Output('mark.pdf', 'E');
+    }
+
+    public function getId(array $data): string
+    {
+        $volunteer = $this->repository->find($data['volunteer_id']);
+        $idNo = $volunteer->getVolunteerId();
+        $fullName = $volunteer->getFirstName() . ' ' . $volunteer->getMiddleName() . ' ' . $volunteer->getLastName();
+        $fieldOffice = $this->fieldOfficesRepository->find($volunteer->getFieldOfficeId());
+        $fieldOfficeName = $fieldOffice->getName();
+        $region = $this->regionsRepository->find($fieldOffice->getRegionId());
+        $regionName = $region->getName();
+        $code = $data['code'];
+        $address = $volunteer->getPresentAddress();
+        $bloodType = $volunteer->getBloodType();
+        $weight = $volunteer->getWeight();
+        $height = $volunteer->getHeight();
+        $emergencyName = $volunteer->getEmergencyName();
+        $emergencyNumber = $volunteer->getEmergencyNumber();
+        $administrator = $data['administrator'];
+
+        $pdf = new TCPDF();
+        $pdf->setCreator(PDF_CREATOR);
+        $pdf->setAuthor('PPA');
+        $pdf->setTitle('Testing');
+        $pdf->setPrintHeader(false);
+        $pdf->setPrintFooter(false);
+        $pdf->startPage();
+        $logo = dirname(__DIR__ ) . '/../../assets/ppa.png';
+        $picture = dirname(__DIR__ ) . '/../../assets/placeholder-1x1.gif';
+
+        $pdf->writeHTMLCell(0, 0, '', '');
+        $pdf->Image($logo,  2.5, 12.5, 15, 15, '', '', 'T', false, 300, '', false, false, 1, false, false, false);
+        $pdf->Image($picture,  37.5, 40, 25.4, 25.4, '', '', 'T', false, 300, '', false, false, 1, false, false, false);
+        $body = <<<EOD
+            <style>
+                table.back-page {
+                    border-collapse: collapse;
+                }
+                table.back-page > tr {}        
+                table.back-page > tr > td {
+                    border: 1px solid #000000;
+                    text-align: center;
+                }
+                table.back-page > tr > td.back-page-title {
+                    text-align: left !important;
+                    font-size: 12px;
+                    font-weight: bold;
+                }
+                table.back-page > tr > td.force-center {
+                    text-align: center;
+                }
+                table.back-page > tr > td.force-left {
+                    text-align: left;
+                }
+                table.back-page > tr > td.no-border {
+                    border: none;
+                }
+            </style>
+            <table width="100%" cellpadding="0" border="0">
+                <tr>
+                    <td width="50%" style="border: 1px solid #000000;">
+                        <h4 style="text-align: center">Republic of the Philippines</h4>
+                        <h4 style="text-align: center;line-height: 1px">Department of Justice</h4>
+                        <h3 style="text-align: center">PAROLE AND PROBATION ADMINISTRATION</h3>
+                        <div></div>
+                        <div></div>
+                        <div></div>
+                        <div></div>
+                        <div></div>
+                        <div></div>
+                        <div></div>
+                        <h3>
+                            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                            ID No.: $idNo
+                        </h3>
+                        <h2 style="text-align: center;font-size: 15px;font-weight: normal;background-color: #f7ef4d;">$fullName</h2>
+                        <h2 style="text-align: center;font-weight: bold;background-color: #e9ad63;color: #fff;">Volunteer Probation Assistant</h2>
+                        <h3 style="text-align: center;"><i>$fieldOfficeName</i></h3>
+                        <h3 style="text-align: center"><i>$regionName</i></h3>
+                        <div></div>
+                        <h2 style="text-align: center;line-height: 5px;">$administrator</h2>
+                        <h3 style="text-align: center;font-weight: normal;">Administrator</h3>
+                    </td>
+                    <td width="50%">
+                        <table class="back-page">
+                            <tr>
+                                <td colspan="3" style="text-align: right;border: none;">$code</td>
+                            </tr>
+                            <tr>
+                                <td colspan="3" class="back-page-title">&nbsp;ADDRESS: </td>
+                            </tr>
+                            <tr>
+                                <td colspan="3" style="height: 60px;">&nbsp;$address</td>
+                            </tr>
+                            <tr>
+                                <td class="back-page-title force-center">BLOOD TYPE</td>
+                                <td class="back-page-title force-center">HEIGHT</td>
+                                <td class="back-page-title force-center">WEIGHT</td>
+                            </tr>
+                            <tr>
+                                <td style="height: 50px;">$bloodType</td>
+                                <td style="height: 50px;">$weight</td>
+                                <td style="height: 50px;">$height</td>
+                            </tr>
+                            <tr><td colspan="3"></td></tr>
+                            <tr><td colspan="3" class="back-page-title">&nbsp;IN CASE OF EMERGENCY, NOTIFY:</td></tr>
+                            <tr><td colspan="3" style="height: 60px;">&nbsp;$emergencyName</td></tr>
+                            <tr>
+                                <td class="back-page-title">&nbsp;TEL. NO.:</td>
+                                <td colspan="2">&nbsp;$emergencyNumber</td>
+                            </tr>
+                            <tr>
+                                <td colspan="3" class="no-border">* This card is non-transferable and must be worn at all times when supervising clients.</td>
+                            </tr>
+                            <tr>
+                                <td colspan="3" class="no-border">* Heavy penalty for unlawful use pursuant to Article 177 and 179, RPC</td>
+                            </tr>
+                            <tr>
+                                <td colspan="3" class="no-border"></td>
+                            </tr>
+                            <tr>
+                                <td colspan="3" class="no-border">_________________________________</td>
+                            </tr>
+                            <tr>
+                                <td colspan="3" class="no-border">Signature</td>
+                            </tr>
+                            <tr>
+                                <td colspan="3" class="no-border force-left" style="font-weight: bold;">This ID valid from:</td>
+                            </tr>
+                            <tr>
+                                <td colspan="3" class="no-border force-left" style="font-weight: bold;">until:</td>
+                            </tr>
+                        </table>
+                    </td>
+                </tr>
+                <tr><td width="100%" colspan="2"></td></tr>
+            </table>
+        EOD;
+
+        $pdf->writeHTMLCell(0, 0, 0, 0, $body);
         $pdf->endPage();
 
         return $pdf->Output('mark.pdf', 'E');
     }
 
     /**
+     * @param Quarters|null $quarterData
+     * @param int $fieldOfficeId
+     * @return int[]
      * @throws \Doctrine\DBAL\Driver\Exception
      * @throws \Doctrine\DBAL\Exception
      */
-    private function getStartOfQuarterVpa(?Quarters $quarterData, int $fieldOfficeId): int
+    private function getStartOfQuarterVpa(?Quarters $quarterData, int $fieldOfficeId): array
     {
         $previousQuarter = $this->quartersRepository->fetchPreviousQuarterByNameAndYear($quarterData->getName(), intval($quarterData->getYear()));
 
         if ($previousQuarter === null) {
-            return 0;
+            return [];
         }
         $previousMonths = $this->appDateHelper->getMonthsByQuarterString($previousQuarter->getName());
         $currentMonths = $this->appDateHelper->getMonthsByQuarterString($quarterData->getName());
@@ -429,13 +610,13 @@ class Volunteer implements VolunteerInterface
             ->findByFieldOfficeAndMonthRange($fieldOfficeId, intval($previousQuarter->getYear()), $previousMonths);
         $reappointedVolunteersId = $this->getVolunteersIdByStatus(self::REAPPOINTED, intval($quarterData->getYear()), $currentMonths);
 
-        $results = 0;
+        $results = [];
         foreach ($previousActiveVolunteers as $previousActiveVolunteer) {
             if (in_array($previousActiveVolunteer->getVolunteerId(), $reappointedVolunteersId)) {
                 continue;
             }
 
-            $results++;
+            $results[] = $previousActiveVolunteer->getVolunteerId();
         }
 
         return $results;
@@ -443,6 +624,7 @@ class Volunteer implements VolunteerInterface
 
     /**
      * @param int[] $months
+     * @param int[] $startOfQuarterVpa
      * @throws \Doctrine\DBAL\Driver\Exception
      * @throws \Doctrine\DBAL\Exception
      */
@@ -450,6 +632,7 @@ class Volunteer implements VolunteerInterface
         int $year,
         string $status,
         array $months,
+        array $startOfQuarterVpa,
     ): int {
         $newVolunteersId = $this->getVolunteersIdByStatus(
             $status,
@@ -457,7 +640,15 @@ class Volunteer implements VolunteerInterface
             $months
         );
 
-        return count($newVolunteersId);
+        $count = 0;
+        foreach ($newVolunteersId as $newVolunteerId) {
+            if (in_array($newVolunteerId, $startOfQuarterVpa)) {
+                continue;
+            }
+            $count++;
+        }
+
+        return $count;
     }
 
     private function getCivilStatuses(): array
@@ -529,11 +720,13 @@ class Volunteer implements VolunteerInterface
         $result = [];
 
         foreach ($vpaActingAsResourceIndividuals as $actingAsResourceIndividual) {
-            if (! in_array($actingAsResourceIndividual['resourceFacilitatorId'], $vpaSupervisingClients)) {
+            // if (! in_array($actingAsResourceIndividual['resourceFacilitatorId'], $vpaSupervisingClients)) {
+            if (! in_array($actingAsResourceIndividual, $vpaSupervisingClients)) {
                 continue;
             }
 
-            $result[] = $actingAsResourceIndividual['resourceFacilitatorId'];
+            // $result[] = $actingAsResourceIndividual['resourceFacilitatorId'];
+            $result[] = $actingAsResourceIndividual;
         }
 
         return $result;

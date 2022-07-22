@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Report\Table;
 
+use App\Service\Volunteerism\Volunteer;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Style\Border;
@@ -17,8 +18,9 @@ class VPAMonitoring implements Form
     private const TABLE_NAME = "VPAMonitoring";
     
     public function __construct(
-        private int   $lastFilledOutCellY = 7,
-        private array $data = [],
+        private Volunteer   $service,
+        private int         $lastFilledOutCellY = 7,
+        private array       $data = [],
     ){}
 
     public function supports(string $tableName): bool
@@ -31,7 +33,7 @@ class VPAMonitoring implements Form
      */
     public function generate(array $data): BinaryFileResponse
     {
-        $this->data = $data;
+        $this->data = $this->getData($data);
 
         $spreadsheet = $this->footer();
         $writer = IOFactory::createWriter($spreadsheet, "Xlsx");
@@ -145,5 +147,15 @@ class VPAMonitoring implements Form
             ->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setARGB(Color::COLOR_YELLOW);
 
         return $spreadsheet;
+    }
+
+    private function getData(array $data): array
+    {
+        $result = $this->service->getVpaMonitoring(
+            $data['quarter_id'],
+            $data['field_office_id']
+        );
+
+        return ['rows' => [$result ?? []]];
     }
 }

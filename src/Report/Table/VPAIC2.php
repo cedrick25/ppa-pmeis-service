@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace App\Report\Table;
 
 use App\Common\AppDateHelper;
+use App\Entity\Volunteer;
+use App\Service\Volunteerism\Operations;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Style\Border;
@@ -17,9 +19,10 @@ class VPAIC2 implements Form
     private const TABLE_NAME = "VPAIC2";
     
     public function __construct(
-        private AppDateHelper $appDateHelper,
-        private int           $lastFilledOutCellY = 7,
-        private array         $data = [],
+        private AppDateHelper   $appDateHelper,
+        private Operations      $service,
+        private int             $lastFilledOutCellY = 7,
+        private array           $data = [],
     ){}
 
     public function supports(string $tableName): bool
@@ -32,7 +35,7 @@ class VPAIC2 implements Form
      */
     public function generate(array $data): BinaryFileResponse
     {
-        $this->data = $data;
+        $this->data = $this->getData($data);
 
         $spreadsheet = $this->footer();
         $writer = IOFactory::createWriter($spreadsheet, "Xlsx");
@@ -81,25 +84,26 @@ class VPAIC2 implements Form
 
         foreach ($this->data['rows']['APPOINTED'] as $index=>$row) {
             $rowNumber = $this->lastFilledOutCellY + $index + 1;
+            /** @var Volunteer $volunteer */
             $volunteer = $row['volunteer'];
 
-            $middleInitial = $volunteer['middleName'] != null ? substr($volunteer['middleName'], 0, 1) . '.' : '';
-            $fullName = $volunteer['lastName'] . ', ' . $volunteer['firstName'] . ' ' . $middleInitial;
+            $middleInitial = $volunteer->getMiddleName() != null ? substr($volunteer->getMiddleName(), 0, 1) . '.' : '';
+            $fullName = $volunteer->getLastName() . ', ' . $volunteer->getFirstName() . ' ' . $middleInitial;
             $date = $this->appDateHelper->convertStringToImmutableDate($row['date']);
 
             $spreadsheet->getActiveSheet()->setCellValue("A" . $rowNumber, $fullName);
             $spreadsheet->getActiveSheet()->setCellValue("D" . $rowNumber, $date->format('d-M-y'));
-            if ($volunteer['gender'] === 'F') {
+            if ($volunteer->getGender() === 'F') {
                 $spreadsheet->getActiveSheet()->setCellValue('E' . $rowNumber, '∕');
                 $total['APPOINTED']['F']++;
             } else {
                 $spreadsheet->getActiveSheet()->setCellValue('F' . $rowNumber, '∕');
                 $total['APPOINTED']['M']++;
             }
-            if ($volunteer['isPwd']) {
+            if ($volunteer->getIsPwd()) {
                 $spreadsheet->getActiveSheet()->setCellValue('G' . $rowNumber, '∕');
             }
-            if ($volunteer['isSeniorCitizen']) {
+            if ($volunteer->getIsSeniorCitizen()) {
                 $spreadsheet->getActiveSheet()->setCellValue('H' . $rowNumber, '∕');
             }
 
@@ -108,39 +112,43 @@ class VPAIC2 implements Form
 
         foreach ($this->data['rows']['REAPPOINTED'] as $index=>$row) {
             $rowNumber = $this->lastFilledOutCellY + $index + 1;
+            /** @var Volunteer $volunteer */
             $volunteer = $row['volunteer'];
 
-            $middleInitial = $volunteer['middleName'] != null ? substr($volunteer['middleName'], 0, 1) . '.' : '';
-            $fullName = $volunteer['lastName'] . ', ' . $volunteer['firstName'] . ' ' . $middleInitial;
+            $middleInitial = $volunteer->getMiddleName() != null ? substr($volunteer->getMiddleName(), 0, 1) . '.' : '';
+            $fullName = $volunteer->getLastName() . ', ' . $volunteer->getFirstName() . ' ' . $middleInitial;
             $date = $this->appDateHelper->convertStringToImmutableDate($row['date']);
 
             $spreadsheet->getActiveSheet()->setCellValue("I" . $rowNumber, $fullName);
             $spreadsheet->getActiveSheet()->setCellValue("L" . $rowNumber, $date->format('d-M-y'));
-            if ($volunteer['gender'] === 'F') {
+            if ($volunteer->getGender() === 'F') {
                 $spreadsheet->getActiveSheet()->setCellValue('M' . $rowNumber, '∕');
                 $total['REAPPOINTED']['F']++;
             } else {
                 $spreadsheet->getActiveSheet()->setCellValue('N' . $rowNumber, '∕');
                 $total['REAPPOINTED']['M']++;
             }
-            if ($volunteer['isPwd']) {
+            if ($volunteer->getIsPwd()) {
                 $spreadsheet->getActiveSheet()->setCellValue('O' . $rowNumber, '∕');
             }
-            if ($volunteer['isSeniorCitizen']) {
+            if ($volunteer->getIsSeniorCitizen()) {
                 $spreadsheet->getActiveSheet()->setCellValue('P' . $rowNumber, '∕');
             }
 
             $spreadsheet->getActiveSheet()->mergeCells('I' . $rowNumber . ':J' . $rowNumber);
         }
 
+        /**
+         * @var Volunteer  $row
+         */
         foreach ($this->data['rows']['INACTIVE'] as $index=>$row) {
             $rowNumber = $this->lastFilledOutCellY + $index + 1;
 
-            $middleInitial = $row['middleName'] != null ? substr($row['middleName'], 0, 1) . '.' : '';
-            $fullName = $row['lastName'] . ', ' . $row['firstName'] . ' ' . $middleInitial;
+            $middleInitial = $row->getMiddleName() != null ? substr($row->getMiddleName(), 0, 1) . '.' : '';
+            $fullName = $row->getLastName() . ', ' . $row->getFirstName() . ' ' . $middleInitial;
 
             $spreadsheet->getActiveSheet()->setCellValue("Q" . $rowNumber, $fullName);
-            if ($row['gender'] === 'F') {
+            if ($row->getGender() === 'F') {
                 $spreadsheet->getActiveSheet()->setCellValue('U' . $rowNumber, '∕');
                 $total['INACTIVE']['F']++;
             } else {
@@ -156,16 +164,17 @@ class VPAIC2 implements Form
 
         foreach ($this->data['rows']['DROPPED'] as $index=>$row) {
             $rowNumber = $this->lastFilledOutCellY + $index + 1;
+            /** @var Volunteer $volunteer */
             $volunteer = $row['volunteer'];
 
-            $middleInitial = $volunteer['middleName'] != null ? substr($volunteer['middleName'], 0, 1) . '.' : '';
-            $fullName = $volunteer['lastName'] . ', ' . $volunteer['firstName'] . ' ' . $middleInitial;
+            $middleInitial = $volunteer->getMiddleName() != null ? substr($volunteer->getMiddleName(), 0, 1) . '.' : '';
+            $fullName = $volunteer->getLastName() . ', ' . $volunteer->getFirstName() . ' ' . $middleInitial;
             $date = $this->appDateHelper->convertStringToImmutableDate($row['date']);
             $dateEndorsed = $this->appDateHelper->convertStringToImmutableDate($row['date_endorsed']);
 
             $spreadsheet->getActiveSheet()->setCellValue("X" . $rowNumber, $fullName);
             $spreadsheet->getActiveSheet()->setCellValue("Y" . $rowNumber, $date->format('d-M-y'));
-            if ($volunteer['gender'] === 'F') {
+            if ($volunteer->getGender() === 'F') {
                 $spreadsheet->getActiveSheet()->setCellValue('Z' . $rowNumber, '∕');
                 $total['DROPPED']['F']++;
             } else {
@@ -279,5 +288,15 @@ class VPAIC2 implements Form
         }
 
         return $spreadsheet;
+    }
+
+    private function getData(array $data): array
+    {
+        $result = $this->service->getVPA2(
+            $data['quarter_id'],
+            $data['field_office_id']
+        );
+
+        return ['rows' => $result['data'] ?? []];
     }
 }

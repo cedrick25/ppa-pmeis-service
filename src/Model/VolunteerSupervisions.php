@@ -22,7 +22,7 @@ class VolunteerSupervisions
         private ?DateTimeImmutable $createdAt = null,
         private ?DateTimeImmutable $updatedAt = null,
         private ?DateTimeImmutable $deletedAt = null
-    ) {}
+    ){}
 
     /**
      * @Assert\NotBlank

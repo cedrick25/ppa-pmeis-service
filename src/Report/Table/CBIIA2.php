@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Report\Table;
 
+use App\Service\Volunteerism\CapabilityBuilding;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Style\Border;
@@ -16,6 +17,7 @@ class CBIIA2 implements Form
     private const TABLE_NAME = "CBIIA2";
     
     public function __construct(
+        private CapabilityBuilding $capabilityBuilding,
         private int   $lastFilledOutCellY = 7,
         private array $data = [],
     ){}
@@ -30,7 +32,7 @@ class CBIIA2 implements Form
      */
     public function generate(array $data): BinaryFileResponse
     {
-        $this->data = $data;
+        $this->data = $this->getData($data);
 
         $spreadsheet = $this->footer();
         $writer = IOFactory::createWriter($spreadsheet, "Xlsx");
@@ -166,5 +168,16 @@ class CBIIA2 implements Form
         }
 
         return $spreadsheet;
+    }
+
+    private function getData(array $data): array
+    {
+        $results = $this->capabilityBuilding->getReport(
+            $data['quarter_id'],
+            $data['field_office_id'],
+            'VPA'
+        );
+
+        return ['rows' => array_values($results['data']) ?? []];
     }
 }

@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Report\Table;
 
+use App\Common\AppDateHelper;
+use App\Service\Volunteerism\VpaAssociationInitiatedActivities;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Style\Border;
@@ -16,8 +18,10 @@ class VPAIC4 implements Form
     private const TABLE_NAME = "VPAIC4";
     
     public function __construct(
-        private int   $lastFilledOutCellY = 8,
-        private array $data = [],
+        private AppDateHelper                       $appDateHelper,
+        private VpaAssociationInitiatedActivities   $service,
+        private int                                 $lastFilledOutCellY = 8,
+        private array                               $data = [],
     ){}
 
     public function supports(string $tableName): bool
@@ -30,7 +34,7 @@ class VPAIC4 implements Form
      */
     public function generate(array $data): BinaryFileResponse
     {
-        $this->data = $data;
+        $this->data = $this->getData($data);
 
         $spreadsheet = $this->footer();
         $writer = IOFactory::createWriter($spreadsheet, "Xlsx");
@@ -60,45 +64,24 @@ class VPAIC4 implements Form
     {
         $spreadsheet = $this->header();
 
-        $quarter = $this->data['quarter'];
-        $fieldOffice = $this->data['field_office_id'];
-        $association =  $this->data['association'];
-        $data = [
-            'FIRST_2022' => [
-                '1' => [
-                    'association' => [
-                        ['Seminar', 'January 5, 2022 / Brgy. Dela Paz, Pasig', 'Luke Skylar', '', 'X', 'First Speaker', 'N/A', 'N/A', 'N/A',],
-                        ['', '', 'Pedro Pandacan', '', 'X', 'Second Speaker', 'N/A', 'N/A', 'N/A',],
-                        ['', '', 'Marie Sumapay', 'X', '', 'Third Speaker', 'N/A', 'N/A', 'N/A',],
-                        ['', '', 'Renzo Melodez', '', 'X', 'Assistant', 'N/A', 'N/A', 'N/A',],
-                        ['', '', '', '', '', '', '', '', '',],
-                        ['', '', '', '1', '3', '', '', '', '',],
-                    ]
-                ],
-            ],
-            'FOURTH_2021' => [
-                '1' => [
-                    'association' => [
-                        ['Livelihood Training', 'December 10, 2021 / Brgy. Dela Paz, Pasig', 'Danzo Malaypay', '', 'X', 'Master Speaker', 'N/A', 'N/A', 'N/A',],
-                        ['', '', 'Marichu Balonzo', 'X', '', 'Trainer 1', 'N/A', 'N/A', 'N/A',],
-                        ['', '', 'Benjo Relaza', 'X', '', 'Trainer 2', 'N/A', 'N/A', 'N/A',],
-                        ['', '', 'Aliya Gumara', '', 'X', 'Trainer 3', 'N/A', 'N/A', 'N/A',],
-                        ['', '', '', '', '', '', '', '', '',],
-                        ['', '', '', '2', '2', '', '', '', '',],
-                    ]
-                ]
-            ],
-        ];
-
-        $rows = $data[$quarter][$fieldOffice][$association];
-        foreach ($rows as $row) {
+        $genderTotal = ['M' => 0, 'F' => 0];
+        foreach ($this->data['rows'] as $row) {
             $this->lastFilledOutCellY++;
-            $spreadsheet->getActiveSheet()->setCellValue("A" . $this->lastFilledOutCellY, $row[0]);
-            $spreadsheet->getActiveSheet()->setCellValue("D" . $this->lastFilledOutCellY, $row[1]);
-            $spreadsheet->getActiveSheet()->setCellValue("E" . $this->lastFilledOutCellY, $row[2]);
-            $spreadsheet->getActiveSheet()->setCellValue("H" . $this->lastFilledOutCellY, $row[3]);
-            $spreadsheet->getActiveSheet()->setCellValue("I" . $this->lastFilledOutCellY, $row[4]);
-            $spreadsheet->getActiveSheet()->setCellValue("J" . $this->lastFilledOutCellY, $row[5]);
+            $venue = $this->appDateHelper->convertStringToImmutableDate($row['venue_date']);
+            $spreadsheet->getActiveSheet()->setCellValue("A" . $this->lastFilledOutCellY, $row['service_rendered']);
+            $spreadsheet->getActiveSheet()->setCellValue("D" . $this->lastFilledOutCellY, $venue->format('y-M-d') . ' ' . $row['venue']);
+            $spreadsheet->getActiveSheet()->setCellValue("E" . $this->lastFilledOutCellY, $row['first_name'] . ' ' . $row['middle_name'] . ' ' . $row['last_name']);
+            if ($row['gender'] === 'F') {
+                $spreadsheet->getActiveSheet()->setCellValue("H" . $this->lastFilledOutCellY, '/');
+            } else {
+                $spreadsheet->getActiveSheet()->setCellValue("I" . $this->lastFilledOutCellY, '/');
+            }
+            $genderTotal[$row['gender']]++;
+
+            $spreadsheet->getActiveSheet()->setCellValue("J" . $this->lastFilledOutCellY, $row['role']);
+            $spreadsheet->getActiveSheet()->setCellValue("L" . $this->lastFilledOutCellY, $row['crd_resources_tapped']);
+            $spreadsheet->getActiveSheet()->setCellValue("N" . $this->lastFilledOutCellY, $row['crd_assistance_received']);
+            $spreadsheet->getActiveSheet()->setCellValue("P" . $this->lastFilledOutCellY, $row['remarks']);
 
             $spreadsheet->getActiveSheet()->mergeCells('A' . $this->lastFilledOutCellY . ':C' . $this->lastFilledOutCellY);
             $spreadsheet->getActiveSheet()->mergeCells('E' . $this->lastFilledOutCellY . ':G' . $this->lastFilledOutCellY);
@@ -107,7 +90,10 @@ class VPAIC4 implements Form
             $spreadsheet->getActiveSheet()->mergeCells('n' . $this->lastFilledOutCellY . ':o' . $this->lastFilledOutCellY);
 
         }
+        $this->lastFilledOutCellY++;
         $spreadsheet->getActiveSheet()->setCellValue('A' . $this->lastFilledOutCellY, 'TOTAL (Headcount)');
+        $spreadsheet->getActiveSheet()->setCellValue("H" . $this->lastFilledOutCellY, $genderTotal['F']);
+        $spreadsheet->getActiveSheet()->setCellValue("I" . $this->lastFilledOutCellY, $genderTotal['M']);
         $spreadsheet->getActiveSheet()->mergeCells('A' . $this->lastFilledOutCellY . ':g' . $this->lastFilledOutCellY);
         $spreadsheet->getActiveSheet()->getStyle('A' . $this->lastFilledOutCellY . ':G' . $this->lastFilledOutCellY)->getFont()->setBold(true);
 
@@ -179,5 +165,15 @@ class VPAIC4 implements Form
         }
 
         return $spreadsheet;
+    }
+
+    private function getData(array $data): array
+    {
+        $result = $this->service->getReport(
+            $data['quarter_id'],
+            $data['field_office_id']
+        );
+
+        return ['rows' => $result['data'] ?? []];
     }
 }

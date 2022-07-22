@@ -284,17 +284,37 @@ class ClientSessionsRepository extends ServiceEntityRepository
     }
 
     /**
-     * @param int $id
+     * @param int[] $sessionIds
      * @return array<int, array<string, mixed>>
      * @throws \Doctrine\DBAL\Driver\Exception
      * @throws \Doctrine\DBAL\Exception
      */
-    public function findClientsBySessionId(int $id): array
+    public function findBySessionIds(array $sessionIds): array
     {
         $conn = $this->getEntityManager()->getConnection();
-        $sql = "SELECT c.first_name, c.middle_name, c.last_name, c.gender FROM client_sessions 
-            LEFT JOIN clients c on client_sessions.client_id = c.client_id
-            WHERE client_sessions.session_id = $id";
+        $sessionIds = implode(',', $sessionIds);
+
+        $sql = "SELECT cs.*, cr.name as client_remarks, s.trees_planted FROM client_sessions cs 
+            LEFT JOIN clients c on cs.client_id = c.client_id
+            LEFT JOIN client_remarks cr on cs.client_remarks_id = cr.client_remarks_id
+            LEFT JOIN pmeis.sessions s on cs.session_id = s.session_id
+            WHERE cs.session_id IN ($sessionIds)";
+
+        $stmt = $conn->prepare($sql);
+        $query = $stmt->executeQuery();
+
+        return $query->fetchAllAssociative();
+    }
+
+    public function getVPA3Report(int $volunteerId): array
+    {
+        $conn = $this->getEntityManager()->getConnection();
+        $sql = "SELECT c.first_name, c.middle_name, c.last_name, c.gender, sr.name as service_rendered, vs.community_resources_tapped,
+                vs.assistance_received, vs.remarks
+            FROM volunteer_supervisions vs
+            LEFT JOIN clients c ON vs.client_id = c.client_id
+            LEFT JOIN services_rendered sr ON vs.services_rendered_id = sr.services_rendered_id
+            WHERE vs.volunteer_id = $volunteerId";
 
         $stmt = $conn->prepare($sql);
         $query = $stmt->executeQuery();
@@ -312,9 +332,14 @@ class ClientSessionsRepository extends ServiceEntityRepository
     {
         $ids = implode(',', $ids);
         $conn = $this->getEntityManager()->getConnection();
-        $sql = "SELECT c.* FROM client_sessions 
+        $sql = "
+            SELECT 
+                c.*, ct.code client_type_code
+            FROM client_sessions 
             LEFT JOIN clients c on client_sessions.client_id = c.client_id
-            WHERE client_sessions.session_id IN ($ids)";
+            LEFT JOIN client_types ct on c.client_type_id = ct.client_type_id
+            WHERE client_sessions.session_id IN ($ids)
+        ";
 
         $stmt = $conn->prepare($sql);
         $query = $stmt->executeQuery();
@@ -333,9 +358,14 @@ class ClientSessionsRepository extends ServiceEntityRepository
     {
         $ids = implode(',', $ids);
         $conn = $this->getEntityManager()->getConnection();
-        $sql = "SELECT c.* FROM client_sessions 
+        $sql = "
+            SELECT 
+                c.* 
+            FROM client_sessions 
             LEFT JOIN clients c on client_sessions.client_id = c.client_id
-            WHERE c.field_office_id = $fieldOfficeId AND client_sessions.session_id IN ($ids)";
+            WHERE c.field_office_id = $fieldOfficeId 
+            AND client_sessions.session_id IN ($ids)
+        ";
 
         $stmt = $conn->prepare($sql);
         $query = $stmt->executeQuery();
@@ -356,6 +386,22 @@ class ClientSessionsRepository extends ServiceEntityRepository
         $query = $stmt->executeQuery();
 
         return $query->fetchAllAssociative();
+    }
+
+    /**
+     * @throws \Doctrine\DBAL\Exception
+     * @throws \Doctrine\DBAL\Driver\Exception
+     */
+    public function duplicate(int $sessionId, int $newSessionId): void
+    {
+        $conn = $this->getEntityManager()->getConnection();
+        $sql = "INSERT INTO client_sessions 
+                    (client_id, session_id, role, client_remarks_id, other_remarks, fsi, remarks_date)
+                SELECT  client_id, $newSessionId, role, client_remarks_id, other_remarks, fsi, remarks_date
+                FROM client_sessions WHERE session_id = $sessionId";
+        $stmt = $conn->prepare($sql);
+
+        $stmt->executeQuery();
     }
 
     private function isExisting(ClientSessionModel $clientSessionData): bool

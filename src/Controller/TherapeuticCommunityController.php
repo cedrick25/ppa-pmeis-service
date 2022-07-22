@@ -521,6 +521,14 @@ class TherapeuticCommunityController extends AbstractController
     }
 
     /**
+     * @Route("/session/duplicate/with-client-facilitator/{id}", methods={"GET"})
+     */
+    public function duplicateSessionWithClientAndFacilitatorById(Request $request): Response
+    {
+        return $this->json($this->sessionService->duplicateWithSessionAndFacilitator((int) $request->get("id")));
+    }
+
+    /**
      * @Route("/session-remarks/list", methods={"GET"})
      */
     public function getAllSessionRemarks(): Response
@@ -955,11 +963,23 @@ class TherapeuticCommunityController extends AbstractController
     }
 
     /**
-     * @Route("/generate-cert/{volunteerId}", methods={"GET"})
+     * @Route("/generate-cert", methods={"POST"})
      */
     public function getCertificate(Request $request): Response
     {
-        return $this->json($this->volunteerService->getCertificate((int) $request->get("volunteerId")));
+        $data = json_decode($request->getContent(), true);
+
+        return $this->json($this->volunteerService->getCertificate($data));
+    }
+
+    /**
+     * @Route("/generate-id/{volunteerId}", methods={"POST"})
+     */
+    public function getId(Request $request): Response
+    {
+        $data = json_decode($request->getContent(), true);
+
+        return $this->json($this->volunteerService->getId($data));
     }
 
     /**

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Report\Table;
 
+use App\Service\Volunteerism\ProgramMaterialsDevelopment;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Style\Border;
@@ -16,8 +17,9 @@ class PMDV implements Form
     private const TABLE_NAME = "PMDV";
     
     public function __construct(
-        private int   $lastFilledOutCellY = 8,
-        private array $data = [],
+        private ProgramMaterialsDevelopment $programMaterialsDevelopmentService,
+        private int                         $lastFilledOutCellY = 8,
+        private array                       $data = [],
     ){}
 
     public function supports(string $tableName): bool
@@ -30,7 +32,7 @@ class PMDV implements Form
      */
     public function generate(array $data): BinaryFileResponse
     {
-        $this->data = $data;
+        $this->data = $this->getData($data);
 
         $spreadsheet = $this->footer();
         $writer = IOFactory::createWriter($spreadsheet, "Xlsx");
@@ -144,5 +146,12 @@ class PMDV implements Form
         }
 
         return $spreadsheet;
+    }
+
+    private function getData(array $data): array
+    {
+        $results = $this->programMaterialsDevelopmentService->getIdSupportReport($data['quarter_id'], $data['field_office_id']);
+
+        return ['rows' => array_values($results['data'] ?? [])];
     }
 }

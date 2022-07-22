@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Report\Table;
 
 use App\Common\AppReportHelper;
+use App\Service\TherapeuticCommunity\Sessions;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Style\Border;
@@ -18,6 +19,7 @@ class TCIA8 implements Form
 
     public function __construct(
         private AppReportHelper $appReportHelper,
+        private Sessions      $sessionService,
         private int             $lastFilledOutCellY = 9,
         private array           $data = [],
         private array           $summaryData = [],
@@ -34,7 +36,7 @@ class TCIA8 implements Form
      */
     public function generate(array $data): BinaryFileResponse
     {
-        $this->data = $data;
+        $this->data = $this->getData($data);
 
         $spreadsheet = $this->footer();
         $writer = IOFactory::createWriter($spreadsheet, "Xlsx");
@@ -501,5 +503,24 @@ class TCIA8 implements Form
         $spreadsheet->getActiveSheet()->getStyle("AD4:AD8")->getFont()->setSize(9);
 
         return $spreadsheet;
+    }
+
+    private function getData(array $data): array
+    {
+        $petitioners = $this->sessionService->getTCIA2(
+            $data['quarter_id'],
+            $data['field_office_id'],
+            'Pet'
+        );
+
+        $terminated = $this->sessionService->getTCIA2(
+            $data['quarter_id'],
+            $data['field_office_id'],
+            'Term'
+        );
+
+        $result = array_merge(array_values($petitioners['data'] ?? []), array_values($terminated['data'] ?? []));
+
+        return ['rows' => $result];
     }
 }

@@ -4,10 +4,12 @@ declare(strict_types=1);
 
 namespace App\Report\Table;
 
+use App\Repository\QuartersRepository;
+use App\Service\TherapeuticCommunity\Quarters;
+use App\Service\TherapeuticCommunity\Sessions;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Style\Border;
-use PhpOffice\PhpSpreadsheet\Style\Fill;
 use PhpOffice\PhpSpreadsheet\Writer\Exception;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
@@ -16,8 +18,10 @@ class TCIA7 implements Form
     private const TABLE_NAME = "TCIA7";
 
     public function __construct(
-        private int   $lastFilledOutCellY = 5,
-        private array $data = [],
+        private Sessions            $sessionService,
+        private QuartersRepository  $quartersRepository,
+        private int                 $lastFilledOutCellY = 5,
+        private array               $data = [],
     ){}
 
     public function supports(string $tableName): bool
@@ -30,7 +34,7 @@ class TCIA7 implements Form
      */
     public function generate(array $data): BinaryFileResponse
     {
-        $this->data = $data;
+        $this->data = $this->getData($data);
 
         $spreadsheet = $this->footer();
         $writer = IOFactory::createWriter($spreadsheet, "Xlsx");
@@ -44,27 +48,6 @@ class TCIA7 implements Form
     public function footer(): Spreadsheet
     {
         $spreadsheet = $this->body();
-//        $this->lastFilledOutCellY++;
-//         $this->lastFilledOutCellY++;
-//         $this->lastFilledOutCellY++;
-//         $lastFilledOutCellY = $this->lastFilledOutCellY;
-//
-//         $spreadsheet->getActiveSheet()->setCellValue('a' . $this->lastFilledOutCellY, 'TABLE I.A.7  COMPUTATION OF THE PERCENTAGE OF TC CLIENTS VIS-À-VIS SUPERVISION CASELOAD');
-//         $spreadsheet->getActiveSheet()->mergeCells('a' . $this->lastFilledOutCellY . ':f' . $this->lastFilledOutCellY);
-//         $spreadsheet->getActiveSheet()->getStyle('a' . $lastFilledOutCellY . ':g' . $this->lastFilledOutCellY)->getFont()->setBold(true);
-//         $this->lastFilledOutCellY++;
-//         $this->lastFilledOutCellY++;
-//         $this->lastFilledOutCellY++;
-//
-//         $spreadsheet->getActiveSheet()->setCellValue('a' . $this->lastFilledOutCellY, 'Source/s :  1.  Monthly Supervision Caseload Report of the FO (F 5, 21, 44 & 45)');
-//         $this->lastFilledOutCellY++;
-//         $spreadsheet->getActiveSheet()->setCellValue('a' . $this->lastFilledOutCellY, '                    2.  Tables IA.2 to Tables I.A.6 of this form (bottom part of each table)');
-//         $this->lastFilledOutCellY++;
-//         $this->lastFilledOutCellY++;
-//
-//         $spreadsheet->getActiveSheet()->setCellValue('a' . $this->lastFilledOutCellY, 'Computation :  Fill in the spaces with appropriate data from above sources and compute the percentage of clients involvement in TC program');
-//         $this->lastFilledOutCellY++;
-//         $spreadsheet->getActiveSheet()->setCellValue('a' . $this->lastFilledOutCellY, '                           using the formula provided in Table I.A.7');
         return $spreadsheet;
 
     }
@@ -118,6 +101,13 @@ class TCIA7 implements Form
      */
     private function prepare(): Spreadsheet
     {
+        $monthPerQuarter = [
+            'FIRST' => ['JANUARY', 'FEBRUARY', 'MARCH'],
+            'SECOND' => ['APRIL', 'MAY', 'JUNE'],
+            'THIRD' => ['JULY', 'AUGUST', 'SEPTEMBER'],
+            'FOURTH' => ['OCTOBER', 'NOVEMBER', 'DECEMBER'],
+        ];
+        $months = $monthPerQuarter[$this->data['rows']['quarter']];
         $spreadsheet = new Spreadsheet();
         $textAndCoordinates = [
             'f1' => 'PPA- PLD-FR-004',
@@ -133,19 +123,19 @@ class TCIA7 implements Form
             'a8' => '              b.   Active Courtesy Supervision',
             'a9' => '2.   ADD',
             'a10' => '             a.   New Supervision Referrals ',
-            'a11' => '                         Month 1   JANUARY',
-            'a12' => '                         Month 2  FEBRUARY',
-            'a13' => '                         Month 3   MARCH',
+            'a11' => '                         Month 1   ' . $months[0],
+            'a12' => '                         Month 2   ' . $months[1],
+            'a13' => '                         Month 3   ' . $months[2],
             'a14' => ' ',
             'a15' => '             b.   New Courtesy Supervision Referrals',
-            'a16' => '                         Month 1   JANUARY',
-            'a17' => '                         Month 2  FEBRUARY',
-            'a18' => '                          Month 3   MARCH',
+            'a16' => '                         Month 1   ' . $months[0],
+            'a17' => '                         Month 2   ' . $months[1],
+            'a18' => '                          Month 3  ' . $months[2],
             'a19' => ' ',
             'a20' => '3.  LESS:   Supervision cases dropped (Terminated, Revoked, Transferred)',
-            'a21' => '                         Month 1   JANUARY',
-            'a22' => '                         Month 2  FEBRUARY',
-            'a23' => '                         Month 3   MARCH',
+            'a21' => '                         Month 1   ' . $months[0],
+            'a22' => '                         Month 2   ' . $months[1],
+            'a23' => '                         Month 3   ' . $months[2],
             'a24' => '3.   Total Supervision Cases Handled',
             'a25' => '  ',
             'a26' => '4.     LESS:   Clients under the following circumstances  ',
@@ -559,5 +549,18 @@ class TCIA7 implements Form
         $spreadsheet->getActiveSheet()->setCellValue('F44', $overallTotal . '%');
 
         return $spreadsheet;
+    }
+
+    private function getData(array $data): array
+    {
+        $result = $this->sessionService->getTC7(
+            $data['quarter_id'],
+            $data['field_office_id']
+        );
+        $quarter = $this->quartersRepository->find($data['quarter_id']);
+        $rows = $result['data'] ?? [];
+        $rows['quarter'] = $quarter->getName();
+
+        return ['rows' => $rows];
     }
 }

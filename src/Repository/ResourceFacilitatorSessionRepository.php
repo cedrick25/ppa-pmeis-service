@@ -371,6 +371,22 @@ class ResourceFacilitatorSessionRepository extends ServiceEntityRepository
             ->getResult();
     }
 
+    /**
+     * @throws \Doctrine\DBAL\Exception
+     * @throws \Doctrine\DBAL\Driver\Exception
+     */
+    public function duplicate(int $sessionId, int $newSessionId): void
+    {
+        $conn = $this->getEntityManager()->getConnection();
+        $sql = "INSERT INTO resource_facilitator_session 
+                    (session_id, resource_facilitator_id, resource_facilitator_type, role, erp_name)
+                SELECT $newSessionId, resource_facilitator_id, resource_facilitator_type, role, erp_name
+                FROM pmeis.resource_facilitator_session WHERE session_id = $sessionId";
+        $stmt = $conn->prepare($sql);
+
+        $stmt->executeQuery();
+    }
+
     private function isConflicted(
         ResourceFacilitatorSession $fetchedResourceFacilitatorSession,
         ResourceFacilitatorSessionModel $resourceFacilitatorSessionData): bool

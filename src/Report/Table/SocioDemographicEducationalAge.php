@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Report\Table;
 
+use App\Service\Volunteerism\Volunteer;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Style\Border;
@@ -15,8 +16,9 @@ class SocioDemographicEducationalAge implements Form
     private const TABLE_NAME = "SocioDemographicEducationalAge";
     
     public function __construct(
-        private int   $lastFilledOutCellY = 10,
-        private array $data = [],
+        private Volunteer   $service,
+        private int         $lastFilledOutCellY = 10,
+        private array       $data = [],
     ){}
 
     public function supports(string $tableName): bool
@@ -29,7 +31,7 @@ class SocioDemographicEducationalAge implements Form
      */
     public function generate(array $data): BinaryFileResponse
     {
-        $this->data = $data;
+        $this->data = $this->getData($data);
 
         $spreadsheet = $this->footer();
         $writer = IOFactory::createWriter($spreadsheet, "Xlsx");
@@ -206,5 +208,12 @@ class SocioDemographicEducationalAge implements Form
         $spreadsheet->getActiveSheet()->getStyle('B5:R10')->getFont()->setSize(8);
 
         return $spreadsheet;
+    }
+
+    private function getData(array $data): array
+    {
+        $result = $this->service->getConsolidatedSocioDemographic($data['region_id']);
+
+        return ['rows' => $result['data'] ?? []];
     }
 }

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Report\Table;
 
 use App\Common\AppDateHelper;
+use App\Service\RestorativeJustice\RelatedRestitutions;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Style\Border;
@@ -17,9 +18,10 @@ class RJIB3 implements Form
     private const TABLE_NAME = "RJIB3";
     
     public function __construct(
-        private AppDateHelper $appDateHelper,
-        private int           $lastFilledOutCellY = 11,
-        private array         $data = [],
+        private AppDateHelper       $appDateHelper,
+        private RelatedRestitutions $service,
+        private int                 $lastFilledOutCellY = 11,
+        private array               $data = [],
     ){}
 
     public function supports(string $tableName): bool
@@ -33,7 +35,7 @@ class RJIB3 implements Form
      */
     public function generate(array $data): BinaryFileResponse
     {
-        $this->data = $data;
+        $this->data = $this->getData($data);
 
         $spreadsheet = $this->footer();
         $writer = IOFactory::createWriter($spreadsheet, "Xlsx");
@@ -250,11 +252,10 @@ class RJIB3 implements Form
             $totalData[$row['rj_group']]['formAmount'] += floatval($row['balance']);
             $spreadsheet->getActiveSheet()->setCellValue('M' . $this->lastFilledOutCellY, $row['payment_recipient']);
             $spreadsheet->getActiveSheet()->setCellValue('O' . $this->lastFilledOutCellY, $row['remitted_to']);
-            $spreadsheet->getActiveSheet()->setCellValue('O' . $this->lastFilledOutCellY, $row['remitted_amount']);
+            $spreadsheet->getActiveSheet()->setCellValue('P' . $this->lastFilledOutCellY, $row['remitted_amount']);
             $totalData[$row['rj_group']]['remittedAmount'] += floatval($row['remitted_amount']);
-            $spreadsheet->getActiveSheet()->setCellValue('O' . $this->lastFilledOutCellY, $row['remitted_amount']);
             // TODO: Add remitted date
-            $spreadsheet->getActiveSheet()->setCellValue('O' . $this->lastFilledOutCellY, 'Remitted Date');
+            $spreadsheet->getActiveSheet()->setCellValue('Q' . $this->lastFilledOutCellY, 'Remitted Date');
             $spreadsheet->getActiveSheet()->setCellValue('R' . $this->lastFilledOutCellY, $row['remarks']);
             $spreadsheet->getActiveSheet()
                 ->getStyle("A" . $this->lastFilledOutCellY . ":R" . $this->lastFilledOutCellY)
@@ -298,5 +299,15 @@ class RJIB3 implements Form
 
 
         return $spreadsheet;
+    }
+
+    private function getData(array $data): array
+    {
+        $result = $this->service->getRJIB3Data(
+            $data['quarter_id'],
+            $data['field_office_id']
+        );
+
+        return ['rows' => array_values($result['data'] ?? [])];
     }
 }

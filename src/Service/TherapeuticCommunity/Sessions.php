@@ -11,9 +11,9 @@ use App\Model\Sessions as SessionsModel;
 use App\Repository\ClientSessionsRepository;
 use App\Repository\ClientsRepository;
 use App\Repository\QuartersRepository;
+use App\Repository\ResourceFacilitatorSessionRepository;
 use App\Repository\SessionsRepository;
 use Doctrine\DBAL\Exception\InvalidArgumentException;
-use Doctrine\ORM\ORMException;
 use Exception;
 use Psr\Cache\CacheException;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
@@ -23,14 +23,17 @@ class Sessions implements SessionsInterface
     const ON_CS_CLIENT_TYPE_ID = 4;
 
     public function __construct(
-        private AppFormatter             $appFormatter,
-        private SessionsRepository       $repository,
-        private ValidatorInterface       $validator,
-        private AppDateHelper            $appDateHelper,
-        private QuartersRepository       $quartersRepository,
-        private ClientsRepository        $clientsRepository,
-        private ClientSessionsRepository $clientSessionsRepository,
-    ){}
+        private AppFormatter                         $appFormatter,
+        private SessionsRepository                   $repository,
+        private ValidatorInterface                   $validator,
+        private AppDateHelper                        $appDateHelper,
+        private QuartersRepository                   $quartersRepository,
+        private ClientsRepository                    $clientsRepository,
+        private ClientSessionsRepository             $clientSessionsRepository,
+        private ResourceFacilitatorSessionRepository $resourceFacilitatorSessionRepository,
+    )
+    {
+    }
 
     public function create(SessionsModel $sessionData): array
     {
@@ -92,7 +95,7 @@ class Sessions implements SessionsInterface
             }
 
             return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_SUCCESS, $sessions);
-        } catch (CacheException| \Psr\Cache\InvalidArgumentException $exception) {
+        } catch (CacheException|\Psr\Cache\InvalidArgumentException $exception) {
             return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_FAILED, null, ['cache' => $exception->getMessage()]);
         }
     }
@@ -107,7 +110,7 @@ class Sessions implements SessionsInterface
             }
 
             return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_SUCCESS, $sessions);
-        } catch (CacheException| \Psr\Cache\InvalidArgumentException $exception) {
+        } catch (CacheException|\Psr\Cache\InvalidArgumentException $exception) {
             return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_FAILED, null, ['cache' => $exception->getMessage()]);
         }
     }
@@ -117,19 +120,19 @@ class Sessions implements SessionsInterface
         try {
             $isDeleted = $this->repository->delete($id);
 
-            if (! $isDeleted) {
+            if (!$isDeleted) {
                 return $this->appFormatter->formatResponse(ResponseEnum::DELETING_FAILED, null, ['app' => ResponseEnum::NO_DATA]);
             }
 
             return $this->appFormatter->formatResponse(ResponseEnum::DELETING_SUCCESS, null);
         } catch (\Psr\Cache\InvalidArgumentException $exception) {
             return $this->appFormatter->formatResponse(ResponseEnum::DELETING_FAILED, null, ['cache' => $exception->getMessage()]);
-        } catch (\Doctrine\DBAL\Driver\Exception | Exception $exception) {
+        } catch (\Doctrine\DBAL\Driver\Exception|Exception $exception) {
             return $this->appFormatter->formatResponse(ResponseEnum::DELETING_FAILED, null, ['orm' => $exception->getMessage()]);
         }
     }
 
-    public function updateById(int $id, SessionsModel $sessionData):array
+    public function updateById(int $id, SessionsModel $sessionData): array
     {
         try {
             $isUpdated = $this->repository->update($id, $sessionData);
@@ -139,14 +142,14 @@ class Sessions implements SessionsInterface
             }
 
             return $this->appFormatter->formatResponse(ResponseEnum::UPDATING_SUCCESS, null);
-        } catch (InvalidArgumentException | Exception $e) {
+        } catch (InvalidArgumentException|Exception $e) {
             return $this->appFormatter->formatResponse(ResponseEnum::UPDATING_FAILED, null, ['app' => $e->getMessage()]);
         } catch (\Psr\Cache\InvalidArgumentException $e) {
             return $this->appFormatter->formatResponse(ResponseEnum::UPDATING_FAILED, null, ['cache' => $e->getMessage()]);
         }
     }
 
-    public function updateByIdWithClientAndFacilitators(int $id, SessionsModel $sessionData):array
+    public function updateByIdWithClientAndFacilitators(int $id, SessionsModel $sessionData): array
     {
         try {
             $isUpdated = $this->repository->updateWithClientAndFacilitators($id, $sessionData);
@@ -158,7 +161,7 @@ class Sessions implements SessionsInterface
             return $this->appFormatter->formatResponse(ResponseEnum::UPDATING_SUCCESS, null);
         } catch (\Doctrine\DBAL\Driver\Exception $exception) {
             return $this->appFormatter->formatResponse(ResponseEnum::UPDATING_FAILED, null, ['orm' => $exception->getMessage()]);
-        } catch (InvalidArgumentException | Exception $e) {
+        } catch (InvalidArgumentException|Exception $e) {
             return $this->appFormatter->formatResponse(ResponseEnum::UPDATING_FAILED, null, ['app' => $e->getMessage()]);
         } catch (\Psr\Cache\InvalidArgumentException $e) {
             return $this->appFormatter->formatResponse(ResponseEnum::UPDATING_FAILED, null, ['cache' => $e->getMessage()]);
@@ -175,7 +178,7 @@ class Sessions implements SessionsInterface
             }
 
             return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_SUCCESS, $session);
-        } catch (\Psr\Cache\InvalidArgumentException | CacheException $e) {
+        } catch (\Psr\Cache\InvalidArgumentException|CacheException $e) {
             return $this->appFormatter->formatResponse(ResponseEnum::UPDATING_FAILED, null, ['cache' => $e->getMessage()]);
         }
     }
@@ -190,7 +193,7 @@ class Sessions implements SessionsInterface
             }
 
             return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_SUCCESS, $sessions);
-        } catch (CacheException| \Psr\Cache\InvalidArgumentException $exception) {
+        } catch (CacheException|\Psr\Cache\InvalidArgumentException $exception) {
             return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_FAILED, null, ['cache' => $exception->getMessage()]);
         }
     }
@@ -224,7 +227,7 @@ class Sessions implements SessionsInterface
                 $rowIdentifier = $session['client_type'] . '_' . $fullName;
                 $monthIdentifier = $quarter . '_' . $monthInitial;
 
-                if (! isset($rows[$rowIdentifier])) {
+                if (!isset($rows[$rowIdentifier])) {
                     $session['month_quarter'] = [];
                     $rows[$rowIdentifier] = $session;
                 }
@@ -247,12 +250,12 @@ class Sessions implements SessionsInterface
             }
 
             return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_SUCCESS, $rows);
-        } catch (\Doctrine\DBAL\Exception | \Doctrine\DBAL\Driver\Exception $e) {
+        } catch (\Doctrine\DBAL\Exception|\Doctrine\DBAL\Driver\Exception $e) {
             return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_FAILED, null, ['orm' => $e->getMessage()]);
         }
     }
 
-    public function getTC7(int $quarterId, int $fieldOfficeId):array
+    public function getTC7(int $quarterId, int $fieldOfficeId): array
     {
         try {
             $currentQuarter = $this->quartersRepository->find($quarterId);
@@ -279,8 +282,7 @@ class Sessions implements SessionsInterface
             $totalLess = $this->getTotalLess($less);
             $totalAdjustedSupervisionCaseLoad = $this->getTotalAdjustedSupervisionCaseLoad($totalSupervisionCasesHandled, $totalLess);
             $clientsAttendingTC = $this->getClientsAttendingTC($currentQuarter, $fieldOfficeId);
-            $percentageOfClientsAttendingTC = $this
-                ->getPercentageOfClientsAttendingTC($totalAdjustedSupervisionCaseLoad, $clientsAttendingTC);
+            $percentageOfClientsAttendingTC = $this->getPercentageOfClientsAttendingTC($totalAdjustedSupervisionCaseLoad, $clientsAttendingTC);
 
             return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_SUCCESS, [
                 'activeSupervisions' => $activeSupervisions,
@@ -298,8 +300,22 @@ class Sessions implements SessionsInterface
         } catch (Exception $e) {
             return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_FAILED, null, [
                 'app' => $e->getMessage(), $e->getFile(), $e->getLine(), $e->getTrace(),]);
+
         } catch (\Doctrine\DBAL\Driver\Exception $e) {
             return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_FAILED, null, ['orm' => $e->getMessage()]);
+        }
+    }
+
+    public function duplicateWithSessionAndFacilitator(int $id): array
+    {
+        try {
+            $newId = $this->repository->duplicate($id);
+            $this->clientSessionsRepository->duplicate($id, intval($newId));
+            $this->resourceFacilitatorSessionRepository->duplicate($id, intval($newId));
+
+            return $this->appFormatter->formatResponse("Duplicating Successful", []);
+        } catch (\Doctrine\DBAL\Driver\Exception|\Doctrine\DBAL\Exception $e) {
+            return $this->appFormatter->formatResponse(ResponseEnum::UPDATING_FAILED, null, ['cache' => $e->getMessage()]);
         }
     }
 
@@ -319,7 +335,7 @@ class Sessions implements SessionsInterface
          * RETURNS:  [client_type_id:score]
          */
         if ($quarter == null) {
-           return [];
+            return [];
         }
 
         $result = [];
@@ -327,7 +343,7 @@ class Sessions implements SessionsInterface
         $clients = $this->clientsRepository->findBySupervisionPeriodDateRange($previousQuarterDates, 'END', $fieldOfficeId, $clientRemarksId);
 
         foreach ($clients as $client) {
-            if (! isset($result[$client['client_type_id']])) {
+            if (!isset($result[$client['client_type_id']])) {
                 $result[$client['client_type_id']] = 0;
             }
 
@@ -363,7 +379,7 @@ class Sessions implements SessionsInterface
             $supervisionStart = $this->appDateHelper->convertStringToImmutableDate($client['supervision_start']);
             $supervisionMonth = intval($supervisionStart->format('m'));
 
-            if (! isset($result[$supervisionMonth][$client['client_type_id']])) {
+            if (!isset($result[$supervisionMonth][$client['client_type_id']])) {
                 $result[$supervisionMonth][$client['client_type_id']] = 0;
             }
 
@@ -391,13 +407,13 @@ class Sessions implements SessionsInterface
         $result = [];
         $quarterMinMaxDate = $this->quartersRepository->getQuarterMinMaxDate($quarter);
         $clients = $this->clientsRepository
-            ->findSupervisionCasesDropBySupervisionPeriodEndDateRange($quarterMinMaxDate,  $fieldOfficeId);
+            ->findSupervisionCasesDropBySupervisionPeriodEndDateRange($quarterMinMaxDate, $fieldOfficeId);
 
         foreach ($clients as $client) {
             $supervisionStart = $this->appDateHelper->convertStringToImmutableDate($client['supervision_start']);
             $supervisionMonth = intval($supervisionStart->format('m'));
 
-            if (! isset($result[$supervisionMonth][$client['client_type_id']])) {
+            if (!isset($result[$supervisionMonth][$client['client_type_id']])) {
                 $result[$supervisionMonth][$client['client_type_id']] = 0;
             }
 
@@ -425,41 +441,41 @@ class Sessions implements SessionsInterface
     {
         $result = [];
 
-        foreach ($activeSupervisions as $clientTypeId=>$score) {
-            if (! isset($result[$clientTypeId])) {
+        foreach ($activeSupervisions as $clientTypeId => $score) {
+            if (!isset($result[$clientTypeId])) {
                 $result[$clientTypeId] = 0;
             }
             $result[$clientTypeId] += $score;
         }
 
-        foreach ($activeCourtesySupervisions as $clientTypeId=>$score) {
-            if (! isset($result[$clientTypeId])) {
+        foreach ($activeCourtesySupervisions as $clientTypeId => $score) {
+            if (!isset($result[$clientTypeId])) {
                 $result[$clientTypeId] = 0;
             }
             $result[$clientTypeId] += $score;
         }
 
-        foreach ($superVisionReferrals as $clientTypeId=>$superVisionReferral) {
-            foreach ($superVisionReferral as $supervisionMonth=>$score) {
-                if (! isset($result[$clientTypeId])) {
+        foreach ($superVisionReferrals as $clientTypeId => $superVisionReferral) {
+            foreach ($superVisionReferral as $supervisionMonth => $score) {
+                if (!isset($result[$clientTypeId])) {
                     $result[$clientTypeId] = 0;
                 }
                 $result[$clientTypeId] += $score;
             }
         }
 
-        foreach ($courtesySupervisionReferrals as $clientTypeId=>$superVisionReferral) {
-            foreach ($superVisionReferral as $supervisionMonth=>$score) {
-                if (! isset($result[$clientTypeId])) {
+        foreach ($courtesySupervisionReferrals as $clientTypeId => $superVisionReferral) {
+            foreach ($superVisionReferral as $supervisionMonth => $score) {
+                if (!isset($result[$clientTypeId])) {
                     $result[$clientTypeId] = 0;
                 }
                 $result[$clientTypeId] += $score;
             }
         }
 
-        foreach ($supervisionCasesDropped as $clientTypeId=>$superVisionReferral) {
-            foreach ($superVisionReferral as $supervisionMonth=>$score) {
-                if (! isset($result[$clientTypeId])) {
+        foreach ($supervisionCasesDropped as $clientTypeId => $superVisionReferral) {
+            foreach ($superVisionReferral as $supervisionMonth => $score) {
+                if (!isset($result[$clientTypeId])) {
                     $result[$clientTypeId] = 0;
                 }
                 $result[$clientTypeId] += $score;
@@ -476,47 +492,57 @@ class Sessions implements SessionsInterface
      * @throws \Doctrine\DBAL\Driver\Exception
      * @throws \Doctrine\DBAL\Exception
      */
-    private function getLess(\App\Entity\Quarters $quarter, int $fieldOfficeId):array
+    private function getLess(\App\Entity\Quarters $quarter, int $fieldOfficeId): array
     {
         /**
          * CRITERIA:
          *  Clients that has no session in the current quarter, same field office as selected
          *  and remarks are:
          *      a.   On CS to other FOs
-                b.   Died with no report submitted to Court/ BPP
-                c.   Absconded with no report submitted to Court/ BPP
-                d.   In jail with no report submitted to court/ BPP
-                e.   With serious ailment
-                f.   On travel abroad ( with permit)
-                h.   Cases Pending in Court/ BPP
-                i.   Others (specify):  No initial report
+         * b.   Died with no report submitted to Court/ BPP
+         * c.   Absconded with no report submitted to Court/ BPP
+         * d.   In jail with no report submitted to court/ BPP
+         * e.   With serious ailment
+         * f.   On travel abroad ( with permit)
+         * h.   Cases Pending in Court/ BPP
+         * i.   Others (specify):  No initial report
          * RETURNS [client_remarks_id:[client_type_id:score]]
          */
 
         $result = [];
         $quarterMinMaxDate = $this->quartersRepository->getQuarterMinMaxDate($quarter);
         /** @var \App\Entity\Clients[] $clients */
-        $clients = $this->clientsRepository
-            ->findSupervisionCasesDropBySupervisionPeriodEndDateRangeLess($quarterMinMaxDate,  $fieldOfficeId);
 
         $sessionIds = $this->repository->findSessionsIdsByQuarter($quarter);
-        $sessionIds = array_map(fn($sessionId) => $sessionId['session_id'], $sessionIds);
 
-        $sessionClients = $this->clientSessionsRepository->findClientsBySessionIds($sessionIds);
-        $sessionClientIds = array_map(fn($client) => $client['client_id'], $sessionClients);
+        if ($sessionIds) {
+            $sessionIds = array_map(fn($sessionId) => $sessionId['session_id'], $sessionIds);
 
-        foreach ($clients as $client) {
-            $clientRemarksId = $client['client_remarks_id'];
-            $clientTypeId = $client['client_type_id'];
-            if (in_array($client['client_id'], $sessionClientIds)) {
-                continue;
+            $sessionClients = $this->clientSessionsRepository->findClientsBySessionIds($sessionIds);
+            $sessionClientIds = array_map(fn($client) => $client['client_id'], $sessionClients);
+
+            $clients = $this->clientsRepository
+                ->findSupervisionCasesDropBySupervisionPeriodEndDateRangeLess($quarterMinMaxDate, $fieldOfficeId);
+            $existingClients = [];
+
+            foreach ($clients as $client) {
+                $clientRemarksId = $client['client_remarks_id'];
+                $clientTypeId = $client['client_type_id'];
+                // if (in_array($client['client_id'], $sessionClientIds)) {
+                if (!in_array($client['client_id'], $sessionClientIds)) {
+                    continue;
+                }
+
+                if (!in_array($client['client_id'], $existingClients)) {
+                    $existingClients[] = $client['client_id'];
+
+                    if (!isset($result[$clientRemarksId][$clientTypeId])) {
+                        $result[$clientRemarksId][$clientTypeId] = 0;
+                    }
+
+                    $result[$clientRemarksId][$clientTypeId]++;
+                }
             }
-
-            if (! isset( $result[$clientRemarksId][$clientTypeId] )) {
-                $result[$clientRemarksId][$clientTypeId] = 0;
-            }
-
-            $result[$clientRemarksId][$clientTypeId]++;
         }
 
         return $result;
@@ -531,8 +557,8 @@ class Sessions implements SessionsInterface
         $result = [];
 
         foreach ($less as $les) {
-            foreach ($les as $clientTypeId=>$score) {
-                if (! isset($result[$clientTypeId])) {
+            foreach ($les as $clientTypeId => $score) {
+                if (!isset($result[$clientTypeId])) {
                     $result[$clientTypeId] = 0;
                 }
                 $result[$clientTypeId] += $score;
@@ -552,12 +578,12 @@ class Sessions implements SessionsInterface
         $result = [];
 
         if (count($totalSupervisionCasesHandled) > count($totalLess)) {
-            foreach ($totalSupervisionCasesHandled as $clientTypeId=>$score) {
+            foreach ($totalSupervisionCasesHandled as $clientTypeId => $score) {
                 $less = !isset($totalLess[$clientTypeId]) ? 0 : $totalLess[$clientTypeId];
                 $result[$clientTypeId] = $score - $less;
             }
         } else {
-            foreach ($totalLess as $clientTypeId=>$score) {
+            foreach ($totalLess as $clientTypeId => $score) {
                 $totalSupervision = !isset($totalSupervisionCasesHandled[$clientTypeId]) ? 0 : $totalSupervisionCasesHandled[$clientTypeId];
                 $result[$clientTypeId] = $totalSupervision - $score;
             }
@@ -573,7 +599,7 @@ class Sessions implements SessionsInterface
      * @throws \Doctrine\DBAL\Driver\Exception
      * @throws \Doctrine\DBAL\Exception
      */
-    private function getClientsAttendingTC(\App\Entity\Quarters $quarter, int $fieldOfficeId):array
+    private function getClientsAttendingTC(\App\Entity\Quarters $quarter, int $fieldOfficeId): array
     {
         /**
          * CRITERIA:
@@ -583,14 +609,17 @@ class Sessions implements SessionsInterface
          */
         $result = [];
         $sessionIds = $this->repository->findSessionsIdsByQuarter($quarter);
-        $sessionIds = array_map(fn($sessionId) => $sessionId['session_id'], $sessionIds);
-        $sessionClients = $this->clientSessionsRepository->findClientsBySessionIdsAndFieldOfficeId($sessionIds, $fieldOfficeId);
 
-        foreach ($sessionClients as $sessionClient) {
-            if (! isset($result[$sessionClient['client_type_id']])) {
-                $result[$sessionClient['client_type_id']] = 0;
+        if ($sessionIds) {
+            $sessionIds = array_map(fn($sessionId) => $sessionId['session_id'], $sessionIds);
+            $sessionClients = $this->clientSessionsRepository->findClientsBySessionIdsAndFieldOfficeId($sessionIds, $fieldOfficeId);
+
+            foreach ($sessionClients as $sessionClient) {
+                if (!isset($result[$sessionClient['client_type_id']])) {
+                    $result[$sessionClient['client_type_id']] = 0;
+                }
+                $result[$sessionClient['client_type_id']]++;
             }
-            $result[$sessionClient['client_type_id']]++;
         }
 
         return $result;
@@ -604,11 +633,12 @@ class Sessions implements SessionsInterface
     private function getPercentageOfClientsAttendingTC(
         array $totalAdjustedSupervisionCaseLoad,
         array $clientsAttendingTC
-    ):array {
+    ): array
+    {
         $result = [];
 
-        foreach ($totalAdjustedSupervisionCaseLoad as $clientTypeId=>$score) {
-            if (! isset($clientsAttendingTC[$clientTypeId])) {
+        foreach ($totalAdjustedSupervisionCaseLoad as $clientTypeId => $score) {
+            if (!isset($clientsAttendingTC[$clientTypeId])) {
                 continue;
             }
 

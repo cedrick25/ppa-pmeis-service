@@ -9,6 +9,9 @@ use Symfony\Component\Validator\Constraints as Assert;
 
 class RJRelatedActivities
 {
+    /**
+     * @param int[] $volunteersId
+     */
     public function __construct(
         private int $quarterId,
         private int $fieldOfficeId,
@@ -20,6 +23,7 @@ class RJRelatedActivities
         private int $rjpId,
         private int $rjoId,
         private string $rjGroup,
+        private ?array $volunteersId = [],
         private ?DateTimeImmutable $createdAt = null,
         private ?DateTimeImmutable $updatedAt = null,
         private ?DateTimeImmutable $deletedAt = null,
@@ -120,6 +124,14 @@ class RJRelatedActivities
     public function getRjGroup(): string
     {
         return $this->rjGroup;
+    }
+
+    /**
+     * @return int[]|null
+     */
+    public function getVolunteersId(): ?array
+    {
+        return $this->volunteersId;
     }
 
     /**

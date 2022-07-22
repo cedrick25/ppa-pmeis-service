@@ -151,7 +151,7 @@ class ResourceFacilitatorSession implements ResourceFacilitatorSessionInterface
                         'last_name' => $volunteer['last_name'],
                         'gender' => $volunteer['gender']
                     ],
-                    'clients' => $this->clientSessionsRepository->findClientsBySessionId($activeVolunteer['resource_facilitator_id']),
+                    'clients' => $this->clientSessionsRepository->getVPA3Report($activeVolunteer['resource_facilitator_id']),
                 ];
             }
 

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Report\Table;
 
 use App\Common\AppDateHelper;
+use App\Service\Volunteerism\Volunteer;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Style\Border;
@@ -16,9 +17,10 @@ class VPAIC1 implements Form
     private const TABLE_NAME = "VPAIC1";
     
     public function __construct(
-        private AppDateHelper $appDateHelper,
-        private int           $lastFilledOutCellY = 6,
-        private array         $data = [],
+        private AppDateHelper   $appDateHelper,
+        private Volunteer       $service,
+        private int             $lastFilledOutCellY = 6,
+        private array           $data = [],
     ){}
 
     public function supports(string $tableName): bool
@@ -31,7 +33,7 @@ class VPAIC1 implements Form
      */
     public function generate(array $data): BinaryFileResponse
     {
-        $this->data = $data;
+        $this->data = $this->getData($data);
 
         $spreadsheet = $this->footer();
         $writer = IOFactory::createWriter($spreadsheet, "Xlsx");
@@ -68,23 +70,23 @@ class VPAIC1 implements Form
         $spreadsheet = $this->header();
 
         $rowNumber = 1;
+        /** @var \App\Entity\Volunteer $row */
         foreach ($this->data['rows'] as $row) {
             $this->lastFilledOutCellY++;
-            $middleInitial = $row['middleName'] != null ? substr($row['middleName'], 0, 1) . '.' : '';
-            $nameOfRecruit = $row['lastName'] . ', ' . $row['firstName'] . ' ' . $middleInitial;
-            $dateOfBirth = $this->appDateHelper->convertStringToImmutableDate($row['dateOfBirth']);
-            $dateRecruited = $this->appDateHelper->convertStringToImmutableDate($row['dateRecruited']);
+            $middleInitial = $row->getMiddleName() != null ? substr($row->getMiddleName(), 0, 1) . '.' : '';
+            $nameOfRecruit = $row->getLastName() . ', ' . $row->getFirstName() . ' ' . $middleInitial;
+            $dateOfBirth = $this->appDateHelper->convertStringToImmutableDate($row->getDateOfBirth());
 
             $spreadsheet->getActiveSheet()->setCellValue("A" . $this->lastFilledOutCellY, $rowNumber);
             $spreadsheet->getActiveSheet()->setCellValue("B" . $this->lastFilledOutCellY, $nameOfRecruit);
-            if ($row['gender'] === 'F') {
+            if ($row->getGender() === 'F') {
                 $spreadsheet->getActiveSheet()->setCellValue('C' . $this->lastFilledOutCellY, '∕');
             } else {
                 $spreadsheet->getActiveSheet()->setCellValue('D' . $this->lastFilledOutCellY, '∕');
             }
             $spreadsheet->getActiveSheet()->setCellValue("E" . $this->lastFilledOutCellY, $dateOfBirth->format('d-M-y'));
-            $spreadsheet->getActiveSheet()->setCellValue("F" . $this->lastFilledOutCellY, $dateRecruited->format('d-M-y'));
-            $spreadsheet->getActiveSheet()->setCellValue("G" . $this->lastFilledOutCellY, $row['recruitingOfficer']);
+            $spreadsheet->getActiveSheet()->setCellValue("F" . $this->lastFilledOutCellY, $row->getDateRecruited()->format('d-M-y'));
+            $spreadsheet->getActiveSheet()->setCellValue("G" . $this->lastFilledOutCellY, $row->getRecruitingOfficer());
             $spreadsheet->getActiveSheet()->getStyle("A" . $this->lastFilledOutCellY . ":G" . $this->lastFilledOutCellY)->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
 
             $rowNumber++;
@@ -150,5 +152,15 @@ class VPAIC1 implements Form
         }
 
         return $spreadsheet;
+    }
+
+    private function getData(array $data): array
+    {
+        $result = $this->service->getByFieldOfficeAndMonthRange(
+            $data['field_office_id'],
+            $data['quarter_id']
+        );
+
+        return ['rows' => $result['data'] ?? []];
     }
 }
