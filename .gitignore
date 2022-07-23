@@ -15,3 +15,5 @@
 ###< lexik/jwt-authentication-bundle ###
 /mysql
 /public/download
+public/generated
+public/.DS_Store
