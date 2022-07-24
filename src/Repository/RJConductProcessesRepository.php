@@ -169,15 +169,15 @@ class RJConductProcessesRepository extends ServiceEntityRepository
                     rjcp.pe_activity, rjcp.pe_date, (SELECT name FROM venues WHERE venues.venue_id = rjcp.rjp_venue_id) as rjp_venue,
                     rjp.name as rjp_type, ud.first_name as planner_fn, ud.middle_name as planner_mn, ud.last_name as planner_ln,
                     rjps.name as rjp_status, ro.name as rj_outcome_name, ro.code as rj_outcome_code
-                    FROM rjconduct_processes as rjcp " .
-                "LEFT JOIN clients as c ON rjcp.client_id = c.client_id " .
-                "LEFT JOIN offenses as o ON rjcp.offense_id = o.offenses_id " .
-                "LEFT JOIN rjprocesses as rjp ON rjcp.rjp_id = rjp.id_rjprocesses " .
-                "LEFT JOIN user_details as ud ON rjcp.planner_id = ud.user_account_id " .
-                "LEFT JOIN rjprocess_status as rjps ON rjcp.rjps_id = rjps.id_rjprocess_status " .
-                "LEFT JOIN rjoutcomes as ro ON rjcp.rjo_id = ro.rj_outcome_id " .
-                "WHERE rjcp.quarter_id = $quarterId AND rjcp.field_office_id = $fieldOfficeId ".
-                "AND rjcp.deleted_at IS NULL ORDER BY rjcp.rj_group";
+                    FROM rjconduct_processes as rjcp 
+                LEFT JOIN clients as c ON rjcp.client_id = c.client_id
+                LEFT JOIN offenses as o ON rjcp.offense_id = o.offenses_id
+                LEFT JOIN rjprocesses as rjp ON rjcp.rjp_id = rjp.id_rjprocesses
+                LEFT JOIN user_details as ud ON rjcp.planner_id = ud.user_account_id
+                LEFT JOIN rjprocess_status as rjps ON rjcp.rjps_id = rjps.id_rjprocess_status
+                LEFT JOIN rjoutcomes as ro ON rjcp.rjo_id = ro.rj_outcome_id
+                WHERE rjcp.quarter_id = $quarterId AND rjcp.field_office_id = $fieldOfficeId
+                AND rjcp.deleted_at IS NULL ORDER BY rjcp.rj_group";
             $stmt = $conn->prepare($sql);
             $query = $stmt->executeQuery();
 
