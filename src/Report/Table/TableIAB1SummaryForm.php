@@ -90,6 +90,14 @@ class TableIAB1SummaryForm implements Form
             'negative' => ['ACTIVE_SUPERVISION' => 0, 'PETITIONER' => 0]
         ];
 
+        $outcomes = [
+            'Restitution' => ['ACTIVE_SUPERVISION' => 0, 'PETITIONER' => 0],
+            'Community Work Services' => ['ACTIVE_SUPERVISION' => 0, 'PETITIONER' => 0],
+            'Restored Relationships' => ['ACTIVE_SUPERVISION' => 0, 'PETITIONER' => 0],
+            'Others' => ['ACTIVE_SUPERVISION' => 0, 'PETITIONER' => 0]
+
+        ];
+
         foreach ($this->data['process_conducted'] as $processConducted) {
             $rjGroup = $processConducted['rj_group'];
 
@@ -98,9 +106,12 @@ class TableIAB1SummaryForm implements Form
             } else {
                 $particulars['negative'][$rjGroup]++;
             }
+
+            $outcomes[$processConducted['rj_outcome_name']][$rjGroup]++;
         }
 
         $spreadsheet = $this->plotParticulars($particulars, $spreadsheet);
+        $spreadsheet = $this->plotOutcomes($outcomes, $spreadsheet);
 
         return $spreadsheet;
     }
@@ -148,12 +159,23 @@ class TableIAB1SummaryForm implements Form
             'U15' => 'Conducted', 'V15' => 'F', 'W15' => 'M',
             'A18' => 'Table I.B.1(Columns 1 & 10)',
             'A19' => 'PARTICULARS (RJ STATUS)', 'B19' => 'Number', 'D19' => 'Total', 'B20' => 'Active Supervision', 'C20' => 'Petitioner',
-            'A21' => 'Resolved', 'A22' => '(Completed, Agreement reached)', 'A23' => 'Unresolved', 'A24' => '(Shelved/Deffered, On-going)'
+            'A21' => 'Resolved', 'A22' => '(Completed, Agreement reached)', 'A23' => 'Unresolved', 'A24' => '(Shelved/Deffered, On-going)',
+            'A26' => 'Table I.B.1 (Columns 1 & 11)',
+            'A27' => 'PARTICULARS (RJ OUTCOME)',
+            'B27' => 'Number',
+            'D27' => 'Total',
+            'B28' => 'Active Supervision',
+            'C28' => 'Petitioner',
+            'A29' => 'Restitution',
+            'A30' => 'Community Work Services',
+            'A31' => 'Restoration of Relationship',
+            'A32' => 'Others'
         ];
 
         $mergesCoordinates = [
-            'A7:E7', 'F7:O7', 'P7:T7', 'U7:Y7', 'A13:E13', 'F13:O13', 'P13:T13', 'U13:Y13', 'A19:A20', 'B18:C18',
-            'B21:B22', 'C21:C22', 'B23:B24', 'C23:C24', 'D19:D20', 'D21:D22', 'D23:D24'
+            'A7:E7', 'F7:O7', 'P7:T7', 'U7:Y7', 'A13:E13', 'F13:O13', 'P13:T13', 'U13:Y13',
+            'A19:A20', 'B18:C18', 'B21:B22', 'C21:C22', 'B23:B24', 'C23:C24', 'D19:D20', 'D21:D22', 'D23:D24',
+            'A27:A28', 'B27:C27', 'D27:D28'
         ];
 
         $boldCoordinates = [
@@ -257,6 +279,35 @@ class TableIAB1SummaryForm implements Form
         $spreadsheet->getActiveSheet()->setCellValue('B23', $negativeActive);
         $spreadsheet->getActiveSheet()->setCellValue('C23', $negativePetitioner);
         $spreadsheet->getActiveSheet()->setCellValue('D23', intval($negativeActive) + intval($negativePetitioner));
+
+        return $spreadsheet;
+    }
+
+    /**
+     * @param array<string, array<string, int>> $outcomes
+     */
+    private function plotOutcomes(array $outcomes, Spreadsheet $spreadsheet): Spreadsheet
+    {
+        $restitutionActive = $outcomes['Restitution']['ACTIVE_SUPERVISION'];
+        $restitutionPetitioner = $outcomes['Restitution']['PETITIONER'];
+        $communityWorkServicesActive = $outcomes['Community Work Services']['ACTIVE_SUPERVISION'];
+        $communityWorkServicesPetitioner = $outcomes['Community Work Services']['PETITIONER'];
+        $restoredRelationshipsActive = $outcomes['Restored Relationships']['ACTIVE_SUPERVISION'];
+        $restoredRelationshipsPetitioner = $outcomes['Restored Relationships']['PETITIONER'];
+        $othersActive = $outcomes['Others']['ACTIVE_SUPERVISION'];
+        $othersPetitioner = $outcomes['Others']['PETITIONER'];
+        $spreadsheet->getActiveSheet()->setCellValue('B29', $restitutionActive);
+        $spreadsheet->getActiveSheet()->setCellValue('C29', $restitutionPetitioner);
+        $spreadsheet->getActiveSheet()->setCellValue('D29', intval($restitutionActive) + intval($restitutionPetitioner));
+        $spreadsheet->getActiveSheet()->setCellValue('B30', $communityWorkServicesActive);
+        $spreadsheet->getActiveSheet()->setCellValue('C30', $communityWorkServicesPetitioner);
+        $spreadsheet->getActiveSheet()->setCellValue('D30', intval($communityWorkServicesActive) + intval($communityWorkServicesPetitioner));
+        $spreadsheet->getActiveSheet()->setCellValue('B31', $restoredRelationshipsActive);
+        $spreadsheet->getActiveSheet()->setCellValue('C31', $restoredRelationshipsPetitioner);
+        $spreadsheet->getActiveSheet()->setCellValue('D31', intval($restoredRelationshipsActive) + intval($restoredRelationshipsPetitioner));
+        $spreadsheet->getActiveSheet()->setCellValue('B32', $othersActive);
+        $spreadsheet->getActiveSheet()->setCellValue('C32', $othersPetitioner);
+        $spreadsheet->getActiveSheet()->setCellValue('D32', intval($othersActive) + intval($othersPetitioner));
 
         return $spreadsheet;
     }
