@@ -28,7 +28,7 @@ class TableIAB1SummaryForm implements Form
         private FieldOfficesRepository  $fieldOfficesRepository,
         private QuartersRepository     $quartersRepository,
         private array                  $data = [],
-        private ?FieldOffices          $fieldOffice = null,
+        private ?FieldOffices           $fieldOffice = null,
         private ?Quarters              $quarters = null,
     ) {}
 
@@ -149,8 +149,8 @@ class TableIAB1SummaryForm implements Form
             'A1' => 'FIELD OFFICE ' . $this->fieldOffice->getName(),
             'A2' => 'IQPR SUMMARY FORM',
             'A3' => $this->quarters->getName() . ' QTR, ' . $this->quarters->getYear(),
-            'A4' => 'I.B.   RESTORATIVE JUSTICE',
-            'A5' => "Table I.B.   Number of RJ Processes Conducted/ Clients' Involvement",
+            'A4' => 'I.B.1   RESTORATIVE JUSTICE',
+            'A5' => "Table I.B.1   Number of RJ Processes Conducted/ Clients' Involvement",
             'A6' => "TOTAL NUMBER (". self::ACTIVE_SUPERVISION .")",
             'A7' => self::PRE_ENCOUNTER_ACT, 'F7' => 'Mediation', 'K7' => 'Conferencing', 'P7' => 'COS', 'U7' => 'Others',
             'A8' => '# of Acts', 'B8' => 'SEX', 'D8' => 'PWD', 'E8' => 'SC',
