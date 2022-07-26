@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Report\Table;
 
+use App\Entity\FieldOffices;
+use App\Entity\Quarters;
 use App\Repository\FieldOfficesRepository;
 use App\Repository\QuartersRepository;
 use App\Service\RestorativeJustice\RelatedRestitutions;
@@ -30,6 +32,8 @@ class TableIB23SummaryForm implements Form
         private RelatedRestitutions    $service,
         private FieldOfficesRepository  $fieldOfficesRepository,
         private QuartersRepository     $quartersRepository,
+        private ?FieldOffices           $fieldOffice = null,
+        private ?Quarters              $quarters = null,
         private array                  $data = [],
     ){}
 
