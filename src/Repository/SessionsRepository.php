@@ -629,6 +629,19 @@ class SessionsRepository extends ServiceEntityRepository
         return $query->fetchAllAssociative();
     }
 
+    public function getTableIA1SummaryFormTreatmentCategoryDataRegional(string $minDate, string $maxDate, string $fieldOfficeIds): array
+    {
+        $conn = $this->getEntityManager()->getConnection();
+        $sql = "SELECT s.session_id, tc.name as treatment_category FROM sessions as s 
+                    LEFT JOIN treatment_categories as tc ON s.treatment_category_id = tc.treatment_category_id
+                    WHERE s.date BETWEEN CAST('$minDate' AS DATE) AND CAST('$maxDate' AS DATE)
+                    AND s.field_office_id IN ($fieldOfficeIds)";
+        $stmt = $conn->prepare($sql);
+        $query = $stmt->executeQuery();
+
+        return $query->fetchAllAssociative();
+    }
+
     /**
      * @throws NonUniqueResultException
      */
