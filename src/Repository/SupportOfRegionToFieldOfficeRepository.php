@@ -137,4 +137,27 @@ class SupportOfRegionToFieldOfficeRepository extends ServiceEntityRepository
 
         return $query->fetchAllAssociative();
     }
+
+    /**
+     * @param string[] $minMaxDate
+     * @param int $fieldOfficeId
+     * @return array<int, array<string, mixed>>
+     * @throws \Doctrine\DBAL\Exception
+     * @throws \Doctrine\DBAL\Driver\Exception
+     */
+    public function findByDateRangeAndAllCategory(array $minMaxDate, int $fieldOfficeId): array
+    {
+        $conn = $this->getEntityManager()->getConnection();
+        $min = $minMaxDate['min'];
+        $max = $minMaxDate['max'];
+
+        $sql = "SELECT sortfo.*, fo.name as field_office FROM support_of_region_to_field_office as sortfo
+                LEFT JOIN field_offices as fo ON sortfo.field_office_id = fo.field_office_id
+                WHERE sortfo.field_office_id = $fieldOfficeId
+                  AND sortfo.date BETWEEN CAST('$min' AS DATE) AND CAST('$max' AS DATE)";
+        $stmt = $conn->prepare($sql);
+        $query = $stmt->executeQuery();
+
+        return $query->fetchAllAssociative();
+    }
 }

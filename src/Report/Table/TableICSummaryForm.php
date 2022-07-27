@@ -79,6 +79,8 @@ class TableICSummaryForm implements Form
         $spreadsheet->getActiveSheet()->setCellValue('L8', $this->data['vpa_acting_both_supervising_and_resource_individual']);
         $spreadsheet->getActiveSheet()->setCellValue('M8', $this->data['percentage_of_vpa_acting_both_supervising_and_resource_individual'] . '%');
         $spreadsheet->getActiveSheet()->setCellValue('N8', $this->data['total_number_of_clients_supervised']);
+        $spreadsheet->getActiveSheet()->setCellValue('O8', $this->data['no_of_services_rendered_by_vpa']);
+        $spreadsheet->getActiveSheet()->setCellValue('P8', $this->data['no_of_services_rendered_by_vpa_percentage'] . '%');
 
         return $spreadsheet;
     }
@@ -86,7 +88,7 @@ class TableICSummaryForm implements Form
     public function header(): Spreadsheet
     {
         $spreadsheet = $this->prepare();
-        $spreadsheet->getActiveSheet()->getStyle('A5:N8')->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
+        $spreadsheet->getActiveSheet()->getStyle('A5:P8')->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
 
         return $spreadsheet;
     }
@@ -116,20 +118,23 @@ class TableICSummaryForm implements Form
             'L5' => 'Acting as both Supervising VPAs and Resource Individual (Head Count) (Table I.C.3)',
             'M5' => '% of VPAs Acting as Both',
             'N5' => 'Total number of clients supervised (Table I.C.3, Col.3)',
+            'O5' => 'No. of services rendered by VPAs during the quarter (service count or frequency)',
+            'P5' => 'Percent of services rendered by VPAs',
             'D6' => '(1+2)-3', 'F6' => '4-5', 'G6' => '6÷4', 'I6' => '8÷6', 'K6' => '10÷6', 'M6' => '12÷6',
-            'A7' => '(1)', 'B7' => '(2)', 'C7' => '(3)', 'D7' => '(4)', 'E7' => '(5)', 'F7' => '(6)',
-            'G7' => '(7)', 'H7' => '(8)', 'I7' => '(9)', 'J7' => '(10)', 'K7' => '(11)', 'L7' => '(12)', 'M7' => '(13)', 'N7' => '(14)',
+            'A7' => '(1)', 'B7' => '(2)', 'C7' => '(3)', 'D7' => '(4)', 'E7' => '(5)', 'F7' => '(6)', 'G7' => '(7)', 'H7' => '(8)',
+            'I7' => '(9)', 'J7' => '(10)', 'K7' => '(11)', 'L7' => '(12)', 'M7' => '(13)', 'N7' => '(14)', 'O7' => '(15)', 'P7' => '(16)',
         ];
 
-        $wrapTextCoordinates = ["A5:N5"];
+        $wrapTextCoordinates = ["A5:P5"];
 
-        $verticalAlignedCoordinates = ['A5:N8' => 'center'];
+        $verticalAlignedCoordinates = ['A5:P8' => 'center'];
 
-        $horizontalAlignedCoordinates = ['A5:N8' => 'center'];
+        $horizontalAlignedCoordinates = ['A5:P8' => 'center'];
 
         $adjustedColumnWidthCoordinates = [
             'A' => 30, 'B' => 30, 'C' => 30, 'D' => 30, 'E' => 30, 'F' => 30, 'G' => 30,
-            'H' => 30, 'I' => 30, 'J' => 30, 'K' => 30, 'L' => 30, 'M' => 30, 'N' => 30
+            'H' => 30, 'I' => 30, 'J' => 30, 'K' => 30, 'L' => 30, 'M' => 30, 'N' => 30,
+            'O' => 30, 'P' => 30
         ];
 
         foreach ($textAndCoordinates as $coordinate => $text) {

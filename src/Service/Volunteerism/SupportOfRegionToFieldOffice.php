@@ -110,4 +110,27 @@ class SupportOfRegionToFieldOffice implements SupportOfRegionToFieldOfficeInterf
             return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_SUCCESS, null, ['orm' => $e->getMessage()]);
         }
     }
+
+    public function getAllCategoryReport(int $quarterId, int $fieldOfficeId): array
+    {
+        try {
+            $quarter = $this->quartersRepository->find($quarterId);
+            if ($quarter === null) {
+                return $this->appFormatter->formatResponse(ResponseEnum::NO_DATA, null);
+            }
+
+            $minMaxDate = $this->quartersRepository->getQuarterMinMaxDate($quarter);
+            $supportOfRegionToFieldOffices = $this->repository->findByDateRangeAndAllCategory($minMaxDate, $fieldOfficeId);
+
+            if (count($supportOfRegionToFieldOffices) <= 0) {
+                return $this->appFormatter->formatResponse(ResponseEnum::NO_DATA, null);
+            }
+
+            return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_SUCCESS, $supportOfRegionToFieldOffices);
+        } catch (\Exception $e) {
+            return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_SUCCESS, null, ['app' => $e->getMessage()]);
+        } catch (Exception $e) {
+            return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_SUCCESS, null, ['orm' => $e->getMessage()]);
+        }
+    }
 }
