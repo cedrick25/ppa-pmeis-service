@@ -619,8 +619,9 @@ class SessionsRepository extends ServiceEntityRepository
     public function getTableIA1SummaryFormTreatmentCategoryData(string $minDate, string $maxDate, int $fieldOfficeId): array
     {
         $conn = $this->getEntityManager()->getConnection();
-        $sql = "SELECT s.session_id, tc.name as treatment_category FROM sessions as s 
+        $sql = "SELECT s.session_id, tc.name as treatment_category, p.name as phase FROM sessions as s 
                     LEFT JOIN treatment_categories as tc ON s.treatment_category_id = tc.treatment_category_id
+                    LEFT JOIN phases p on s.phase_id = p.phase_id
                     WHERE s.date BETWEEN CAST('$minDate' AS DATE) AND CAST('$maxDate' AS DATE)
                     AND s.field_office_id = $fieldOfficeId";
         $stmt = $conn->prepare($sql);

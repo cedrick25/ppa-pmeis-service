@@ -294,7 +294,7 @@ class ClientSessionsRepository extends ServiceEntityRepository
         $conn = $this->getEntityManager()->getConnection();
         $sessionIds = implode(',', $sessionIds);
 
-        $sql = "SELECT cs.*, cr.name as client_remarks, s.trees_planted FROM client_sessions cs 
+        $sql = "SELECT cs.*, cr.name as client_remarks, s.trees_planted, c.offense_category, c.gender, c.is_pwd, c.is_senior_citizen FROM client_sessions cs 
             LEFT JOIN clients c on cs.client_id = c.client_id
             LEFT JOIN client_remarks cr on cs.client_remarks_id = cr.client_remarks_id
             LEFT JOIN pmeis.sessions s on cs.session_id = s.session_id

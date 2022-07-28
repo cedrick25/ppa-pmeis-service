@@ -272,7 +272,8 @@ class QuartersRepository extends ServiceEntityRepository
             $erpFacilitators = [];
             $resourcePeopleId = [];
             $sessions = $this->getSessionDataByQuarterAndFieldOfficeId($quarterId, $fieldOfficeId);
-            if (count($sessions) < 1) {
+
+            if (empty($sessions)) {
                 return [];
             }
 
@@ -282,6 +283,7 @@ class QuartersRepository extends ServiceEntityRepository
             foreach ($resourceFacilitators as $resourceFacilitator) {
                 $type = $resourceFacilitator['resource_facilitator_type'];
                 $sessionId = $resourceFacilitator['session_id'];
+
                 if ('ERP' === $type) {
                     $erpFacilitators[$sessionId][] = [
                         'name' => $resourceFacilitator['erp_name'],
@@ -303,14 +305,15 @@ class QuartersRepository extends ServiceEntityRepository
                 ) {
                     $session['vpa_resource_person'] = $this->getVpaResourcePeople($resourcePeopleId['VPA'][$session['session_id']]);
                 }
+
                 if (
                     isset($resourcePeopleId['PPO']) &&
                     isset($resourcePeopleId['PPO'][$session['session_id']])
                 ) {
                     $session['ppo_resource_person'] = $this->getPpoResourcePeople($resourcePeopleId['PPO'][$session['session_id']]);
                 }
-                // if (count($erpFacilitators) > 0) {
-                if (count($erpFacilitators) > 0 && isset($erpFacilitators[$session['session_id']])) {
+
+                if (! empty($erpFacilitators) && isset($erpFacilitators[$session['session_id']])) {
                     $session['erp_resource_person'] = $erpFacilitators[$session['session_id']];
                 }
                 $session['count'] = $this->getClientSessionCount($quarterId, intval($session['session_id']));
