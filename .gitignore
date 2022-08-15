@@ -18,4 +18,5 @@
 public/generated
 public/.DS_Store
 .env
+.env.local
 .DS_Store
