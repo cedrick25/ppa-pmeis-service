@@ -67,6 +67,41 @@ class Template implements Form
     private function prepare(): Spreadsheet
     {
         $spreadsheet = new Spreadsheet();
+        $textAndCoordinates = [];
+        $mergesCoordinates = [];
+        $boldCoordinates = [
+            "A1", "A2", "D4", "AD1", "F3:F8", "G3:G8", "A9"
+        ];
+
+        $verticalAlignedCoordinates = [];
+
+        $horizontalAlignedCoordinates = [];
+
+        $adjustedColumnWidthCoordinates = [];
+
+        foreach ($textAndCoordinates as $coordinate => $text) {
+            $spreadsheet->getActiveSheet()->setCellValue($coordinate, $text);
+        }
+
+        foreach ($mergesCoordinates as $coordinate) {
+            $spreadsheet->getActiveSheet()->mergeCells($coordinate);
+        }
+
+        foreach ($boldCoordinates as $coordinate) {
+            $spreadsheet->getActiveSheet()->getStyle($coordinate)->getFont()->setBold(true);
+        }
+
+        foreach ($verticalAlignedCoordinates as $coordinate => $alignment) {
+            $spreadsheet->getActiveSheet()->getStyle($coordinate)->getAlignment()->setVertical($alignment);
+        }
+
+        foreach ($horizontalAlignedCoordinates as $coordinate => $alignment) {
+            $spreadsheet->getActiveSheet()->getStyle($coordinate)->getAlignment()->setHorizontal($alignment);
+        }
+
+        foreach ($adjustedColumnWidthCoordinates as $coordinate => $width) {
+            $spreadsheet->getActiveSheet()->getColumnDimension($coordinate)->setWidth($width);
+        }
 
         return $spreadsheet;
     }
