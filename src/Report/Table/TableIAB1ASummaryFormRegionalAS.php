@@ -2,30 +2,25 @@
 
 namespace App\Report\Table;
 
-use App\Entity\FieldOffices;
 use App\Entity\Quarters;
 use App\Entity\Regions;
 use App\Repository\FieldOfficesRepository;
 use App\Repository\QuartersRepository;
 use App\Repository\RegionsRepository;
 use App\Service\RestorativeJustice\ConductProcesses;
-use App\Service\RestorativeJustice\RelatedActivities;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Style\Border;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
-class TableIAB1ASummaryFormRegional implements Form
+class TableIAB1ASummaryFormRegionalAS implements Form
 {
-    private const TABLE_NAME = "TableIAB1ASummaryFormRegional";
+    private const TABLE_NAME = "TableIAB1ASummaryFormRegionalAS";
     private const PRE_ENCOUNTER_ACT = 'Pre-Encounter Activities';
-    private const COMMUNITY_WORK_SERVICES = 'Community Work Services';
-    private const RESTORED_RELATIONSHIPS = 'Restored Relationships';
     private const ACTIVE_SUPERVISION = 'Active Supervision';
 
 
     public function __construct(
-        private RelatedActivities      $service,
         private ConductProcesses       $conductProcessesService,
         private FieldOfficesRepository  $fieldOfficesRepository,
         private QuartersRepository     $quartersRepository,
@@ -33,6 +28,7 @@ class TableIAB1ASummaryFormRegional implements Form
         private array                  $data = [],
         private ?Regions               $region = null,
         private ?Quarters              $quarter = null,
+        private int                    $lastFilledOutCellY = 10,
     ) {}
 
     public function supports(string $tableName): bool
@@ -49,7 +45,9 @@ class TableIAB1ASummaryFormRegional implements Form
         $this->quarter = $this->quartersRepository->find($quarterId);
 
         $fieldOffices = $this->fieldOfficesRepository->findBy(['regionId' => $regionId]);
+
         foreach ($fieldOffices as $fieldOffice) {
+            // TODO: identify the source of sessions_conducted - RJ is not linked to any session
             $initialValues = [
                 'sessions_conducted' => 0,
                 'total_clients' => 0,
@@ -74,23 +72,33 @@ class TableIAB1ASummaryFormRegional implements Form
             $conductedProcess = $this->conductProcessesService->getRJIB1($quarterId, $fieldOffice->getFieldOfficeId());
 
             if (isset($conductedProcess['data'])) {
-                $current = [];
                 foreach ($conductedProcess['data'] as $conductedProcessData) {
-                    dd($conductedProcessData);
-                    $rjpType = $conductedProcessData['rjpType'];
-                    $current[$rjpType];
-                }
-                $build['process_conducted'][] = $conductedProcess['data'];
-            }
+                    if ('ACTIVE_SUPERVISION' === $conductedProcessData['rj_group']) {
+                        continue;
+                    }
 
-            if (empty($build)) {
-                continue;
+                    $rjpType = $conductedProcessData['rjp_type'];
+                    $gender = $conductedProcessData['gender'];
+                    $build[$rjpType]['total_clients']++;
+                    $build[self::PRE_ENCOUNTER_ACT]['acts_conducted']++;
+                    $build[self::PRE_ENCOUNTER_ACT]['total_clients']++;
+                    $build[$rjpType]['gender'][$gender]++;
+                    $build[self::PRE_ENCOUNTER_ACT]['gender'][$gender]++;
+
+                    if (intval($conductedProcessData['is_pwd'])) {
+                        $build[$rjpType]['is_pwd']++;
+                        $build[self::PRE_ENCOUNTER_ACT]['is_pwd']++;
+                    }
+
+                    if (intval($conductedProcessData['is_senior_citizen'])) {
+                        $build[$rjpType]['is_sc']++;
+                        $build[self::PRE_ENCOUNTER_ACT]['is_sc']++;
+                    }
+                }
             }
 
             $this->data[$fieldOffice->getName()] = $build;
         }
-
-        dd($this->data);
 
         $spreadsheet = $this->footer();
         $writer = IOFactory::createWriter($spreadsheet, "Xlsx");
@@ -112,62 +120,63 @@ class TableIAB1ASummaryFormRegional implements Form
     public function body(): Spreadsheet
     {
         $spreadsheet = $this->header();
-        $coordinateX = ['ACTIVE_SUPERVISION' => 10, 'PETITIONER' => 16];
-
-        $activitiesCoordinateY = [
-            self::PRE_ENCOUNTER_ACT => ['Conducted' => 'A', 'F' => 'B', 'M' => 'C', 'PWD' => 'D', 'SC' => 'E'],
-            'Mediation' => ['Conducted' => 'F', 'F' => 'G', 'M' => 'H', 'PWD' => 'I', 'SC' => 'J'],
-            'Conferencing' => ['Conducted' => 'K', 'F' => 'L', 'M' => 'M', 'PWD' => 'N', 'SC' => 'O'],
-            'COS' => ['Conducted' => 'P', 'F' => 'Q', 'M' => 'R', 'PWD' => 'S', 'SC' => 'T'],
-            'Others' => ['Conducted' => 'U', 'F' => 'V', 'M' => 'W', 'PWD' => 'X', 'SC' => 'Y']
+        $coordinates = [
+            self::PRE_ENCOUNTER_ACT => [
+                "acts_conducted" => 'B',
+                "total_clients" => 'C',
+                "gender" => ["M" => 'E', "F" => 'D'],
+                "is_pwd" => 'F',
+                "is_sc" => 'G',
+            ],
+            "Mediation" => [
+                "sessions_conducted" => 'H',
+                "total_clients" => 'I',
+                "gender" => ["M" => 'K', "F" => 'J'],
+                "is_pwd" => 'L',
+                "is_sc" => 'M',
+            ],
+            "Conferencing" => [
+                "sessions_conducted" => 'N',
+                "total_clients" => 'O',
+                "gender" => ["M" => 'Q', "F" => 'P'],
+                "is_pwd" => 'R',
+                "is_sc" => 'S',
+            ],
+            "Circle of Support" => [
+                "sessions_conducted" => 'T',
+                "total_clients" => 'U',
+                "gender" => ["M" => 'W', "F" => 'V'],
+                "is_pwd" => 'X',
+                "is_sc" => 'Y',
+            ],
+            "Others" => [
+                "sessions_conducted" => 'Z',
+                "total_clients" => 'AA',
+                "gender" => ["M" => 'AC', "F" => 'AB'],
+                "is_pwd" => 'AD',
+                "is_sc" => 'AE',
+            ],
         ];
 
-        $rjProcess = [
-            self::PRE_ENCOUNTER_ACT => ['ACTIVE_SUPERVISION' => 0, 'PETITIONER' => 0],
-            'Mediation' => ['ACTIVE_SUPERVISION' => 0, 'PETITIONER' => 0],
-            'Conferencing' => ['ACTIVE_SUPERVISION' => 0, 'PETITIONER' => 0],
-            'COS' => ['ACTIVE_SUPERVISION' => 0, 'PETITIONER' => 0],
-            'Others' => ['ACTIVE_SUPERVISION' => 0, 'PETITIONER' => 0]
-        ];
+        foreach ($this->data as $fieldOffice=>$activities)
+        {
+            $this->lastFilledOutCellY++;
 
-        foreach ($this->data['activities'] as $type=>$activity) {
-            foreach ($activity as $process=>$item) {
-                foreach ($item as $label=>$value) {
-                    $coordinate = $activitiesCoordinateY[$process][$label] . $coordinateX[$type];
-                    $spreadsheet->getActiveSheet()->setCellValue($coordinate, $value);
+            foreach ($activities as $rjType=>$activity) {
+                $spreadsheet->getActiveSheet()->setCellValue('A' . $this->lastFilledOutCellY, $fieldOffice);
+                foreach ($activity as $field=>$value) {
+                    if ('gender' === $field) {
+                        foreach ($value as $type=>$val) {
+                            $spreadsheet->getActiveSheet()
+                                ->setCellValue($coordinates[$rjType][$field][$type] . $this->lastFilledOutCellY, $val);
+                        }
+
+                        continue;
+                    }
+
+                    $spreadsheet->getActiveSheet()->setCellValue($coordinates[$rjType][$field] . $this->lastFilledOutCellY, $value);
                 }
             }
-
-            if (! empty(key($activity))) {
-                $rjProcess[key($activity)][$type]++;
-            }
-        }
-
-        $positiveParticulars = ['Resolved', 'Completed', 'Agreement', 'Reached'];
-        $particulars = [
-            'positive' => ['ACTIVE_SUPERVISION' => 0, 'PETITIONER' => 0],
-            'negative' => ['ACTIVE_SUPERVISION' => 0, 'PETITIONER' => 0]
-        ];
-
-        $outcomes = [
-            'Restitution' => ['ACTIVE_SUPERVISION' => 0, 'PETITIONER' => 0],
-            self::COMMUNITY_WORK_SERVICES => ['ACTIVE_SUPERVISION' => 0, 'PETITIONER' => 0],
-            self::RESTORED_RELATIONSHIPS => ['ACTIVE_SUPERVISION' => 0, 'PETITIONER' => 0],
-            'Others' => ['ACTIVE_SUPERVISION' => 0, 'PETITIONER' => 0]
-
-        ];
-
-        foreach ($this->data['process_conducted'] as $processConducted) {
-            $rjGroup = $processConducted['rj_group'];
-
-            if (in_array($processConducted['rjp_status'], $positiveParticulars)) {
-                $particulars['positive'][$rjGroup]++;
-            } else {
-                $particulars['negative'][$rjGroup]++;
-            }
-
-            $outcomes[$processConducted['rj_outcome_name']][$rjGroup]++;
-            $rjProcess[$processConducted['rjp_type']][$processConducted['rj_group']]++;
         }
 
         return $spreadsheet;
@@ -273,51 +282,5 @@ class TableIAB1ASummaryFormRegional implements Form
         }
 
         return $spreadsheet;
-    }
-
-    private function getActivities(int $quarterId, int $fieldOfficeId): array
-    {
-        $response = ['ACTIVE_SUPERVISION' => [], 'PETITIONER' => []];
-        $RJIB2Data = $this->service->getRJIB2Data($quarterId, $fieldOfficeId);
-
-        if (! isset($RJIB2Data['data'])) {
-            return [];
-        }
-
-        foreach ($RJIB2Data['data'] as $item) {
-            $rjGroup = $item['rj_group'];
-            $rjProcess = $item['rj_process'];
-            $gender = $item['gender'];
-
-            if (!isset($response[$rjGroup][$rjProcess])) {
-                $response[$rjGroup][$rjProcess] = [];
-            }
-
-            if (!isset($response[$rjGroup][$rjProcess]['Conducted'])) {
-                $response[$rjGroup][$rjProcess]['Conducted'] = 0;
-            }
-            $response[$rjGroup][$rjProcess]['Conducted']++;
-
-            if (!isset($response[$rjGroup][$rjProcess][$gender])) {
-                $response[$rjGroup][$rjProcess][$gender] = 0;
-            }
-            $response[$rjGroup][$rjProcess][$gender]++;
-
-            if (intval($item['is_pwd'])) {
-                if (!isset($response[$rjGroup][$rjProcess]['isPwd'])) {
-                    $response[$rjGroup][$rjProcess]['isPwd'] = 0;
-                }
-                $response[$rjGroup][$rjProcess]['isPwd']++;
-            }
-
-            if (intval($item['is_senior_citizen'])) {
-                if (!isset($response[$rjGroup][$rjProcess]['isSC'])) {
-                    $response[$rjGroup][$rjProcess]['isSC'] = 0;
-                }
-                $response[$rjGroup][$rjProcess]['isSC']++;
-            }
-        }
-
-        return $response;
     }
 }

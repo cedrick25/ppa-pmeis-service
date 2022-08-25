@@ -67,9 +67,9 @@ class RJConductProcessesRepository extends ServiceEntityRepository
      */
     public function create(RJConductProcessesModel $data): int | null
     {
-        if ($this->isExisting($data)) {
-            return null;
-        }
+//        if ($this->isExisting($data)) {
+//            return null;
+//        }
 
         $this->cache->invalidateTags([self::CACHE_TAG]);
 
@@ -187,6 +187,7 @@ class RJConductProcessesRepository extends ServiceEntityRepository
 
     private function isExisting(RJConductProcessesModel $data): bool | RJConductProcesses
     {
+        // TODO: Check correct existing RJ Process condition.
         $RJConductProcesses = $this->findOneBy([
             'clientId' => $data->getClientId(),
             'quarterId' => $data->getQuarterId(),

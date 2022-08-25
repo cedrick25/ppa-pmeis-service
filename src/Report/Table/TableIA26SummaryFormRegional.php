@@ -71,7 +71,6 @@ class TableIA26SummaryFormRegional implements Form
     public function body(): Spreadsheet
     {
         $spreadsheet = $this->header();
-        $cells = [];
 
         foreach ($this->data as $fieldOffice=>$data) {
             $this->lastFilledOutCellY++;
