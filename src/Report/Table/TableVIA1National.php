@@ -17,22 +17,21 @@ use PhpOffice\PhpSpreadsheet\Style\Border;
 use PhpOffice\PhpSpreadsheet\Writer\Exception;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
-class TableIIIA2Regional implements Form
+class TableVIA1National implements Form
 {
-    private const TABLE_NAME = "TableIIIA2Regional";
+    private const TABLE_NAME = "TableVIA1National";
 
 
     public function __construct(
         private SocialMarketing             $service,
         private RegionsRepository           $regionsRepository,
-        private FieldOfficesRepository      $fieldOfficesRepository,
         private QuartersRepository          $quartersRepository,
         private SessionsRepository          $sessionsRepository,
         private ClientSessionsRepository    $clientSessionsRepository,
         private ClientsRepository           $clientsRepository,
         private array                       $data = [],
         private array                       $sessionIds = [],
-        private array                       $fieldOffices = [],
+        private array                       $regions = [],
         private ?Quarters                   $quarters = null,
     ){}
 
@@ -63,8 +62,9 @@ class TableIIIA2Regional implements Form
         $spreadsheet = $this->prepare();
 
         $thinBorders = [
-            "A6:E" . (9 + count($this->fieldOffices))
+            "A6:J" . (9 + count($this->regions))
         ];
+
         foreach ($thinBorders as $coordinate) {
             $spreadsheet->getActiveSheet()->getStyle($coordinate)->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
         }
@@ -80,7 +80,7 @@ class TableIIIA2Regional implements Form
         // foreach ($this->data['rows'] as $v) {
         // }
 
-        if ($this->fieldOffices) {
+        if ($this->regions) {
             $ctr = 9;
             $totals = [
                 'B' => 0,
@@ -89,7 +89,7 @@ class TableIIIA2Regional implements Form
                 'E' => 0,
             ];
 
-            foreach ($this->fieldOffices as $k => $v) {
+            foreach ($this->regions as $k => $v) {
                 $index = ($ctr + $k);
 
                 $result = $this->data;
@@ -122,7 +122,7 @@ class TableIIIA2Regional implements Form
                 $totals['E'] += $pao;
             }
 
-            $totalIndex = $ctr + count($this->fieldOffices);
+            $totalIndex = $ctr + count($this->regions);
 
             $spreadsheet->getActiveSheet()->setCellValue('A' . $totalIndex, 'TOTAL');
             $spreadsheet->getActiveSheet()->setCellValue('B' . $totalIndex, $totals['B']);
@@ -143,64 +143,67 @@ class TableIIIA2Regional implements Form
      */
     private function prepare(): Spreadsheet
     {
-        $count = count($this->fieldOffices) + 3;
+        $count = count($this->regions) + 3;
         $x = 8 + $count;
+
 
         $spreadsheet = new Spreadsheet();
         $textAndCoordinates = [
-            'A1' => 'REGION ' . $this->region->getName(),
-            'A2' => 'REGIONAL OFFICE IQPR CONSOLIDATION FORM',
+            'A2' => 'AGENCY IQPR CONSOLIDATION FORM',
             'A3' => $this->quarters->getName() . ' QTR, ' . $this->quarters->getYear(),
-            'A4' => 'III. SOCIAL MARKETING',
+            'A4' => 'VI. SUPPORT FUNCTION',
 
-            'A5' => 'III.A.2. Meetings/ Participation in POC, etc.',
+            'A5' => 'Table VI.A.1. JAIL DECONGESTION',
 
-            'A6' => 'Field Offices',
+            'A6' => 'REGIONAL OFFICES',
             'B6' => 'NUMBER OF',
 
-            'B7' => 'POC, CADAC, MSEC, DDB, etc.',
-            'B8' => 'Activities Conducted / Attended',
-            'C8' => 'Participants',
+            'B7' => 'Jail Decongestion Services/Activities Conducted',
+            'B8' => 'Jail',
+            'C8' => 'Office',
 
-            'D7' => 'Other Significant Events',
-            'D8' => 'Activities Conducted / Attended',
-            'E8' => 'Participants',
+            'D7' => 'Inmates/ Assisted for Intake Interview',
+            'D8' => 'Probation',
+            'E8' => 'Pre-Parole/ Exec. Clemency',
+
+            'F7' => 'Referrals',
+            'F8' => 'PAO',
+            'G8' => 'Prosectuion',
+            'H8' => 'Others',
+
+            'I7' => 'MSEC/GCTA',
+            'J7' => 'Release on Recognizance',
         ];
 
         $mergesCoordinates = [
-            'A1:E1',
-            'A2:E2',
-            'A3:E3', 
-            'A4:E4', 
+            'A1:J1',
+            'A2:J2',
+            'A3:J3', 
+            'A4:J4', 
+            'A5:J5', 
 
-            'A5:E5', 
             'A6:A8', 
-            'B6:E6', 
+            'B6:J6', 
+
             'B7:C7', 
             'D7:E7', 
+            'F7:H7', 
+            'I7:I8', 
+            'J7:J8', 
         ];
 
         $boldCoordinates = [
-            'A1:A8', 
-
-            'A5:J5', 
-            'A6:E8', 
+            'A1:J8', 
         ];
 
         $verticalAlignedCoordinates = [
-            'A1:E1'  => 'center', 
-            'A2:E2'  => 'center', 
-            'A3:E3'  => 'center', 
-
-            'A6:E8' => 'center',
+            'A1:J3' => 'center',
+            'A6:J8' => 'center',
         ];
 
         $horizontalAlignedCoordinates = [
-            'A1:E1'  => 'center', 
-            'A2:E2'  => 'center', 
-            'A3:E3'  => 'center', 
-
-            'A6:E8' => 'center',
+            'A1:J3' => 'center',
+            'A6:J8' => 'center',
         ];
 
         $adjustedColumnWidthCoordinates = [
@@ -209,15 +212,19 @@ class TableIIIA2Regional implements Form
             'C' => 15,
             'D' => 15,
             'E' => 15,
+            'F' => 15,
+            'G' => 15,
+            'H' => 15,
+            'I' => 15,
+            'J' => 15,
         ];
 
         $wrappedTextCoordinates = [
-            'B7:B8', 
-            'C8',
-            'D8',
+            'B7',
+            'D7',
             'E8',
-            'F7:F8', 
-            'G7:G8', 
+            'I7',
+            'J7',
         ];
 
         foreach ($textAndCoordinates as $coordinate => $text) {
@@ -253,16 +260,15 @@ class TableIIIA2Regional implements Form
 
     private function getData(array $data): array
     {
-        $this->region   = $this->regionsRepository->find($data['region_id']);
         $this->quarters = $this->quartersRepository->find($data['quarter_id']);
-
-        $this->fieldOffices = $this->fieldOfficesRepository->findBy(['regionId' => $data['region_id']]);
+        $this->regions  = $this->regionsRepository->list();
 
         $rows = [];
-        foreach ($this->fieldOffices as $v) {
+        foreach ($this->regions as $v) {
             $result = $this->service->getReport(
                 $data['quarter_id'],
-                $v->getFieldOfficeId(),
+                1,
+                // $data['type'],
                 'MEETINGS_PARTICIPATIONS',
             );
 

@@ -17,22 +17,21 @@ use PhpOffice\PhpSpreadsheet\Style\Border;
 use PhpOffice\PhpSpreadsheet\Writer\Exception;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
-class TableIIIA2Regional implements Form
+class TableIIIA2National implements Form
 {
-    private const TABLE_NAME = "TableIIIA2Regional";
+    private const TABLE_NAME = "TableIIIA2National";
 
 
     public function __construct(
         private SocialMarketing             $service,
         private RegionsRepository           $regionsRepository,
-        private FieldOfficesRepository      $fieldOfficesRepository,
         private QuartersRepository          $quartersRepository,
         private SessionsRepository          $sessionsRepository,
         private ClientSessionsRepository    $clientSessionsRepository,
         private ClientsRepository           $clientsRepository,
         private array                       $data = [],
         private array                       $sessionIds = [],
-        private array                       $fieldOffices = [],
+        private array                       $regions = [],
         private ?Quarters                   $quarters = null,
     ){}
 
@@ -63,7 +62,7 @@ class TableIIIA2Regional implements Form
         $spreadsheet = $this->prepare();
 
         $thinBorders = [
-            "A6:E" . (9 + count($this->fieldOffices))
+            "A6:E" . (9 + count($this->regions))
         ];
         foreach ($thinBorders as $coordinate) {
             $spreadsheet->getActiveSheet()->getStyle($coordinate)->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
@@ -80,7 +79,7 @@ class TableIIIA2Regional implements Form
         // foreach ($this->data['rows'] as $v) {
         // }
 
-        if ($this->fieldOffices) {
+        if ($this->regions) {
             $ctr = 9;
             $totals = [
                 'B' => 0,
@@ -89,7 +88,7 @@ class TableIIIA2Regional implements Form
                 'E' => 0,
             ];
 
-            foreach ($this->fieldOffices as $k => $v) {
+            foreach ($this->regions as $k => $v) {
                 $index = ($ctr + $k);
 
                 $result = $this->data;
@@ -122,7 +121,7 @@ class TableIIIA2Regional implements Form
                 $totals['E'] += $pao;
             }
 
-            $totalIndex = $ctr + count($this->fieldOffices);
+            $totalIndex = $ctr + count($this->regions);
 
             $spreadsheet->getActiveSheet()->setCellValue('A' . $totalIndex, 'TOTAL');
             $spreadsheet->getActiveSheet()->setCellValue('B' . $totalIndex, $totals['B']);
@@ -143,19 +142,18 @@ class TableIIIA2Regional implements Form
      */
     private function prepare(): Spreadsheet
     {
-        $count = count($this->fieldOffices) + 3;
+        $count = count($this->regions) + 3;
         $x = 8 + $count;
 
         $spreadsheet = new Spreadsheet();
         $textAndCoordinates = [
-            'A1' => 'REGION ' . $this->region->getName(),
-            'A2' => 'REGIONAL OFFICE IQPR CONSOLIDATION FORM',
+            'A2' => 'AGENCY IQPR CONSOLIDATION FORM',
             'A3' => $this->quarters->getName() . ' QTR, ' . $this->quarters->getYear(),
             'A4' => 'III. SOCIAL MARKETING',
 
             'A5' => 'III.A.2. Meetings/ Participation in POC, etc.',
 
-            'A6' => 'Field Offices',
+            'A6' => 'REGIONAL OFFICES',
             'B6' => 'NUMBER OF',
 
             'B7' => 'POC, CADAC, MSEC, DDB, etc.',
@@ -253,16 +251,14 @@ class TableIIIA2Regional implements Form
 
     private function getData(array $data): array
     {
-        $this->region   = $this->regionsRepository->find($data['region_id']);
         $this->quarters = $this->quartersRepository->find($data['quarter_id']);
-
-        $this->fieldOffices = $this->fieldOfficesRepository->findBy(['regionId' => $data['region_id']]);
+        $this->regions  = $this->regionsRepository->list();
 
         $rows = [];
-        foreach ($this->fieldOffices as $v) {
+        foreach ($this->regions as $v) {
             $result = $this->service->getReport(
                 $data['quarter_id'],
-                $v->getFieldOfficeId(),
+                1,
                 'MEETINGS_PARTICIPATIONS',
             );
 

@@ -17,22 +17,21 @@ use PhpOffice\PhpSpreadsheet\Style\Border;
 use PhpOffice\PhpSpreadsheet\Writer\Exception;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
-class TableIIRegional implements Form
+class TableIINational implements Form
 {
-    private const TABLE_NAME = "TableIIRegional";
+    private const TABLE_NAME = "TableIINational";
 
 
     public function __construct(
         private CapabilityBuilding          $capabilityBuilding,
         private RegionsRepository           $regionsRepository,
-        private FieldOfficesRepository      $fieldOfficesRepository,
         private QuartersRepository          $quartersRepository,
         private SessionsRepository          $sessionsRepository,
         private ClientSessionsRepository    $clientSessionsRepository,
         private ClientsRepository           $clientsRepository,
         private array                       $data = [],
         private array                       $sessionIds = [],
-        private array                       $fieldOffices = [],
+        private array                       $regions = [],
         private ?Quarters                   $quarters = null,
     ){}
 
@@ -63,7 +62,7 @@ class TableIIRegional implements Form
         $spreadsheet = $this->prepare();
 
         $thinBorders = [
-            "A6:S" . (15 + (count($this->fieldOffices) * 2))
+            "A6:S" . (15 + (count($this->regions) * 2))
         ];
 
         foreach ($thinBorders as $coordinate) {
@@ -81,11 +80,11 @@ class TableIIRegional implements Form
         // foreach ($this->data['rows'] as $v) {
         // }
 
-        if ($this->fieldOffices) {
+        if ($this->regions) {
             $ctr = 9;
-            foreach ($this->fieldOffices as $k => $v) {
+            foreach ($this->regions as $k => $v) {
                 $personnelIndex = ($ctr + $k);
-                $volunteerIndex = $personnelIndex + count($this->fieldOffices) + 6;
+                $volunteerIndex = $personnelIndex + count($this->regions) + 6;
 
                 $spreadsheet->getActiveSheet()->setCellValue('A' . $personnelIndex, $v->getName());
                 $spreadsheet->getActiveSheet()->setCellValue('B' . $personnelIndex, '0');
@@ -127,8 +126,8 @@ class TableIIRegional implements Form
                 $spreadsheet->getActiveSheet()->setCellValue('S' . $volunteerIndex, '0');
             }
 
-            $totalPersonnelIndex = $ctr + count($this->fieldOffices);
-            $totalVolunteerIndex = $ctr + (count($this->fieldOffices) * 2) + 6;
+            $totalPersonnelIndex = $ctr + count($this->regions);
+            $totalVolunteerIndex = $ctr + (count($this->regions) * 2) + 6;
 
             $spreadsheet->getActiveSheet()->setCellValue('A' . $totalPersonnelIndex, 'TOTAL');
             $spreadsheet->getActiveSheet()->setCellValue('B' . $totalPersonnelIndex, '0');
@@ -182,20 +181,19 @@ class TableIIRegional implements Form
      */
     private function prepare(): Spreadsheet
     {
-        $count = count($this->fieldOffices) + 3;
+        $count = count($this->regions) + 3;
         $x = 8 + $count;
 
         $spreadsheet = new Spreadsheet();
         $textAndCoordinates = [
-            'A1' => 'REGION ' . $this->region->getName(),
-            'A2' => 'REGIONAL OFFICE IQPR CONSOLIDATION FORM',
+            'A2' => 'AGENCY IQPR CONSOLIDATION FORM',
             'A3' => $this->quarters->getName() . ' QTR, ' . $this->quarters->getYear(),
             'A4' => 'II.   CAPABILITY BUILDING (Tables II.A.1 & II.A.2)',
 
             // FOR PERSONNEL
             'A5' => 'FOR PERSONNEL',
 
-            'A6' => 'FIELD OFFICES',
+            'A6' => 'REGIONAL OFFICES',
             'B6' => 'Number of',
 
             'B7' => 'TC',
@@ -384,10 +382,8 @@ class TableIIRegional implements Form
 
     private function getData(array $data): array
     {
-        $this->region   = $this->regionsRepository->find($data['region_id']);
         $this->quarters = $this->quartersRepository->find($data['quarter_id']);
-
-        $this->fieldOffices = $this->fieldOfficesRepository->findBy(['regionId' => $data['region_id']]);
+        $this->regions  = $this->regionsRepository->list();
 
         // $results = $this->capabilityBuilding->getReport(
         //     $data['quarter_id'],

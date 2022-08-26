@@ -63,7 +63,7 @@ class TableIIIA1Regional implements Form
         $spreadsheet = $this->prepare();
 
         $thinBorders = [
-            "A7:G12"
+            "A6:H" . (9 + count($this->fieldOffices))
         ];
 
         foreach ($thinBorders as $coordinate) {
@@ -166,11 +166,10 @@ class TableIIIA1Regional implements Form
             'A3' => $this->quarters->getName() . ' QTR, ' . $this->quarters->getYear(),
             'A4' => 'III. SOCIAL MARKETING',
 
-            // FOR PERSONNEL
             'A5' => 'A.1. INFORMATION DISSEMINATION',
 
             'A6' => 'FIELD OFFICES',
-            'B6' => 'Number of',
+            'B6' => 'NUMBER OF',
 
             'B7' => 'FORA / SYMPOSIA',
             'B8' => 'ACTIVITIES CONDUCTED',
@@ -224,7 +223,14 @@ class TableIIIA1Regional implements Form
         ];
 
         $adjustedColumnWidthCoordinates = [
-            'A' => 35, 'G' => 15
+            'A' => 35, 
+            'B' => 15,
+            'C' => 15,
+            'D' => 15,
+            'E' => 15,
+            'F' => 15,
+            'G' => 15,
+            'H' => 15,
         ];
 
         $wrappedTextCoordinates = [

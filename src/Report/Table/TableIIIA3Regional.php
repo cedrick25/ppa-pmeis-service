@@ -17,9 +17,9 @@ use PhpOffice\PhpSpreadsheet\Style\Border;
 use PhpOffice\PhpSpreadsheet\Writer\Exception;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
-class TableIIIA2Regional implements Form
+class TableIIIA3Regional implements Form
 {
-    private const TABLE_NAME = "TableIIIA2Regional";
+    private const TABLE_NAME = "TableIIIA3Regional";
 
 
     public function __construct(
@@ -63,8 +63,9 @@ class TableIIIA2Regional implements Form
         $spreadsheet = $this->prepare();
 
         $thinBorders = [
-            "A6:E" . (9 + count($this->fieldOffices))
+            "A6:I" . (9 + count($this->fieldOffices))
         ];
+
         foreach ($thinBorders as $coordinate) {
             $spreadsheet->getActiveSheet()->getStyle($coordinate)->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
         }
@@ -153,54 +154,61 @@ class TableIIIA2Regional implements Form
             'A3' => $this->quarters->getName() . ' QTR, ' . $this->quarters->getYear(),
             'A4' => 'III. SOCIAL MARKETING',
 
-            'A5' => 'III.A.2. Meetings/ Participation in POC, etc.',
+            'A5' => 'III.A.3. Technical Assistance/ Outreach Program To Other Agencies/ Public Assistance',
 
             'A6' => 'Field Offices',
             'B6' => 'NUMBER OF',
 
-            'B7' => 'POC, CADAC, MSEC, DDB, etc.',
-            'B8' => 'Activities Conducted / Attended',
-            'C8' => 'Participants',
+            'B7' => 'Technical Assistance',
+            'B8' => 'Agencies Assisted',
+            'C8' => 'Assistance Rendered',
+            'D8' => 'Participants/ Beneficiaries',
 
-            'D7' => 'Other Significant Events',
-            'D8' => 'Activities Conducted / Attended',
-            'E8' => 'Participants',
+            'E7' => 'Outreach Programs/ Activities',
+            'E8' => 'Agencies Assisted',
+            'F8' => 'Assistance Rendered',
+            'G8' => 'Participants/ Beneficiaries',
+
+            'H7' => 'Public Assistance (Total # of Walk-in Clients)',
+            'H8' => 'Assistance Rendered',
+            'I8' => 'Participants/ Beneficiaries',
         ];
 
         $mergesCoordinates = [
-            'A1:E1',
-            'A2:E2',
-            'A3:E3', 
-            'A4:E4', 
+            'A1:I1',
+            'A2:I2',
+            'A3:I3', 
+            'A4:I4', 
 
-            'A5:E5', 
+            'A5:I5', 
             'A6:A8', 
-            'B6:E6', 
-            'B7:C7', 
-            'D7:E7', 
+            'B6:I6', 
+            'B7:D7', 
+            'E7:G7', 
+            'H7:I7', 
         ];
 
         $boldCoordinates = [
             'A1:A8', 
 
             'A5:J5', 
-            'A6:E8', 
+            'A6:I8', 
         ];
 
         $verticalAlignedCoordinates = [
-            'A1:E1'  => 'center', 
-            'A2:E2'  => 'center', 
-            'A3:E3'  => 'center', 
+            'A1:I1'  => 'center', 
+            'A2:I2'  => 'center', 
+            'A3:I3'  => 'center', 
 
-            'A6:E8' => 'center',
+            'A6:I8' => 'center',
         ];
 
         $horizontalAlignedCoordinates = [
-            'A1:E1'  => 'center', 
-            'A2:E2'  => 'center', 
-            'A3:E3'  => 'center', 
+            'A1:I1'  => 'center', 
+            'A2:I2'  => 'center', 
+            'A3:I3'  => 'center', 
 
-            'A6:E8' => 'center',
+            'A6:I8' => 'center',
         ];
 
         $adjustedColumnWidthCoordinates = [
@@ -209,15 +217,17 @@ class TableIIIA2Regional implements Form
             'C' => 15,
             'D' => 15,
             'E' => 15,
+            'F' => 15,
+            'G' => 15,
+            'H' => 15,
+            'I' => 15,
         ];
 
         $wrappedTextCoordinates = [
-            'B7:B8', 
-            'C8',
             'D8',
-            'E8',
-            'F7:F8', 
-            'G7:G8', 
+            'G8',
+            'H7',
+            'I8',
         ];
 
         foreach ($textAndCoordinates as $coordinate => $text) {

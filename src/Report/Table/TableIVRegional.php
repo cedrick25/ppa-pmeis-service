@@ -17,9 +17,9 @@ use PhpOffice\PhpSpreadsheet\Style\Border;
 use PhpOffice\PhpSpreadsheet\Writer\Exception;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
-class TableIIIA2Regional implements Form
+class TableIVRegional implements Form
 {
-    private const TABLE_NAME = "TableIIIA2Regional";
+    private const TABLE_NAME = "TableIVRegional";
 
 
     public function __construct(
@@ -30,6 +30,7 @@ class TableIIIA2Regional implements Form
         private SessionsRepository          $sessionsRepository,
         private ClientSessionsRepository    $clientSessionsRepository,
         private ClientsRepository           $clientsRepository,
+        private string                      $type = '',
         private array                       $data = [],
         private array                       $sessionIds = [],
         private array                       $fieldOffices = [],
@@ -63,8 +64,9 @@ class TableIIIA2Regional implements Form
         $spreadsheet = $this->prepare();
 
         $thinBorders = [
-            "A6:E" . (9 + count($this->fieldOffices))
+            "A6:K" . (9 + count($this->fieldOffices))
         ];
+
         foreach ($thinBorders as $coordinate) {
             $spreadsheet->getActiveSheet()->getStyle($coordinate)->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
         }
@@ -146,61 +148,81 @@ class TableIIIA2Regional implements Form
         $count = count($this->fieldOffices) + 3;
         $x = 8 + $count;
 
+        $types = [
+            'TC'     => 'THERAPEUTIC COMMUNITY',
+            'RJ'     => 'RESTORATIVE JUSTICE',
+            'VPA'    => 'VOLUNTEERISM',
+            'GAD'    => 'GENDER AND DEVELOPMENT (GAD)',
+            'OTHERS' => 'OTHERS',
+        ];
+
         $spreadsheet = new Spreadsheet();
         $textAndCoordinates = [
             'A1' => 'REGION ' . $this->region->getName(),
             'A2' => 'REGIONAL OFFICE IQPR CONSOLIDATION FORM',
             'A3' => $this->quarters->getName() . ' QTR, ' . $this->quarters->getYear(),
-            'A4' => 'III. SOCIAL MARKETING',
+            'A4' => 'IV. RESOURCE MOBILIZATION',
 
-            'A5' => 'III.A.2. Meetings/ Participation in POC, etc.',
+            'A5' => $types[$this->type],
 
-            'A6' => 'Field Offices',
-            'B6' => 'NUMBER OF',
+            'A6' => 'FIELD OFFICES',
+            'B6' => 'AMOUNT',
 
-            'B7' => 'POC, CADAC, MSEC, DDB, etc.',
-            'B8' => 'Activities Conducted / Attended',
-            'C8' => 'Participants',
+            'B7' => 'CASH',
+            'B8' => 'GO',
+            'C8' => 'NGO',
+            'D8' => 'Individual',
 
-            'D7' => 'Other Significant Events',
-            'D8' => 'Activities Conducted / Attended',
-            'E8' => 'Participants',
+            'E7' => 'SUPPLIES AND MATERIALS',
+            'E8' => 'GO',
+            'F8' => 'NGO',
+            'G8' => 'Individual',
+
+            'H7' => 'TECHNICAL',
+            'H8' => 'GO',
+            'I8' => 'NGO',
+            'J8' => 'Individual',
+
+            'K6' => '# OF DONORS / LINKAGES',
         ];
 
         $mergesCoordinates = [
-            'A1:E1',
-            'A2:E2',
-            'A3:E3', 
-            'A4:E4', 
+            'A1:K1',
+            'A2:K2',
+            'A3:K3', 
+            'A4:K4', 
 
-            'A5:E5', 
+            'A5:K5', 
             'A6:A8', 
-            'B6:E6', 
-            'B7:C7', 
-            'D7:E7', 
+            'B6:J6', 
+            'B7:D7', 
+            'E7:G7', 
+            'H7:J7', 
+            'K6:K8',
         ];
 
         $boldCoordinates = [
             'A1:A8', 
 
             'A5:J5', 
-            'A6:E8', 
+            'A6:K8', 
         ];
 
         $verticalAlignedCoordinates = [
-            'A1:E1'  => 'center', 
-            'A2:E2'  => 'center', 
-            'A3:E3'  => 'center', 
+            'A1:K1'  => 'center', 
+            'A2:K2'  => 'center', 
+            'A3:K3'  => 'center', 
 
-            'A6:E8' => 'center',
+            'A6:K8' => 'center',
         ];
 
         $horizontalAlignedCoordinates = [
-            'A1:E1'  => 'center', 
-            'A2:E2'  => 'center', 
-            'A3:E3'  => 'center', 
+            'A1:K1'  => 'center', 
+            'A2:K2'  => 'center', 
+            'A3:K3'  => 'center', 
+            'A5:K5'  => 'center', 
 
-            'A6:E8' => 'center',
+            'A6:K8' => 'center',
         ];
 
         $adjustedColumnWidthCoordinates = [
@@ -209,15 +231,16 @@ class TableIIIA2Regional implements Form
             'C' => 15,
             'D' => 15,
             'E' => 15,
+            'F' => 15,
+            'G' => 15,
+            'H' => 15,
+            'I' => 15,
+            'J' => 15,
+            'K' => 15,
         ];
 
         $wrappedTextCoordinates = [
-            'B7:B8', 
-            'C8',
-            'D8',
-            'E8',
-            'F7:F8', 
-            'G7:G8', 
+            'K6',
         ];
 
         foreach ($textAndCoordinates as $coordinate => $text) {
@@ -255,6 +278,7 @@ class TableIIIA2Regional implements Form
     {
         $this->region   = $this->regionsRepository->find($data['region_id']);
         $this->quarters = $this->quartersRepository->find($data['quarter_id']);
+        $this->type     = $data['type'];
 
         $this->fieldOffices = $this->fieldOfficesRepository->findBy(['regionId' => $data['region_id']]);
 
@@ -263,6 +287,7 @@ class TableIIIA2Regional implements Form
             $result = $this->service->getReport(
                 $data['quarter_id'],
                 $v->getFieldOfficeId(),
+                // $data['type'],
                 'MEETINGS_PARTICIPATIONS',
             );
 
