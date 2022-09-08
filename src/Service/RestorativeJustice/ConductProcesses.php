@@ -5,9 +5,12 @@ declare(strict_types=1);
 namespace App\Service\RestorativeJustice;
 
 use App\Common\AppFormatter;
+use App\Common\AppHydrator;
+use App\Enum\AuditTrailActions;
 use App\Enum\Response as ResponseEnum;
 use App\Model\RJConductProcesses as ConductProcessesModel;
 use App\Repository\RJConductProcessesRepository;
+use App\Service\System\AuditTrail;
 use Doctrine\ORM\Exception\ORMException;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 use Psr\Cache\CacheException;
@@ -20,6 +23,8 @@ class ConductProcesses implements ConductProcessesInterface
         private ValidatorInterface           $validator,
         private AppFormatter                 $appFormatter,
         private RJConductProcessesRepository $repository,
+        private AuditTrail                   $auditTrail,
+        private AppHydrator                  $hydrator,
     ){}
 
     public function create(ConductProcessesModel $conductProcessData): array
@@ -36,6 +41,8 @@ class ConductProcesses implements ConductProcessesInterface
             if ($id == null) {
                 return $this->appFormatter->formatResponse(ResponseEnum::CREATING_FAILED, null, ['app' => 'RJ conduct process already exist']);
             }
+
+            $this->log($conductProcessData, $id);
 
             return $this->appFormatter->formatResponse(ResponseEnum::CREATING_SUCCESS, ['id' => $id]);
         } catch (InvalidArgumentException $exception) {
@@ -104,5 +111,15 @@ class ConductProcesses implements ConductProcessesInterface
         } catch (InvalidArgumentException | CacheException  $e) {
             return $this->appFormatter->formatResponse(ResponseEnum::UPDATING_FAILED, null, ['cache' => $e->getMessage()]);
         }
+    }
+
+    private function log(ConductProcessesModel $conductProcessData, int $id): void
+    {
+        $class = new \ReflectionClass($this);
+        $data = $this->hydrator->convertObjectToArray($conductProcessData);
+        $data['module'] = $class->getShortName();
+        $data['createdId'] = $id;
+
+        $this->auditTrail->log(AuditTrailActions::CREATE, $data);
     }
 }

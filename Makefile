@@ -23,3 +23,12 @@ create-controller:
 
 migrate:
 	docker exec ${CONTAINER} bash -c "php bin/console doctrine:migration:migrate"
+
+create-entity:
+	docker exec ${CONTAINER} bash -c "php bin/console make:entity"
+
+create-migration:
+	docker exec ${CONTAINER} bash -c "php bin/console make:migration"
+
+create-migration-diff:
+	docker exec ${CONTAINER} bash -c "php bin/console doctrine:migrations:diff"

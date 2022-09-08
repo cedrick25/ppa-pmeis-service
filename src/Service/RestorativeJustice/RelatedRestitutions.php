@@ -3,9 +3,12 @@
 namespace App\Service\RestorativeJustice;
 
 use App\Common\AppFormatter;
+use App\Common\AppHydrator;
+use App\Enum\AuditTrailActions;
 use App\Enum\Response as ResponseEnum;
 use App\Model\RjRelatedRestitutions as RjRelatedRestitutionsModel;
 use App\Repository\RjRelatedRestitutionsRepository;
+use App\Service\System\AuditTrail;
 use Doctrine\ORM\Exception\ORMException;
 use Psr\Cache\CacheException;
 use Psr\Cache\InvalidArgumentException;
@@ -17,6 +20,8 @@ class RelatedRestitutions implements RelatedRestitutionsInterface
         private ValidatorInterface              $validator,
         private AppFormatter                    $appFormatter,
         private RjRelatedRestitutionsRepository $repository,
+        private AuditTrail                      $auditTrail,
+        private AppHydrator                     $hydrator,
     ){}
 
     public function create(RjRelatedRestitutionsModel $restitutions): array
@@ -33,6 +38,8 @@ class RelatedRestitutions implements RelatedRestitutionsInterface
             if ($id == null) {
                 return $this->appFormatter->formatResponse(ResponseEnum::CREATING_FAILED, null, ['app' => 'RJ related restitution already exist']);
             }
+
+            $this->log($restitutions, $id);
 
             return $this->appFormatter->formatResponse(ResponseEnum::CREATING_SUCCESS, ['id' => $id]);
         } catch (InvalidArgumentException $exception) {
@@ -100,5 +107,15 @@ class RelatedRestitutions implements RelatedRestitutionsInterface
         } catch (InvalidArgumentException | CacheException  $e) {
             return $this->appFormatter->formatResponse(ResponseEnum::UPDATING_FAILED, null, ['cache' => $e->getMessage()]);
         }
+    }
+
+    private function log(RjRelatedRestitutionsModel $restitutions, int $id): void
+    {
+        $class = new \ReflectionClass($this);
+        $data = $this->hydrator->convertObjectToArray($restitutions);
+        $data['module'] = $class->getShortName();
+        $data['createdId'] = $id;
+
+        $this->auditTrail->log(AuditTrailActions::CREATE, $data);
     }
 }

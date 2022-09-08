@@ -5,8 +5,11 @@ declare(strict_types=1);
 namespace App\Service\RestorativeJustice;
 
 use App\Common\AppFormatter;
+use App\Common\AppHydrator;
+use App\Enum\AuditTrailActions;
 use App\Enum\Response as ResponseEnum;
 use App\Repository\OffensesRepository;
+use App\Service\System\AuditTrail;
 use Doctrine\ORM\Exception\ORMException;
 use Exception;
 use Psr\Cache\CacheException;
@@ -17,6 +20,7 @@ class Offenses implements OffensesInterface
     public function __construct(
         private AppFormatter           $appFormatter,
         private OffensesRepository     $repository,
+        private AuditTrail             $auditTrail,
     ){}
 
     public function create(string $name, string $type): array
@@ -31,6 +35,8 @@ class Offenses implements OffensesInterface
             if ($id == null) {
                 return $this->appFormatter->formatResponse(ResponseEnum::CREATING_FAILED, null, ['app' => 'Offense already exist']);
             }
+
+            $this->log($id);
 
             return $this->appFormatter->formatResponse(ResponseEnum::CREATING_SUCCESS, ['id' => $id]);
         } catch (InvalidArgumentException $exception) {
@@ -100,5 +106,14 @@ class Offenses implements OffensesInterface
         } catch (\Doctrine\ORM\ORMException | ORMException $exception) {
             return $this->appFormatter->formatResponse(ResponseEnum::DELETING_FAILED, null, ['orm' => $exception->getMessage()]);
         }
+    }
+
+    private function log(int $id): void
+    {
+        $class = new \ReflectionClass($this);
+        $data['module'] = $class->getShortName();
+        $data['createdId'] = $id;
+
+        $this->auditTrail->log(AuditTrailActions::CREATE, $data);
     }
 }

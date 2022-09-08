@@ -5,9 +5,12 @@ declare(strict_types=1);
 namespace App\Service\RestorativeJustice;
 
 use App\Common\AppFormatter;
+use App\Common\AppHydrator;
+use App\Enum\AuditTrailActions;
 use App\Enum\Response as ResponseEnum;
 use App\Repository\RJRelatedActivitiesRepository;
 use App\Model\RJRelatedActivities as RelatedActivitiesModel;
+use App\Service\System\AuditTrail;
 use Doctrine\ORM\Exception\ORMException;
 use Exception;
 use Psr\Cache\CacheException;
@@ -20,6 +23,8 @@ class RelatedActivities implements RelatedActivitiesInterface
         private ValidatorInterface            $validator,
         private AppFormatter                  $appFormatter,
         private RJRelatedActivitiesRepository $repository,
+        private AuditTrail                    $auditTrail,
+        private AppHydrator                   $hydrator,
     ){}
 
     public function create(RelatedActivitiesModel $activities): array
@@ -36,6 +41,8 @@ class RelatedActivities implements RelatedActivitiesInterface
             if ($id == null) {
                 return $this->appFormatter->formatResponse(ResponseEnum::CREATING_FAILED, null, ['app' => 'RJ related activities already exist']);
             }
+
+            $this->log($activities, $id);
 
             return $this->appFormatter->formatResponse(ResponseEnum::CREATING_SUCCESS, ['id' => $id]);
         } catch (InvalidArgumentException $exception) {
@@ -103,5 +110,15 @@ class RelatedActivities implements RelatedActivitiesInterface
         } catch (InvalidArgumentException | CacheException  $e) {
             return $this->appFormatter->formatResponse(ResponseEnum::UPDATING_FAILED, null, ['cache' => $e->getMessage()]);
         }
+    }
+
+    private function log(RelatedActivitiesModel $activities, int $id): void
+    {
+        $class = new \ReflectionClass($this);
+        $data = $this->hydrator->convertObjectToArray($activities);
+        $data['module'] = $class->getShortName();
+        $data['createdId'] = $id;
+
+        $this->auditTrail->log(AuditTrailActions::CREATE, $data);
     }
 }
