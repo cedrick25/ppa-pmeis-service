@@ -247,6 +247,12 @@ class TableIA1SummaryForm implements Form
     {
         $fsgClients = [];
         $clientsId = ['active_supervision' => [], 'others' => []];
+        if (empty($this->sessionIds)) {
+            return [
+                'client_frequency' => $clientsId,
+                'fsg_frequency' => count(array_unique($fsgClients)),
+            ];
+        }
         $clientSessions = $this->clientSessionsRepository->findBySessionIds($this->sessionIds);
         $clientsIdUnderSupervision = $this->clientsRepository->findClientsIdUnderSupervisionPeriod($minMaxDate, $fieldOfficeId);
 
