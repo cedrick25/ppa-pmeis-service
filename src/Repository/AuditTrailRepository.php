@@ -33,20 +33,25 @@ class AuditTrailRepository extends ServiceEntityRepository
     }
 
     /**
+     * @param array<string, mixed> $userDetails
      * @param array<string, mixed> $actionDetails
      * @throws \Doctrine\ORM\ORMException
      * @throws \Doctrine\ORM\OptimisticLockException
      */
     public function create(
         string $action,
-        int $userId,
+        array $userDetails,
         array $actionDetails,
     ): void {
         $this->cache->invalidateTags([self::CACHE_TAG]);
 
         $auditTrail = new AuditTrail();
         $auditTrail->setAction($action);
-        $auditTrail->setUserId($userId);
+        $auditTrail->setUserId($userDetails['userId']);
+        $auditTrail->setEmail($userDetails['email']);
+        $auditTrail->setFirstName($userDetails['firstName']);
+        $auditTrail->setMiddleName($userDetails['middleName']);
+        $auditTrail->setLastName($userDetails['lastName']);
         $auditTrail->setActionDetails($actionDetails);
         $auditTrail->setCreatedAt($this->appDateHelper->getCurrentImmutableDate());
 

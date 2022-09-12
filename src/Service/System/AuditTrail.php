@@ -4,6 +4,7 @@ namespace App\Service\System;
 
 use App\Entity\UserAccount;
 use App\Repository\AuditTrailRepository;
+use App\Repository\UserAccountRepository;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 
 class AuditTrail
@@ -12,6 +13,7 @@ class AuditTrail
         private AuditTrailRepository $repository,
         private TokenStorageInterface $tokenStorage,
         private AuditTrailActionDetailsTransformer $actionDetailsTransformer,
+        private UserAccountRepository $userAccountRepository,
     ) {
     }
 
@@ -25,8 +27,9 @@ class AuditTrail
         array $actionDetails
     ): void {
         $actionDetails = $this->actionDetailsTransformer->transform($action, $actionDetails);
+        $userDetails = $this->getUserDetails();
 
-        $this->repository->create($action, $this->getUserId(), $actionDetails);
+        $this->repository->create($action, $userDetails, $actionDetails);
     }
 
     /**
@@ -48,11 +51,24 @@ class AuditTrail
         return $this->repository->paginated($page, $pageSize);
     }
 
-    private function getUserId(): int
+    /**
+     * @return array<string, mixed>
+     * @throws \Psr\Cache\CacheException
+     * @throws \Psr\Cache\InvalidArgumentException
+     */
+    private function getUserDetails(): array
     {
+        $response = [];
         $user = $this->tokenStorage->getToken()->getUser();
         \assert($user instanceof UserAccount);
 
-        return $user->getUserAccountId();
+        $details = $this->userAccountRepository->findWithDetails($user->getUserAccountId());
+        $response['userId'] = (int) $details['user_account_id'];
+        $response['email'] = $details['email_address'];
+        $response['firstName'] = $details['first_name'];
+        $response['middleName'] = $details['middle_name'];
+        $response['lastName'] = $details['last_name'];
+
+        return $response;
     }
 }

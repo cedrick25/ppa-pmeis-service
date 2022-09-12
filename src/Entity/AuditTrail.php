@@ -30,6 +30,26 @@ class AuditTrail
     private int $userId;
 
     /**
+     * @ORM\Column(type="string", length=255)
+     */
+    private string $email;
+
+    /**
+     * @ORM\Column(type="string", length=255)
+     */
+    private string $firstName;
+
+    /**
+     * @ORM\Column(type="string", length=255, nullable=true)
+     */
+    private ?string $middleName;
+
+    /**
+     * @ORM\Column(type="string", length=255)
+     */
+    private string $lastName;
+
+    /**
      * @var array<string, mixed>
      * @ORM\Column(type="json")
      */
@@ -67,6 +87,70 @@ class AuditTrail
         $this->userId = $userId;
 
         return $this;
+    }
+
+    /**
+     * @return string
+     */
+    public function getEmail(): string
+    {
+        return $this->email;
+    }
+
+    /**
+     * @param string $email
+     */
+    public function setEmail(string $email): void
+    {
+        $this->email = $email;
+    }
+
+    /**
+     * @return string
+     */
+    public function getFirstName(): string
+    {
+        return $this->firstName;
+    }
+
+    /**
+     * @param string $firstName
+     */
+    public function setFirstName(string $firstName): void
+    {
+        $this->firstName = $firstName;
+    }
+
+    /**
+     * @return string|null
+     */
+    public function getMiddleName(): ?string
+    {
+        return $this->middleName;
+    }
+
+    /**
+     * @param string|null $middleName
+     */
+    public function setMiddleName(?string $middleName): void
+    {
+        $this->middleName = $middleName;
+    }
+
+    /**
+     * @return string
+     */
+    public function getLastName(): string
+    {
+        return $this->lastName;
+    }
+
+    /**
+     * @param string $lastName
+     */
+    public function setLastName(string $lastName): void
+    {
+        $this->lastName = $lastName;
     }
 
     public function getActionDetails(): array
