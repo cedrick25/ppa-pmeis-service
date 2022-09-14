@@ -2,16 +2,12 @@
 
 namespace App\Service\Summary\FieldOffice;
 
-use App\Common\AppFormatter;
-use App\Entity\Quarters;
 use App\Repository\QuartersRepository;
 use App\Repository\SessionsRepository;
-use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 class TherapeuticCommunity
 {
     public function __construct(
-        private AppFormatter       $appFormatter,
         private SessionsRepository $sessionsRepository,
         private QuartersRepository $quartersRepository,
     ){}

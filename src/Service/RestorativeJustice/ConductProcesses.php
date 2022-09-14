@@ -19,13 +19,18 @@ use Exception;
 
 class ConductProcesses implements ConductProcessesInterface
 {
+    private string $shortName;
+
     public function __construct(
         private ValidatorInterface           $validator,
         private AppFormatter                 $appFormatter,
         private RJConductProcessesRepository $repository,
         private AuditTrail                   $auditTrail,
         private AppHydrator                  $hydrator,
-    ){}
+    ) {
+        $class = new \ReflectionClass($this);
+        $this->shortName = $class->getShortName();
+    }
 
     public function create(ConductProcessesModel $conductProcessData): array
     {
@@ -42,7 +47,12 @@ class ConductProcesses implements ConductProcessesInterface
                 return $this->appFormatter->formatResponse(ResponseEnum::CREATING_FAILED, null, ['app' => 'RJ conduct process already exist']);
             }
 
-            $this->log($conductProcessData, $id);
+            $this->auditTrail->log(
+                AuditTrailActions::CREATE,
+                $this->hydrator->convertObjectToArray($conductProcessData),
+                $this->shortName,
+                $id
+            );
 
             return $this->appFormatter->formatResponse(ResponseEnum::CREATING_SUCCESS, ['id' => $id]);
         } catch (InvalidArgumentException $exception) {
@@ -111,15 +121,5 @@ class ConductProcesses implements ConductProcessesInterface
         } catch (InvalidArgumentException | CacheException  $e) {
             return $this->appFormatter->formatResponse(ResponseEnum::UPDATING_FAILED, null, ['cache' => $e->getMessage()]);
         }
-    }
-
-    private function log(ConductProcessesModel $conductProcessData, int $id): void
-    {
-        $class = new \ReflectionClass($this);
-        $data = $this->hydrator->convertObjectToArray($conductProcessData);
-        $data['module'] = $class->getShortName();
-        $data['createdId'] = $id;
-
-        $this->auditTrail->log(AuditTrailActions::CREATE, $data);
     }
 }

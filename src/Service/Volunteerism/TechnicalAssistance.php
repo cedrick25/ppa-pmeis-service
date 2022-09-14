@@ -3,10 +3,13 @@
 namespace App\Service\Volunteerism;
 
 use App\Common\AppFormatter;
+use App\Common\AppHydrator;
+use App\Enum\AuditTrailActions;
 use App\Enum\Response as ResponseEnum;
 use App\Repository\QuartersRepository;
 use App\Repository\TechnicalAssistanceRepository;
 use App\Model\TechnicalAssistance as TechnicalAssistanceModel;
+use App\Service\System\AuditTrail;
 use Doctrine\DBAL\Driver\Exception;
 use Doctrine\ORM\Exception\ORMException;
 use Psr\Cache\CacheException;
@@ -15,12 +18,19 @@ use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 class TechnicalAssistance implements TechnicalAssistanceInterface
 {
+    private string $shortName;
+
     public function __construct(
-        private ValidatorInterface                     $validator,
-        private AppFormatter                           $appFormatter,
-        private TechnicalAssistanceRepository          $repository,
-        private QuartersRepository                     $quartersRepository,
-    ){}
+        private ValidatorInterface              $validator,
+        private AppFormatter                    $appFormatter,
+        private TechnicalAssistanceRepository   $repository,
+        private QuartersRepository              $quartersRepository,
+        private AuditTrail                      $auditTrail,
+        private AppHydrator                     $hydrator,
+    ) {
+        $class = new \ReflectionClass($this);
+        $this->shortName = $class->getShortName();
+    }
 
     public function create(TechnicalAssistanceModel $technicalAssistanceData): array
     {
@@ -36,6 +46,13 @@ class TechnicalAssistance implements TechnicalAssistanceInterface
             if ($id == null) {
                 return $this->appFormatter->formatResponse(ResponseEnum::CREATING_FAILED, null, ['app' => 'Technical Assistance already exist']);
             }
+
+            $this->auditTrail->log(
+                AuditTrailActions::CREATE,
+                $this->hydrator->convertObjectToArray($technicalAssistanceData),
+                $this->shortName,
+                $id
+            );
 
             return $this->appFormatter->formatResponse(ResponseEnum::CREATING_SUCCESS, ['id' => $id]);
         } catch (InvalidArgumentException $exception) {

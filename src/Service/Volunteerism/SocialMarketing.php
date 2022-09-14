@@ -3,10 +3,13 @@
 namespace App\Service\Volunteerism;
 
 use App\Common\AppFormatter;
+use App\Common\AppHydrator;
+use App\Enum\AuditTrailActions;
 use App\Enum\Response as ResponseEnum;
 use App\Model\SocialMarketing as SocialMarketingModel;
 use App\Repository\QuartersRepository;
 use App\Repository\SocialMarketingRepository;
+use App\Service\System\AuditTrail;
 use Doctrine\DBAL\Driver\Exception;
 use Doctrine\ORM\Exception\ORMException;
 use Psr\Cache\CacheException;
@@ -15,12 +18,19 @@ use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 class SocialMarketing implements SocialMarketingInterface
 {
+    private string $shortName;
+
     public function __construct(
         private ValidatorInterface           $validator,
         private AppFormatter                 $appFormatter,
         private SocialMarketingRepository    $repository,
         private QuartersRepository           $quartersRepository,
-    ){}
+        private AuditTrail                   $auditTrail,
+        private AppHydrator                  $hydrator,
+    ) {
+        $class = new \ReflectionClass($this);
+        $this->shortName = $class->getShortName();
+    }
 
     public function create(SocialMarketingModel $data): array
     {
@@ -36,6 +46,13 @@ class SocialMarketing implements SocialMarketingInterface
             if ($id == null) {
                 return $this->appFormatter->formatResponse(ResponseEnum::CREATING_FAILED, null, ['app' => 'Social Marketing already exist']);
             }
+
+            $this->auditTrail->log(
+                AuditTrailActions::CREATE,
+                $this->hydrator->convertObjectToArray($data),
+                $this->shortName,
+                $id
+            );
 
             return $this->appFormatter->formatResponse(ResponseEnum::CREATING_SUCCESS, ['id' => $id]);
         } catch (InvalidArgumentException $exception) {

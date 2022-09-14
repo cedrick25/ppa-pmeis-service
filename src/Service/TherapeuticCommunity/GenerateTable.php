@@ -10,11 +10,16 @@ use App\Service\System\AuditTrail;
 
 class GenerateTable implements GenerateTableInterface
 {
+    private string $shortName;
+
     public function __construct(
         private AppFormatter    $appFormatter,
         private Report          $report,
         private AuditTrail      $auditTrail,
-    ){}
+    ){
+        $class = new \ReflectionClass($this);
+        $this->shortName = $class->getShortName();
+    }
 
     /**
      * @param array<string, mixed> $data
@@ -25,7 +30,11 @@ class GenerateTable implements GenerateTableInterface
         try {
             $fileData = $this->report->create($data);
 
-            $this->auditTrail->log(AuditTrailActions::GENERATE_REPORT, $data);
+            $this->auditTrail->log(
+                AuditTrailActions::GENERATE_REPORT,
+                $data,
+                $this->shortName,
+            );
 
             // TODO: remove generated file
             return $this->appFormatter->formatResponse(ResponseEnum::GENERATING_SUCCESS, $fileData);

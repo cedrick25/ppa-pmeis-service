@@ -16,13 +16,18 @@ use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 class RelatedRestitutions implements RelatedRestitutionsInterface
 {
+    private string $shortName;
+
     public function __construct(
         private ValidatorInterface              $validator,
         private AppFormatter                    $appFormatter,
         private RjRelatedRestitutionsRepository $repository,
         private AuditTrail                      $auditTrail,
         private AppHydrator                     $hydrator,
-    ){}
+    ){
+        $class = new \ReflectionClass($this);
+        $this->shortName = $class->getShortName();
+    }
 
     public function create(RjRelatedRestitutionsModel $restitutions): array
     {
@@ -39,7 +44,12 @@ class RelatedRestitutions implements RelatedRestitutionsInterface
                 return $this->appFormatter->formatResponse(ResponseEnum::CREATING_FAILED, null, ['app' => 'RJ related restitution already exist']);
             }
 
-            $this->log($restitutions, $id);
+            $this->auditTrail->log(
+                AuditTrailActions::CREATE,
+                $this->hydrator->convertObjectToArray($restitutions),
+                $this->shortName,
+                $id
+            );
 
             return $this->appFormatter->formatResponse(ResponseEnum::CREATING_SUCCESS, ['id' => $id]);
         } catch (InvalidArgumentException $exception) {

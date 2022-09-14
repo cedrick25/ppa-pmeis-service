@@ -5,8 +5,11 @@ declare(strict_types=1);
 namespace App\Service\TherapeuticCommunity;
 
 use App\Common\AppFormatter;
+use App\Common\AppHydrator;
+use App\Enum\AuditTrailActions;
 use App\Enum\Response as ResponseEnum;
 use App\Repository\VenuesRepository;
+use App\Service\System\AuditTrail;
 use Doctrine\ORM\ORMException;
 use Exception;
 use Psr\Cache\CacheException;
@@ -14,10 +17,17 @@ use Psr\Cache\InvalidArgumentException;
 
 class Venues implements VenuesInterface
 {
+    private string $shortName;
+
     public function __construct(
         private AppFormatter     $appFormatter,
         private VenuesRepository $repository,
-    ){}
+        private AuditTrail       $auditTrail,
+        private AppHydrator      $hydrator,
+    ) {
+        $class = new \ReflectionClass($this);
+        $this->shortName = $class->getShortName();
+    }
 
     public function create(string $name):array
     {
@@ -31,6 +41,8 @@ class Venues implements VenuesInterface
             if ($venueId == null) {
                 return $this->appFormatter->formatResponse(ResponseEnum::CREATING_FAILED, null, ['app' => 'Venue already exist.']);
             }
+
+            $this->auditTrail->log(AuditTrailActions::CREATE, ['name' => $name], $this->shortName, $venueId);
 
             return $this->appFormatter->formatResponse(ResponseEnum::CREATING_SUCCESS, ['id' => $venueId]);
         } catch (InvalidArgumentException $exception) {

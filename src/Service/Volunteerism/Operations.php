@@ -6,13 +6,16 @@ namespace App\Service\Volunteerism;
 
 use App\Common\AppDateHelper;
 use App\Common\AppFormatter;
+use App\Common\AppHydrator;
 use App\Entity\Volunteer;
+use App\Enum\AuditTrailActions;
 use App\Enum\Response as ResponseEnum;
 use App\Model\VolunteerOperations as VolunteerOperationsModel;
 use App\Repository\QuartersRepository;
 use App\Repository\ResourceFacilitatorSessionRepository;
 use App\Repository\VolunteerOperationsRepository;
 use App\Repository\VolunteerRepository;
+use App\Service\System\AuditTrail;
 use Doctrine\DBAL\Driver\Exception;
 use Doctrine\ORM\Exception\ORMException;
 use Psr\Cache\CacheException;
@@ -21,6 +24,8 @@ use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 class Operations implements OperationsInterface
 {
+    private string $shortName;
+
     const APPOINTED = 'APPOINTED';
     const REAPPOINTED = 'REAPPOINTED';
     const DROPPED = 'DROPPED';
@@ -34,7 +39,12 @@ class Operations implements OperationsInterface
         private AppDateHelper                        $appDateHelper,
         private VolunteerRepository                  $volunteerRepository,
         private ResourceFacilitatorSessionRepository $resourceFacilitatorSessionRepository,
-    ){}
+        private AuditTrail                           $auditTrail,
+        private AppHydrator                          $hydrator,
+    ) {
+        $class = new \ReflectionClass($this);
+        $this->shortName = $class->getShortName();
+    }
 
     public function create(VolunteerOperationsModel $operation): array
     {
@@ -50,6 +60,13 @@ class Operations implements OperationsInterface
             if ($id == null) {
                 return $this->appFormatter->formatResponse(ResponseEnum::CREATING_FAILED, null, ['app' => 'Volunteer operations already exist']);
             }
+
+            $this->auditTrail->log(
+                AuditTrailActions::CREATE,
+                $this->hydrator->convertObjectToArray($operation),
+                $this->shortName,
+                $id
+            );
 
             return $this->appFormatter->formatResponse(ResponseEnum::CREATING_SUCCESS, ['id' => $id]);
         } catch (InvalidArgumentException $exception) {

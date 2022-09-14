@@ -18,19 +18,28 @@ class AuditTrail
     }
 
     /**
-     * @param array<string, mixed> $actionDetails
+     * @param array<string, mixed> $data
      * @throws \Doctrine\ORM\ORMException
      * @throws \Doctrine\ORM\OptimisticLockException
      */
     public function log(
         string $action,
-        array $actionDetails
+        array $data,
+        string $moduleName,
+        ?int $id = null,
     ): void {
-        $actionDetails = $this->actionDetailsTransformer->transform($action, $actionDetails);
+        $data['module'] = $moduleName;
+
+        if (! null == $id) {
+            $data['createdId'] = $id;
+        }
+
+        $actionDetails = $this->actionDetailsTransformer->transform($action, $data);
         $userDetails = $this->getUserDetails();
 
         $this->repository->create($action, $userDetails, $actionDetails);
     }
+
 
     /**
      * @param int[] $ids

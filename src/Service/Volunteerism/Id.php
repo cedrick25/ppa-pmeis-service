@@ -3,9 +3,12 @@
 namespace App\Service\Volunteerism;
 
 use App\Common\AppFormatter;
+use App\Common\AppHydrator;
+use App\Enum\AuditTrailActions;
 use App\Enum\Response as ResponseEnum;
 use App\Model\VolunteerId as VolunteerIdModel;
 use App\Repository\VolunteerIdRepository;
+use App\Service\System\AuditTrail;
 use Doctrine\ORM\Exception\ORMException;
 use Psr\Cache\CacheException;
 use Psr\Cache\InvalidArgumentException;
@@ -13,11 +16,18 @@ use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 class Id implements IdInterface
 {
+    private string $shortName;
+
     public function __construct(
         private ValidatorInterface    $validator,
         private AppFormatter          $appFormatter,
         private VolunteerIdRepository $repository,
-    ){}
+        private AuditTrail            $auditTrail,
+        private AppHydrator           $hydrator,
+    ) {
+        $class = new \ReflectionClass($this);
+        $this->shortName = $class->getShortName();
+    }
 
     public function create(VolunteerIdModel $idData): array
     {
@@ -33,6 +43,13 @@ class Id implements IdInterface
             if ($id == null) {
                 return $this->appFormatter->formatResponse(ResponseEnum::CREATING_FAILED, null, ['app' => 'Volunteer id already exist']);
             }
+
+            $this->auditTrail->log(
+                AuditTrailActions::CREATE,
+                $this->hydrator->convertObjectToArray($idData),
+                $this->shortName,
+                $id
+            );
 
             return $this->appFormatter->formatResponse(ResponseEnum::CREATING_SUCCESS, ['id' => $id]);
         } catch (InvalidArgumentException $exception) {

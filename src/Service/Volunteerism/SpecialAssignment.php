@@ -3,11 +3,14 @@
 namespace App\Service\Volunteerism;
 
 use App\Common\AppFormatter;
+use App\Common\AppHydrator;
+use App\Enum\AuditTrailActions;
 use App\Enum\Response as ResponseEnum;
 use App\Model\SpecialAssignment as SpecialAssignmentModel;
 use App\Repository\QuartersRepository;
 use App\Repository\ResourceMobilizationRepository;
 use App\Repository\SpecialAssignmentRepository;
+use App\Service\System\AuditTrail;
 use Doctrine\DBAL\Driver\Exception;
 use Doctrine\ORM\Exception\ORMException;
 use Psr\Cache\CacheException;
@@ -16,12 +19,19 @@ use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 class SpecialAssignment implements SpecialAssignmentInterface
 {
+    private string $shortName;
+
     public function __construct(
         private ValidatorInterface              $validator,
         private AppFormatter                    $appFormatter,
         private SpecialAssignmentRepository     $repository,
         private QuartersRepository              $quartersRepository,
-    ){}
+        private AuditTrail                      $auditTrail,
+        private AppHydrator                     $hydrator,
+    ) {
+        $class = new \ReflectionClass($this);
+        $this->shortName = $class->getShortName();
+    }
 
     public function create(SpecialAssignmentModel $data): array
     {
@@ -37,6 +47,13 @@ class SpecialAssignment implements SpecialAssignmentInterface
             if ($id == null) {
                 return $this->appFormatter->formatResponse(ResponseEnum::CREATING_FAILED, null, ['app' => 'Special Assignment already exist']);
             }
+
+            $this->auditTrail->log(
+                AuditTrailActions::CREATE,
+                $this->hydrator->convertObjectToArray($data),
+                $this->shortName,
+                $id
+            );
 
             return $this->appFormatter->formatResponse(ResponseEnum::CREATING_SUCCESS, ['id' => $id]);
         } catch (InvalidArgumentException $exception) {

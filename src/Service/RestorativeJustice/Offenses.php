@@ -17,11 +17,16 @@ use Psr\Cache\InvalidArgumentException;
 
 class Offenses implements OffensesInterface
 {
+    private string $shortName;
+
     public function __construct(
         private AppFormatter           $appFormatter,
         private OffensesRepository     $repository,
         private AuditTrail             $auditTrail,
-    ){}
+    ){
+        $class = new \ReflectionClass($this);
+        $this->shortName = $class->getShortName();
+    }
 
     public function create(string $name, string $type): array
     {
@@ -36,7 +41,12 @@ class Offenses implements OffensesInterface
                 return $this->appFormatter->formatResponse(ResponseEnum::CREATING_FAILED, null, ['app' => 'Offense already exist']);
             }
 
-            $this->log($id);
+            $this->auditTrail->log(
+                AuditTrailActions::CREATE,
+                ['name' => $name, 'type' => $type],
+                $this->shortName,
+                $id
+            );
 
             return $this->appFormatter->formatResponse(ResponseEnum::CREATING_SUCCESS, ['id' => $id]);
         } catch (InvalidArgumentException $exception) {
@@ -106,14 +116,5 @@ class Offenses implements OffensesInterface
         } catch (\Doctrine\ORM\ORMException | ORMException $exception) {
             return $this->appFormatter->formatResponse(ResponseEnum::DELETING_FAILED, null, ['orm' => $exception->getMessage()]);
         }
-    }
-
-    private function log(int $id): void
-    {
-        $class = new \ReflectionClass($this);
-        $data['module'] = $class->getShortName();
-        $data['createdId'] = $id;
-
-        $this->auditTrail->log(AuditTrailActions::CREATE, $data);
     }
 }

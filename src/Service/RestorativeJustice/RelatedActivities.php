@@ -19,13 +19,18 @@ use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 class RelatedActivities implements RelatedActivitiesInterface
 {
+    private string $shortName;
+
     public function __construct(
         private ValidatorInterface            $validator,
         private AppFormatter                  $appFormatter,
         private RJRelatedActivitiesRepository $repository,
         private AuditTrail                    $auditTrail,
         private AppHydrator                   $hydrator,
-    ){}
+    ){
+        $class = new \ReflectionClass($this);
+        $this->shortName = $class->getShortName();
+    }
 
     public function create(RelatedActivitiesModel $activities): array
     {
@@ -42,7 +47,12 @@ class RelatedActivities implements RelatedActivitiesInterface
                 return $this->appFormatter->formatResponse(ResponseEnum::CREATING_FAILED, null, ['app' => 'RJ related activities already exist']);
             }
 
-            $this->log($activities, $id);
+            $this->auditTrail->log(
+                AuditTrailActions::CREATE,
+                $this->hydrator->convertObjectToArray($activities),
+                $this->shortName,
+                $id
+            );
 
             return $this->appFormatter->formatResponse(ResponseEnum::CREATING_SUCCESS, ['id' => $id]);
         } catch (InvalidArgumentException $exception) {
@@ -110,15 +120,5 @@ class RelatedActivities implements RelatedActivitiesInterface
         } catch (InvalidArgumentException | CacheException  $e) {
             return $this->appFormatter->formatResponse(ResponseEnum::UPDATING_FAILED, null, ['cache' => $e->getMessage()]);
         }
-    }
-
-    private function log(RelatedActivitiesModel $activities, int $id): void
-    {
-        $class = new \ReflectionClass($this);
-        $data = $this->hydrator->convertObjectToArray($activities);
-        $data['module'] = $class->getShortName();
-        $data['createdId'] = $id;
-
-        $this->auditTrail->log(AuditTrailActions::CREATE, $data);
     }
 }

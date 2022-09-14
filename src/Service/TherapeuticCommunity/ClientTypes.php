@@ -5,8 +5,11 @@ declare(strict_types=1);
 namespace App\Service\TherapeuticCommunity;
 
 use App\Common\AppFormatter;
+use App\Common\AppHydrator;
+use App\Enum\AuditTrailActions;
 use App\Enum\Response as ResponseEnum;
 use App\Repository\ClientTypesRepository;
+use App\Service\System\AuditTrail;
 use Doctrine\ORM\ORMException;
 use Psr\Cache\CacheException;
 use Psr\Cache\InvalidArgumentException;
@@ -15,11 +18,18 @@ use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 class ClientTypes implements ClientTypesInterface
 {
+    private string $shortName;
+
     public function __construct(
         private ValidatorInterface    $validator,
         private AppFormatter          $appFormatter,
         private ClientTypesRepository $repository,
-    ){}
+        private AuditTrail            $auditTrail,
+        private AppHydrator           $hydrator,
+    ){
+        $class = new \ReflectionClass($this);
+        $this->shortName = $class->getShortName();
+    }
 
     public function create(ClientTypesModel $clientTypes): array
     {
@@ -35,6 +45,13 @@ class ClientTypes implements ClientTypesInterface
             if ($id == null) {
                 return $this->appFormatter->formatResponse(ResponseEnum::CREATING_FAILED, null, ['app' => 'Type already exist']);
             }
+
+            $this->auditTrail->log(
+                AuditTrailActions::CREATE,
+                $this->hydrator->convertObjectToArray($clientTypes),
+                $this->shortName,
+                $id
+            );
 
             return $this->appFormatter->formatResponse(ResponseEnum::CREATING_SUCCESS, ['id' => $id]);
         } catch (InvalidArgumentException $exception) {

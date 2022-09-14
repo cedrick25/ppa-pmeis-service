@@ -5,9 +5,12 @@ declare(strict_types=1);
 namespace App\Service;
 
 use App\Common\AppFormatter;
+use App\Common\AppHydrator;
+use App\Enum\AuditTrailActions;
 use App\Enum\Response as ResponseEnum;
 use App\Model\UserAccountWithDetails;
 use App\Repository\UserAccountRepository;
+use App\Service\System\AuditTrail;
 use Doctrine\ORM\ORMException;
 use Exception;
 use Psr\Cache\CacheException;
@@ -16,6 +19,8 @@ use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 class User implements UserInterface
 {
+    private string $shortName;
+
     public const USER_CREATION_SUCCESS = "User creation successful.";
     public const USER_CREATION_FAILED = "User creation failed.";
     public const USER_VALIDATION_FAILED = "User validation failed.";
@@ -24,7 +29,12 @@ class User implements UserInterface
         private UserAccountRepository $repository,
         private ValidatorInterface    $validator,
         private AppFormatter          $appFormatter,
-    ){}
+        private AuditTrail            $auditTrail,
+        private AppHydrator           $hydrator,
+    ) {
+        $class = new \ReflectionClass($this);
+        $this->shortName = $class->getShortName();
+    }
 
     public function getAll(): array
     {
@@ -101,6 +111,13 @@ class User implements UserInterface
             if ($userAccountId == null) {
                 return $this->appFormatter->formatResponse(self::USER_CREATION_FAILED, null, ['app' => 'Email address already exist']);
             }
+
+            $this->auditTrail->log(
+                AuditTrailActions::CREATE,
+                $this->hydrator->convertObjectToArray($userAccountWithDetails),
+                $this->shortName,
+                $userAccountId
+            );
 
             return $this->appFormatter->formatResponse(self::USER_CREATION_SUCCESS, ['id' => $userAccountId]);
         } catch (ORMException $exception) {

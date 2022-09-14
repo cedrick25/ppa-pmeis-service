@@ -3,20 +3,30 @@
 namespace App\Service\Volunteerism;
 
 use App\Common\AppFormatter;
+use App\Common\AppHydrator;
+use App\Enum\AuditTrailActions;
 use App\Enum\Response as ResponseEnum;
 use App\Repository\CapabilityBuildingRepository;
 use App\Repository\QuartersRepository;
+use App\Service\System\AuditTrail;
 use Doctrine\DBAL\Driver\Exception;
 use Psr\Cache\CacheException;
 use Psr\Cache\InvalidArgumentException;
 
 class CapabilityBuilding implements CapabilityBuildingInterface
 {
+    private string $shortName;
+
     public function __construct(
         private AppFormatter                 $appFormatter,
         private CapabilityBuildingRepository $repository,
         private QuartersRepository           $quartersRepository,
-    ){}
+        private AuditTrail                   $auditTrail,
+        private AppHydrator                  $hydrator,
+    ) {
+        $class = new \ReflectionClass($this);
+        $this->shortName = $class->getShortName();
+    }
 
     /**
      * @param array<string, mixed> $data
@@ -25,6 +35,12 @@ class CapabilityBuilding implements CapabilityBuildingInterface
     {
         try {
             $this->repository->batchCreate($data);
+
+            $this->auditTrail->log(
+                AuditTrailActions::CREATE,
+                $this->hydrator->convertObjectToArray($data),
+                $this->shortName,
+            );
 
             return $this->appFormatter->formatResponse(ResponseEnum::CREATING_SUCCESS, []);
         } catch (InvalidArgumentException $exception) {

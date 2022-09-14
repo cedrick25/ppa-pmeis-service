@@ -3,10 +3,13 @@
 namespace App\Service\Volunteerism;
 
 use App\Common\AppFormatter;
+use App\Common\AppHydrator;
+use App\Enum\AuditTrailActions;
 use App\Enum\Response as ResponseEnum;
 use App\Model\IdSupport as IdSupportModel;
 use App\Repository\IdSupportRepository;
 use App\Repository\QuartersRepository;
+use App\Service\System\AuditTrail;
 use Doctrine\DBAL\Driver\Exception;
 use Doctrine\ORM\Exception\ORMException;
 use Psr\Cache\CacheException;
@@ -15,11 +18,15 @@ use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 class IdSupport implements IdSupportInterface
 {
+    private string $shortName;
+
     public function __construct(
         private ValidatorInterface           $validator,
         private AppFormatter                 $appFormatter,
         private IdSupportRepository          $repository,
         private QuartersRepository           $quartersRepository,
+        private AuditTrail                   $auditTrail,
+        private AppHydrator                  $hydrator,
     ){}
 
     public function create(IdSupportModel $idSupportData): array
@@ -36,6 +43,13 @@ class IdSupport implements IdSupportInterface
             if ($id == null) {
                 return $this->appFormatter->formatResponse(ResponseEnum::CREATING_FAILED, null, ['app' => 'ID support already exist']);
             }
+
+            $this->auditTrail->log(
+                AuditTrailActions::CREATE,
+                $this->hydrator->convertObjectToArray($idSupportData),
+                $this->shortName,
+                $id
+            );
 
             return $this->appFormatter->formatResponse(ResponseEnum::CREATING_SUCCESS, ['id' => $id]);
         } catch (InvalidArgumentException $exception) {

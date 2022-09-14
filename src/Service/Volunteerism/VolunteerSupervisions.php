@@ -3,9 +3,12 @@
 namespace App\Service\Volunteerism;
 
 use App\Common\AppFormatter;
+use App\Common\AppHydrator;
+use App\Enum\AuditTrailActions;
 use App\Enum\Response as ResponseEnum;
 use App\Model\VolunteerSupervisions as VolunteerSupervisionsModel;
 use App\Repository\VolunteerSupervisionsRepository;
+use App\Service\System\AuditTrail;
 use Doctrine\DBAL\Driver\Exception;
 use Doctrine\ORM\Exception\ORMException;
 use Psr\Cache\CacheException;
@@ -14,11 +17,18 @@ use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 class VolunteerSupervisions implements VolunteerSupervisionsInterface
 {
+    private string $shortName;
+
     public function __construct(
         private ValidatorInterface              $validator,
         private AppFormatter                    $appFormatter,
         private VolunteerSupervisionsRepository $repository,
-    ){}
+        private AuditTrail                      $auditTrail,
+        private AppHydrator                     $hydrator,
+    ) {
+        $class = new \ReflectionClass($this);
+        $this->shortName = $class->getShortName();
+    }
 
     public function create(VolunteerSupervisionsModel $data): array
     {
@@ -30,6 +40,12 @@ class VolunteerSupervisions implements VolunteerSupervisionsInterface
             }
 
             $this->repository->bulkCreate($data);
+
+            $this->auditTrail->log(
+                AuditTrailActions::CREATE,
+                $this->hydrator->convertObjectToArray($data),
+                $this->shortName,
+            );
 
             return $this->appFormatter->formatResponse(ResponseEnum::CREATING_SUCCESS, []);
         } catch (InvalidArgumentException $exception) {

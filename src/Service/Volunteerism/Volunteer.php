@@ -4,7 +4,9 @@ namespace App\Service\Volunteerism;
 
 use App\Common\AppDateHelper;
 use App\Common\AppFormatter;
+use App\Common\AppHydrator;
 use App\Entity\Quarters;
+use App\Enum\AuditTrailActions;
 use App\Enum\Response as ResponseEnum;
 use App\Model\Volunteer as VolunteerModel;
 use App\Repository\CivilStatusRepository;
@@ -21,6 +23,7 @@ use App\Repository\VpaAssociationInitiatedActivitiesRepository;
 use App\Repository\VolunteerOperationsRepository;
 use App\Repository\VolunteerRepository;
 use App\Repository\VolunteerSupervisionsRepository;
+use App\Service\System\AuditTrail;
 use Doctrine\ORM\Exception\ORMException;
 use Exception;
 use Psr\Cache\CacheException;
@@ -30,6 +33,8 @@ use TCPDF;
 
 class Volunteer implements VolunteerInterface
 {
+    private string $shortName;
+
     const APPOINTED = 'APPOINTED';
     const REAPPOINTED = 'REAPPOINTED';
     const DROPPED = 'DROPPED';
@@ -47,13 +52,18 @@ class Volunteer implements VolunteerInterface
         private OccupationRepository                        $occupationRepository,
         private EducationBackgroundRepository               $educationBackgroundRepository,
         private VolunteerOperationsRepository               $volunteerOperationsRepository,
-        private FieldOfficesRepository                      $fieldOfficesRepository,
+        private FieldOfficesRepository                       $fieldOfficesRepository,
         private VolunteerSupervisionsRepository             $volunteerSupervisionsRepository,
         private ResourceFacilitatorSessionRepository        $resourceFacilitatorSessionRepository,
         private SocialMarketingRepository                   $socialMarketingRepository,
         private RJRelatedActivitiesRepository               $rjRelatedActivitiesRepository,
         private VpaAssociationInitiatedActivitiesRepository $vpaAssociationRepository,
-    ){}
+        private AuditTrail                                  $auditTrail,
+        private AppHydrator                                 $hydrator,
+    ) {
+        $class = new \ReflectionClass($this);
+        $this->shortName = $class->getShortName();
+    }
 
     public function create(VolunteerModel $volunteerData): array
     {
@@ -69,6 +79,13 @@ class Volunteer implements VolunteerInterface
             if ($id == null) {
                 return $this->appFormatter->formatResponse(ResponseEnum::CREATING_FAILED, null, ['app' => 'Volunteer already exist']);
             }
+
+            $this->auditTrail->log(
+                AuditTrailActions::CREATE,
+                $this->hydrator->convertObjectToArray($volunteerData),
+                $this->shortName,
+                $id
+            );
 
             return $this->appFormatter->formatResponse(ResponseEnum::CREATING_SUCCESS, ['id' => $id]);
         } catch (InvalidArgumentException $exception) {

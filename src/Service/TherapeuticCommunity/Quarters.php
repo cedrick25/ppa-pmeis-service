@@ -5,10 +5,13 @@ declare(strict_types=1);
 namespace App\Service\TherapeuticCommunity;
 
 use App\Common\AppFormatter;
+use App\Common\AppHydrator;
+use App\Enum\AuditTrailActions;
 use App\Enum\Response as ResponseEnum;
 use App\Model\Quarters as QuartersModel;
 use App\Repository\ClientSessionsRepository;
 use App\Repository\QuartersRepository;
+use App\Service\System\AuditTrail;
 use Doctrine\ORM\ORMException;
 use Exception;
 use Psr\Cache\CacheException;
@@ -17,12 +20,19 @@ use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 class Quarters implements QuartersInterface
 {
+    private string $shortName;
+
     public function __construct(
         private ValidatorInterface       $validator,
         private AppFormatter             $appFormatter,
         private QuartersRepository       $repository,
         private ClientSessionsRepository $clientSessionsRepository,
-    ){}
+        private AuditTrail               $auditTrail,
+        private AppHydrator              $hydrator,
+    ){
+        $class = new \ReflectionClass($this);
+        $this->shortName = $class->getShortName();
+    }
 
     public function create(QuartersModel $quarters): array
     {
@@ -38,6 +48,13 @@ class Quarters implements QuartersInterface
             if ($quarterId == null) {
                 return $this->appFormatter->formatResponse(ResponseEnum::CREATING_FAILED, null, ['app' => 'Quarter already exist.']);
             }
+
+            $this->auditTrail->log(
+                AuditTrailActions::CREATE,
+                $this->hydrator->convertObjectToArray($quarters),
+                $this->shortName,
+                $quarterId
+            );
 
             return $this->appFormatter->formatResponse(ResponseEnum::CREATING_SUCCESS, ['id' => $quarterId]);
         } catch (InvalidArgumentException $exception) {
