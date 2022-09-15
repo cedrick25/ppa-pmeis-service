@@ -116,7 +116,8 @@ class Helper
                 $dateTimeExpiration->add(new DateInterval("PT1S"));
                 $item->expiresAt($dateTimeExpiration);
                 $item->tag($params['cacheTag']);
-                return null;
+
+                return $this->appFormatter->formatPagination($result['totalItems'], 0, []);
             }
 
             $pageCount = ceil($result['totalItems'] / $params['pageSize']);

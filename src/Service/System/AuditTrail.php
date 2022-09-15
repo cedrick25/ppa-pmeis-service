@@ -55,9 +55,14 @@ class AuditTrail
      * @throws \Psr\Cache\CacheException
      * @throws \Psr\Cache\InvalidArgumentException
      */
-    public function paginated(int $page = 1, int $pageSize = 10): array
+    public function paginated(
+        int $page = 1,
+        int $pageSize = 10,
+        ?string $searchColumn = '',
+        ?string $searchValue = '',
+        ?string $jsonColumn = ''): array
     {
-        return $this->repository->paginated($page, $pageSize);
+        return $this->repository->paginated($page, $pageSize, $searchColumn, $searchValue, $jsonColumn);
     }
 
     /**

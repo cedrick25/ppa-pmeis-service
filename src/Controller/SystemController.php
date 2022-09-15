@@ -25,7 +25,10 @@ class SystemController extends AbstractController
     {
         return $this->json($this->auditTrailService->paginated(
             (int) $request->get("page"),
-            (int) $request->get("pageSize")
+            (int) $request->get("pageSize"),
+            (string) $request->query->get("column"),
+            (string) $request->query->get("value"),
+            (string) $request->query->get("jsonColumn"),
         ));
     }
 }

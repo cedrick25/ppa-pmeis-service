@@ -75,24 +75,53 @@ class AuditTrailRepository extends ServiceEntityRepository
     }
 
     /**
-     * @param int $page
-     * @param int $pageSize
      * @return array<string, mixed>
      * @throws InvalidArgumentException
      * @throws CacheException
      */
-    public function paginated(int $page = 1, int $pageSize = 10): array
+    public function paginated(
+        int $page = 1,
+        int $pageSize = 10,
+        ?string $searchColumn = '',
+        ?string $searchValue = '',
+        ?string $jsonColumn = ''): array
     {
         $params = [
-            'cacheKey' => $this->cacheHelper->getPositionsPaginatedKey($page, $pageSize),
+            'cacheKey' => $this->cacheHelper->getAuditTrailPaginatedKey($page, $pageSize, $searchColumn, $searchValue, $jsonColumn),
             'expiration' => $this->cacheHelper->getExpirationDateTime(),
             'cacheTag' => self::CACHE_TAG,
             'pageSize' => $pageSize,
             'page' => $page
         ];
 
-        return $this->helper->createPaginatedResponse($params, function() {
-            return $this->createQueryBuilder('at');
+        return $this->helper->createPaginatedResponseCustomQuery($params, function() use($pageSize, $page, $searchColumn, $searchValue, $jsonColumn) {
+            $conn = $this->getEntityManager()->getConnection();
+            $startOffset = $pageSize * ($page-1);
+            $result = [];
+
+            $sql = "SELECT * FROM audit_trail ";
+
+            if (! empty($searchColumn) && ! empty($searchValue)) {
+                if ('action_details' === $searchColumn && ! empty($jsonColumn)) {
+                    $sql .= "WHERE JSON_EXTRACT($searchColumn, '$.$jsonColumn') LIKE :searchValue ";
+                } else {
+                    $sql .= "WHERE $searchColumn LIKE :searchValue ";
+                }
+            }
+
+            $sql .=  "ORDER BY created_at DESC LIMIT $pageSize OFFSET $startOffset";
+
+            $stmt = $conn->prepare($sql);
+
+            if (! empty($searchColumn) && ! empty($searchValue)) {
+                $stmt->bindValue('searchValue',  '%' . $searchValue . '%', \PDO::PARAM_STR);
+            }
+
+            $query = $stmt->executeQuery();
+            $result['data'] = mb_convert_encoding($query->fetchAllAssociative(), 'UTF-8', 'UTF-8');
+            $result['totalItems'] = count($result['data']);
+
+            return $result;
         });
     }
 }

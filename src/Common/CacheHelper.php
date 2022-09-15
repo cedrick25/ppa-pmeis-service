@@ -355,4 +355,16 @@ class CacheHelper
     {
         return 'all_vpa_association_initiated_activities';
     }
+
+    public function getAuditTrailPaginatedKey(
+        int $page,
+        int $size,
+        ?string $searchColumn = '',
+        ?string $searchValue = '',
+        ?string $jsonColumn = ''
+    ): string {
+        $searchValue = str_replace('@', '', $searchValue ?? '');
+
+        return 'positions_' . $page . '_' . $size . '_' . $searchColumn . '_' . $searchValue . '_' . $jsonColumn;
+    }
 }
