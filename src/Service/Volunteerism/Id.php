@@ -44,12 +44,7 @@ class Id implements IdInterface
                 return $this->appFormatter->formatResponse(ResponseEnum::CREATING_FAILED, null, ['app' => 'Volunteer id already exist']);
             }
 
-            $this->auditTrail->log(
-                AuditTrailActions::CREATE,
-                $this->hydrator->convertObjectToArray($idData),
-                $this->shortName,
-                $id
-            );
+            $this->auditTrail->log(AuditTrailActions::CREATE, $this->hydrator->convertObjectToArray($idData), $this->shortName, $id);
 
             return $this->appFormatter->formatResponse(ResponseEnum::CREATING_SUCCESS, ['id' => $id]);
         } catch (InvalidArgumentException $exception) {

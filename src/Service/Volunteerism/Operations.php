@@ -61,12 +61,7 @@ class Operations implements OperationsInterface
                 return $this->appFormatter->formatResponse(ResponseEnum::CREATING_FAILED, null, ['app' => 'Volunteer operations already exist']);
             }
 
-            $this->auditTrail->log(
-                AuditTrailActions::CREATE,
-                $this->hydrator->convertObjectToArray($operation),
-                $this->shortName,
-                $id
-            );
+            $this->auditTrail->log(AuditTrailActions::CREATE, $this->hydrator->convertObjectToArray($operation), $this->shortName, $id);
 
             return $this->appFormatter->formatResponse(ResponseEnum::CREATING_SUCCESS, ['id' => $id]);
         } catch (InvalidArgumentException $exception) {

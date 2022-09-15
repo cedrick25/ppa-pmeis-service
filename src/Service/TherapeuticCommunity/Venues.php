@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Service\TherapeuticCommunity;
 
 use App\Common\AppFormatter;
-use App\Common\AppHydrator;
 use App\Enum\AuditTrailActions;
 use App\Enum\Response as ResponseEnum;
 use App\Repository\VenuesRepository;
@@ -23,7 +22,6 @@ class Venues implements VenuesInterface
         private AppFormatter     $appFormatter,
         private VenuesRepository $repository,
         private AuditTrail       $auditTrail,
-        private AppHydrator      $hydrator,
     ) {
         $class = new \ReflectionClass($this);
         $this->shortName = $class->getShortName();
@@ -76,6 +74,8 @@ class Venues implements VenuesInterface
                 return $this->appFormatter->formatResponse(ResponseEnum::DELETING_FAILED, null, ['app' => ResponseEnum::NO_DATA]);
             }
 
+            $this->auditTrail->log(AuditTrailActions::DELETE, [], $this->shortName, $id);
+
             return $this->appFormatter->formatResponse(ResponseEnum::DELETING_SUCCESS, null);
         } catch (InvalidArgumentException $exception) {
             return $this->appFormatter->formatResponse(ResponseEnum::DELETING_FAILED, null, ['cache' => $exception->getMessage()]);
@@ -92,6 +92,8 @@ class Venues implements VenuesInterface
             if ($isUpdated !== ResponseEnum::OK) {
                 return $this->appFormatter->formatResponse(ResponseEnum::UPDATING_FAILED, null, ['app' => $isUpdated]);
             }
+
+            $this->auditTrail->log(AuditTrailActions::UPDATE, ['name' => $name], $this->shortName, $id);
 
             return $this->appFormatter->formatResponse(ResponseEnum::UPDATING_SUCCESS, null);
         } catch (Exception $e) {

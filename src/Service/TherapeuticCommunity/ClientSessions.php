@@ -83,6 +83,8 @@ class ClientSessions implements ClientSessionsInterface
                 return $this->appFormatter->formatResponse(ResponseEnum::DELETING_FAILED, null, ['app' => ResponseEnum::NO_DATA]);
             }
 
+            $this->auditTrail->log(AuditTrailActions::DELETE, [], $this->shortName, $id);
+
             return $this->appFormatter->formatResponse(ResponseEnum::DELETING_SUCCESS, null);
         } catch (InvalidArgumentException $exception) {
             return $this->appFormatter->formatResponse(ResponseEnum::DELETING_FAILED, null, ['cache' => $exception->getMessage()]);
@@ -99,6 +101,8 @@ class ClientSessions implements ClientSessionsInterface
             if ($isUpdated !== "OK") {
                 return $this->appFormatter->formatResponse(ResponseEnum::UPDATING_FAILED, null, ['app' => $isUpdated]);
             }
+
+            $this->auditTrail->log(AuditTrailActions::UPDATE, $this->hydrator->convertObjectToArray($clientSessions), $this->shortName, $id);
 
             return $this->appFormatter->formatResponse(ResponseEnum::UPDATING_SUCCESS, null);
         } catch (Exception $e) {

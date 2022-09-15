@@ -30,11 +30,7 @@ class GenerateTable implements GenerateTableInterface
         try {
             $fileData = $this->report->create($data);
 
-            $this->auditTrail->log(
-                AuditTrailActions::GENERATE_REPORT,
-                $data,
-                $this->shortName,
-            );
+            $this->auditTrail->log(AuditTrailActions::GENERATE_REPORT, $data, $this->shortName,);
 
             // TODO: remove generated file
             return $this->appFormatter->formatResponse(ResponseEnum::GENERATING_SUCCESS, $fileData);

@@ -48,12 +48,7 @@ class JailDecongestion implements JailDecongestionInterface
                 return $this->appFormatter->formatResponse(ResponseEnum::CREATING_FAILED, null, ['app' => 'Jail Decongestion already exist']);
             }
 
-            $this->auditTrail->log(
-                AuditTrailActions::CREATE,
-                $this->hydrator->convertObjectToArray($data),
-                $this->shortName,
-                $id
-            );
+            $this->auditTrail->log(AuditTrailActions::CREATE, $this->hydrator->convertObjectToArray($data), $this->shortName, $id);
 
             return $this->appFormatter->formatResponse(ResponseEnum::CREATING_SUCCESS, ['id' => $id]);
         } catch (InvalidArgumentException $exception) {
@@ -97,6 +92,8 @@ class JailDecongestion implements JailDecongestionInterface
             if (! $isDeleted) {
                 return $this->appFormatter->formatResponse(ResponseEnum::DELETING_FAILED, null, ['app' => ResponseEnum::NO_DATA]);
             }
+
+            $this->auditTrail->log(AuditTrailActions::CREATE, [], $this->shortName, $id);
 
             return $this->appFormatter->formatResponse(ResponseEnum::DELETING_SUCCESS, null);
         } catch (InvalidArgumentException $exception) {

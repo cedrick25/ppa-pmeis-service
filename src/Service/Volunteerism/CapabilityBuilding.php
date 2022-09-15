@@ -3,7 +3,6 @@
 namespace App\Service\Volunteerism;
 
 use App\Common\AppFormatter;
-use App\Common\AppHydrator;
 use App\Enum\AuditTrailActions;
 use App\Enum\Response as ResponseEnum;
 use App\Repository\CapabilityBuildingRepository;
@@ -22,7 +21,6 @@ class CapabilityBuilding implements CapabilityBuildingInterface
         private CapabilityBuildingRepository $repository,
         private QuartersRepository           $quartersRepository,
         private AuditTrail                   $auditTrail,
-        private AppHydrator                  $hydrator,
     ) {
         $class = new \ReflectionClass($this);
         $this->shortName = $class->getShortName();
@@ -36,11 +34,7 @@ class CapabilityBuilding implements CapabilityBuildingInterface
         try {
             $this->repository->batchCreate($data);
 
-            $this->auditTrail->log(
-                AuditTrailActions::CREATE,
-                $this->hydrator->convertObjectToArray($data),
-                $this->shortName,
-            );
+            $this->auditTrail->log(AuditTrailActions::CREATE, $data, $this->shortName);
 
             return $this->appFormatter->formatResponse(ResponseEnum::CREATING_SUCCESS, []);
         } catch (InvalidArgumentException $exception) {

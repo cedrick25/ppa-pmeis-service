@@ -101,6 +101,8 @@ class Clients implements ClientsInterface
                 return $this->appFormatter->formatResponse(ResponseEnum::DELETING_FAILED, null, ['app' => ResponseEnum::NO_DATA]);
             }
 
+            $this->auditTrail->log(AuditTrailActions::DELETE, [], $this->shortName, $id);
+
             return $this->appFormatter->formatResponse(ResponseEnum::DELETING_SUCCESS, null);
         } catch (InvalidArgumentException $exception) {
             return $this->appFormatter->formatResponse(ResponseEnum::DELETING_FAILED, null, ['cache' => $exception->getMessage()]);
@@ -117,6 +119,8 @@ class Clients implements ClientsInterface
             if ($isUpdated !== ResponseEnum::OK) {
                 return $this->appFormatter->formatResponse(ResponseEnum::UPDATING_FAILED, null, ['app' => $isUpdated]);
             }
+
+            $this->auditTrail->log(AuditTrailActions::UPDATE, $this->hydrator->convertObjectToArray($clientData), $this->shortName, $id);
 
             return $this->appFormatter->formatResponse(ResponseEnum::UPDATING_SUCCESS, null);
         } catch (Exception $e) {

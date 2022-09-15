@@ -27,6 +27,9 @@ class AuditTrailActionDetailsTransformer
         return match ($action) {
             AuditTrailActions::GENERATE_REPORT => $this->transformGenerateReport($data),
             AuditTrailActions::CREATE => $this->transformCreate($data),
+            AuditTrailActions::UPDATE => $this->transformUpdate($data),
+            AuditTrailActions::DELETE => $this->transformDelete($data),
+            AuditTrailActions::DOWNLOAD => $this->transformDownload($data),
         };
     }
 
@@ -48,7 +51,49 @@ class AuditTrailActionDetailsTransformer
     private function transformCreate(array $data): array
     {
         $build = [
-            'createdId' => $data['createdId'],
+            'createdId' => $data['id'],
+            'module' => $data['module'],
+        ];
+
+        return $this->transformDefaults($data, $build);
+    }
+
+    /**
+     * @param array<string, mixed> $data
+     * @return array<string, mixed>
+     */
+    private function transformUpdate(array $data): array
+    {
+        $build = [
+            'updatedId' => $data['id'],
+            'module' => $data['module'],
+        ];
+
+        return $this->transformDefaults($data, $build);
+    }
+
+    /**
+     * @param array<string, mixed> $data
+     * @return array<string, mixed>
+     */
+    private function transformDelete(array $data): array
+    {
+        $build = [
+            'deletedId' => $data['id'],
+            'module' => $data['module'],
+        ];
+
+        return $this->transformDefaults($data, $build);
+    }
+
+    /**
+     * @param array<string, mixed> $data
+     * @return array<string, mixed>
+     */
+    private function transformDownload(array $data): array
+    {
+        $build = [
+            'downloadedId' => $data['id'],
             'module' => $data['module'],
         ];
 

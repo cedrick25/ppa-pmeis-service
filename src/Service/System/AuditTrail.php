@@ -31,7 +31,7 @@ class AuditTrail
         $data['module'] = $moduleName;
 
         if (! null == $id) {
-            $data['createdId'] = $id;
+            $data['id'] = $id;
         }
 
         $actionDetails = $this->actionDetailsTransformer->transform($action, $data);

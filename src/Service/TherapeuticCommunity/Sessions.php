@@ -58,12 +58,7 @@ class Sessions implements SessionsInterface
                 return $this->appFormatter->formatResponse(ResponseEnum::CREATING_FAILED, null, ['app' => 'Session already exist.']);
             }
 
-            $this->auditTrail->log(
-                AuditTrailActions::CREATE,
-                $this->hydrator->convertObjectToArray($sessionData),
-                $this->shortName,
-                $id
-            );
+            $this->auditTrail->log(AuditTrailActions::CREATE, $this->hydrator->convertObjectToArray($sessionData), $this->shortName, $id);
 
             return $this->appFormatter->formatResponse(ResponseEnum::CREATING_SUCCESS, ['id' => $id]);
         } catch (InvalidArgumentException $exception) {
@@ -89,6 +84,8 @@ class Sessions implements SessionsInterface
             if ($id == null) {
                 return $this->appFormatter->formatResponse(ResponseEnum::CREATING_FAILED, null, ['app' => 'Session already exist.']);
             }
+
+            $this->auditTrail->log(AuditTrailActions::CREATE, $this->hydrator->convertObjectToArray($sessionData), $this->shortName, $id);
 
             return $this->appFormatter->formatResponse(ResponseEnum::CREATING_SUCCESS, ['id' => $id]);
         } catch (InvalidArgumentException $exception) {
@@ -139,6 +136,8 @@ class Sessions implements SessionsInterface
                 return $this->appFormatter->formatResponse(ResponseEnum::DELETING_FAILED, null, ['app' => ResponseEnum::NO_DATA]);
             }
 
+            $this->auditTrail->log(AuditTrailActions::DELETE, [], $this->shortName, $id);
+
             return $this->appFormatter->formatResponse(ResponseEnum::DELETING_SUCCESS, null);
         } catch (\Psr\Cache\InvalidArgumentException $exception) {
             return $this->appFormatter->formatResponse(ResponseEnum::DELETING_FAILED, null, ['cache' => $exception->getMessage()]);
@@ -156,6 +155,8 @@ class Sessions implements SessionsInterface
                 return $this->appFormatter->formatResponse(ResponseEnum::UPDATING_FAILED, null, ['app' => $isUpdated]);
             }
 
+            $this->auditTrail->log(AuditTrailActions::UPDATE, $this->hydrator->convertObjectToArray($sessionData), $this->shortName, $id);
+
             return $this->appFormatter->formatResponse(ResponseEnum::UPDATING_SUCCESS, null);
         } catch (InvalidArgumentException|Exception $e) {
             return $this->appFormatter->formatResponse(ResponseEnum::UPDATING_FAILED, null, ['app' => $e->getMessage()]);
@@ -172,6 +173,8 @@ class Sessions implements SessionsInterface
             if ($isUpdated !== ResponseEnum::OK) {
                 return $this->appFormatter->formatResponse(ResponseEnum::UPDATING_FAILED, null, ['app' => $isUpdated]);
             }
+
+            $this->auditTrail->log(AuditTrailActions::UPDATE, $this->hydrator->convertObjectToArray($sessionData), $this->shortName, $id);
 
             return $this->appFormatter->formatResponse(ResponseEnum::UPDATING_SUCCESS, null);
         } catch (\Doctrine\DBAL\Driver\Exception $exception) {

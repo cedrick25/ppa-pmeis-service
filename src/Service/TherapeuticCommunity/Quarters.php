@@ -49,12 +49,7 @@ class Quarters implements QuartersInterface
                 return $this->appFormatter->formatResponse(ResponseEnum::CREATING_FAILED, null, ['app' => 'Quarter already exist.']);
             }
 
-            $this->auditTrail->log(
-                AuditTrailActions::CREATE,
-                $this->hydrator->convertObjectToArray($quarters),
-                $this->shortName,
-                $quarterId
-            );
+            $this->auditTrail->log(AuditTrailActions::CREATE, $this->hydrator->convertObjectToArray($quarters), $this->shortName, $quarterId);
 
             return $this->appFormatter->formatResponse(ResponseEnum::CREATING_SUCCESS, ['id' => $quarterId]);
         } catch (InvalidArgumentException $exception) {
@@ -88,6 +83,8 @@ class Quarters implements QuartersInterface
                 return $this->appFormatter->formatResponse(ResponseEnum::DELETING_FAILED, null, ['app' => ResponseEnum::NO_DATA]);
             }
 
+            $this->auditTrail->log(AuditTrailActions::DELETE, [], $this->shortName, $id);
+
             return $this->appFormatter->formatResponse(ResponseEnum::DELETING_SUCCESS, null);
         } catch (InvalidArgumentException $exception) {
             return $this->appFormatter->formatResponse(ResponseEnum::DELETING_FAILED, null, ['cache' => $exception->getMessage()]);
@@ -104,6 +101,8 @@ class Quarters implements QuartersInterface
             if ($isUpdated !== ResponseEnum::OK) {
                 return $this->appFormatter->formatResponse(ResponseEnum::UPDATING_FAILED, null, ['app' => $isUpdated]);
             }
+
+            $this->auditTrail->log(AuditTrailActions::UPDATE, $this->hydrator->convertObjectToArray($quarterData), $this->shortName, $id);
 
             return $this->appFormatter->formatResponse(ResponseEnum::UPDATING_SUCCESS, null);
         } catch (Exception $e) {

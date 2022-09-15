@@ -96,6 +96,8 @@ class RelatedRestitutions implements RelatedRestitutionsInterface
                 return $this->appFormatter->formatResponse(ResponseEnum::DELETING_FAILED, null, ['app' => ResponseEnum::NO_DATA]);
             }
 
+            $this->auditTrail->log(AuditTrailActions::DELETE, [], $this->shortName, $id);
+
             return $this->appFormatter->formatResponse(ResponseEnum::DELETING_SUCCESS, null);
         } catch (InvalidArgumentException $exception) {
             return $this->appFormatter->formatResponse(ResponseEnum::DELETING_FAILED, null, ['cache' => $exception->getMessage()]);
@@ -117,15 +119,5 @@ class RelatedRestitutions implements RelatedRestitutionsInterface
         } catch (InvalidArgumentException | CacheException  $e) {
             return $this->appFormatter->formatResponse(ResponseEnum::UPDATING_FAILED, null, ['cache' => $e->getMessage()]);
         }
-    }
-
-    private function log(RjRelatedRestitutionsModel $restitutions, int $id): void
-    {
-        $class = new \ReflectionClass($this);
-        $data = $this->hydrator->convertObjectToArray($restitutions);
-        $data['module'] = $class->getShortName();
-        $data['createdId'] = $id;
-
-        $this->auditTrail->log(AuditTrailActions::CREATE, $data);
     }
 }

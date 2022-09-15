@@ -80,12 +80,7 @@ class Volunteer implements VolunteerInterface
                 return $this->appFormatter->formatResponse(ResponseEnum::CREATING_FAILED, null, ['app' => 'Volunteer already exist']);
             }
 
-            $this->auditTrail->log(
-                AuditTrailActions::CREATE,
-                $this->hydrator->convertObjectToArray($volunteerData),
-                $this->shortName,
-                $id
-            );
+            $this->auditTrail->log(AuditTrailActions::CREATE, $this->hydrator->convertObjectToArray($volunteerData), $this->shortName, $id);
 
             return $this->appFormatter->formatResponse(ResponseEnum::CREATING_SUCCESS, ['id' => $id]);
         } catch (InvalidArgumentException $exception) {
@@ -121,6 +116,8 @@ class Volunteer implements VolunteerInterface
                 return $this->appFormatter->formatResponse(ResponseEnum::DELETING_FAILED, null, ['app' => ResponseEnum::NO_DATA]);
             }
 
+            $this->auditTrail->log(AuditTrailActions::DELETE, [], $this->shortName, $id);
+
             return $this->appFormatter->formatResponse(ResponseEnum::DELETING_SUCCESS, null);
         } catch (InvalidArgumentException $exception) {
             return $this->appFormatter->formatResponse(ResponseEnum::DELETING_FAILED, null, ['cache' => $exception->getMessage()]);
@@ -137,6 +134,8 @@ class Volunteer implements VolunteerInterface
             if ($isUpdated !== ResponseEnum::OK) {
                 return $this->appFormatter->formatResponse(ResponseEnum::UPDATING_FAILED, null, ['app' => $isUpdated]);
             }
+
+            $this->auditTrail->log(AuditTrailActions::UPDATE, $this->hydrator->convertObjectToArray($volunteerData), $this->shortName, $id);
 
             return $this->appFormatter->formatResponse(ResponseEnum::UPDATING_SUCCESS, null);
         } catch (Exception $e) {
@@ -219,6 +218,8 @@ class Volunteer implements VolunteerInterface
             if ($isUpdated !== ResponseEnum::OK) {
                 return $this->appFormatter->formatResponse(ResponseEnum::UPDATING_FAILED, null, ['app' => $isUpdated]);
             }
+
+            $this->auditTrail->log(AuditTrailActions::UPDATE, $data, $this->shortName, $data['id']);
 
             return $this->appFormatter->formatResponse(ResponseEnum::UPDATING_SUCCESS, null);
         } catch (Exception $e) {
@@ -460,6 +461,8 @@ class Volunteer implements VolunteerInterface
         $pdf->writeHTMLCell(0, 0, 0, 130, $body);
         $pdf->endPage();
 
+        $this->auditTrail->log(AuditTrailActions::DOWNLOAD, $data, $this->shortName, $data['volunteer_id']);
+
         return $pdf->Output('mark.pdf', 'E');
     }
 
@@ -604,6 +607,8 @@ class Volunteer implements VolunteerInterface
         $pdf->writeHTMLCell(0, 0, 0, 0, $body);
         $pdf->endPage();
 
+        $this->auditTrail->log(AuditTrailActions::DOWNLOAD, $data, $this->shortName, $data['volunteer_id']);
+
         return $pdf->Output('mark.pdf', 'E');
     }
 
@@ -737,12 +742,10 @@ class Volunteer implements VolunteerInterface
         $result = [];
 
         foreach ($vpaActingAsResourceIndividuals as $actingAsResourceIndividual) {
-            // if (! in_array($actingAsResourceIndividual['resourceFacilitatorId'], $vpaSupervisingClients)) {
             if (! in_array($actingAsResourceIndividual, $vpaSupervisingClients)) {
                 continue;
             }
 
-            // $result[] = $actingAsResourceIndividual['resourceFacilitatorId'];
             $result[] = $actingAsResourceIndividual;
         }
 

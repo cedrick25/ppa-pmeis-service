@@ -41,12 +41,7 @@ class Offenses implements OffensesInterface
                 return $this->appFormatter->formatResponse(ResponseEnum::CREATING_FAILED, null, ['app' => 'Offense already exist']);
             }
 
-            $this->auditTrail->log(
-                AuditTrailActions::CREATE,
-                ['name' => $name, 'type' => $type],
-                $this->shortName,
-                $id
-            );
+            $this->auditTrail->log(AuditTrailActions::CREATE, ['name' => $name, 'type' => $type], $this->shortName, $id);
 
             return $this->appFormatter->formatResponse(ResponseEnum::CREATING_SUCCESS, ['id' => $id]);
         } catch (InvalidArgumentException $exception) {
@@ -93,6 +88,8 @@ class Offenses implements OffensesInterface
                 return $this->appFormatter->formatResponse(ResponseEnum::UPDATING_FAILED, null, ['app' => $isUpdated]);
             }
 
+            $this->auditTrail->log(AuditTrailActions::UPDATE, ['name' => $name, 'type' => $type], $this->shortName, $id);
+
             return $this->appFormatter->formatResponse(ResponseEnum::UPDATING_SUCCESS, null);
         } catch (Exception $e) {
             return $this->appFormatter->formatResponse(ResponseEnum::UPDATING_FAILED, null, ['app' => $e->getMessage()]);
@@ -109,6 +106,8 @@ class Offenses implements OffensesInterface
             if (! $isDeleted) {
                 return $this->appFormatter->formatResponse(ResponseEnum::DELETING_FAILED, null, ['app' => ResponseEnum::NO_DATA]);
             }
+
+            $this->auditTrail->log(AuditTrailActions::UPDATE, [], $this->shortName, $id);
 
             return $this->appFormatter->formatResponse(ResponseEnum::DELETING_SUCCESS, null);
         } catch (InvalidArgumentException $exception) {

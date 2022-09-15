@@ -31,7 +31,7 @@ class ResourceFacilitatorSession implements ResourceFacilitatorSessionInterface
         private QuartersRepository                   $quartersRepository,
         private AuditTrail                           $auditTrail,
         private AppHydrator                          $hydrator,
-    ){
+    ) {
         $class = new \ReflectionClass($this);
         $this->shortName = $class->getShortName();
     }
@@ -96,6 +96,8 @@ class ResourceFacilitatorSession implements ResourceFacilitatorSessionInterface
                 return $this->appFormatter->formatResponse(ResponseEnum::DELETING_FAILED, null, ['app' => ResponseEnum::NO_DATA]);
             }
 
+            $this->auditTrail->log(AuditTrailActions::DELETE, [], $this->shortName, $id);
+
             return $this->appFormatter->formatResponse(ResponseEnum::DELETING_SUCCESS, null);
         } catch (InvalidArgumentException $exception) {
             return $this->appFormatter->formatResponse(ResponseEnum::DELETING_FAILED, null, ['cache' => $exception->getMessage()]);
@@ -112,6 +114,13 @@ class ResourceFacilitatorSession implements ResourceFacilitatorSessionInterface
             if ($isUpdated !== ResponseEnum::OK) {
                 return $this->appFormatter->formatResponse(ResponseEnum::UPDATING_FAILED, null, ['app' => $isUpdated]);
             }
+
+            $this->auditTrail->log(
+                AuditTrailActions::UPDATE,
+                $this->hydrator->convertObjectToArray($resourceFacilitatorSessionData),
+                $this->shortName,
+                $id
+            );
 
             return $this->appFormatter->formatResponse(ResponseEnum::UPDATING_SUCCESS, null);
         } catch (Exception $e) {
@@ -176,7 +185,7 @@ class ResourceFacilitatorSession implements ResourceFacilitatorSessionInterface
                 ];
             }
 
-            if (sizeof($data) == 0) {
+            if (empty($data)) {
                 return $this->appFormatter->formatResponse(ResponseEnum::NO_DATA, null);
             }
 

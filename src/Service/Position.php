@@ -3,18 +3,26 @@
 namespace App\Service;
 
 use App\Common\AppFormatter;
+use App\Enum\AuditTrailActions;
 use App\Enum\Response as ResponseEnum;
 use App\Repository\PositionRepository;
+use App\Service\System\AuditTrail;
 use Doctrine\ORM\ORMException;
 use Psr\Cache\CacheException;
 use Psr\Cache\InvalidArgumentException;
 
 class Position implements PositionInterface
 {
+    private string $shortName;
+
     public function __construct(
         private AppFormatter       $appFormatter,
         private PositionRepository $repository,
-    ){}
+        private AuditTrail         $auditTrail,
+    ) {
+        $class = new \ReflectionClass($this);
+        $this->shortName = $class->getShortName();
+    }
 
     public function getAll(): array
     {
@@ -43,6 +51,8 @@ class Position implements PositionInterface
             if ($id == null) {
                 return $this->appFormatter->formatResponse(ResponseEnum::CREATING_FAILED, null, ['app' => 'Position exist']);
             }
+
+            $this->auditTrail->log(AuditTrailActions::CREATE, ['name' => $name], $this->shortName, $id);
 
             return $this->appFormatter->formatResponse(ResponseEnum::CREATING_SUCCESS, ['id' => $id]);
         } catch (InvalidArgumentException $exception) {

@@ -41,11 +41,7 @@ class VolunteerSupervisions implements VolunteerSupervisionsInterface
 
             $this->repository->bulkCreate($data);
 
-            $this->auditTrail->log(
-                AuditTrailActions::CREATE,
-                $this->hydrator->convertObjectToArray($data),
-                $this->shortName,
-            );
+            $this->auditTrail->log(AuditTrailActions::CREATE, $this->hydrator->convertObjectToArray($data), $this->shortName);
 
             return $this->appFormatter->formatResponse(ResponseEnum::CREATING_SUCCESS, []);
         } catch (InvalidArgumentException $exception) {
@@ -89,6 +85,8 @@ class VolunteerSupervisions implements VolunteerSupervisionsInterface
             if (! $isDeleted) {
                 return $this->appFormatter->formatResponse(ResponseEnum::DELETING_FAILED, null, ['app' => ResponseEnum::NO_DATA]);
             }
+
+            $this->auditTrail->log(AuditTrailActions::DELETE, [], $this->shortName, $id);
 
             return $this->appFormatter->formatResponse(ResponseEnum::DELETING_SUCCESS, null);
         } catch (InvalidArgumentException $exception) {

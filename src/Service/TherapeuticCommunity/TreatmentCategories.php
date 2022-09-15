@@ -3,8 +3,10 @@
 namespace App\Service\TherapeuticCommunity;
 
 use App\Common\AppFormatter;
+use App\Enum\AuditTrailActions;
 use App\Enum\Response as ResponseEnum;
 use App\Repository\TreatmentCategoriesRepository;
+use App\Service\System\AuditTrail;
 use Doctrine\ORM\ORMException;
 use Exception;
 use Psr\Cache\CacheException;
@@ -12,9 +14,12 @@ use Psr\Cache\InvalidArgumentException;
 
 class TreatmentCategories implements TreatmentCategoriesInterface
 {
+    private string $shortName;
+
     public function __construct(
         private AppFormatter                $appFormatter,
-        private TreatmentCategoriesRepository $repository
+        private TreatmentCategoriesRepository $repository,
+        private AuditTrail                  $auditTrail,
     ){}
 
     public function getAll(): array
@@ -71,6 +76,8 @@ class TreatmentCategories implements TreatmentCategoriesInterface
                 return $this->appFormatter->formatResponse(ResponseEnum::CREATING_FAILED, null, ['app' => 'Treatment Category exist']);
             }
 
+            $this->auditTrail->log(AuditTrailActions::CREATE, ['name' => $name], $this->shortName, $id);
+
             return $this->appFormatter->formatResponse(ResponseEnum::CREATING_SUCCESS, ['id' => $id]);
         } catch (InvalidArgumentException $exception) {
             return $this->appFormatter->formatResponse(ResponseEnum::CREATING_FAILED, null, ['cache' => $exception->getMessage()]);
@@ -88,6 +95,8 @@ class TreatmentCategories implements TreatmentCategoriesInterface
                 return $this->appFormatter->formatResponse(ResponseEnum::DELETING_FAILED, null, ['app' => ResponseEnum::NO_DATA]);
             }
 
+            $this->auditTrail->log(AuditTrailActions::DELETE, [], $this->shortName, $id);
+
             return $this->appFormatter->formatResponse(ResponseEnum::DELETING_SUCCESS, null);
         } catch (InvalidArgumentException $exception) {
             return $this->appFormatter->formatResponse(ResponseEnum::DELETING_FAILED, null, ['cache' => $exception->getMessage()]);
@@ -104,6 +113,8 @@ class TreatmentCategories implements TreatmentCategoriesInterface
             if ($isUpdated !== ResponseEnum::OK) {
                 return $this->appFormatter->formatResponse(ResponseEnum::UPDATING_FAILED, null, ['app' => $isUpdated]);
             }
+
+            $this->auditTrail->log(AuditTrailActions::UPDATE, ['name' => $name], $this->shortName, $id);
 
             return $this->appFormatter->formatResponse(ResponseEnum::UPDATING_SUCCESS, null);
         } catch (Exception $e) {
