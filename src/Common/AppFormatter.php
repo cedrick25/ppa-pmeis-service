@@ -50,7 +50,7 @@ class AppFormatter
     {
         return [
             "itemCount" => $totalItems,
-            "pageCount" => $pageCount,
+            "pageCount" => (int) $pageCount,
             "items" => $pageItems
         ];
     }

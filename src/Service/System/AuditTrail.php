@@ -2,6 +2,7 @@
 
 namespace App\Service\System;
 
+use App\Common\FileHelper;
 use App\Entity\UserAccount;
 use App\Repository\AuditTrailRepository;
 use App\Repository\UserAccountRepository;
@@ -14,6 +15,7 @@ class AuditTrail
         private TokenStorageInterface $tokenStorage,
         private AuditTrailActionDetailsTransformer $actionDetailsTransformer,
         private UserAccountRepository $userAccountRepository,
+        private FileHelper $fileHelper,
     ) {
     }
 
@@ -63,6 +65,23 @@ class AuditTrail
         ?string $jsonColumn = ''): array
     {
         return $this->repository->paginated($page, $pageSize, $searchColumn, $searchValue, $jsonColumn);
+    }
+
+    /**
+     * @return array<string, mixed>
+     * @throws \Psr\Cache\CacheException
+     * @throws \Psr\Cache\InvalidArgumentException
+     */
+    public function download(
+        int $page = 1,
+        int $pageSize = 10,
+        ?string $searchColumn = '',
+        ?string $searchValue = '',
+        ?string $jsonColumn = ''): array
+    {
+        $data = $this->repository->paginated($page, $pageSize, $searchColumn, $searchValue, $jsonColumn);
+
+        return $this->fileHelper->arrayToCSV($data['items']);
     }
 
     /**
