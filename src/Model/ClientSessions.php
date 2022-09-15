@@ -2,7 +2,9 @@
 
 namespace App\Model;
 
-class ClientSessions
+use App\Common\AppHydrator;
+
+class ClientSessions implements \JsonSerializable
 {
     public function __construct(
         private int $clientId,
@@ -32,5 +34,12 @@ class ClientSessions
     public function getRole(): string
     {
         return $this->role;
+    }
+
+    public function jsonSerialize(): array
+    {
+        $hydrate = new AppHydrator();
+
+        return $hydrate->convertObjectToArray($this);
     }
 }

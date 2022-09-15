@@ -2,10 +2,11 @@
 
 namespace App\Model;
 
+use App\Common\AppHydrator;
 use DateTimeImmutable;
 use Symfony\Component\Validator\Constraints as Assert;
 
-class VolunteerSupervisions
+class VolunteerSupervisions implements \JsonSerializable
 {
     /**
      * @param int[] $clientIds
@@ -118,5 +119,12 @@ class VolunteerSupervisions
     public function getDeletedAt(): ?DateTimeImmutable
     {
         return $this->deletedAt;
+    }
+
+    public function jsonSerialize(): array
+    {
+        $hydrate = new AppHydrator();
+
+        return $hydrate->convertObjectToArray($this);
     }
 }

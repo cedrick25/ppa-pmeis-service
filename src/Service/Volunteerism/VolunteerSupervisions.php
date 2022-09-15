@@ -3,7 +3,6 @@
 namespace App\Service\Volunteerism;
 
 use App\Common\AppFormatter;
-use App\Common\AppHydrator;
 use App\Enum\AuditTrailActions;
 use App\Enum\Response as ResponseEnum;
 use App\Model\VolunteerSupervisions as VolunteerSupervisionsModel;
@@ -24,7 +23,6 @@ class VolunteerSupervisions implements VolunteerSupervisionsInterface
         private AppFormatter                    $appFormatter,
         private VolunteerSupervisionsRepository $repository,
         private AuditTrail                      $auditTrail,
-        private AppHydrator                     $hydrator,
     ) {
         $class = new \ReflectionClass($this);
         $this->shortName = $class->getShortName();
@@ -41,7 +39,7 @@ class VolunteerSupervisions implements VolunteerSupervisionsInterface
 
             $this->repository->bulkCreate($data);
 
-            $this->auditTrail->log(AuditTrailActions::CREATE, $this->hydrator->convertObjectToArray($data), $this->shortName);
+            $this->auditTrail->log(AuditTrailActions::CREATE, $data->jsonSerialize(), $this->shortName);
 
             return $this->appFormatter->formatResponse(ResponseEnum::CREATING_SUCCESS, []);
         } catch (InvalidArgumentException $exception) {

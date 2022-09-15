@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Service\TherapeuticCommunity;
 
 use App\Common\AppFormatter;
-use App\Common\AppHydrator;
 use App\Enum\AuditTrailActions;
 use App\Enum\Response as ResponseEnum;
 use App\Repository\ClientTypesRepository;
@@ -25,7 +24,6 @@ class ClientTypes implements ClientTypesInterface
         private AppFormatter          $appFormatter,
         private ClientTypesRepository $repository,
         private AuditTrail            $auditTrail,
-        private AppHydrator           $hydrator,
     ){
         $class = new \ReflectionClass($this);
         $this->shortName = $class->getShortName();
@@ -46,7 +44,7 @@ class ClientTypes implements ClientTypesInterface
                 return $this->appFormatter->formatResponse(ResponseEnum::CREATING_FAILED, null, ['app' => 'Type already exist']);
             }
 
-            $this->auditTrail->log(AuditTrailActions::CREATE, $this->hydrator->convertObjectToArray($clientTypes), $this->shortName, $id);
+            $this->auditTrail->log(AuditTrailActions::CREATE, $clientTypes->jsonSerialize(), $this->shortName, $id);
 
             return $this->appFormatter->formatResponse(ResponseEnum::CREATING_SUCCESS, ['id' => $id]);
         } catch (InvalidArgumentException $exception) {

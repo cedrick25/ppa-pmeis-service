@@ -2,10 +2,11 @@
 
 namespace App\Model;
 
+use App\Common\AppHydrator;
 use DateTimeInterface;
 use Symfony\Component\Validator\Constraints as Assert;
 
-class ProgramMaterialsDevelopment
+class ProgramMaterialsDevelopment implements \JsonSerializable
 {
     public function __construct(
         private string $particulars,
@@ -107,5 +108,12 @@ class ProgramMaterialsDevelopment
     public function getDeletedAt(): ?DateTimeInterface
     {
         return $this->deletedAt;
+    }
+
+    public function jsonSerialize(): array
+    {
+        $hydrate = new AppHydrator();
+
+        return $hydrate->convertObjectToArray($this);
     }
 }

@@ -4,7 +4,6 @@ namespace App\Service\Volunteerism;
 
 use App\Common\AppDateHelper;
 use App\Common\AppFormatter;
-use App\Common\AppHydrator;
 use App\Entity\Quarters;
 use App\Enum\AuditTrailActions;
 use App\Enum\Response as ResponseEnum;
@@ -37,8 +36,6 @@ class Volunteer implements VolunteerInterface
 
     const APPOINTED = 'APPOINTED';
     const REAPPOINTED = 'REAPPOINTED';
-    const DROPPED = 'DROPPED';
-    const INACTIVE = 'INACTIVE';
 
     public function __construct(
         private ValidatorInterface                          $validator,
@@ -59,7 +56,6 @@ class Volunteer implements VolunteerInterface
         private RJRelatedActivitiesRepository               $rjRelatedActivitiesRepository,
         private VpaAssociationInitiatedActivitiesRepository $vpaAssociationRepository,
         private AuditTrail                                  $auditTrail,
-        private AppHydrator                                 $hydrator,
     ) {
         $class = new \ReflectionClass($this);
         $this->shortName = $class->getShortName();
@@ -80,7 +76,7 @@ class Volunteer implements VolunteerInterface
                 return $this->appFormatter->formatResponse(ResponseEnum::CREATING_FAILED, null, ['app' => 'Volunteer already exist']);
             }
 
-            $this->auditTrail->log(AuditTrailActions::CREATE, $this->hydrator->convertObjectToArray($volunteerData), $this->shortName, $id);
+            $this->auditTrail->log(AuditTrailActions::CREATE, $volunteerData->jsonSerialize(), $this->shortName, $id);
 
             return $this->appFormatter->formatResponse(ResponseEnum::CREATING_SUCCESS, ['id' => $id]);
         } catch (InvalidArgumentException $exception) {
@@ -135,7 +131,7 @@ class Volunteer implements VolunteerInterface
                 return $this->appFormatter->formatResponse(ResponseEnum::UPDATING_FAILED, null, ['app' => $isUpdated]);
             }
 
-            $this->auditTrail->log(AuditTrailActions::UPDATE, $this->hydrator->convertObjectToArray($volunteerData), $this->shortName, $id);
+            $this->auditTrail->log(AuditTrailActions::UPDATE, $volunteerData->jsonSerialize(), $this->shortName, $id);
 
             return $this->appFormatter->formatResponse(ResponseEnum::UPDATING_SUCCESS, null);
         } catch (Exception $e) {

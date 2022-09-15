@@ -3,7 +3,6 @@
 namespace App\Service\Volunteerism;
 
 use App\Common\AppFormatter;
-use App\Common\AppHydrator;
 use App\Enum\AuditTrailActions;
 use App\Enum\Response as ResponseEnum;
 use App\Repository\QuartersRepository;
@@ -26,7 +25,6 @@ class TechnicalAssistance implements TechnicalAssistanceInterface
         private TechnicalAssistanceRepository   $repository,
         private QuartersRepository              $quartersRepository,
         private AuditTrail                      $auditTrail,
-        private AppHydrator                     $hydrator,
     ) {
         $class = new \ReflectionClass($this);
         $this->shortName = $class->getShortName();
@@ -49,7 +47,7 @@ class TechnicalAssistance implements TechnicalAssistanceInterface
 
             $this->auditTrail->log(
                 AuditTrailActions::CREATE,
-                $this->hydrator->convertObjectToArray($technicalAssistanceData),
+                $technicalAssistanceData->jsonSerialize(),
                 $this->shortName,
                 $id
             );

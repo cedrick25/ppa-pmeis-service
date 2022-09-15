@@ -4,9 +4,10 @@ declare(strict_types=1);
 
 namespace App\Model;
 
+use App\Common\AppHydrator;
 use Symfony\Component\Validator\Constraints as Assert;
 
-class VolunteerOperations
+class VolunteerOperations implements \JsonSerializable
 {
     public function __construct(
         private int $volunteerId,
@@ -66,5 +67,12 @@ class VolunteerOperations
     public function getDroppedBy(): ?int
     {
         return $this->droppedBy;
+    }
+
+    public function jsonSerialize(): array
+    {
+        $hydrate = new AppHydrator();
+
+        return $hydrate->convertObjectToArray($this);
     }
 }

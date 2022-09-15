@@ -3,7 +3,6 @@
 namespace App\Service\Volunteerism;
 
 use App\Common\AppFormatter;
-use App\Common\AppHydrator;
 use App\Enum\AuditTrailActions;
 use App\Enum\Response as ResponseEnum;
 use App\Model\SocialMarketing as SocialMarketingModel;
@@ -26,7 +25,6 @@ class SocialMarketing implements SocialMarketingInterface
         private SocialMarketingRepository    $repository,
         private QuartersRepository           $quartersRepository,
         private AuditTrail                   $auditTrail,
-        private AppHydrator                  $hydrator,
     ) {
         $class = new \ReflectionClass($this);
         $this->shortName = $class->getShortName();
@@ -47,7 +45,7 @@ class SocialMarketing implements SocialMarketingInterface
                 return $this->appFormatter->formatResponse(ResponseEnum::CREATING_FAILED, null, ['app' => 'Social Marketing already exist']);
             }
 
-            $this->auditTrail->log(AuditTrailActions::CREATE, $this->hydrator->convertObjectToArray($data), $this->shortName, $id);
+            $this->auditTrail->log(AuditTrailActions::CREATE, $data->jsonSerialize(), $this->shortName, $id);
 
             return $this->appFormatter->formatResponse(ResponseEnum::CREATING_SUCCESS, ['id' => $id]);
         } catch (InvalidArgumentException $exception) {

@@ -1,9 +1,10 @@
 <?php
 
 namespace App\Model;
+use App\Common\AppHydrator;
 use Symfony\Component\Validator\Constraints as Assert;
 
-class ClientTypes
+class ClientTypes implements \JsonSerializable
 {
     public function __construct(
         private string $code,
@@ -26,5 +27,12 @@ class ClientTypes
     public function getDescription(): string
     {
         return $this->description;
+    }
+
+    public function jsonSerialize(): array
+    {
+        $hydrate = new AppHydrator();
+
+        return $hydrate->convertObjectToArray($this);
     }
 }

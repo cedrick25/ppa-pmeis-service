@@ -2,9 +2,10 @@
 
 namespace App\Model;
 
+use App\Common\AppHydrator;
 use Symfony\Component\Validator\Constraints as Assert;
 
-class ResourceFacilitatorSession
+class ResourceFacilitatorSession implements \JsonSerializable
 {
     public function __construct(
         private int $sessionId,
@@ -58,5 +59,12 @@ class ResourceFacilitatorSession
     public function getErpName(): ?string
     {
         return $this->erpName;
+    }
+
+    public function jsonSerialize(): array
+    {
+        $hydrate = new AppHydrator();
+
+        return $hydrate->convertObjectToArray($this);
     }
 }

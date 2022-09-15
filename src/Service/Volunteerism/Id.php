@@ -3,7 +3,6 @@
 namespace App\Service\Volunteerism;
 
 use App\Common\AppFormatter;
-use App\Common\AppHydrator;
 use App\Enum\AuditTrailActions;
 use App\Enum\Response as ResponseEnum;
 use App\Model\VolunteerId as VolunteerIdModel;
@@ -23,7 +22,6 @@ class Id implements IdInterface
         private AppFormatter          $appFormatter,
         private VolunteerIdRepository $repository,
         private AuditTrail            $auditTrail,
-        private AppHydrator           $hydrator,
     ) {
         $class = new \ReflectionClass($this);
         $this->shortName = $class->getShortName();
@@ -44,7 +42,7 @@ class Id implements IdInterface
                 return $this->appFormatter->formatResponse(ResponseEnum::CREATING_FAILED, null, ['app' => 'Volunteer id already exist']);
             }
 
-            $this->auditTrail->log(AuditTrailActions::CREATE, $this->hydrator->convertObjectToArray($idData), $this->shortName, $id);
+            $this->auditTrail->log(AuditTrailActions::CREATE, $idData->jsonSerialize(), $this->shortName, $id);
 
             return $this->appFormatter->formatResponse(ResponseEnum::CREATING_SUCCESS, ['id' => $id]);
         } catch (InvalidArgumentException $exception) {

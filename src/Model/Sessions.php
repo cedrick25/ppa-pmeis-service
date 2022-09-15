@@ -4,10 +4,11 @@ declare(strict_types=1);
 
 namespace App\Model;
 
+use App\Common\AppHydrator;
 use DateTimeInterface;
 use Symfony\Component\Validator\Constraints as Assert;
 
-class Sessions
+class Sessions implements \JsonSerializable
 {
     public function __construct(
         private int $remarksId,
@@ -192,5 +193,12 @@ class Sessions
     public function getAbsentees(): ?array
     {
         return $this->absentees;
+    }
+
+    public function jsonSerialize(): array
+    {
+        $hydrate = new AppHydrator();
+
+        return $hydrate->convertObjectToArray($this);
     }
 }

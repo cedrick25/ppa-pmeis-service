@@ -3,7 +3,6 @@
 namespace App\Service\TherapeuticCommunity;
 
 use App\Common\AppFormatter;
-use App\Common\AppHydrator;
 use App\Enum\AuditTrailActions;
 use App\Enum\Response as ResponseEnum;
 use App\Model\ResourceFacilitatorSession as ResourceFacilitatorSessionModel;
@@ -30,7 +29,6 @@ class ResourceFacilitatorSession implements ResourceFacilitatorSessionInterface
         private ClientSessionsRepository             $clientSessionsRepository,
         private QuartersRepository                   $quartersRepository,
         private AuditTrail                           $auditTrail,
-        private AppHydrator                          $hydrator,
     ) {
         $class = new \ReflectionClass($this);
         $this->shortName = $class->getShortName();
@@ -55,12 +53,7 @@ class ResourceFacilitatorSession implements ResourceFacilitatorSessionInterface
                 );
             }
 
-            $this->auditTrail->log(
-                AuditTrailActions::CREATE,
-                $this->hydrator->convertObjectToArray($resourceFacilitatorSessionData),
-                $this->shortName,
-                $id
-            );
+            $this->auditTrail->log(AuditTrailActions::CREATE, $resourceFacilitatorSessionData->jsonSerialize(), $this->shortName, $id);
 
             return $this->appFormatter->formatResponse(ResponseEnum::CREATING_SUCCESS, ['id' => $id]);
         } catch (InvalidArgumentException $exception) {
@@ -115,12 +108,7 @@ class ResourceFacilitatorSession implements ResourceFacilitatorSessionInterface
                 return $this->appFormatter->formatResponse(ResponseEnum::UPDATING_FAILED, null, ['app' => $isUpdated]);
             }
 
-            $this->auditTrail->log(
-                AuditTrailActions::UPDATE,
-                $this->hydrator->convertObjectToArray($resourceFacilitatorSessionData),
-                $this->shortName,
-                $id
-            );
+            $this->auditTrail->log(AuditTrailActions::UPDATE, $resourceFacilitatorSessionData->jsonSerialize(), $this->shortName, $id);
 
             return $this->appFormatter->formatResponse(ResponseEnum::UPDATING_SUCCESS, null);
         } catch (Exception $e) {

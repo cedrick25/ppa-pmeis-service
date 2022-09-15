@@ -6,8 +6,6 @@ namespace App\Service\Volunteerism;
 
 use App\Common\AppDateHelper;
 use App\Common\AppFormatter;
-use App\Common\AppHydrator;
-use App\Entity\Volunteer;
 use App\Enum\AuditTrailActions;
 use App\Enum\Response as ResponseEnum;
 use App\Model\VolunteerOperations as VolunteerOperationsModel;
@@ -40,7 +38,6 @@ class Operations implements OperationsInterface
         private VolunteerRepository                  $volunteerRepository,
         private ResourceFacilitatorSessionRepository $resourceFacilitatorSessionRepository,
         private AuditTrail                           $auditTrail,
-        private AppHydrator                          $hydrator,
     ) {
         $class = new \ReflectionClass($this);
         $this->shortName = $class->getShortName();
@@ -61,7 +58,7 @@ class Operations implements OperationsInterface
                 return $this->appFormatter->formatResponse(ResponseEnum::CREATING_FAILED, null, ['app' => 'Volunteer operations already exist']);
             }
 
-            $this->auditTrail->log(AuditTrailActions::CREATE, $this->hydrator->convertObjectToArray($operation), $this->shortName, $id);
+            $this->auditTrail->log(AuditTrailActions::CREATE, $operation->jsonSerialize(), $this->shortName, $id);
 
             return $this->appFormatter->formatResponse(ResponseEnum::CREATING_SUCCESS, ['id' => $id]);
         } catch (InvalidArgumentException $exception) {

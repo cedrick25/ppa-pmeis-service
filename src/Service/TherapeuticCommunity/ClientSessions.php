@@ -3,7 +3,6 @@
 namespace App\Service\TherapeuticCommunity;
 
 use App\Common\AppFormatter;
-use App\Common\AppHydrator;
 use App\Enum\AuditTrailActions;
 use App\Enum\Response as ResponseEnum;
 use \App\Model\ClientSessions as ClientSessionModel;
@@ -24,8 +23,10 @@ class ClientSessions implements ClientSessionsInterface
         private AppFormatter             $appFormatter,
         private ClientSessionsRepository $repository,
         private AuditTrail               $auditTrail,
-        private AppHydrator              $hydrator,
-    ){}
+    ) {
+        $class = new \ReflectionClass($this);
+        $this->shortName = $class->getShortName();
+    }
 
     public function create(ClientSessionModel $clientSessions): array
     {
@@ -44,7 +45,7 @@ class ClientSessions implements ClientSessionsInterface
 
             $this->auditTrail->log(
                 AuditTrailActions::CREATE,
-                $this->hydrator->convertObjectToArray($clientSessions),
+                $clientSessions->jsonSerialize(),
                 $this->shortName,
                 $id
             );
@@ -102,7 +103,7 @@ class ClientSessions implements ClientSessionsInterface
                 return $this->appFormatter->formatResponse(ResponseEnum::UPDATING_FAILED, null, ['app' => $isUpdated]);
             }
 
-            $this->auditTrail->log(AuditTrailActions::UPDATE, $this->hydrator->convertObjectToArray($clientSessions), $this->shortName, $id);
+            $this->auditTrail->log(AuditTrailActions::UPDATE, $clientSessions->jsonSerialize(), $this->shortName, $id);
 
             return $this->appFormatter->formatResponse(ResponseEnum::UPDATING_SUCCESS, null);
         } catch (Exception $e) {

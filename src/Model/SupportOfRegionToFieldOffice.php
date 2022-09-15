@@ -2,10 +2,11 @@
 
 namespace App\Model;
 
+use App\Common\AppHydrator;
 use DateTimeInterface;
 use Symfony\Component\Validator\Constraints as Assert;
 
-class SupportOfRegionToFieldOffice
+class SupportOfRegionToFieldOffice implements \JsonSerializable
 {
     public function __construct(
         private string $category,
@@ -129,5 +130,12 @@ class SupportOfRegionToFieldOffice
     public function getDeletedAt(): ?DateTimeInterface
     {
         return $this->deletedAt;
+    }
+
+    public function jsonSerialize(): array
+    {
+        $hydrate = new AppHydrator();
+
+        return $hydrate->convertObjectToArray($this);
     }
 }

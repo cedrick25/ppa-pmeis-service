@@ -4,11 +4,12 @@ declare(strict_types=1);
 
 namespace App\Model;
 
+use App\Common\AppHydrator;
 use DateTimeInterface;
 use Symfony\Component\Validator\Constraints as Assert;
 
 
-class UserAccountWithDetails
+class UserAccountWithDetails implements \JsonSerializable
 {
     public function __construct(
         private string $emailAddress,
@@ -207,5 +208,12 @@ class UserAccountWithDetails
     public function isPwd(): bool
     {
         return $this->isPwd;
+    }
+
+    public function jsonSerialize(): array
+    {
+        $hydrate = new AppHydrator();
+
+        return $hydrate->convertObjectToArray($this);
     }
 }

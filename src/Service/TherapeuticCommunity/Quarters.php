@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Service\TherapeuticCommunity;
 
 use App\Common\AppFormatter;
-use App\Common\AppHydrator;
 use App\Enum\AuditTrailActions;
 use App\Enum\Response as ResponseEnum;
 use App\Model\Quarters as QuartersModel;
@@ -28,7 +27,6 @@ class Quarters implements QuartersInterface
         private QuartersRepository       $repository,
         private ClientSessionsRepository $clientSessionsRepository,
         private AuditTrail               $auditTrail,
-        private AppHydrator              $hydrator,
     ){
         $class = new \ReflectionClass($this);
         $this->shortName = $class->getShortName();
@@ -49,7 +47,7 @@ class Quarters implements QuartersInterface
                 return $this->appFormatter->formatResponse(ResponseEnum::CREATING_FAILED, null, ['app' => 'Quarter already exist.']);
             }
 
-            $this->auditTrail->log(AuditTrailActions::CREATE, $this->hydrator->convertObjectToArray($quarters), $this->shortName, $quarterId);
+            $this->auditTrail->log(AuditTrailActions::CREATE, $quarters->jsonSerialize(), $this->shortName, $quarterId);
 
             return $this->appFormatter->formatResponse(ResponseEnum::CREATING_SUCCESS, ['id' => $quarterId]);
         } catch (InvalidArgumentException $exception) {
@@ -102,7 +100,7 @@ class Quarters implements QuartersInterface
                 return $this->appFormatter->formatResponse(ResponseEnum::UPDATING_FAILED, null, ['app' => $isUpdated]);
             }
 
-            $this->auditTrail->log(AuditTrailActions::UPDATE, $this->hydrator->convertObjectToArray($quarterData), $this->shortName, $id);
+            $this->auditTrail->log(AuditTrailActions::UPDATE, $quarterData->jsonSerialize(), $this->shortName, $id);
 
             return $this->appFormatter->formatResponse(ResponseEnum::UPDATING_SUCCESS, null);
         } catch (Exception $e) {

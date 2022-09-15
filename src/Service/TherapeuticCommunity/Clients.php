@@ -3,7 +3,6 @@
 namespace App\Service\TherapeuticCommunity;
 
 use App\Common\AppFormatter;
-use App\Common\AppHydrator;
 use App\Enum\AuditTrailActions;
 use App\Enum\Response as ResponseEnum;
 use App\Model\Clients as ClientModel;
@@ -24,8 +23,7 @@ class Clients implements ClientsInterface
         private AppFormatter          $appFormatter,
         private ClientsRepository     $repository,
         private AuditTrail            $auditTrail,
-        private AppHydrator           $hydrator,
-    ){
+    ) {
         $class = new \ReflectionClass($this);
         $this->shortName = $class->getShortName();
     }
@@ -47,7 +45,7 @@ class Clients implements ClientsInterface
 
             $this->auditTrail->log(
                 AuditTrailActions::CREATE,
-                $this->hydrator->convertObjectToArray($clientData),
+                $clientData->jsonSerialize(),
                 $this->shortName,
                 $id
             );
@@ -120,7 +118,7 @@ class Clients implements ClientsInterface
                 return $this->appFormatter->formatResponse(ResponseEnum::UPDATING_FAILED, null, ['app' => $isUpdated]);
             }
 
-            $this->auditTrail->log(AuditTrailActions::UPDATE, $this->hydrator->convertObjectToArray($clientData), $this->shortName, $id);
+            $this->auditTrail->log(AuditTrailActions::UPDATE, $clientData->jsonSerialize(), $this->shortName, $id);
 
             return $this->appFormatter->formatResponse(ResponseEnum::UPDATING_SUCCESS, null);
         } catch (Exception $e) {

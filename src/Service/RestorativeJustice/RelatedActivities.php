@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Service\RestorativeJustice;
 
 use App\Common\AppFormatter;
-use App\Common\AppHydrator;
 use App\Enum\AuditTrailActions;
 use App\Enum\Response as ResponseEnum;
 use App\Repository\RJRelatedActivitiesRepository;
@@ -26,7 +25,6 @@ class RelatedActivities implements RelatedActivitiesInterface
         private AppFormatter                  $appFormatter,
         private RJRelatedActivitiesRepository $repository,
         private AuditTrail                    $auditTrail,
-        private AppHydrator                   $hydrator,
     ){
         $class = new \ReflectionClass($this);
         $this->shortName = $class->getShortName();
@@ -49,7 +47,7 @@ class RelatedActivities implements RelatedActivitiesInterface
 
             $this->auditTrail->log(
                 AuditTrailActions::CREATE,
-                $this->hydrator->convertObjectToArray($activities),
+                $activities->jsonSerialize(),
                 $this->shortName,
                 $id
             );

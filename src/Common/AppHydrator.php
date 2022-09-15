@@ -41,9 +41,4 @@ class AppHydrator
 
         return $reflectionClass->newInstanceArgs($args);
     }
-
-    public function transferModelValuesToEntityObject(object $model, string $entityClass): object
-    {
-        return (object) [];
-    }
 }

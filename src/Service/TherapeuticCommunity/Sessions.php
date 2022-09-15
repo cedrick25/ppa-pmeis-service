@@ -6,7 +6,6 @@ namespace App\Service\TherapeuticCommunity;
 
 use App\Common\AppDateHelper;
 use App\Common\AppFormatter;
-use App\Common\AppHydrator;
 use App\Enum\AuditTrailActions;
 use App\Enum\Response as ResponseEnum;
 use App\Model\Sessions as SessionsModel;
@@ -37,7 +36,6 @@ class Sessions implements SessionsInterface
         private ClientSessionsRepository             $clientSessionsRepository,
         private ResourceFacilitatorSessionRepository $resourceFacilitatorSessionRepository,
         private AuditTrail                           $auditTrail,
-        private AppHydrator                          $hydrator,
     ) {
         $class = new \ReflectionClass($this);
         $this->shortName = $class->getShortName();
@@ -58,7 +56,7 @@ class Sessions implements SessionsInterface
                 return $this->appFormatter->formatResponse(ResponseEnum::CREATING_FAILED, null, ['app' => 'Session already exist.']);
             }
 
-            $this->auditTrail->log(AuditTrailActions::CREATE, $this->hydrator->convertObjectToArray($sessionData), $this->shortName, $id);
+            $this->auditTrail->log(AuditTrailActions::CREATE, $sessionData->jsonSerialize(), $this->shortName, $id);
 
             return $this->appFormatter->formatResponse(ResponseEnum::CREATING_SUCCESS, ['id' => $id]);
         } catch (InvalidArgumentException $exception) {
@@ -85,7 +83,7 @@ class Sessions implements SessionsInterface
                 return $this->appFormatter->formatResponse(ResponseEnum::CREATING_FAILED, null, ['app' => 'Session already exist.']);
             }
 
-            $this->auditTrail->log(AuditTrailActions::CREATE, $this->hydrator->convertObjectToArray($sessionData), $this->shortName, $id);
+            $this->auditTrail->log(AuditTrailActions::CREATE, $sessionData->jsonSerialize(), $this->shortName, $id);
 
             return $this->appFormatter->formatResponse(ResponseEnum::CREATING_SUCCESS, ['id' => $id]);
         } catch (InvalidArgumentException $exception) {
@@ -155,7 +153,7 @@ class Sessions implements SessionsInterface
                 return $this->appFormatter->formatResponse(ResponseEnum::UPDATING_FAILED, null, ['app' => $isUpdated]);
             }
 
-            $this->auditTrail->log(AuditTrailActions::UPDATE, $this->hydrator->convertObjectToArray($sessionData), $this->shortName, $id);
+            $this->auditTrail->log(AuditTrailActions::UPDATE, $sessionData->jsonSerialize(), $this->shortName, $id);
 
             return $this->appFormatter->formatResponse(ResponseEnum::UPDATING_SUCCESS, null);
         } catch (InvalidArgumentException|Exception $e) {
@@ -174,7 +172,7 @@ class Sessions implements SessionsInterface
                 return $this->appFormatter->formatResponse(ResponseEnum::UPDATING_FAILED, null, ['app' => $isUpdated]);
             }
 
-            $this->auditTrail->log(AuditTrailActions::UPDATE, $this->hydrator->convertObjectToArray($sessionData), $this->shortName, $id);
+            $this->auditTrail->log(AuditTrailActions::UPDATE, $sessionData->jsonSerialize(), $this->shortName, $id);
 
             return $this->appFormatter->formatResponse(ResponseEnum::UPDATING_SUCCESS, null);
         } catch (\Doctrine\DBAL\Driver\Exception $exception) {

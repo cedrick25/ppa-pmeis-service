@@ -3,9 +3,10 @@
 declare(strict_types=1);
 
 namespace App\Model;
+use App\Common\AppHydrator;
 use Symfony\Component\Validator\Constraints as Assert;
 
-class RjRelatedRestitutions
+class RjRelatedRestitutions implements \JsonSerializable
 {
     public function __construct(
         private int $quarterId,
@@ -206,5 +207,12 @@ class RjRelatedRestitutions
     public function getDeletedAt(): ?\DateTimeImmutable
     {
         return $this->deletedAt;
+    }
+
+    public function jsonSerialize(): array
+    {
+        $hydrate = new AppHydrator();
+
+        return $hydrate->convertObjectToArray($this);
     }
 }

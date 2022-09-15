@@ -2,10 +2,11 @@
 
 namespace App\Model;
 
+use App\Common\AppHydrator;
 use DateTimeInterface;
 use Symfony\Component\Validator\Constraints as Assert;
 
-class JailDecongestion
+class JailDecongestion implements \JsonSerializable
 {
     public function __construct(
         private string $date,
@@ -167,5 +168,12 @@ class JailDecongestion
     public function getDeletedAt(): ?DateTimeInterface
     {
         return $this->deletedAt;
+    }
+
+    public function jsonSerialize(): array
+    {
+        $hydrate = new AppHydrator();
+
+        return $hydrate->convertObjectToArray($this);
     }
 }

@@ -3,7 +3,6 @@
 namespace App\Service\RestorativeJustice;
 
 use App\Common\AppFormatter;
-use App\Common\AppHydrator;
 use App\Enum\AuditTrailActions;
 use App\Enum\Response as ResponseEnum;
 use App\Model\RjRelatedRestitutions as RjRelatedRestitutionsModel;
@@ -23,7 +22,6 @@ class RelatedRestitutions implements RelatedRestitutionsInterface
         private AppFormatter                    $appFormatter,
         private RjRelatedRestitutionsRepository $repository,
         private AuditTrail                      $auditTrail,
-        private AppHydrator                     $hydrator,
     ){
         $class = new \ReflectionClass($this);
         $this->shortName = $class->getShortName();
@@ -46,7 +44,7 @@ class RelatedRestitutions implements RelatedRestitutionsInterface
 
             $this->auditTrail->log(
                 AuditTrailActions::CREATE,
-                $this->hydrator->convertObjectToArray($restitutions),
+                $restitutions->jsonSerialize(),
                 $this->shortName,
                 $id
             );

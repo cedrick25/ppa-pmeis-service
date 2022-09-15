@@ -20,7 +20,10 @@ class TreatmentCategories implements TreatmentCategoriesInterface
         private AppFormatter                $appFormatter,
         private TreatmentCategoriesRepository $repository,
         private AuditTrail                  $auditTrail,
-    ){}
+    ) {
+        $class = new \ReflectionClass($this);
+        $this->shortName = $class->getShortName();
+    }
 
     public function getAll(): array
     {

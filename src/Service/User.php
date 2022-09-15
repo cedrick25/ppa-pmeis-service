@@ -112,12 +112,7 @@ class User implements UserInterface
                 return $this->appFormatter->formatResponse(self::USER_CREATION_FAILED, null, ['app' => 'Email address already exist']);
             }
 
-            $this->auditTrail->log(
-                AuditTrailActions::CREATE,
-                $this->hydrator->convertObjectToArray($userAccountWithDetails),
-                $this->shortName,
-                $userAccountId
-            );
+            $this->auditTrail->log(AuditTrailActions::CREATE, $userAccountWithDetails->jsonSerialize(), $this->shortName, $userAccountId);
 
             return $this->appFormatter->formatResponse(self::USER_CREATION_SUCCESS, ['id' => $userAccountId]);
         } catch (ORMException $exception) {
@@ -155,12 +150,7 @@ class User implements UserInterface
                 return $this->appFormatter->formatResponse(ResponseEnum::UPDATING_FAILED, null, ['app' => $isUpdated]);
             }
 
-            $this->auditTrail->log(
-                AuditTrailActions::UPDATE,
-                $this->hydrator->convertObjectToArray($userAccountWithDetails),
-                $this->shortName,
-                $id
-            );
+            $this->auditTrail->log(AuditTrailActions::UPDATE, $userAccountWithDetails->jsonSerialize(), $this->shortName, $id);
 
             return $this->appFormatter->formatResponse(ResponseEnum::UPDATING_SUCCESS, null);
         } catch (Exception $e) {

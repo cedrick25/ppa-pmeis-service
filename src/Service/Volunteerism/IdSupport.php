@@ -3,7 +3,6 @@
 namespace App\Service\Volunteerism;
 
 use App\Common\AppFormatter;
-use App\Common\AppHydrator;
 use App\Enum\AuditTrailActions;
 use App\Enum\Response as ResponseEnum;
 use App\Model\IdSupport as IdSupportModel;
@@ -26,8 +25,10 @@ class IdSupport implements IdSupportInterface
         private IdSupportRepository          $repository,
         private QuartersRepository           $quartersRepository,
         private AuditTrail                   $auditTrail,
-        private AppHydrator                  $hydrator,
-    ){}
+    ) {
+        $class = new \ReflectionClass($this);
+        $this->shortName = $class->getShortName();
+    }
 
     public function create(IdSupportModel $idSupportData): array
     {
@@ -44,7 +45,7 @@ class IdSupport implements IdSupportInterface
                 return $this->appFormatter->formatResponse(ResponseEnum::CREATING_FAILED, null, ['app' => 'ID support already exist']);
             }
 
-            $this->auditTrail->log(AuditTrailActions::CREATE, $this->hydrator->convertObjectToArray($idSupportData), $this->shortName, $id);
+            $this->auditTrail->log(AuditTrailActions::CREATE, $idSupportData->jsonSerialize(), $this->shortName, $id);
 
             return $this->appFormatter->formatResponse(ResponseEnum::CREATING_SUCCESS, ['id' => $id]);
         } catch (InvalidArgumentException $exception) {
