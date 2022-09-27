@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Report\Table;
 
+use App\Enum\SystemSettingNames;
 use App\Service\Volunteerism\IdSupport;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
@@ -32,6 +33,7 @@ class ID implements Form
     public function generate(array $data): BinaryFileResponse
     {
         $this->data = $this->getData($data);
+        $this->data[SystemSettingNames::GENERATED_REPORTS_CODE] = $data[SystemSettingNames::GENERATED_REPORTS_CODE];
 
         $spreadsheet = $this->footer();
         $writer = IOFactory::createWriter($spreadsheet, "Xlsx");
@@ -85,7 +87,7 @@ class ID implements Form
     {
         $spreadsheet = new Spreadsheet();
         $textAndCoordinates = [
-            'g1' => 'PPA-PLD-FR-004', 
+            'g1' => $this->data[SystemSettingNames::GENERATED_REPORTS_CODE],
             'a2' => 'D.   SUPPORT TO OTHER FIELD OFFICES ON  TC, RJ, VPA, GAD, PWD, SC IMPLEMENTATION',
             'a3' => 'Name', 'b3' => 'Program', 'c3' => 'Field Office Assisted', 'd3' => 'Activity', 'e3' => 'Date/Venue', 'f3' => 'Assistance Rendered',
             'a4' => '(Personnel/ VPAs)', 'b4' => '(2)', 'c4' => '(3)', 'd4' => '(4)', 'e4' => '(5)', 'f4' => '(6)',

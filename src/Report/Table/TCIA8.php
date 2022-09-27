@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Report\Table;
 
 use App\Common\AppReportHelper;
+use App\Enum\SystemSettingNames;
 use App\Service\TherapeuticCommunity\Sessions;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
@@ -37,6 +38,7 @@ class TCIA8 implements Form
     public function generate(array $data): BinaryFileResponse
     {
         $this->data = $this->getData($data);
+        $this->data[SystemSettingNames::GENERATED_REPORTS_CODE] = $data[SystemSettingNames::GENERATED_REPORTS_CODE];
 
         $spreadsheet = $this->footer();
         $writer = IOFactory::createWriter($spreadsheet, "Xlsx");
@@ -384,7 +386,7 @@ class TCIA8 implements Form
         $spreadsheet = new Spreadsheet();
         $textAndCoordinates = [
             'A1' => 'OTHERS',
-            'AD1' => 'PPA- PLD-FR-004',
+            'AD1' => $this->data[SystemSettingNames::GENERATED_REPORTS_CODE],
             'A2' => 'Table I.A.8 – PETITIONERS AND TERMINATED CLIENTS WHO CONTINUE TO PARTICIPATE IN THE TC PROGRAM',
             'D3' => 'Sex',
             'H3' => 'Supervision',

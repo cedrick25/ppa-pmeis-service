@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Report\Table;
 
+use App\Enum\SystemSettingNames;
 use App\Service\Volunteerism\TechnicalAssistance;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
@@ -33,6 +34,7 @@ class SMIIIA3 implements Form
     public function generate(array $data): BinaryFileResponse
     {
         $this->data = $this->getData($data);
+        $this->data[SystemSettingNames::GENERATED_REPORTS_CODE] = $data[SystemSettingNames::GENERATED_REPORTS_CODE];
 
         $spreadsheet = $this->footer();
         $writer = IOFactory::createWriter($spreadsheet, "Xlsx");
@@ -88,7 +90,7 @@ class SMIIIA3 implements Form
     {
         $spreadsheet = new Spreadsheet();
         $textAndCoordinates = [
-            'h1' => 'PPA-PLD-FR-004',
+            'h1' => $this->data[SystemSettingNames::GENERATED_REPORTS_CODE],
             'a3' => 'Table III.A.3  - TECHNICAL ASSISTANCE/ OUTREACH ACTIVITIES TO OTHER AGENCIES/ OTHER RELATED COMMUNITY PARTICIPATION /PUBLIC ASSISTANCE',
             'a4' => 'Activity',
             'a5' => '(1)',

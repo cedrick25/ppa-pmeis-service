@@ -48,4 +48,11 @@ class SystemCodeSettings
 
         return $data->getValue();
     }
+
+    public function getById(string $id): \App\Entity\SystemCodeSettings
+    {
+        return $this->repository->findOneBy([
+            'systemCodeId' =>  $id
+        ]);
+    }
 }

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Report\Table;
 
+use App\Enum\SystemSettingNames;
 use App\Service\Volunteerism\JailDecongestion;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
@@ -33,6 +34,7 @@ class JDVIA1 implements Form
     public function generate(array $data): BinaryFileResponse
     {
         $this->data = $this->getData($data);
+        $this->data[SystemSettingNames::GENERATED_REPORTS_CODE] = $data[SystemSettingNames::GENERATED_REPORTS_CODE];
 
         $spreadsheet = $this->footer();
         $writer = IOFactory::createWriter($spreadsheet, "Xlsx");
@@ -129,7 +131,7 @@ class JDVIA1 implements Form
     {
         $spreadsheet = new Spreadsheet();
         $textAndCoordinates = [
-            'a1' => 'VI.  SUPPORT FUNCTION', 'm1' => 'PPA-PLD-FR-004',
+            'a1' => 'VI.  SUPPORT FUNCTION', 'm1' => $this->data[SystemSettingNames::GENERATED_REPORTS_CODE],
             'a3' => 'Table VI.A.1  JAIL DECONGESTION SERVICES/ ACTIVITIES ',
             'a5' => 'Date', 
             'a6' => '(1)',

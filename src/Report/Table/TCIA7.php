@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Report\Table;
 
+use App\Enum\SystemSettingNames;
 use App\Repository\QuartersRepository;
-use App\Service\TherapeuticCommunity\Quarters;
 use App\Service\TherapeuticCommunity\Sessions;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
@@ -35,6 +35,7 @@ class TCIA7 implements Form
     public function generate(array $data): BinaryFileResponse
     {
         $this->data = $this->getData($data);
+        $this->data[SystemSettingNames::GENERATED_REPORTS_CODE] = $data[SystemSettingNames::GENERATED_REPORTS_CODE];
 
         $spreadsheet = $this->footer();
         $writer = IOFactory::createWriter($spreadsheet, "Xlsx");
@@ -110,7 +111,7 @@ class TCIA7 implements Form
         $months = $monthPerQuarter[$this->data['rows']['quarter']];
         $spreadsheet = new Spreadsheet();
         $textAndCoordinates = [
-            'f1' => 'PPA- PLD-FR-004',
+            'f1' => $this->data[SystemSettingNames::GENERATED_REPORTS_CODE],
             'a4' => 'Table I.A.7    COMPUTATION',
             'a5' => 'PARTICULARS',
             'b5' => 'Form 5',

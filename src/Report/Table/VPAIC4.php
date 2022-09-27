@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Report\Table;
 
 use App\Common\AppDateHelper;
+use App\Enum\SystemSettingNames;
 use App\Service\Volunteerism\VpaAssociationInitiatedActivities;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
@@ -35,6 +36,7 @@ class VPAIC4 implements Form
     public function generate(array $data): BinaryFileResponse
     {
         $this->data = $this->getData($data);
+        $this->data[SystemSettingNames::GENERATED_REPORTS_CODE] = $data[SystemSettingNames::GENERATED_REPORTS_CODE];
 
         $spreadsheet = $this->footer();
         $writer = IOFactory::createWriter($spreadsheet, "Xlsx");
@@ -118,7 +120,7 @@ class VPAIC4 implements Form
     {
         $spreadsheet = new Spreadsheet();
         $textAndCoordinates = [
-            'a1' => 'Table I.C.4 – VPA ASSOCIATION INITIATED ACTIVITIES AND OTHER SERVICES FOR CLIENTS', 'q1' => 'PPA-PLD-FR-004',
+            'a1' => 'Table I.C.4 – VPA ASSOCIATION INITIATED ACTIVITIES AND OTHER SERVICES FOR CLIENTS', 'q1' => $this->data[SystemSettingNames::GENERATED_REPORTS_CODE],
             'a3' => ' NAME OF VPA ASSOCIATION  : Federated VPAs of PBRC',
             'H4' => 'Sex', 'L4' => 'Community Resource', 'P4' => 'Remarks',
             'a4' => 'Activities  /  Services Rendered', 'd4' => 'Date / Venue', 'E4' => 'Name of VPAs Involved', 'h5' => '(4)', 'j4' => 'Role / Accomplishment',

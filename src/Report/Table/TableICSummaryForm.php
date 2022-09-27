@@ -6,6 +6,7 @@ namespace App\Report\Table;
 
 use App\Entity\FieldOffices;
 use App\Entity\Quarters;
+use App\Enum\SystemSettingNames;
 use App\Repository\FieldOfficesRepository;
 use App\Repository\QuartersRepository;
 use App\Service\Volunteerism\Volunteer;
@@ -44,6 +45,7 @@ class TableICSummaryForm implements Form
         $this->fieldOffice = $this->fieldOfficesRepository->find($fieldOfficeId);
         $this->quarters = $this->quartersRepository->find($quarterId);
         $this->data = $this->service->getVpaMonitoring($quarterId, $fieldOfficeId);
+        $this->data[SystemSettingNames::GENERATED_REPORTS_CODE] = $data[SystemSettingNames::GENERATED_REPORTS_CODE];
 
         $spreadsheet = $this->footer();
         $writer = IOFactory::createWriter($spreadsheet, "Xlsx");
@@ -100,6 +102,7 @@ class TableICSummaryForm implements Form
     {
         $spreadsheet = new Spreadsheet();
         $textAndCoordinates = [
+            'G1' => 'Field Office IQPR FORM' . $this->data[SystemSettingNames::GENERATED_REPORTS_CODE],
             'A1' => 'FIELD OFFICE ' . $this->fieldOffice->getName(),
             'A2' => 'IQPR SUMMARY FORM',
             'A3' => $this->quarters->getName() . ' QTR, ' . $this->quarters->getYear(),

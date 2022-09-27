@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Report\Table;
 
+use App\Enum\SystemSettingNames;
 use App\Service\TherapeuticCommunity\ResourceFacilitatorSession;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
@@ -33,6 +34,7 @@ class VPAIC3 implements Form
     public function generate(array $data): BinaryFileResponse
     {
         $this->data = $this->getData($data);
+        $this->data[SystemSettingNames::GENERATED_REPORTS_CODE] = $data[SystemSettingNames::GENERATED_REPORTS_CODE];
 
         $spreadsheet = $this->footer();
         $writer = IOFactory::createWriter($spreadsheet, "Xlsx");
@@ -175,7 +177,7 @@ class VPAIC3 implements Form
     {
         $spreadsheet = new Spreadsheet();
         $textAndCoordinates = [
-            'A1' => 'Table  I.C.3 – SUPERVISION ACTIVITIES', 'T1' => 'PPA-PLD-FR-004', 'D3' => 'Sex', 'I3' => 'Sex', 'M3' => 'Community Resource Development (CRD)   (6)',
+            'A1' => 'Table  I.C.3 – SUPERVISION ACTIVITIES', 'T1' => $this->data[SystemSettingNames::GENERATED_REPORTS_CODE], 'D3' => 'Sex', 'I3' => 'Sex', 'M3' => 'Community Resource Development (CRD)   (6)',
             'S3' => 'Remarks   (7)', 'A4' => 'Name', 'D4' => '(2)', 'F4' => 'Name of Client/s Supervised', 'I4' => '(4)', 'K4' => 'Services Rendered', 'S4' => '(Indicate issues, problems',
             'A5' => '(1)', 'D5' => 'F', 'E5' => 'M', 'F5' => '(3)', 'I5' => 'F', 'J5' => 'M', 'K5' => '(5)', 'M5' => 'Community Resources Tapped', 'P5' => 'Assistance Received',
             'S5' => 'encountered & other', 'S6' => 'relevant information)'

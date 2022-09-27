@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Report\Table;
 
+use App\Enum\SystemSettingNames;
 use App\Repository\FieldOfficesRepository;
 use App\Repository\QuartersRepository;
 use App\Repository\TreatmentCategoriesRepository;
@@ -54,6 +55,7 @@ class TCIA1 implements Form
         $this->fieldOfficeId = $data['field_office_id'];
         $this->quarterId = $data['quarter_id'];
         $this->data = $this->getData($data);
+        $this->data[SystemSettingNames::GENERATED_REPORTS_CODE] = $data[SystemSettingNames::GENERATED_REPORTS_CODE];
 
         $spreadsheet = $this->footer();
         $writer = IOFactory::createWriter($spreadsheet, "Xlsx");
@@ -285,7 +287,7 @@ class TCIA1 implements Form
         $quarter = $this->quartersRepository->find($this->quarterId);
 
         $textAndCoordinates = [
-            'Z1' => 'FIELD OFFICE IQPR FORM  -  PPA- PLD-FR-004',
+            'Z1' => 'FIELD OFFICE IQPR FORM  -  ' . $this->data[SystemSettingNames::GENERATED_REPORTS_CODE],
             'B2' => 'INTEGRATED QUARTERLY PERFORMANCE REPORT',
             'A3' => 'FIELD OFFICE :  ' . $fieldOffice->getName(),
             'AA3' => $quarter->getName() . ' Quarter, CY ' . $quarter->getYear(),
@@ -428,6 +430,7 @@ class TCIA1 implements Form
 
         $result['part1'] = $part1['data'] ?? [];
         $result['part2'] = array_values($part2['data'] ?? []);
+        $result[SystemSettingNames::GENERATED_REPORTS_CODE] = $data[SystemSettingNames::GENERATED_REPORTS_CODE];
 
         return $result;
     }

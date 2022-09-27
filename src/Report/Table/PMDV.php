@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Report\Table;
 
+use App\Enum\SystemSettingNames;
 use App\Service\Volunteerism\ProgramMaterialsDevelopment;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
@@ -33,6 +34,7 @@ class PMDV implements Form
     public function generate(array $data): BinaryFileResponse
     {
         $this->data = $this->getData($data);
+        $this->data[SystemSettingNames::GENERATED_REPORTS_CODE] = $data[SystemSettingNames::GENERATED_REPORTS_CODE];
 
         $spreadsheet = $this->footer();
         $writer = IOFactory::createWriter($spreadsheet, "Xlsx");
@@ -88,6 +90,7 @@ class PMDV implements Form
         $spreadsheet = new Spreadsheet();
         $textAndCoordinates = [
             'a1' => 'V.  PROGRAM AND MATERIALS DEVELOPMENT',
+            'j1' => $this->data[SystemSettingNames::GENERATED_REPORTS_CODE],
             'a4' => 'Table V.  MATERIALS/ SESSION PLANS DEVELOPED AND USED FOR AGENCY PROGRAMS',
             'a6' => 'Particulars', 
             'a7' => '(1)',
@@ -152,6 +155,6 @@ class PMDV implements Form
     {
         $results = $this->programMaterialsDevelopmentService->getIdSupportReport($data['quarter_id'], $data['field_office_id']);
 
-        return ['rows' => array_values($results['data'] ?? [])];
+        return ['rows' => isset($results['data']) ? array_values($results['data']) : []];
     }
 }

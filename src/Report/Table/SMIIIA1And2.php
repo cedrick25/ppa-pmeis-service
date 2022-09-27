@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Report\Table;
 
+use App\Enum\SystemSettingNames;
 use App\Service\Volunteerism\SocialMarketing;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
@@ -32,6 +33,7 @@ class SMIIIA1And2 implements Form
     public function generate(array $data): BinaryFileResponse
     {
         $this->data = $this->getData($data);
+        $this->data[SystemSettingNames::GENERATED_REPORTS_CODE] = $data[SystemSettingNames::GENERATED_REPORTS_CODE];
 
         $spreadsheet = $this->footer();
         $writer = IOFactory::createWriter($spreadsheet, "Xlsx");
@@ -98,7 +100,8 @@ class SMIIIA1And2 implements Form
         $spreadsheet = new Spreadsheet();
         $textAndCoordinates = [
             'a1' => 'Table  III.A.2  -  MEETINGS /PARTICIPATIONS IN PEACE & ORDER COUNCIL (POC)/ ANTI-DRUG ABUSE COUNCIL (CADAC)/ MANAGEMENT SCREENING & EVALUATION COMMITTEE (MSEC), DDB AUTHORIZED REPRESENTATIVE, ETC.',
-            'a2' => 'Activity', 
+            'g1' => $this->data[SystemSettingNames::GENERATED_REPORTS_CODE],
+            'a2' => 'Activity',
             'a3' => '(1)',
             'b2' => 'Date.Venue',
             'b3' => '(2)',

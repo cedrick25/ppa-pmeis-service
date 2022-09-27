@@ -4,6 +4,7 @@ namespace App\Report\Table;
 
 use App\Entity\FieldOffices;
 use App\Entity\Quarters;
+use App\Enum\SystemSettingNames;
 use App\Repository\ClientSessionsRepository;
 use App\Repository\ClientsRepository;
 use App\Repository\FieldOfficesRepository;
@@ -44,6 +45,7 @@ class TableIA1SummaryForm implements Form
     public function generate(array $data): BinaryFileResponse
     {
         $this->data = $this->getData($data);
+        $this->data[SystemSettingNames::GENERATED_REPORTS_CODE] = $data[SystemSettingNames::GENERATED_REPORTS_CODE];
 
         $spreadsheet = $this->footer();
         $writer = IOFactory::createWriter($spreadsheet, "Xlsx");
@@ -112,6 +114,7 @@ class TableIA1SummaryForm implements Form
     {
         $spreadsheet = new Spreadsheet();
         $textAndCoordinates = [
+            'G1' => 'Field Office IQPR FORM' . $this->data[SystemSettingNames::GENERATED_REPORTS_CODE],
             'A1' => 'FIELD OFFICE ' . $this->fieldOffice->getName(),
             'A2' => 'IQPR SUMMARY FORM',
             'A3' => $this->quarters->getName() . ' QTR, ' . $this->quarters->getYear(),
@@ -216,8 +219,8 @@ class TableIA1SummaryForm implements Form
 
         return [
             'treatment_categories' => $treatmentCategoryTotal,
-            'client_frequency_active_supervision' => $clientSessionsData['client_frequency']['active_supervision'],
-            'client_frequency_others' => $clientSessionsData['client_frequency']['others'],
+            'client_frequency_active_supervision' => \count($clientSessionsData['client_frequency']['active_supervision']),
+            'client_frequency_others' => \count($clientSessionsData['client_frequency']['others']),
             'fsg_frequency' => $clientSessionsData['fsg_frequency'],
         ];
     }

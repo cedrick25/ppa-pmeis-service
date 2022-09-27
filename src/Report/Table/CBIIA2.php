@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Report\Table;
 
+use App\Enum\SystemSettingNames;
 use App\Service\Volunteerism\CapabilityBuilding;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
@@ -33,6 +34,7 @@ class CBIIA2 implements Form
     public function generate(array $data): BinaryFileResponse
     {
         $this->data = $this->getData($data);
+        $this->data[SystemSettingNames::GENERATED_REPORTS_CODE] = $data[SystemSettingNames::GENERATED_REPORTS_CODE];
 
         $spreadsheet = $this->footer();
         $writer = IOFactory::createWriter($spreadsheet, "Xlsx");
@@ -118,6 +120,7 @@ class CBIIA2 implements Form
     {
         $spreadsheet = new Spreadsheet();
         $textAndCoordinates = [
+            'N' => $this->data[SystemSettingNames::GENERATED_REPORTS_CODE],
             'a3' => 'Table II.A.2 –  VPAs',
             'a5' => 'Title', 'a6' => '(1)', 
             'b5' => 'Date', 'b6' => '(2)',
@@ -178,6 +181,6 @@ class CBIIA2 implements Form
             'VPA'
         );
 
-        return ['rows' => array_values($results['data']) ?? []];
+        return ['rows' => isset($results['data']) ? array_values($results['data']) : []];
     }
 }

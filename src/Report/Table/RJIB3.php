@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Report\Table;
 
 use App\Common\AppDateHelper;
+use App\Enum\SystemSettingNames;
 use App\Service\RestorativeJustice\RelatedRestitutions;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
@@ -36,6 +37,7 @@ class RJIB3 implements Form
     public function generate(array $data): BinaryFileResponse
     {
         $this->data = $this->getData($data);
+        $this->data[SystemSettingNames::GENERATED_REPORTS_CODE] = $data[SystemSettingNames::GENERATED_REPORTS_CODE];
 
         $spreadsheet = $this->footer();
         $writer = IOFactory::createWriter($spreadsheet, "Xlsx");
@@ -133,7 +135,7 @@ class RJIB3 implements Form
     {
         $spreadsheet = new Spreadsheet();
         $textAndCoordinates = [
-            'R1' => 'PPA-PLD-FR-004', 'A2' => 'Table I.B.3   RESTITUTION - CIVIL LIABILITY INDEMNIFICATION', 'A5' => "CLIENT'S NAME",
+            'R1' => $this->data[SystemSettingNames::GENERATED_REPORTS_CODE], 'A2' => 'Table I.B.3   RESTITUTION - CIVIL LIABILITY INDEMNIFICATION', 'A5' => "CLIENT'S NAME",
             'B5' => 'SEX', 'E5' => 'TOTAL AMOUNT (4)', 'I5' => 'PAYMENT (5)', 'R5' => 'REMARKS', 'D6' => 'OFFENSE ', 'E6' => 'CIVIL',
             'G6' => 'AMOUNT PAID THIS QTR.', 'H6' => ' BALANCE END OF QTR.', 'I6' => 'FORM', 'J6' => 'MODE', 'K6' => 'DATE', 'L6' => 'AMOUNT',
             'M6' => 'Received by', 'N6' => ' REMITTED', 'B7' => '(2)', 'D7' => '(Please Specify)', 'E7' => 'LIABILITY',
@@ -308,6 +310,6 @@ class RJIB3 implements Form
             $data['field_office_id']
         );
 
-        return ['rows' => array_values($result['data'] ?? [])];
+        return ['rows' => isset($results['data']) ? array_values($results['data']) : []];
     }
 }

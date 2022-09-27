@@ -65,4 +65,16 @@ class SystemCodeSettingsController extends AbstractController
             'message' => $response
         ]);
     }
+
+    /**
+     * @Route("/by/id/{id}", methods={"GET"})
+     */
+    public function getById(Request $request): Response
+    {
+        $response = $this->service->getById($request->get("id"));
+
+        return $this->json([
+            'message' => $response
+        ]);
+    }
 }

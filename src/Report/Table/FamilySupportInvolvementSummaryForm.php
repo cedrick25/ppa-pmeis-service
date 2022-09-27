@@ -4,6 +4,7 @@ namespace App\Report\Table;
 
 use App\Entity\FieldOffices;
 use App\Entity\Quarters;
+use App\Enum\SystemSettingNames;
 use App\Repository\ClientSessionsRepository;
 use App\Repository\FieldOfficesRepository;
 use App\Repository\PhasesRepository;
@@ -37,7 +38,8 @@ class FamilySupportInvolvementSummaryForm implements Form
 
     public function generate(array $data): BinaryFileResponse
     {
-        $this->data = $this->getData($data);
+        $this->data['results'] = $this->getData($data);
+        $this->data[SystemSettingNames::GENERATED_REPORTS_CODE] = $data[SystemSettingNames::GENERATED_REPORTS_CODE];
 
         $spreadsheet = $this->footer();
         $writer = IOFactory::createWriter($spreadsheet, "Xlsx");
@@ -68,7 +70,7 @@ class FamilySupportInvolvementSummaryForm implements Form
             'Total' => ['Prep.' => 'B15', 'I' => 'C15', 'II' => 'D15', 'III' => 'E15', 'IV' => 'F15', 'Total' => 'G15'],
         ];
 
-        foreach ($this->data as $role=>$fsi) {
+        foreach ($this->data['results'] as $role=>$fsi) {
             foreach ($fsi as $phase=>$score) {
                 $spreadsheet->getActiveSheet()->setCellValue($cells[$role][$phase], $score);
             }
@@ -90,7 +92,7 @@ class FamilySupportInvolvementSummaryForm implements Form
         $spreadsheet = new Spreadsheet();
         $textAndCoordinates = [
             'A1' => 'FIELD OFFICE ' . $this->fieldOffice->getName(),
-            'A2' => 'IQPR SUMMARY FORM',
+            'A2' => 'IQPR SUMMARY FORM ' . $this->data[SystemSettingNames::GENERATED_REPORTS_CODE],
             'A3' => $this->quarters->getName() . ' QTR, ' . $this->quarters->getYear(),
             'A4' => 'I.    PROGRAM IMPLEMENTATION',
             'A5' => 'A.1   Therapeutic Community Ladderized Program (TCLP)',

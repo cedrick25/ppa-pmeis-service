@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Report\Table;
 
+use App\Enum\SystemSettingNames;
 use App\Service\Volunteerism\SpecialAssignment;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
@@ -32,6 +33,7 @@ class JDVIA2 implements Form
     public function generate(array $data): BinaryFileResponse
     {
         $this->data = $this->getData($data);
+        $this->data[SystemSettingNames::GENERATED_REPORTS_CODE] = $data[SystemSettingNames::GENERATED_REPORTS_CODE];
 
         $spreadsheet = $this->footer();
         $writer = IOFactory::createWriter($spreadsheet, "Xlsx");
@@ -94,7 +96,7 @@ class JDVIA2 implements Form
         $spreadsheet = new Spreadsheet();
         $textAndCoordinates = [
             'a1' => 'Table VI.A.2  SPECIAL ASSIGNMENTS/ MISCELLANEOUS ACTIVITIES',
-            'e1' => 'PPA-PLD-FR-004',
+            'e1' => $this->data[SystemSettingNames::GENERATED_REPORTS_CODE],
             'a3' => 'DESCRIPTION', 
             'a4' => '(1)',
 

@@ -4,6 +4,7 @@ namespace App\Report\Table;
 
 use App\Entity\FieldOffices;
 use App\Entity\Quarters;
+use App\Enum\SystemSettingNames;
 use App\Repository\FieldOfficesRepository;
 use App\Repository\QuartersRepository;
 use App\Service\RestorativeJustice\ConductProcesses;
@@ -46,6 +47,7 @@ class TableIAB1SummaryForm implements Form
         $this->quarters = $this->quartersRepository->find($quarterId);
         $this->data['activities'] = $this->getActivities($quarterId, $fieldOfficeId);
         $this->data['process_conducted'] = $this->conductProcessesService->getRJIB1($quarterId, $fieldOfficeId)['data'];
+        $this->data[SystemSettingNames::GENERATED_REPORTS_CODE] = $data[SystemSettingNames::GENERATED_REPORTS_CODE];
 
         $spreadsheet = $this->footer();
         $writer = IOFactory::createWriter($spreadsheet, "Xlsx");
@@ -146,6 +148,7 @@ class TableIAB1SummaryForm implements Form
     {
         $spreadsheet = new Spreadsheet();
         $textAndCoordinates = [
+            'G1' => 'Field Office IQPR FORM' . $this->data[SystemSettingNames::GENERATED_REPORTS_CODE],
             'A1' => 'FIELD OFFICE ' . $this->fieldOffice->getName(),
             'A2' => 'IQPR SUMMARY FORM',
             'A3' => $this->quarters->getName() . ' QTR, ' . $this->quarters->getYear(),

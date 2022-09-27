@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Report\Table;
 
+use App\Enum\SystemSettingNames;
 use App\Service\RestorativeJustice\ConductProcesses;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
@@ -33,6 +34,7 @@ class RJIB1 implements Form
     public function generate(array $data): BinaryFileResponse
     {
         $this->data = $this->getData($data);
+        $this->data[SystemSettingNames::GENERATED_REPORTS_CODE] = $data[SystemSettingNames::GENERATED_REPORTS_CODE];
 
         $spreadsheet = $this->footer();
         $writer = IOFactory::createWriter($spreadsheet, "Xlsx");
@@ -144,7 +146,7 @@ class RJIB1 implements Form
         $spreadsheet = new Spreadsheet();
         $textAndCoordinates = [
             'A1' => 'B.  RESTORATIVE JUSTICE',
-            'Q1' => 'PPA-PLD-FR-004',
+            'Q1' => $this->data[SystemSettingNames::GENERATED_REPORTS_CODE],
             'A3' => 'Table I.B.1   RESTORATIVE JUSTICE (RJ) PROCESSES CONDUCTED / CLIENTS INVOLVED',
             'A5' => "CLIENT'S NAME",
             'C5' => 'SEX',

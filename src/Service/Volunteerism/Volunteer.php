@@ -7,6 +7,7 @@ use App\Common\AppFormatter;
 use App\Entity\Quarters;
 use App\Enum\AuditTrailActions;
 use App\Enum\Response as ResponseEnum;
+use App\Enum\SystemSettingNames;
 use App\Model\Volunteer as VolunteerModel;
 use App\Repository\CivilStatusRepository;
 use App\Repository\EducationBackgroundRepository;
@@ -412,8 +413,8 @@ class Volunteer implements VolunteerInterface
         $dateOfAppointment = $volunteer->getDateAppointed()->format('F d, Y');
         $region = $this->regionsRepository->find($fieldOffice->getRegionId());
         $regionName = $region->getName();
-        $code = $this->systemCodeSettings->getByName('vpa_certificate_report_code');
-        $administrator = $this->systemCodeSettings->getByName('oic_administrator');
+        $code = $this->systemCodeSettings->getByName(SystemSettingNames::VPA_CERTIFICATE_REPORT_CODE);
+        $administrator = $this->systemCodeSettings->getByName(SystemSettingNames::OIC_ADMINISTRATOR);
 
         $pdf = new TCPDF();
         $pdf->setCreator(PDF_CREATOR);
@@ -473,14 +474,14 @@ class Volunteer implements VolunteerInterface
         $fieldOfficeName = $fieldOffice->getName();
         $region = $this->regionsRepository->find($fieldOffice->getRegionId());
         $regionName = $region->getName();
-        $code = $this->systemCodeSettings->getByName('vpa_certificate_report_code');
+        $code = $this->systemCodeSettings->getByName(SystemSettingNames::VPA_CERTIFICATE_REPORT_CODE);
         $address = $volunteer->getPresentAddress();
         $bloodType = $volunteer->getBloodType();
         $weight = $volunteer->getWeight();
         $height = $volunteer->getHeight();
         $emergencyName = $volunteer->getEmergencyName();
         $emergencyNumber = $volunteer->getEmergencyNumber();
-        $administrator = $this->systemCodeSettings->getByName('oic_administrator');
+        $administrator = $this->systemCodeSettings->getByName(SystemSettingNames::OIC_ADMINISTRATOR);
 
         $pdf = new TCPDF();
         $pdf->setCreator(PDF_CREATOR);

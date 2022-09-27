@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Report\Table;
 
+use App\Enum\SystemSettingNames;
 use App\Service\Volunteerism\ResourceMobilization;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
@@ -33,6 +34,7 @@ class RMIV implements Form
     public function generate(array $data): BinaryFileResponse
     {
         $this->data = $this->getData($data);
+        $this->data[SystemSettingNames::GENERATED_REPORTS_CODE] = $data[SystemSettingNames::GENERATED_REPORTS_CODE];
 
         $spreadsheet = $this->footer();
         $writer = IOFactory::createWriter($spreadsheet, "Xlsx");
@@ -142,7 +144,7 @@ class RMIV implements Form
     {
         $spreadsheet = new Spreadsheet();
         $textAndCoordinates = [
-            'a1' => 'TABLE IV.  RESOURCE MOBILIZATION', 't1' => 'PPA-PLD-FR-004',
+            'a1' => 'TABLE IV.  RESOURCE MOBILIZATION', 't1' => $this->data[SystemSettingNames::GENERATED_REPORTS_CODE],
             'a4' => 'ACTIVITIES UNDERTAKEN/ ',
             'a5' => 'RENDERED FOR WHICH',
             'a6' => 'RESOURCES/ ASSISTANCE', 

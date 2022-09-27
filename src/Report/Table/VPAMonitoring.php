@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Report\Table;
 
+use App\Enum\SystemSettingNames;
 use App\Service\Volunteerism\Volunteer;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
@@ -34,6 +35,7 @@ class VPAMonitoring implements Form
     public function generate(array $data): BinaryFileResponse
     {
         $this->data = $this->getData($data);
+        $this->data[SystemSettingNames::GENERATED_REPORTS_CODE] = $data[SystemSettingNames::GENERATED_REPORTS_CODE];
 
         $spreadsheet = $this->footer();
         $writer = IOFactory::createWriter($spreadsheet, "Xlsx");
@@ -96,7 +98,7 @@ class VPAMonitoring implements Form
     {
         $spreadsheet = new Spreadsheet();
         $textAndCoordinates = [
-            'P1' => 'PPA-PLD-FR-004', 'A2' => 'VPA MONITORING', 'A3' => 'No. of VPAs (start of the quarter)',
+            'P1' => $this->data[SystemSettingNames::GENERATED_REPORTS_CODE], 'A2' => 'VPA MONITORING', 'A3' => 'No. of VPAs (start of the quarter)',
             'B3' => 'Appointed', 'D3' => 'Dropped (expired appointment or any other cause)', 'E3' => 'TOTAL NUMBER OF VPAs  DURING THE QUARTER',
             'F3' => 'No. of INACTIVE VPAs during the QTR', 'G3' => 'TOTAL  ACTIVE VPAs DURING THE QUARTER', 'H3' => '% of VPAs mobilized',
             'I3' => 'No. of VPAs supervising clients during the quarter (Head count)', 'J3' => '%', 'K3' => 'No. of VPAs acting as resource individuals during the quarter (Head count)',

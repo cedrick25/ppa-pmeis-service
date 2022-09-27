@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Report\Table;
 
+use App\Enum\SystemSettingNames;
 use App\Service\Volunteerism\CapabilityBuilding;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
@@ -33,6 +34,7 @@ class CBIIA1 implements Form
     public function generate(array $data): BinaryFileResponse
     {
         $this->data = $this->getData($data);
+        $this->data[SystemSettingNames::GENERATED_REPORTS_CODE] = $data[SystemSettingNames::GENERATED_REPORTS_CODE];
 
         $spreadsheet = $this->footer();
         $writer = IOFactory::createWriter($spreadsheet, "Xlsx");
@@ -121,7 +123,7 @@ class CBIIA1 implements Form
     {
         $spreadsheet = new Spreadsheet();
         $textAndCoordinates = [
-            'a1' => 'II.  CAPABILITY BUILDING', 'l1' => 'PPA-PLD-FR-004', 
+            'a1' => 'II.  CAPABILITY BUILDING', 'l1' => $this->data[SystemSettingNames::GENERATED_REPORTS_CODE],
             'a3' => 'Table II.A.1 –  PERSONNEL',
             'a5' => 'Title', 'a6' => '(1)',
             'b5' => 'Date', 'b6' => '(2)',
@@ -181,6 +183,6 @@ class CBIIA1 implements Form
             'Personnel'
         );
 
-        return ['rows' => array_values($results['data']) ?? []];
+        return ['rows' => isset($results['data']) ? array_values($results['data']) : []];
     }
 }

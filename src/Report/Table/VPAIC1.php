@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Report\Table;
 
 use App\Common\AppDateHelper;
+use App\Enum\SystemSettingNames;
 use App\Service\Volunteerism\Volunteer;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
@@ -34,6 +35,7 @@ class VPAIC1 implements Form
     public function generate(array $data): BinaryFileResponse
     {
         $this->data = $this->getData($data);
+        $this->data[SystemSettingNames::GENERATED_REPORTS_CODE] = $data[SystemSettingNames::GENERATED_REPORTS_CODE];
 
         $spreadsheet = $this->footer();
         $writer = IOFactory::createWriter($spreadsheet, "Xlsx");
@@ -111,7 +113,7 @@ class VPAIC1 implements Form
     {
         $spreadsheet = new Spreadsheet();
         $textAndCoordinates = [
-            'A1' => 'C.  VOLUNTEERISM', 'G1' => 'PPA-PLD-FR-004', 'A2' => 'Table I.C.1 – RECRUITMENT', 'C3' => 'Sex', 'E3' => 'Date of', 'A4' => 'No.',
+            'A1' => 'C.  VOLUNTEERISM', 'G1' => $this->data[SystemSettingNames::GENERATED_REPORTS_CODE], 'A2' => 'Table I.C.1 – RECRUITMENT', 'C3' => 'Sex', 'E3' => 'Date of', 'A4' => 'No.',
             'B4' => 'Name of Recruit', 'C4' => '(3)', 'E4' => 'Birth', 'F4' => 'Date Recruited', 'G4' => 'Recruiting Officer', 'A5' => '(1)', 'B5' => '(2)',
             'C5' => 'F', 'D5' => 'M', 'E5' => 'mm/dd/yyyy', 'F5' => '(5)', 'G5' => '(6)', 'E6' => '(4)'
         ];

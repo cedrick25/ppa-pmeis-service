@@ -4,6 +4,7 @@ namespace App\Report\Table;
 
 use App\Entity\FieldOffices;
 use App\Entity\Quarters;
+use App\Enum\SystemSettingNames;
 use App\Repository\ClientSessionsRepository;
 use App\Repository\FieldOfficesRepository;
 use App\Repository\QuartersRepository;
@@ -36,7 +37,8 @@ class TableIA268SummaryForm implements Form
 
     public function generate(array $data): BinaryFileResponse
     {
-        $this->data = $this->getData($data);
+        $this->data['results'] = $this->getData($data);
+        $this->data[SystemSettingNames::GENERATED_REPORTS_CODE] = $data[SystemSettingNames::GENERATED_REPORTS_CODE];
 
         $spreadsheet = $this->footer();
         $writer = IOFactory::createWriter($spreadsheet, "Xlsx");
@@ -109,7 +111,7 @@ class TableIA268SummaryForm implements Form
             ],
         ];
 
-        foreach ($this->data as $clientType=>$client) {
+        foreach ($this->data['results'] as $clientType=>$client) {
             foreach ($client as $columns=>$data) {
                 if (gettype($data) === 'array') {
                     foreach ($data as $subtype => $score) {
@@ -137,6 +139,7 @@ class TableIA268SummaryForm implements Form
     {
         $spreadsheet = new Spreadsheet();
         $textAndCoordinates = [
+            'G1' => 'Field Office IQPR FORM' . $this->data[SystemSettingNames::GENERATED_REPORTS_CODE],
             'A1' => 'FIELD OFFICE ' . $this->fieldOffice->getName(),
             'A2' => 'IQPR SUMMARY FORM',
             'A3' => $this->quarters->getName() . ' QTR, ' . $this->quarters->getYear(),

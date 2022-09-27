@@ -6,6 +6,7 @@ namespace App\Report\Table;
 
 use App\Common\AppDateHelper;
 use App\Entity\Volunteer;
+use App\Enum\SystemSettingNames;
 use App\Service\Volunteerism\Operations;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
@@ -36,6 +37,7 @@ class VPAIC2 implements Form
     public function generate(array $data): BinaryFileResponse
     {
         $this->data = $this->getData($data);
+        $this->data[SystemSettingNames::GENERATED_REPORTS_CODE] = $data[SystemSettingNames::GENERATED_REPORTS_CODE];
 
         $spreadsheet = $this->footer();
         $writer = IOFactory::createWriter($spreadsheet, "Xlsx");
@@ -238,7 +240,7 @@ class VPAIC2 implements Form
     {
         $spreadsheet = new Spreadsheet();
         $textAndCoordinates = [
-            'A1' => 'Table I.C.2  - APPOINTED/ RENEWED / INACTIVE/ DROPPED', 'AC1' => 'PPA-PLD-FR-004',
+            'A1' => 'Table I.C.2  - APPOINTED/ RENEWED / INACTIVE/ DROPPED', 'AC1' => $this->data[SystemSettingNames::GENERATED_REPORTS_CODE],
             'A3' => 'Name of VPAs', 'E4' => 'Sex', 'M4' => 'Sex', 'U4' => 'Sex', 'Z4' => 'Sex', 'AC4' => 'If reason for Dropping is',
             'A5' => 'APPOINTED', 'D5' => 'Date', 'G5' => 'PWD', 'H5' => 'SC', 'I5' => 'RENEWED', 'L5' => 'Date', 'O5' => 'Date', 'P5' => 'SC',
             'Q5' => 'INACTIVE', 'W5' => 'Reason/s', 'X5' => 'DROPPED', 'Y5' => 'Date', 'AB5' => 'Reason/s', 'AC5' => 'Renewal, indicate date',

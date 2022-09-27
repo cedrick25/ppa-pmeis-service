@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Report\Table;
 
+use App\Enum\SystemSettingNames;
 use App\Service\RestorativeJustice\RelatedActivities;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
@@ -33,6 +34,7 @@ class RJIB2 implements Form
     public function generate(array $data): BinaryFileResponse
     {
         $this->data = $this->getData($data);
+        $this->data[SystemSettingNames::GENERATED_REPORTS_CODE] = $data[SystemSettingNames::GENERATED_REPORTS_CODE];
 
         $spreadsheet = $this->footer();
         $writer = IOFactory::createWriter($spreadsheet, "Xlsx");
@@ -94,7 +96,7 @@ class RJIB2 implements Form
     {
         $spreadsheet = new Spreadsheet();
         $textAndCoordinates = [
-            'K1' => 'PPA-PLD-FR-004', 'A2' => 'Table I.B.2  RJ RELATED ACTIVITIES/ INTERVENTIONS FOR VICTIMS',
+            'K1' => $this->data[SystemSettingNames::GENERATED_REPORTS_CODE], 'A2' => 'Table I.B.2  RJ RELATED ACTIVITIES/ INTERVENTIONS FOR VICTIMS',
             'A4' => "CLIENT'S NAME", 'B4' => 'SEX', 'D4' => 'PWD', 'E4' => 'Senior', 'F4' => 'OFFENSE (Specify)',
             'G4' => "VICTIM's NAME", 'H4' => 'Activities/ Interventions', 'I4' => 'DATE/ VENUE', 'J4' => 'PERSONS/',
             'K4' => 'OUTCOME', 'B5' => 'F', 'C5' => 'M', 'E5' => 'Citizen', 'G5' => "(To include victims' ", 'J5' => 'INSTITUTIONS',
@@ -259,6 +261,6 @@ class RJIB2 implements Form
             $data['field_office_id']
         );
 
-        return ['rows' => array_values($result['data'] ?? [])];
+        return ['rows' => isset($results['data']) ? array_values($results['data']) : []];
     }
 }

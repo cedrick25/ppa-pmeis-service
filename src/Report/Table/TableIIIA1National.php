@@ -75,11 +75,6 @@ class TableIIIA1National implements Form
     {
         $spreadsheet = $this->header();
 
-        $count = 0;
-        // $count = $this->data ? count($this->data['rows']) : 0;
-        // foreach ($this->data['rows'] as $v) {
-        // }
-
         if ($this->regions) {
             $ctr = 9;
             $totals = [

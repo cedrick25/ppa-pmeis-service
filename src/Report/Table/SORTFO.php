@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Report\Table;
 
 use App\Common\AppDateHelper;
+use App\Enum\SystemSettingNames;
 use App\Service\Volunteerism\SupportOfRegionToFieldOffice;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
@@ -37,6 +38,7 @@ class SORTFO implements Form
     {
         $this->category = $data['category'];
         $this->data = $this->getData($data);
+        $this->data[SystemSettingNames::GENERATED_REPORTS_CODE] = $data[SystemSettingNames::GENERATED_REPORTS_CODE];
 
         $spreadsheet = $this->footer();
         $writer = IOFactory::createWriter($spreadsheet, "Xlsx");
@@ -104,6 +106,7 @@ class SORTFO implements Form
 
         $textAndCoordinates = [
             'B1' => 'FINANCIAL / MATERIAL SUPPORT OF REGIONAL OFFICE TO FIELD OFFICES (To be prepared by the Regional Office)',
+            'G1' => $this->data[SystemSettingNames::GENERATED_REPORTS_CODE],
             'b2' => '_______________Quarter 20______________',
             'a4' => $clientTypes[$this->category],
             'a5' => 'DATE',
