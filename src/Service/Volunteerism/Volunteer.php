@@ -23,6 +23,7 @@ use App\Repository\VolunteerOperationsRepository;
 use App\Repository\VolunteerRepository;
 use App\Repository\VolunteerSupervisionsRepository;
 use App\Service\System\AuditTrail;
+use App\Service\System\SystemCodeSettings;
 use Doctrine\ORM\Exception\ORMException;
 use Exception;
 use Psr\Cache\CacheException;
@@ -56,6 +57,7 @@ class Volunteer implements VolunteerInterface
         private RJRelatedActivitiesRepository               $rjRelatedActivitiesRepository,
         private VpaAssociationInitiatedActivitiesRepository $vpaAssociationRepository,
         private AuditTrail                                  $auditTrail,
+        private SystemCodeSettings                          $systemCodeSettings,
     ) {
         $class = new \ReflectionClass($this);
         $this->shortName = $class->getShortName();
@@ -410,8 +412,8 @@ class Volunteer implements VolunteerInterface
         $dateOfAppointment = $volunteer->getDateAppointed()->format('F d, Y');
         $region = $this->regionsRepository->find($fieldOffice->getRegionId());
         $regionName = $region->getName();
-        $code = $data['code'];
-        $administrator = $data['administrator'];
+        $code = $this->systemCodeSettings->getByName('vpa_certificate_report_code');
+        $administrator = $this->systemCodeSettings->getByName('oic_administrator');
 
         $pdf = new TCPDF();
         $pdf->setCreator(PDF_CREATOR);

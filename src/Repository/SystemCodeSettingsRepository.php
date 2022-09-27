@@ -34,7 +34,7 @@ class SystemCodeSettingsRepository extends ServiceEntityRepository
         string $value,
         int $createdBy
     ): string {
-        if ($this->isExisting($name)) {
+        if (! is_bool($this->getByName($name))) {
             return ResponseEnum::CONFLICTED_INPUT;
         }
 
@@ -92,12 +92,12 @@ class SystemCodeSettingsRepository extends ServiceEntityRepository
         return ResponseEnum::OK;
     }
 
-    public function isExisting(string $name): bool | SystemCodeSettings
+    public function getByName(string $name): bool | SystemCodeSettings
     {
         $entity = $this->findOneBy([
             'name' => $name
         ]);
 
-        return $entity != null;
+        return $entity != null ? $entity : false;
     }
 }

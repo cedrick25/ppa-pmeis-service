@@ -41,4 +41,11 @@ class SystemCodeSettings
     {
         return $this->repository->delete($id);
     }
+
+    public function getByName(string $name): string
+    {
+        $data = $this->repository->getByName($name);
+
+        return $data->getValue();
+    }
 }
