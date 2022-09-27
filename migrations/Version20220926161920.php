@@ -16,9 +16,9 @@ final class Version20220926161920 extends AbstractMigration
     public function up(Schema $schema): void
     {
         $this->addSql("INSERT INTO system_code_settings (system_code_id, name, value, created_by) VALUES 
-            ('". Uuid::v4()->toRfc4122() ."', 'oic_administrator', 'Julito M. Diray', 1),
-            ('". Uuid::v4()->toRfc4122() ."', 'vpa_certificate_report_code', 'CSD-FOR-001-001', 1),
-            ('". Uuid::v4()->toRfc4122() ."', 'generated_reports_code', 'PPA- PLD-FR-004', 1)"
+            ('". Uuid::v4()->toRfc4122() ."', 'OIC Administrator', 'Julito M. Diray', 1),
+            ('". Uuid::v4()->toRfc4122() ."', 'VPA Certificate Report Code', 'CSD-FOR-001-001', 1),
+            ('". Uuid::v4()->toRfc4122() ."', 'Generated Reports Code', 'PPA- PLD-FR-004', 1)"
         );
     }
 
