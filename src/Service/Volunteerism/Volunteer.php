@@ -473,14 +473,14 @@ class Volunteer implements VolunteerInterface
         $fieldOfficeName = $fieldOffice->getName();
         $region = $this->regionsRepository->find($fieldOffice->getRegionId());
         $regionName = $region->getName();
-        $code = $data['code'];
+        $code = $this->systemCodeSettings->getByName('vpa_certificate_report_code');
         $address = $volunteer->getPresentAddress();
         $bloodType = $volunteer->getBloodType();
         $weight = $volunteer->getWeight();
         $height = $volunteer->getHeight();
         $emergencyName = $volunteer->getEmergencyName();
         $emergencyNumber = $volunteer->getEmergencyNumber();
-        $administrator = $data['administrator'];
+        $administrator = $this->systemCodeSettings->getByName('oic_administrator');
 
         $pdf = new TCPDF();
         $pdf->setCreator(PDF_CREATOR);
