@@ -6,11 +6,26 @@ interface SessionActivitiesInterface
 {
     public function getAll(): array;
 
-    public function create(string $name): array;
+    public function create(
+        string $name,
+        ?int $phaseId,
+        bool $isCommunityService,
+        bool $isTreePlanting,
+        bool $isCooperativeSelfHelp,
+        bool $isCooperativeSelfHelpActivities,
+    ): array;
 
     public function deleteById(int $id): array;
 
-    public function updateById(int $id, string $name): array;
+    public function updateById(
+        int $id,
+        string $name,
+        ?int $phaseId,
+        bool $isCommunityService,
+        bool $isTreePlanting,
+        bool $isCooperativeSelfHelp,
+        bool $isCooperativeSelfHelpActivities,
+    ): array;
 
     public function getById(int $id): array;
 

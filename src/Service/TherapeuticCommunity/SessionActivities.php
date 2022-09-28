@@ -43,14 +43,27 @@ class SessionActivities implements SessionActivitiesInterface
         }
     }
 
-    public function create(string $name): array
-    {
+    public function create(
+        string $name,
+        ?int $phaseId,
+        bool $isCommunityService,
+        bool $isTreePlanting,
+        bool $isCooperativeSelfHelp,
+        bool $isCooperativeSelfHelpActivities,
+    ): array {
         try {
             if ($name === "") {
                 return $this->appFormatter->formatResponse(ResponseEnum::VALIDATING_FAILED, null, ['app' => 'Session activity name cannot be empty.']);
             }
 
-            $sessionActivityId = $this->repository->create($name);
+            $sessionActivityId = $this->repository->create(
+                $name,
+                $phaseId,
+                $isCommunityService,
+                $isTreePlanting,
+                $isCooperativeSelfHelp,
+                $isCooperativeSelfHelpActivities
+            );
 
             if ($sessionActivityId == null) {
                 return $this->appFormatter->formatResponse(ResponseEnum::CREATING_FAILED, null, ['app' => 'Session activity already exist.']);
@@ -58,7 +71,7 @@ class SessionActivities implements SessionActivitiesInterface
 
             $this->auditTrail->log(AuditTrailActions::CREATE, ['name' => $name], $this->shortName, $sessionActivityId);
 
-            return $this->appFormatter->formatResponse(ResponseEnum::CREATING_FAILED, ['id' => $sessionActivityId]);
+            return $this->appFormatter->formatResponse(ResponseEnum::CREATING_SUCCESS, ['id' => $sessionActivityId]);
         } catch (InvalidArgumentException $exception) {
             return $this->appFormatter->formatResponse(ResponseEnum::CREATING_FAILED, null, ['cache' => $exception->getMessage()]);
         } catch (ORMException $exception) {
@@ -85,10 +98,25 @@ class SessionActivities implements SessionActivitiesInterface
         }
     }
 
-    public function updateById(int $id, string $name): array
-    {
+    public function updateById(
+        int $id,
+        string $name,
+        ?int $phaseId,
+        bool $isCommunityService,
+        bool $isTreePlanting,
+        bool $isCooperativeSelfHelp,
+        bool $isCooperativeSelfHelpActivities,
+    ): array {
         try {
-            $isUpdated = $this->repository->update($id, $name);
+            $isUpdated = $this->repository->update(
+                $id,
+                $name,
+                $phaseId,
+                $isCommunityService,
+                $isTreePlanting,
+                $isCooperativeSelfHelp,
+                $isCooperativeSelfHelpActivities
+        );
 
             if ($isUpdated !== ResponseEnum::OK) {
                 return $this->appFormatter->formatResponse(ResponseEnum::UPDATING_FAILED, null, ['app' => $isUpdated]);

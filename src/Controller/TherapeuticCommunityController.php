@@ -293,11 +293,20 @@ class TherapeuticCommunityController extends AbstractController
     }
 
     /**
-     * @Route("/session-activity/create/{name}", methods={"GET"})
+     * @Route("/session-activity/create", methods={"POST"})
      */
     public function createSessionActivity(Request $request): Response
     {
-        return $this->json($this->sessionActivitiesService->create($request->get("name")));
+        $data = json_decode($request->getContent(), true);
+
+        return $this->json($this->sessionActivitiesService->create(
+            $data['name'],
+            $data['phaseId'],
+            $data['isCommunityService'],
+            $data['isTreePlanting'],
+            $data['isCooperativeSelfHelp'],
+            $data['isCooperativeSelfHelpActivities'],
+        ));
     }
 
     /**
@@ -309,11 +318,21 @@ class TherapeuticCommunityController extends AbstractController
     }
 
     /**
-     * @Route("/session-activity/update/{id}/{name}", methods={"GET"})
+     * @Route("/session-activity/update", methods={"POST"})
      */
     public function updateSessionActivity(Request $request): Response
     {
-        return $this->json($this->sessionActivitiesService->updateById((int) $request->get("id"), $request->get("name")));
+        $data = json_decode($request->getContent(), true);
+
+        return $this->json($this->sessionActivitiesService->updateById(
+            $data['id'],
+            $data['name'],
+            $data['phaseId'],
+            $data['isCommunityService'],
+            $data['isTreePlanting'],
+            $data['isCooperativeSelfHelp'],
+            $data['isCooperativeSelfHelpActivities'],
+        ));
     }
 
     /**

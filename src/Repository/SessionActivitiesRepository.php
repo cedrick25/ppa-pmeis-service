@@ -66,8 +66,14 @@ class SessionActivitiesRepository extends ServiceEntityRepository
      * @throws NonUniqueResultException|InvalidArgumentException
      * @throws ORMException
      */
-    public function create(string $name): int|null
-    {
+    public function create(
+        string $name,
+        ?int $phaseId,
+        bool $isCommunityService,
+        bool $isTreePlanting,
+        bool $isCooperativeSelfHelp,
+        bool $isCooperativeSelfHelpActivities,
+    ): int|null {
         $isExist = $this->isExistByName($name);
 
         if ($isExist) {
@@ -78,6 +84,11 @@ class SessionActivitiesRepository extends ServiceEntityRepository
 
         $sessionActivity = new SessionActivities();
         $sessionActivity->setName($name);
+        $sessionActivity->setPhaseId($phaseId);
+        $sessionActivity->setIsCommunityService($isCommunityService);
+        $sessionActivity->setIsTreePlanting($isTreePlanting);
+        $sessionActivity->setIsCooperativeSelfHelp($isCooperativeSelfHelp);
+        $sessionActivity->setIsCooperativeSelfHelpActivities($isCooperativeSelfHelpActivities);
         $sessionActivity->setCreatedAt($this->appDateHelper->getCurrentImmutableDate());
 
         $this->getEntityManager()->persist($sessionActivity);
@@ -137,8 +148,15 @@ class SessionActivitiesRepository extends ServiceEntityRepository
      * @throws InvalidArgumentException
      * @throws Exception
      */
-    public function update(int $id, string $name): string
-    {
+    public function update(
+        int $id,
+        string $name,
+        ?int $phaseId,
+        bool $isCommunityService,
+        bool $isTreePlanting,
+        bool $isCooperativeSelfHelp,
+        bool $isCooperativeSelfHelpActivities,
+    ): string {
         $sessionActivity = $this->getById($id);
 
         if ($sessionActivity == null) {
@@ -152,6 +170,11 @@ class SessionActivitiesRepository extends ServiceEntityRepository
         $this->cache->invalidateTags([self::CACHE_TAG]);
 
         $sessionActivity->setName($name);
+        $sessionActivity->setPhaseId($phaseId);
+        $sessionActivity->setIsCommunityService($isCommunityService);
+        $sessionActivity->setIsTreePlanting($isTreePlanting);
+        $sessionActivity->setIsCooperativeSelfHelp($isCooperativeSelfHelp);
+        $sessionActivity->setIsCooperativeSelfHelpActivities($isCooperativeSelfHelpActivities);
         $sessionActivity->setUpdatedAt($this->appDateHelper->getCurrentImmutableDate());
 
         $this->getEntityManager()->flush();
