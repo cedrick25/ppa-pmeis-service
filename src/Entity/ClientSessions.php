@@ -32,7 +32,7 @@ class ClientSessions
     private int $sessionId;
 
     /**
-     * @ORM\Column(type="string", length=255, columnDefinition="enum('PS', 'PR', 'PD', 'JICL', 'FTMDO', 'PET', 'TERM')")
+     * @ORM\Column(type="string", length=255)
      */
     private string $role;
 

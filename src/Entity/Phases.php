@@ -23,7 +23,7 @@ class Phases
     private int $phaseId;
 
     /**
-     * @ORM\Column(type="string", length=255, columnDefinition="enum('I', 'II', 'III', 'IV')")
+     * @ORM\Column(type="string", length=255)
      */
     private string $name;
 

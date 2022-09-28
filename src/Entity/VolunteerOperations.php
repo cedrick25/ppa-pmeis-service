@@ -27,7 +27,7 @@ class VolunteerOperations
     private int $volunteerId;
 
     /**
-     * @ORM\Column(type="string", length=255, columnDefinition="enum('APPOINTED', 'REAPPOINTED','DROPPED')")
+     * @ORM\Column(type="string", length=255)
      */
     private string $status;
 

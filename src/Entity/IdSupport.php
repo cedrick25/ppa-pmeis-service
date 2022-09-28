@@ -22,7 +22,7 @@ class IdSupport
     private int $id;
 
     /**
-     * @ORM\Column(type="string", length=255, columnDefinition="enum('VPA', 'Personnel')")
+     * @ORM\Column(type="string", length=255)
      */
     private string $type;
 

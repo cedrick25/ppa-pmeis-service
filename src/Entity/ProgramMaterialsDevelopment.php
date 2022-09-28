@@ -41,7 +41,7 @@ class ProgramMaterialsDevelopment
 
     /**
      *
-     * @ORM\Column(type="string", length=255, columnDefinition="enum('TC', 'RJ', 'VPA', 'GAD', 'OTHERS')")
+     * @ORM\Column(type="string", length=255)
      */
     private string $utilizedFor;
 

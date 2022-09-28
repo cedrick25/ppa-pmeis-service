@@ -30,7 +30,7 @@ class ResourceFacilitatorSession
     private int $resourceFacilitatorId;
 
     /**
-     * @ORM\Column(type="string", length=3, columnDefinition="enum('PPO', 'VPA', 'ERP')")
+     * @ORM\Column(type="string", length=3)
      */
     private string $resourceFacilitatorType;
 

@@ -69,7 +69,7 @@ class RJRelatedActivities
     private int $rjoId;
 
     /**
-     * @ORM\Column(type="string", length=255, columnDefinition="enum('ACTIVE_SUPERVISION', 'PETITIONER')")
+     * @ORM\Column(type="string", length=255)
      */
     private string $rjGroup;
 

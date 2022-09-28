@@ -1,4 +1,5 @@
 CONTAINER := pmeis-service-app
+MYSQL_CONTAINER := pmeis-mysql
 
 build:
 	docker-compose build
@@ -11,6 +12,9 @@ stop:
 
 ssh:
 	docker exec -it ${CONTAINER} /bin/bash
+
+ssh-mysql:
+	docker exec -it ${MYSQL_CONTAINER} /bin/bash
 
 composer-install:
 	docker exec ${CONTAINER} bash -c "composer require $(package)"
@@ -28,7 +32,10 @@ create-entity:
 	docker exec ${CONTAINER} bash -c "php bin/console make:entity"
 
 create-migration:
-	docker exec ${CONTAINER} bash -c "php bin/console make:migration"
+	docker exec ${CONTAINER} bash -c "php bin/console doctrine:migration:generate"
+
+create-migration-diff:
+	docker exec ${CONTAINER} bash -c "php bin/console doctrine:migrations:diff"
 
 create-migration-diff:
 	docker exec ${CONTAINER} bash -c "php bin/console doctrine:migrations:diff"

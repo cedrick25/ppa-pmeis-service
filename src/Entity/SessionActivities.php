@@ -26,6 +26,31 @@ class SessionActivities
     private string $name;
 
     /**
+     * @ORM\Column(type="integer", nullable=true)
+     */
+    private ?int $phaseId;
+
+    /**
+     * @ORM\Column(type="boolean")
+     */
+    private bool $isCommunityService = false;
+
+    /**
+     * @ORM\Column(type="boolean")
+     */
+    private bool $isTreePlanting = false;
+
+    /**
+     * @ORM\Column(type="boolean")
+     */
+    private bool $isCooperativeSelfHelp = false;
+
+    /**
+     * @ORM\Column(type="boolean")
+     */
+    private bool $isCooperativeSelfHelpActivities = false;
+
+    /**
      * @ORM\Column(type="datetime_immutable", nullable=true)
      */
     private ?DateTimeImmutable $createdAt;
@@ -55,6 +80,86 @@ class SessionActivities
         $this->name = $name;
 
         return $this;
+    }
+
+    /**
+     * @return int|null
+     */
+    public function getPhaseId(): ?int
+    {
+        return $this->phaseId;
+    }
+
+    /**
+     * @param int|null $phaseId
+     */
+    public function setPhaseId(?int $phaseId): void
+    {
+        $this->phaseId = $phaseId;
+    }
+
+    /**
+     * @return bool
+     */
+    public function isCommunityService(): bool
+    {
+        return $this->isCommunityService;
+    }
+
+    /**
+     * @param bool $isCommunityService
+     */
+    public function setIsCommunityService(bool $isCommunityService): void
+    {
+        $this->isCommunityService = $isCommunityService;
+    }
+
+    /**
+     * @return bool
+     */
+    public function isTreePlanting(): bool
+    {
+        return $this->isTreePlanting;
+    }
+
+    /**
+     * @param bool $isTreePlanting
+     */
+    public function setIsTreePlanting(bool $isTreePlanting): void
+    {
+        $this->isTreePlanting = $isTreePlanting;
+    }
+
+    /**
+     * @return bool
+     */
+    public function isCooperativeSelfHelp(): bool
+    {
+        return $this->isCooperativeSelfHelp;
+    }
+
+    /**
+     * @param bool $isCooperativeSelfHelp
+     */
+    public function setIsCooperativeSelfHelp(bool $isCooperativeSelfHelp): void
+    {
+        $this->isCooperativeSelfHelp = $isCooperativeSelfHelp;
+    }
+
+    /**
+     * @return bool
+     */
+    public function isCooperativeSelfHelpActivities(): bool
+    {
+        return $this->isCooperativeSelfHelpActivities;
+    }
+
+    /**
+     * @param bool $isCooperativeSelfHelpActivities
+     */
+    public function setIsCooperativeSelfHelpActivities(bool $isCooperativeSelfHelpActivities): void
+    {
+        $this->isCooperativeSelfHelpActivities = $isCooperativeSelfHelpActivities;
     }
 
     public function getCreatedAt(): ?DateTimeImmutable

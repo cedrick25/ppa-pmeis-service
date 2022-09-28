@@ -71,17 +71,17 @@ class Sessions
     private int $venueId;
 
     /**
-     * @ORM\Column(type="string", length=255, columnDefinition="enum('AM', 'PM')")
+     * @ORM\Column(type="string", length=255)
      */
     private string $period;
 
     /**
-     * @ORM\Column(type="string", length=255, columnDefinition="enum('LI', 'LO')")
+     * @ORM\Column(type="string", length=255)
      */
     private string $liLo;
 
     /**
-     * @ORM\Column(type="string", length=255, columnDefinition="enum('Resource Person', 'Facilitator')")
+     * @ORM\Column(type="string", length=255)
      */
     private string $role;
 

@@ -20,7 +20,7 @@ class SupportOfRegionToFieldOffice
     private int $id;
 
     /**
-     * @ORM\Column(type="string", length=255, columnDefinition="enum('TC', 'RJ', 'VPA', 'GAD', 'PWDSC', 'OTHERS')")
+     * @ORM\Column(type="string", length=255)
      */
     private string $category;
 

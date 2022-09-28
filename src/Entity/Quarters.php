@@ -23,7 +23,7 @@ class Quarters
     private int $quarterId;
 
     /**
-     * @ORM\Column(type="string", length=255, columnDefinition="enum('FIRST', 'SECOND', 'THIRD', 'FOURTH')")
+     * @ORM\Column(type="string", length=255)
      */
     private string $name;
 

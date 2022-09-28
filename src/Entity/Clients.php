@@ -64,7 +64,7 @@ class Clients
     private string $dateOfBirth;
 
     /**
-     * @ORM\Column(type="string", length=3, columnDefinition="enum('DO', 'NDO')")
+     * @ORM\Column(type="string", length=3)
      */
     private string $offenseCategory;
 

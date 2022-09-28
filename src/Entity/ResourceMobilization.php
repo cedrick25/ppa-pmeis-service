@@ -21,7 +21,7 @@ class ResourceMobilization
     private int $resourceMobilizationId;
 
     /**
-     * @ORM\Column(type="string", length=255, columnDefinition="enum('TC', 'RJ', 'VPA', 'GAD', 'OTHERS')")
+     * @ORM\Column(type="string", length=255)
      */
     private string $category;
 
@@ -51,7 +51,7 @@ class ResourceMobilization
     private string $cashSourceName;
 
     /**
-     * @ORM\Column(type="string", length=255, columnDefinition="enum('GO', 'NGO', 'IND')")
+     * @ORM\Column(type="string", length=255)
      */
     private string $cashSourceType;
 
@@ -76,7 +76,7 @@ class ResourceMobilization
     private string $materialSourceName;
 
     /**
-     * @ORM\Column(type="string", length=255, columnDefinition="enum('GO', 'NGO', 'IND')")
+     * @ORM\Column(type="string", length=255)
      */
     private string $materialSourceType;
 
@@ -96,7 +96,7 @@ class ResourceMobilization
     private string $technicalAssistanceName;
 
     /**
-     * @ORM\Column(type="string", length=255, columnDefinition="enum('GO', 'NGO', 'IND')")
+     * @ORM\Column(type="string", length=255)
      */
     private string $technicalAssistanceType;
 

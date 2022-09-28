@@ -28,7 +28,7 @@ class Offenses
     private string $name;
 
     /**
-     * @ORM\Column(type="string", length=255, columnDefinition="enum('DO', 'NDO')")
+     * @ORM\Column(type="string", length=255)
      */
     private string $type;
 

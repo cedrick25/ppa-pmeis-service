@@ -37,7 +37,7 @@ class RjRelatedRestitutions
     private int $clientId;
 
     /**
-     * @ORM\Column(type="string", length=255, columnDefinition="enum('ACTIVE_SUPERVISION', 'PETITIONER')")
+     * @ORM\Column(type="string", length=255)
      */
     private string $rjGroup;
 
