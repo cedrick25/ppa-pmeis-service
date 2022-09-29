@@ -9,7 +9,11 @@ class ClientSessions implements \JsonSerializable
     public function __construct(
         private int $clientId,
         private int $sessionId,
-        private string $role
+        private string $role,
+        private ?int $clientRemarksId = null,
+        private ?string $otherRemarks = null,
+        private ?bool $fsi = null,
+        private ?int $fsgNumber = null,
     ){}
 
     /**
@@ -41,5 +45,37 @@ class ClientSessions implements \JsonSerializable
         $hydrate = new AppHydrator();
 
         return $hydrate->convertObjectToArray($this);
+    }
+
+    /**
+     * @return int|null
+     */
+    public function getClientRemarksId(): ?int
+    {
+        return $this->clientRemarksId;
+    }
+
+    /**
+     * @return string|null
+     */
+    public function getOtherRemarks(): ?string
+    {
+        return $this->otherRemarks;
+    }
+
+    /**
+     * @return bool|null
+     */
+    public function getFsi(): ?bool
+    {
+        return $this->fsi;
+    }
+
+    /**
+     * @return int|null
+     */
+    public function getFsgNumber(): ?int
+    {
+        return $this->fsgNumber;
     }
 }

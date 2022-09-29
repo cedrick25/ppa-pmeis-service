@@ -11,7 +11,6 @@ use Symfony\Component\Validator\Constraints as Assert;
 class Sessions implements \JsonSerializable
 {
     public function __construct(
-        private int $remarksId,
         private int $fieldOfficeId,
         private int $phaseId,
         private string $batch,
@@ -30,16 +29,6 @@ class Sessions implements \JsonSerializable
         private ?array $facilitators = null,
         private ?array $absentees = null,
     ){}
-
-    /**
-     * @Assert\NotBlank
-     * @Assert\GreaterThan(0)
-     * @return int
-     */
-    public function getRemarksId(): int
-    {
-        return $this->remarksId;
-    }
 
     /**
      * @return int|null

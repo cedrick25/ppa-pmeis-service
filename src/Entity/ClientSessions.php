@@ -52,6 +52,11 @@ class ClientSessions
     private ?bool $fsi;
 
     /**
+     * @ORM\Column(type="integer", nullable=true)
+     */
+    private ?int $fsgNumber;
+
+    /**
      * @ORM\Column(type="date", nullable=true)
      */
     private ?\DateTimeInterface $remarksDate;
@@ -155,6 +160,22 @@ class ClientSessions
     {
         $this->fsi = $fsi;
         return $this;
+    }
+
+    /**
+     * @return int|null
+     */
+    public function getFsgNumber(): ?int
+    {
+        return $this->fsgNumber;
+    }
+
+    /**
+     * @param int|null $fsgNumber
+     */
+    public function setFsgNumber(?int $fsgNumber): void
+    {
+        $this->fsgNumber = $fsgNumber;
     }
 
     /**

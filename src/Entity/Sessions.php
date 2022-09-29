@@ -28,11 +28,6 @@ class Sessions
     /**
      * @ORM\Column(type="integer")
      */
-    private ?int $remarksId;
-
-    /**
-     * @ORM\Column(type="integer")
-     */
     private ?int $treesPlanted;
 
     /**
@@ -81,11 +76,6 @@ class Sessions
     private string $liLo;
 
     /**
-     * @ORM\Column(type="string", length=255)
-     */
-    private string $role;
-
-    /**
      * @ORM\Column(type="integer")
      */
     private int $createdBy;
@@ -108,24 +98,6 @@ class Sessions
     public function getSessionId(): ?int
     {
         return $this->sessionId;
-    }
-
-    /**
-     * @return int|null
-     */
-    public function getRemarksId(): ?int
-    {
-        return $this->remarksId;
-    }
-
-    /**
-     * @param int|null $remarksId
-     * @return Sessions
-     */
-    public function setRemarksId(?int $remarksId): Sessions
-    {
-        $this->remarksId = $remarksId;
-        return $this;
     }
 
     /**
@@ -271,29 +243,6 @@ class Sessions
         }
 
         $this->liLo = $liLo;
-    }
-
-    /**
-     * @return string
-     */
-    public function getRole(): string
-    {
-        return $this->role;
-    }
-
-    /**
-     * @param string $role
-     * @return Sessions
-     * @throws InvalidArgumentException
-     */
-    public function setRole(string $role): Sessions
-    {
-        if (! SessionRole::isValid($role)) {
-            throw new InvalidArgumentException("Invalid Role");
-        }
-
-        $this->role = $role;
-        return $this;
     }
 
     public function getCreatedBy(): ?int

@@ -63,7 +63,6 @@ class SessionsRepository extends ServiceEntityRepository
         $this->cache->invalidateTags([self::CACHE_TAG]);
 
         $session = new Sessions();
-        $session->setRemarksId($sessionData->getRemarksId());
         $session->setFieldOfficeId($sessionData->getFieldOfficeId());
         $session->setPhaseId($sessionData->getPhaseId());
         $session->setBatch($sessionData->getBatch());
@@ -97,7 +96,6 @@ class SessionsRepository extends ServiceEntityRepository
         $this->cache->invalidateTags([self::CACHE_TAG]);
 
         $session = new Sessions();
-        $session->setRemarksId($sessionData->getRemarksId());
         $session->setTreesPlanted($sessionData->getTreesPlanted());
         $session->setFieldOfficeId($sessionData->getFieldOfficeId());
         $session->setPhaseId($sessionData->getPhaseId());
@@ -135,7 +133,7 @@ class SessionsRepository extends ServiceEntityRepository
 
         return $this->helper->createCachedResponseCustomQuery($params, function () {
             $conn = $this->getEntityManager()->getConnection();
-            $sql = "SELECT se.*, sr.name as remarks, MONTH(se.date) as quarter_month, YEAR(se.date) as quarter_year, fe.name as field_office_name,
+            $sql = "SELECT se.*, MONTH(se.date) as quarter_month, YEAR(se.date) as quarter_year, fe.name as field_office_name,
                     p.name as phase_name, sa.name as session_activity_name, tc.name as treatment_category_name, v.name as venue_name
                  FROM sessions as se " .
                 "LEFT JOIN field_offices as fe ON se.field_office_id = fe.field_office_id " .
@@ -143,7 +141,6 @@ class SessionsRepository extends ServiceEntityRepository
                 "LEFT JOIN session_activities as sa ON se.session_activity_id = sa.session_activity_id " .
                 "LEFT JOIN treatment_categories as tc ON se.treatment_category_id = tc.treatment_category_id " .
                 "LEFT JOIN venues as v ON se.venue_id = v.venue_id " .
-                "LEFT JOIN session_remarks as sr ON se.remarks_id = sr.session_remark_id " .
                 "WHERE se.deleted_at IS NULL ORDER BY se.session_id DESC";
             $stmt = $conn->prepare($sql);
             $query = $stmt->executeQuery();
@@ -176,7 +173,7 @@ class SessionsRepository extends ServiceEntityRepository
             $conn = $this->getEntityManager()->getConnection();
             $data = [];
 
-            $sql = "SELECT se.*, sr.name as remarks, MONTH(se.date) as quarter_month, YEAR(se.date) as quarter_year, fo.name as field_office_name,
+            $sql = "SELECT se.*, MONTH(se.date) as quarter_month, YEAR(se.date) as quarter_year, fo.name as field_office_name,
                     p.name as phase_name, sa.name as session_activity_name, tc.name as treatment_category_name, v.name as venue_name
                  FROM sessions as se " .
                 "LEFT JOIN field_offices as fo ON se.field_office_id = fo.field_office_id " .
@@ -184,7 +181,6 @@ class SessionsRepository extends ServiceEntityRepository
                 "LEFT JOIN session_activities as sa ON se.session_activity_id = sa.session_activity_id " .
                 "LEFT JOIN treatment_categories as tc ON se.treatment_category_id = tc.treatment_category_id " .
                 "LEFT JOIN venues as v ON se.venue_id = v.venue_id " .
-                "LEFT JOIN session_remarks as sr ON se.remarks_id = sr.session_remark_id " .
                 "WHERE se.deleted_at IS NULL ORDER BY se.session_id DESC";
             $stmt = $conn->prepare($sql);
             $query = $stmt->executeQuery();
@@ -274,7 +270,6 @@ class SessionsRepository extends ServiceEntityRepository
 
         $this->cache->invalidateTags([self::CACHE_TAG]);
 
-        $session->setRemarksId($sessionData->getRemarksId());
         $session->setTreesPlanted($sessionData->getTreesPlanted());
         $session->setPhaseId($sessionData->getPhaseId());
         $session->setBatch($sessionData->getBatch());
@@ -314,7 +309,6 @@ class SessionsRepository extends ServiceEntityRepository
 
         $this->cache->invalidateTags([self::CACHE_TAG]);
 
-        $session->setRemarksId($sessionData->getRemarksId());
         $session->setTreesPlanted($sessionData->getTreesPlanted());
         $session->setPhaseId($sessionData->getPhaseId());
         $session->setBatch($sessionData->getBatch());
@@ -372,7 +366,7 @@ class SessionsRepository extends ServiceEntityRepository
             $result = [];
 
             $conn = $this->getEntityManager()->getConnection();
-            $sql = "SELECT se.*, sr.name as remarks, MONTH(se.date) as quarter_month, YEAR(se.date) as quarter_year, fe.name as field_office_name,
+            $sql = "SELECT se.*, MONTH(se.date) as quarter_month, YEAR(se.date) as quarter_year, fe.name as field_office_name,
                     p.name as phase_name, sa.name as session_activity_name, tc.name as treatment_category_name, v.name as venue_name
                  FROM sessions as se " .
                 "LEFT JOIN field_offices as fe ON se.field_office_id = fe.field_office_id " .
@@ -380,7 +374,6 @@ class SessionsRepository extends ServiceEntityRepository
                 "LEFT JOIN session_activities as sa ON se.session_activity_id = sa.session_activity_id " .
                 "LEFT JOIN treatment_categories as tc ON se.treatment_category_id = tc.treatment_category_id " .
                 "LEFT JOIN venues as v ON se.venue_id = v.venue_id " .
-                "LEFT JOIN session_remarks as sr ON se.remarks_id = sr.session_remark_id " .
                 "WHERE se.deleted_at IS NULL " .
                 "LIMIT $pageSize OFFSET $startOffset";
             $stmt = $conn->prepare($sql);
@@ -418,7 +411,7 @@ class SessionsRepository extends ServiceEntityRepository
         return $this->helper->createCachedResponseCustomQuery($params, function () use ($clientTypes, $clientNames, $clientRemarks, $id) {
             $conn = $this->getEntityManager()->getConnection();
 
-            $sql = "SELECT se.*, sr.name as remarks, MONTH(se.date) as quarter_month, YEAR(se.date) as quarter_year, fe.name as field_office_name,
+            $sql = "SELECT se.*, MONTH(se.date) as quarter_month, YEAR(se.date) as quarter_year, fe.name as field_office_name,
                     p.name as phase_name, sa.name as session_activity_name, tc.name as treatment_category_name, v.name as venue_name,
                     r.name, r.region_id
                  FROM sessions as se " .
@@ -428,7 +421,6 @@ class SessionsRepository extends ServiceEntityRepository
                 "LEFT JOIN session_activities as sa ON se.session_activity_id = sa.session_activity_id " .
                 "LEFT JOIN treatment_categories as tc ON se.treatment_category_id = tc.treatment_category_id " .
                 "LEFT JOIN venues as v ON se.venue_id = v.venue_id " .
-                "LEFT JOIN session_remarks as sr ON se.remarks_id = sr.session_remark_id " .
                 "WHERE se.session_id = $id AND se.deleted_at IS NULL ORDER BY se.session_id DESC";
             $stmt = $conn->prepare($sql);
             $query = $stmt->executeQuery();
@@ -588,9 +580,9 @@ class SessionsRepository extends ServiceEntityRepository
     {
         $conn = $this->getEntityManager()->getConnection();
         $sql = "INSERT INTO sessions 
-                    (remarks_id, trees_planted, field_office_id, phase_id, batch, session_activity_id, treatment_category_id, date, 
+                    (trees_planted, field_office_id, phase_id, batch, session_activity_id, treatment_category_id, date, 
                      venue_id, period, li_lo, role, created_by, created_at, updated_at, deleted_at)
-                SELECT remarks_id, trees_planted, field_office_id, phase_id, batch, session_activity_id, treatment_category_id, date, 
+                SELECT trees_planted, field_office_id, phase_id, batch, session_activity_id, treatment_category_id, date, 
                        venue_id, period, li_lo, role, created_by, created_at, updated_at, deleted_at 
                 FROM sessions WHERE session_id = $id";
         $stmt = $conn->prepare($sql);
