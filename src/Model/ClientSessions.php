@@ -13,7 +13,6 @@ class ClientSessions implements \JsonSerializable
         private ?int $clientRemarksId = null,
         private ?string $otherRemarks = null,
         private ?bool $fsi = null,
-        private ?int $fsgNumber = null,
     ){}
 
     /**
@@ -69,13 +68,5 @@ class ClientSessions implements \JsonSerializable
     public function getFsi(): ?bool
     {
         return $this->fsi;
-    }
-
-    /**
-     * @return int|null
-     */
-    public function getFsgNumber(): ?int
-    {
-        return $this->fsgNumber;
     }
 }

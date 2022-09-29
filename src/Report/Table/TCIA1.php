@@ -4,11 +4,12 @@ declare(strict_types=1);
 
 namespace App\Report\Table;
 
+use App\Enum\Response as ResponseEnum;
 use App\Enum\SystemSettingNames;
 use App\Repository\FieldOfficesRepository;
 use App\Repository\QuartersRepository;
 use App\Repository\TreatmentCategoriesRepository;
-use App\Service\TherapeuticCommunity\QuartersInterface;
+use App\Service\TherapeuticCommunity\SessionsInterface;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Style\Border;
 use PhpOffice\PhpSpreadsheet\Writer\Exception;
@@ -23,7 +24,7 @@ class TCIA1 implements Form
      * @param FieldOfficesRepository $fieldOfficesRepository
      * @param QuartersRepository $quartersRepository
      * @param TreatmentCategoriesRepository $treatmentCategoriesRepository
-     * @param QuartersInterface $quartersService
+     * @param SessionsInterface $sessionService
      * @param int $fieldOfficeId
      * @param int $lastFilledOutCellY
      * @param array<string, mixed> $data
@@ -32,7 +33,7 @@ class TCIA1 implements Form
         private FieldOfficesRepository        $fieldOfficesRepository,
         private QuartersRepository            $quartersRepository,
         private TreatmentCategoriesRepository $treatmentCategoriesRepository,
-        private QuartersInterface             $quartersService,
+        private SessionsInterface             $sessionService,
         private int                           $fieldOfficeId = 1,
         private int                           $quarterId = 1,
         private int                           $lastFilledOutCellY = 14,
@@ -117,30 +118,41 @@ class TCIA1 implements Form
         ];
 
         foreach ($this->data['part1'] as $index=>$rows) {
-            if ($rows['remarks'] === 'Coop./ Self-Help Asso.') {
+            $remarks = '';
+            $isCommunityService = filter_var($rows['is_community_service'], FILTER_VALIDATE_BOOLEAN);
+            $isCooperativeSelfHelp = filter_var($rows['is_cooperative_self_help'], FILTER_VALIDATE_BOOLEAN);
+            $isCooperativeSelfHelpActivities = filter_var($rows['is_cooperative_self_help_activities'], FILTER_VALIDATE_BOOLEAN);
+            $isTreePlanting = filter_var($rows['is_tree_planting'], FILTER_VALIDATE_BOOLEAN);
+
+            if ($isCooperativeSelfHelp || $isCooperativeSelfHelpActivities) {
                 $footer['coop_or_self_help']++;
+                $remarks .= 'Coop./ Self-Help Asso.,';
             }
 
-            if ($rows['remarks'] === 'Community Services and Other Related Activities') {
+            if ($isCommunityService) {
                 $footer['community_services_and_other']++;
+                $remarks .= 'Community Services Other Related Activities,';
             }
 
-            if ($rows['trees_planted'] !== null) {
+            if ($isTreePlanting) {
                 $footer['trees_planted'] += intval($rows['trees_planted']);
+                $remarks .= 'Trees Planting,';
             }
+
+            $remarks = rtrim($remarks, ',');
 
             $this->lastFilledOutCellY++;
             $treatmentCategory = $this->treatmentCategoriesRepository->find($rows['treatment_category_id']);
             $tcExplodedName = explode('-', $treatmentCategory->getName());
             $totals[$treatmentCategory->getName()]++;
-            $totals['FSG'] += intval($rows['fsg']);
+            $totals['FSG'] += intval($rows['fsg_number']);
 
             $spreadsheet->getActiveSheet()->setCellValue("A" . $this->lastFilledOutCellY, $rows['phase_name']);
             $spreadsheet->getActiveSheet()->setCellValue("B" . $this->lastFilledOutCellY, $rows['batch']);
             $spreadsheet->getActiveSheet()->setCellValue("C" . $this->lastFilledOutCellY, $rows['session_activity_title']);
             $spreadsheet->getActiveSheet()->setCellValue(
                 $treatmentCategoriesColumn[$tcExplodedName[0]][$tcExplodedName[1]] . $this->lastFilledOutCellY, "√");
-            $spreadsheet->getActiveSheet()->setCellValue("N" . $this->lastFilledOutCellY, $rows['fsg']);
+            $spreadsheet->getActiveSheet()->setCellValue("N" . $this->lastFilledOutCellY, $rows['fsg_number']);
             $spreadsheet->getActiveSheet()->setCellValue(
                 "O" . $this->lastFilledOutCellY,
                 $rows['venue'] . '/ ' . $rows['date'] . '/ ' . $rows['period'] . ' Session'
@@ -158,6 +170,11 @@ class TCIA1 implements Form
             $spreadsheet->getActiveSheet()->setCellValue("W" . $this->lastFilledOutCellY, $total);
             $spreadsheet->getActiveSheet()->setCellValue("X" . $this->lastFilledOutCellY, $part2Row['count']['petitioners']);
             $spreadsheet->getActiveSheet()->setCellValue("Y" . $this->lastFilledOutCellY, $part2Row['count']['terminated']);
+            $spreadsheet->getActiveSheet()->setCellValue("AB" . $this->lastFilledOutCellY, $remarks);
+
+            if ($isTreePlanting) {
+                $footer['clients_involve_in_tree_planting'] += $total;
+            }
 
             $frequencies['probationers'] += $part2Row['count']['probationers'];
             $frequencies['parolees'] += $part2Row['count']['parolees'];
@@ -171,37 +188,31 @@ class TCIA1 implements Form
             $hasVpa = false;
             if (isset($part2Row['vpa_resource_person'])) {
                 foreach ($part2Row['vpa_resource_person'] as $resource) {
-                    $this->lastFilledOutCellY++;
-
                     $footer['vpa_headcount'][] = $resource['full_name'];
                     $hasVpa = true;
 
                     $spreadsheet->getActiveSheet()->setCellValue("Z" . $this->lastFilledOutCellY, 'VPA - ' . $resource['full_name'] . ' - Non-TC Trained');
                     $spreadsheet->getActiveSheet()->setCellValue("AA" . $this->lastFilledOutCellY, $resource['role']);
                     $spreadsheet->getActiveSheet()->getStyle("AA" . $this->lastFilledOutCellY)->getAlignment()->setWrapText(true);
-                    $spreadsheet->getActiveSheet()->setCellValue("AB" . $this->lastFilledOutCellY, $rows['remarks']);
+                    $this->lastFilledOutCellY++;
                 }
             }
 
             if (isset($part2Row['ppo_resource_person'])) {
                 foreach ($part2Row['ppo_resource_person'] as $resource) {
-                    $this->lastFilledOutCellY++;
-
                     $spreadsheet->getActiveSheet()->setCellValue("Z" . $this->lastFilledOutCellY,'PPO - ' . $resource['full_name']);
                     $spreadsheet->getActiveSheet()->setCellValue("AA" . $this->lastFilledOutCellY, $resource['role']);
                     $spreadsheet->getActiveSheet()->getStyle("AA" . $this->lastFilledOutCellY)->getAlignment()->setWrapText(true);
-                    $spreadsheet->getActiveSheet()->setCellValue("AB" . $this->lastFilledOutCellY, $rows['remarks']);
+                    $this->lastFilledOutCellY++;
                 }
             }
 
             if (isset($part2Row['erp_resource_person'])) {
                 foreach ($part2Row['erp_resource_person'] as $resource) {
-                    $this->lastFilledOutCellY++;
-
                     $spreadsheet->getActiveSheet()->setCellValue("Z" . $this->lastFilledOutCellY,'ERP - ' . $resource['name']);
                     $spreadsheet->getActiveSheet()->setCellValue("AA" . $this->lastFilledOutCellY, $resource['role']);
                     $spreadsheet->getActiveSheet()->getStyle("AA" . $this->lastFilledOutCellY)->getAlignment()->setWrapText(true);
-                    $spreadsheet->getActiveSheet()->setCellValue("AB" . $this->lastFilledOutCellY, $rows['remarks']);
+                    $this->lastFilledOutCellY++;
                 }
             }
 
@@ -418,18 +429,16 @@ class TCIA1 implements Form
     {
         $result = [];
 
-        $part1 = $this->quartersService->getTCA1Part1(
-            (int) $data['quarter_id'],
-            (int) $data['field_office_id']
-        );
+        $fieldOfficeId = (int) $data['field_office_id'];
+        $quarterData = $this->quartersRepository->find((int) $data['quarter_id']);
 
-        $part2 = $this->quartersService->getTCA1Part2(
-            (int) $data['quarter_id'],
-            (int) $data['field_office_id']
-        );
+        if ($quarterData === null) {
+            return $result;
+        }
 
-        $result['part1'] = $part1['data'] ?? [];
-        $result['part2'] = array_values($part2['data'] ?? []);
+        $result['part1'] = $this->sessionService->getTCA1Part1($quarterData, $fieldOfficeId);
+        $result['part2'] = $this->sessionService->getTCA1Part2($quarterData, $fieldOfficeId);
+
         $result[SystemSettingNames::GENERATED_REPORTS_CODE] = $data[SystemSettingNames::GENERATED_REPORTS_CODE];
 
         return $result;

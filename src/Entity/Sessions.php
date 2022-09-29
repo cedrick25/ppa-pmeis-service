@@ -76,6 +76,11 @@ class Sessions
     private string $liLo;
 
     /**
+     * @ORM\Column(type="integer", nullable=true)
+     */
+    private ?int $fsgNumber;
+
+    /**
      * @ORM\Column(type="integer")
      */
     private int $createdBy;
@@ -243,6 +248,22 @@ class Sessions
         }
 
         $this->liLo = $liLo;
+    }
+
+    /**
+     * @return int|null
+     */
+    public function getFsgNumber(): ?int
+    {
+        return $this->fsgNumber;
+    }
+
+    /**
+     * @param int|null $fsgNumber
+     */
+    public function setFsgNumber(?int $fsgNumber): void
+    {
+        $this->fsgNumber = $fsgNumber;
     }
 
     public function getCreatedBy(): ?int

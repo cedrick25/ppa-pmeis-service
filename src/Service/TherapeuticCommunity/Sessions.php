@@ -214,6 +214,29 @@ class Sessions implements SessionsInterface
         }
     }
 
+    public function getTCA1Part1(\App\Entity\Quarters $quarterData, int $fieldOfficeId): array
+    {
+        try {
+            $sessions = $this->repository->fetchTCA1Part1($fieldOfficeId, $quarterData);
+
+            return $sessions ?? [];
+        } catch (CacheException $e) {
+            return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_FAILED, null, ['cache' => $e->getMessage()]);
+        }
+    }
+
+    public function getTCA1Part2(\App\Entity\Quarters $quarterData, int $fieldOfficeId): array
+    {
+        try {
+
+            $quarterData = $this->repository->fetchTCA1Part2($fieldOfficeId, $quarterData);
+
+            return array_values($quarterData ?? []);
+        } catch (CacheException $e) {
+            return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_FAILED, null, ['cache' => $e->getMessage()]);
+        }
+    }
+
     public function getTCIA2(int $quarterId, int $fieldOfficeId, string $role): array
     {
         /**

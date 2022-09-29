@@ -28,6 +28,7 @@ class Sessions implements \JsonSerializable
         private ?array $attendees = null,
         private ?array $facilitators = null,
         private ?array $absentees = null,
+        private ?int $fsgNumber = null,
     ){}
 
     /**
@@ -182,6 +183,14 @@ class Sessions implements \JsonSerializable
     public function getAbsentees(): ?array
     {
         return $this->absentees;
+    }
+
+    /**
+     * @return int|null
+     */
+    public function getFsgNumber(): ?int
+    {
+        return $this->fsgNumber;
     }
 
     public function jsonSerialize(): array

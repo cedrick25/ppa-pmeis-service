@@ -106,6 +106,7 @@ class SessionsRepository extends ServiceEntityRepository
         $session->setVenueId($sessionData->getVenueId());
         $session->setPeriod($sessionData->getPeriod());
         $session->setLiLo($sessionData->getLiLo());
+        $session->setFsgNumber($sessionData->getFsgNumber());
         $session->setCreatedBy($sessionData->getCreatedBy());
         $session->setCreatedAt($this->appDateHelper->getCurrentImmutableDate());
 
@@ -477,6 +478,112 @@ class SessionsRepository extends ServiceEntityRepository
     }
 
     /**
+     * @throws CacheException
+     */
+    public function fetchTCA1Part1(int $fieldOfficeId, Quarters $quarterData): ?array
+    {
+        $quarterId = $quarterData->getQuarterId();
+        $params = [
+            'cacheKey' => $this->cacheHelper->getSessionTCA1Part1Key($quarterId, $fieldOfficeId),
+            'cacheTag' => self::CACHE_TAG
+
+        ];
+
+        $minMaxDate = $this->getQuarterMinMaxDate($quarterData);
+        $minDate = $minMaxDate['min'];
+        $maxDate = $minMaxDate['max'];
+
+        return $this->helper->createCachedResponseCustomQuery($params, function() use ($quarterId, $fieldOfficeId, $minDate, $maxDate) {
+            $conn = $this->getEntityManager()->getConnection();
+
+            $sql = "SELECT q.*, s.session_id, sa.name as session_activity_title, s.treatment_category_id,
+                       s.trees_planted, s.field_office_id,s.fsg_number , p.name as phase_name, s.batch ,v.name as venue, s.date, s.period,
+                       sa.is_community_service, sa.is_cooperative_self_help, sa.is_cooperative_self_help_activities,
+                       sa.is_tree_planting FROM quarters as q 
+                    LEFT JOIN sessions as s ON s.date BETWEEN CAST('$minDate' AS DATE) AND CAST('$maxDate' AS DATE) 
+                    LEFT JOIN session_activities as sa ON s.session_activity_id = sa.session_activity_id 
+                    LEFT JOIN phases as p ON s.phase_id = p.phase_id
+                    LEFT JOIN venues as v ON s.venue_id = v.venue_id
+                    WHERE q.quarter_id = $quarterId
+                    AND s.field_office_id = $fieldOfficeId 
+                    AND s.deleted_at IS NULL
+                    ORDER BY p.phase_id
+                ";
+            $stmt = $conn->prepare($sql);
+            $query = $stmt->executeQuery();
+
+            return $query->fetchAllAssociative();
+        });
+    }
+
+    /**
+     * @throws CacheException
+     */
+    public function fetchTCA1Part2(int $fieldOfficeId, Quarters $quarterData): ?array
+    {
+        $params = [
+            'cacheKey' => $this->cacheHelper->geSessionTCA1Part2Key($quarterData->getQuarterId(), $fieldOfficeId),
+            'cacheTag' => self::CACHE_TAG
+        ];
+
+        return $this->helper->createCachedResponseCustomQuery($params, function() use ($quarterData, $fieldOfficeId) {
+            $data = [];
+            $erpFacilitators = [];
+            $resourcePeopleId = [];
+            $sessions = $this->getSessionDataByQuarterAndFieldOfficeId($fieldOfficeId, $quarterData);
+
+            if (empty($sessions)) {
+                return [];
+            }
+
+            $sessionsIds = array_map(fn(array $session) => intval($session['session_id']), $sessions);
+            $resourceFacilitators = $this->getResourceFacilitatorIds($sessionsIds);
+
+            foreach ($resourceFacilitators as $resourceFacilitator) {
+                $type = $resourceFacilitator['resource_facilitator_type'];
+                $sessionId = $resourceFacilitator['session_id'];
+
+                if ('ERP' === $type) {
+                    $erpFacilitators[$sessionId][] = [
+                        'name' => $resourceFacilitator['erp_name'],
+                        'role' => $resourceFacilitator['role']
+                    ];
+                    continue;
+                }
+
+                $resourcePeopleId[$type][$sessionId][] = [
+                    'id' => (int) $resourceFacilitator['resource_facilitator_id'],
+                    'role' => $resourceFacilitator['role']
+                ];
+            }
+
+            foreach ($sessions as $session) {
+                if (
+                    isset($resourcePeopleId['VPA']) &&
+                    isset($resourcePeopleId['VPA'][$session['session_id']])
+                ) {
+                    $session['vpa_resource_person'] = $this->getVpaResourcePeople($resourcePeopleId['VPA'][$session['session_id']]);
+                }
+
+                if (
+                    isset($resourcePeopleId['PPO']) &&
+                    isset($resourcePeopleId['PPO'][$session['session_id']])
+                ) {
+                    $session['ppo_resource_person'] = $this->getPpoResourcePeople($resourcePeopleId['PPO'][$session['session_id']]);
+                }
+
+                if (! empty($erpFacilitators) && isset($erpFacilitators[$session['session_id']])) {
+                    $session['erp_resource_person'] = $erpFacilitators[$session['session_id']];
+                }
+                $session['count'] = $this->getClientSessionCount($quarterData->getQuarterId(), intval($session['session_id']));
+                $data[$session['session_id']] = $session;
+            }
+
+            return $data;
+        });
+    }
+
+    /**
      * @throws \Doctrine\DBAL\Driver\Exception
      * @throws \Doctrine\DBAL\Exception
      */
@@ -581,9 +688,9 @@ class SessionsRepository extends ServiceEntityRepository
         $conn = $this->getEntityManager()->getConnection();
         $sql = "INSERT INTO sessions 
                     (trees_planted, field_office_id, phase_id, batch, session_activity_id, treatment_category_id, date, 
-                     venue_id, period, li_lo, role, created_by, created_at, updated_at, deleted_at)
+                     venue_id, period, li_lo, created_by, created_at, updated_at, deleted_at)
                 SELECT trees_planted, field_office_id, phase_id, batch, session_activity_id, treatment_category_id, date, 
-                       venue_id, period, li_lo, role, created_by, created_at, updated_at, deleted_at 
+                       venue_id, period, li_lo, created_by, created_at, updated_at, deleted_at 
                 FROM sessions WHERE session_id = $id";
         $stmt = $conn->prepare($sql);
         $stmt->executeQuery();
@@ -727,5 +834,148 @@ class SessionsRepository extends ServiceEntityRepository
         }
 
         return $data;
+    }
+
+    public function getQuarterMinMaxDate(Quarters $quarterData): array
+    {
+        $quarterMonthsList = [...$this->appDateHelper->getMonthsByQuarterString($quarterData->getName())];
+        $quarterYearList = [intval($quarterData->getYear())];
+
+        return $this->appDateHelper->getMinMaxDateByYearsAndMonths($quarterYearList, $quarterMonthsList);
+    }
+
+    /**
+     * @throws \Doctrine\DBAL\Exception
+     * @throws \Doctrine\DBAL\Driver\Exception
+     */
+    public function getSessionDataByQuarterAndFieldOfficeId(int $fieldOfficeId, Quarters $quarterData): array
+    {
+        $conn = $this->getEntityManager()->getConnection();
+
+        $minMaxDate = $this->getQuarterMinMaxDate($quarterData);
+        $minDate = $minMaxDate['min'];
+        $maxDate = $minMaxDate['max'];
+
+        $sql = "SELECT 
+                    s.session_id, 
+                    s.field_office_id, 
+                    s.li_lo 
+                FROM sessions as s 
+                WHERE 
+                    s.date BETWEEN CAST('$minDate' AS DATE) 
+                AND CAST('$maxDate' AS DATE) 
+                AND s.field_office_id = $fieldOfficeId
+                AND s.deleted_at IS NULL
+            ";
+        $stmt = $conn->prepare($sql);
+        $query = $stmt->executeQuery();
+        return $query->fetchAllAssociative();
+    }
+
+    /**
+     * @param int[] $sessionIds
+     * @return array
+     * @throws \Doctrine\DBAL\Driver\Exception
+     * @throws \Doctrine\DBAL\Exception
+     */
+    private function getResourceFacilitatorIds(array $sessionIds): array
+    {
+        $conn = $this->getEntityManager()->getConnection();
+        $sessionIds = implode(',', $sessionIds);
+        $sql = "SELECT * FROM resource_facilitator_session WHERE session_id IN ($sessionIds)";
+        $stmt = $conn->prepare($sql);
+        $query = $stmt->executeQuery();
+
+        return $query->fetchAllAssociative();
+    }
+
+    /**
+     * @param array<string, mixed> $volunteerData
+     * @return array
+     * @throws \Doctrine\DBAL\Driver\Exception
+     * @throws \Doctrine\DBAL\Exception
+     */
+    private function getVpaResourcePeople(array $volunteerData): array
+    {
+        $roles = [];
+        $volunteerIds = [];
+        foreach ($volunteerData as $volunteerDatum) {
+            $roles[$volunteerDatum['id']] = $volunteerDatum['role'];
+
+            if (! in_array($volunteerDatum['id'], $volunteerIds)) {
+                $volunteerIds[] = $volunteerDatum['id'];
+            }
+        }
+
+        $conn = $this->getEntityManager()->getConnection();
+        $volunteerIds = implode(',', $volunteerIds);
+        $sql = "SELECT DISTINCT v.first_name, v.middle_name, v.last_name, v.suffix, v.volunteer_id
+                FROM volunteer as v WHERE v.volunteer_id IN ($volunteerIds) ORDER BY v.first_name";
+        $stmt = $conn->prepare($sql);
+        $query = $stmt->executeQuery();
+        $data = $query->fetchAllAssociative();
+
+        foreach ($data as $index=>$row) {
+            $data[$index]['role'] = $roles[$row['volunteer_id']];
+            $data[$index]['full_name'] = $row['first_name'] . ' ' . $row['middle_name'] . ' ' . $row['last_name'] . ' ' . $row['suffix'];
+        }
+
+        return $data;
+    }
+
+    /**
+     * @param array<string, mixed> $userData
+     * @return array
+     * @throws \Doctrine\DBAL\Driver\Exception
+     * @throws \Doctrine\DBAL\Exception
+     */
+    private function getPpoResourcePeople(array $userData): array
+    {
+        $roles = [];
+        $userIds = [];
+        foreach ($userData as $userDatum) {
+            $roles[$userDatum['id']] = $userDatum['role'];
+
+            if (! in_array($userDatum['id'], $userIds)) {
+                $userIds[] = $userDatum['id'];
+            }
+        }
+        $conn = $this->getEntityManager()->getConnection();
+        $userIds = implode(',', $userIds);
+        $sql = "SELECT DISTINCT ud.first_name, ud.middle_name, ud.last_name, ud.suffix, ud.user_account_id
+                FROM pmeis.user_details as ud WHERE ud.user_account_id IN ($userIds) ORDER BY ud.first_name";
+        $stmt = $conn->prepare($sql);
+        $query = $stmt->executeQuery();
+        $data = $query->fetchAllAssociative();
+
+        foreach ($data as $index=>$row) {
+            $data[$index]['role'] = $roles[$row['user_account_id']];
+            $data[$index]['full_name'] = $row['first_name'] . ' ' . $row['middle_name'] . ' ' . $row['last_name'] . ' ' . $row['suffix'];
+        }
+
+        return $data;
+    }
+
+    /**
+     * @throws \Doctrine\DBAL\Driver\Exception
+     * @throws \Doctrine\DBAL\Exception
+     */
+    private function getClientSessionCount(int $id, int $sessionId): array|bool
+    {
+        $conn = $this->getEntityManager()->getConnection();
+        $sql = "SELECT s.session_id, s.field_office_id, s.li_lo,
+                        (SELECT COUNT(client_session_id) FROM client_sessions WHERE role = 'PS' AND client_sessions.session_id = s.session_id) as parolees,
+                        (SELECT COUNT(client_session_id) FROM client_sessions WHERE role = 'PR' AND client_sessions.session_id = s.session_id) as probationers,
+                        (SELECT COUNT(client_session_id) FROM client_sessions WHERE role = 'PD' AND client_sessions.session_id = s.session_id) as pardonees,
+                        (SELECT COUNT(client_session_id) FROM client_sessions WHERE role = 'JICL' AND client_sessions.session_id = s.session_id) as jicl,
+                        (SELECT COUNT(client_session_id) FROM client_sessions WHERE role = 'FTMDO' AND client_sessions.session_id = s.session_id) as ftmdo,
+                        (SELECT COUNT(client_session_id) FROM client_sessions WHERE role = 'PET' AND client_sessions.session_id = s.session_id) as petitioners,
+                        (SELECT COUNT(client_session_id) FROM client_sessions WHERE role = 'TERM' AND client_sessions.session_id = s.session_id) as `terminated`
+                        FROM sessions as s
+                LEFT JOIN quarters as q ON q.quarter_id = $id
+                WHERE s.session_id = $sessionId ORDER BY s.session_id";
+        $stmt = $conn->prepare($sql);
+        $query = $stmt->executeQuery();
+        return $query->fetchAssociative();
     }
 }

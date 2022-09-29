@@ -8,7 +8,6 @@ use App\Common\AppFormatter;
 use App\Enum\AuditTrailActions;
 use App\Enum\Response as ResponseEnum;
 use App\Model\Quarters as QuartersModel;
-use App\Repository\ClientSessionsRepository;
 use App\Repository\QuartersRepository;
 use App\Service\System\AuditTrail;
 use Doctrine\ORM\ORMException;
@@ -25,7 +24,6 @@ class Quarters implements QuartersInterface
         private ValidatorInterface       $validator,
         private AppFormatter             $appFormatter,
         private QuartersRepository       $repository,
-        private ClientSessionsRepository $clientSessionsRepository,
         private AuditTrail               $auditTrail,
     ){
         $class = new \ReflectionClass($this);
@@ -151,45 +149,6 @@ class Quarters implements QuartersInterface
         }
     }
 
-    public function getTCA1Part1(int $id, int $fieldOfficeId): array
-    {
-        try {
-            $sessions = $this->repository->fetchTCA1Part1($id, $fieldOfficeId);
-
-            if (null === $sessions) {
-                return $this->appFormatter->formatResponse(ResponseEnum::NO_DATA, null);
-            }
-
-            $sessionsIds = array_map(fn(array $session) => intval($session['session_id']), $sessions);
-            $fsgNumbers = $this->getFsgNumbersBySessionId($sessionsIds);
-
-            $sessions = array_map(function(array $session) use($fsgNumbers) {
-                $session['fsg'] = $fsgNumbers[$session['session_id']] ?? "";
-
-                return $session;
-            }, $sessions);
-
-            return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_SUCCESS, $sessions);
-        } catch (CacheException $e) {
-            return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_FAILED, null, ['cache' => $e->getMessage()]);
-        }
-    }
-
-    public function getTCA1Part2(int $id, int $fieldOfficeId): array
-    {
-        try {
-            $quarters = $this->repository->fetchTCA1Part2($id, $fieldOfficeId);
-
-            if (!$quarters) {
-                return $this->appFormatter->formatResponse(ResponseEnum::NO_DATA, null);
-            }
-
-            return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_SUCCESS, $quarters);
-        } catch (CacheException $e) {
-            return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_FAILED, null, ['cache' => $e->getMessage()]);
-        }
-    }
-
     public function getByYear(string $year): array
     {
         $quarters = $this->repository->findBy([
@@ -201,32 +160,5 @@ class Quarters implements QuartersInterface
         }
 
         return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_SUCCESS, $quarters);
-    }
-
-    /**
-     * @param int[] $sessionIds
-     * @return array<string, int>
-     */
-    private function getFsgNumbersBySessionId(array $sessionIds): array
-    {
-        /**
-         * Criteria:
-         *  Per Session ID
-         *  Same session, client
-         *  TODO: Verify the scenario where there is 2 fsi of the same client in the same session
-         *  For now every fsi is counted as 1 regardless of
-         */
-        $data = [];
-        $clientsSessionSessionIds = $this->clientSessionsRepository->getFsiBySessionIds($sessionIds);
-
-        foreach ($clientsSessionSessionIds as $clientsSessionSessionId) {
-            if (! isset($data[$clientsSessionSessionId['session_id']])) {
-                $data[$clientsSessionSessionId['session_id']] = 0;
-            }
-
-            $data[$clientsSessionSessionId['session_id']]++;
-        }
-
-        return $data;
     }
 }

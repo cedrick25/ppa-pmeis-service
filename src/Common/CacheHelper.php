@@ -52,16 +52,6 @@ class CacheHelper
         return 'quarters_' . $field . '_' . $query . '_' . $page . '_' . $size;
     }
 
-    public function getQuartersTCA1Part1Key(int $id, int $fieldOfficeId): string
-    {
-        return 'quarters_tc_a1_part1_' . $id . '_' . $fieldOfficeId;
-    }
-
-    public function getQuartersTCA1Part2Key(int $id, int $fieldOfficeId): string
-    {
-        return 'quarters_tc_a1_part2_' . $id . '_' . $fieldOfficeId;
-    }
-
     public function getAllPhasesKey(): string
     {
         return 'phases_all';
@@ -105,6 +95,16 @@ class CacheHelper
     public function getSessionActivitiesPaginatedKey(int $page, int $size): string
     {
         return 'session_activities_' . $page . '_' . $size;
+    }
+
+    public function getSessionTCA1Part1Key(int $id, int $fieldOfficeId): string
+    {
+        return 'sessions_tc_a1_part1_' . $id . '_' . $fieldOfficeId;
+    }
+
+    public function geSessionTCA1Part2Key(int $id, int $fieldOfficeId): string
+    {
+        return 'sessions_tc_a1_part2_' . $id . '_' . $fieldOfficeId;
     }
 
     public function getAllVenuesKey(): string

@@ -83,7 +83,6 @@ class ClientSessionsRepository extends ServiceEntityRepository
             $clientSession->setClientId($attendee['id']['value']);
             $clientSession->setRole($this->convertClientRole($attendee['type']['label']));
             $clientSession->setFsi($attendee['fsi']['value']);
-            $clientSession->setFsgNumber($attendee['fsgNumber']['value']);
             $clientIds[] = intval($attendee['id']['value']);
 
             $this->getEntityManager()->persist($clientSession);

@@ -24,6 +24,10 @@ interface SessionsInterface
 
     public function getAllWithClientsAndFacilitators(): array;
 
+    public function getTCA1Part1(\App\Entity\Quarters $quarterData, int $fieldOfficeId): array;
+
+    public function getTCA1Part2(\App\Entity\Quarters $quarterData, int $fieldOfficeId): array;
+
     public function getTCIA2(int $quarterId, int $fieldOfficeId, string $role): array;
 
     public function getTC7(int $quarterId, int $fieldOfficeId):array;
