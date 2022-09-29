@@ -110,15 +110,26 @@ class AuditTrailRepository extends ServiceEntityRepository
                 }
             }
 
+            $bindValue = [];
+
+            if (! empty($searchColumn) && ! empty($searchValue)) {
+                $bindValue = [
+                    'searchValue' => [
+                        '%' . $searchValue . '%',
+                        \PDO::PARAM_STR
+                    ]
+                ];
+            }
+
             // Get the total here before appending the limit
-            $result['totalItems'] = $this->helper->getCustomQueryPaginatedTotalItems($conn, $sql);
+            $result['totalItems'] = $this->helper->getCustomQueryPaginatedTotalItems($conn, $sql, $bindValue);
 
             $sql .=  "ORDER BY created_at DESC LIMIT $pageSize OFFSET $startOffset";
 
             $stmt = $conn->prepare($sql);
 
-            if (! empty($searchColumn) && ! empty($searchValue)) {
-                $stmt->bindValue('searchValue',  '%' . $searchValue . '%', \PDO::PARAM_STR);
+            foreach ($bindValue as $key=>$value) {
+                $stmt->bindValue($key,  $value[0], $value[1]);
             }
 
             $query = $stmt->executeQuery();

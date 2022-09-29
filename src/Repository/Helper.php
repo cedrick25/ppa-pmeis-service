@@ -131,9 +131,14 @@ class Helper
         });
     }
 
-    public function getCustomQueryPaginatedTotalItems(Connection $conn, string $sql): int
+    public function getCustomQueryPaginatedTotalItems(Connection $conn, string $sql, ?array $bindValue = []): int
     {
         $stmt = $conn->prepare($sql);
+
+        foreach ($bindValue as $key=>$value) {
+            $stmt->bindValue($key,  $value[0], $value[1]);
+        }
+
         $query = $stmt->executeQuery();
 
         return $query->rowCount();
