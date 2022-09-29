@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Report\Table;
 
 use App\Common\AppDateHelper;
+use App\Enum\ClientRemarks;
 use App\Enum\SystemSettingNames;
 use App\Service\TherapeuticCommunity\Sessions;
 use PhpOffice\PhpSpreadsheet\IOFactory;
@@ -151,16 +152,16 @@ class TCIA5 implements Form
             $spreadsheet->getActiveSheet()->setCellValue($summaryCoordinates[$quarter]['TOTAL'], array_sum($row));
         }
 
-        $supervisionCasesDropped = $this->data['footer']['Terminated'] + $this->data['footer']['Revoked'] + $this->data['footer']['Transferred'];
-        $spreadsheet->getActiveSheet()->setCellValue('AF' . $currentRowNumber3, $this->data['footer']['On CS to other FOs']);
-        $spreadsheet->getActiveSheet()->setCellValue('AF' . $currentRowNumber4, $this->data['footer']['Died']);
-        $spreadsheet->getActiveSheet()->setCellValue('AF' . $currentRowNumber5, $this->data['footer']['Absconded']);
-        $spreadsheet->getActiveSheet()->setCellValue('AF' . $currentRowNumber6, $this->data['footer']['In Jail with no report']);
-        $spreadsheet->getActiveSheet()->setCellValue('AF' . $currentRowNumber7, $this->data['footer']['With Serious Ailment']);
-        $spreadsheet->getActiveSheet()->setCellValue('AF' . $currentRowNumber8, $this->data['footer']['On Travel Abroad (with permit)']);
+        $supervisionCasesDropped = $this->data['footer'][ClientRemarks::TERMINATED] + $this->data['footer'][ClientRemarks::REVOKED] + $this->data['footer'][ClientRemarks::TRANSFERRED];
+        $spreadsheet->getActiveSheet()->setCellValue('AF' . $currentRowNumber3, $this->data['footer'][ClientRemarks::ON_CS_TO_OTHER_FIELD_OFFICES]);
+        $spreadsheet->getActiveSheet()->setCellValue('AF' . $currentRowNumber4, $this->data['footer'][ClientRemarks::DIED_W_NO_REPORT_SUBMITTED_TO_COURT]);
+        $spreadsheet->getActiveSheet()->setCellValue('AF' . $currentRowNumber5, $this->data['footer'][ClientRemarks::ABSCONDED_W_NO_REPORT_SUBMITTED_TO_COURT]);
+        $spreadsheet->getActiveSheet()->setCellValue('AF' . $currentRowNumber6, $this->data['footer'][ClientRemarks::IN_JAIL_WITH_NO_REPORT_SUBMITTED_TO_COURT]);
+        $spreadsheet->getActiveSheet()->setCellValue('AF' . $currentRowNumber7, $this->data['footer'][ClientRemarks::WITH_SERIOUS_AILMENT]);
+        $spreadsheet->getActiveSheet()->setCellValue('AF' . $currentRowNumber8, $this->data['footer'][ClientRemarks::ON_TRAVEL_ABROAD_WITH_PERMIT]);
         $spreadsheet->getActiveSheet()->setCellValue('AF' . $currentRowNumber9, $supervisionCasesDropped);
-        $spreadsheet->getActiveSheet()->setCellValue('AF' . $currentRowNumber11, $this->data['footer']['Case/ s pending in Court']);
-        $spreadsheet->getActiveSheet()->setCellValue('AF' . $currentRowNumber12, $this->data['footer']['Others']);
+        $spreadsheet->getActiveSheet()->setCellValue('AF' . $currentRowNumber11, $this->data['footer'][ClientRemarks::CASE_S_PENDING_IN_COURT]);
+        $spreadsheet->getActiveSheet()->setCellValue('AF' . $currentRowNumber12, $this->data['footer'][ClientRemarks::OTHERS]);
         $spreadsheet->getActiveSheet()->setCellValue('AF' . $currentRowNumber13, array_sum($this->data['footer']));
 
         $spreadsheet->getActiveSheet()->getStyle("A$currentRowNumber:T$currentRowNumber")->getAlignment()->setHorizontal('center');
@@ -205,12 +206,24 @@ class TCIA5 implements Form
             'do' => 0,
             'ndo' => 0,
         ];
+        $rowNumber = 1;
         $monthlyTotal = [];
         $footer = [
-            'Terminated' => 0, 'Revoked' => 0, 'On CS to other FOs' => 0, 'Transferred' => 0, 'Absconded' => 0, 'Died' => 0, 'In Jail with no report' => 0,
-            'With Serious Ailment' => 0, 'On Travel Abroad (with permit)' => 0, 'Case/ s pending in Court' => 0, 'Others' => 0,
+            ClientRemarks::W_FR_VR => 0,
+            ClientRemarks::ON_CS => 0,
+            ClientRemarks::TERMINATED => 0,
+            ClientRemarks::REVOKED => 0,
+            ClientRemarks::TRANSFERRED => 0,
+            ClientRemarks::ABSCONDED_W_NO_REPORT_SUBMITTED_TO_COURT => 0,
+            ClientRemarks::DIED_W_NO_REPORT_SUBMITTED_TO_COURT => 0,
+            ClientRemarks::IN_JAIL_WITH_NO_REPORT_SUBMITTED_TO_COURT => 0,
+            ClientRemarks::WITH_SERIOUS_AILMENT => 0,
+            ClientRemarks::ON_TRAVEL_ABROAD_WITH_PERMIT => 0,
+            ClientRemarks::CASE_S_PENDING_IN_COURT => 0,
+            ClientRemarks::OTHERS => 0,
+            ClientRemarks::ON_CS_TO_OTHER_FIELD_OFFICES => 0
         ];
-        $rowNumber = 1;
+
         foreach ($this->data['rows'] as $row) {
             $this->lastFilledOutCellY++;
             $middleInitial = $row['middle_name'] != null ? substr($row['middle_name'], 0, 1) . '.' : '';
