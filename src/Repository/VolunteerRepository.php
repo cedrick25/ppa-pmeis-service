@@ -281,14 +281,15 @@ class VolunteerRepository extends ServiceEntityRepository
                 LEFT JOIN religion as r ON v.religion = r.religion_id 
                 LEFT JOIN occupation as o ON v.occupation = o.occupation_id 
                 LEFT JOIN education_background as eb ON v.education_attainment = eb.education_background_id
-                WHERE v.deleted_at IS NULL AND v.date_appointed IS NOT NULL ORDER BY v.volunteer_id DESC
-                LIMIT $pageSize OFFSET $startOffset";
+                WHERE v.deleted_at IS NULL AND v.date_appointed IS NOT NULL ORDER BY v.volunteer_id DESC";
+
+            $result['totalItems'] = $this->helper->getCustomQueryPaginatedTotalItems($conn, $sql);
+
+            $sql .= "LIMIT $pageSize OFFSET $startOffset";
+
             $stmt = $conn->prepare($sql);
             $query = $stmt->executeQuery();
             $result['data'] = $query->fetchAllAssociative();
-            $result['totalItems'] = count($this->findBy([
-                'deletedAt' => null
-            ]));
 
             return $result;
         });

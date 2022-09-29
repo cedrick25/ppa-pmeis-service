@@ -6,6 +6,7 @@ namespace App\Repository;
 
 use App\Common\AppFormatter;
 use DateInterval;
+use Doctrine\DBAL\Connection;
 use Doctrine\ORM\QueryBuilder;
 use Doctrine\ORM\Tools\Pagination\Paginator;
 use Psr\Cache\CacheException;
@@ -128,5 +129,13 @@ class Helper
 
             return $this->appFormatter->formatPagination($result['totalItems'], $pageCount, $result['data']);
         });
+    }
+
+    public function getCustomQueryPaginatedTotalItems(Connection $conn, string $sql): int
+    {
+        $stmt = $conn->prepare($sql);
+        $query = $stmt->executeQuery();
+
+        return $query->rowCount();
     }
 }

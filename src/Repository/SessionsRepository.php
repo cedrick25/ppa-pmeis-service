@@ -368,15 +368,19 @@ class SessionsRepository extends ServiceEntityRepository
 
             $conn = $this->getEntityManager()->getConnection();
             $sql = "SELECT se.*, MONTH(se.date) as quarter_month, YEAR(se.date) as quarter_year, fe.name as field_office_name,
-                    p.name as phase_name, sa.name as session_activity_name, tc.name as treatment_category_name, v.name as venue_name
-                 FROM sessions as se " .
-                "LEFT JOIN field_offices as fe ON se.field_office_id = fe.field_office_id " .
-                "LEFT JOIN phases as p ON se.field_office_id = p.phase_id " .
-                "LEFT JOIN session_activities as sa ON se.session_activity_id = sa.session_activity_id " .
-                "LEFT JOIN treatment_categories as tc ON se.treatment_category_id = tc.treatment_category_id " .
-                "LEFT JOIN venues as v ON se.venue_id = v.venue_id " .
-                "WHERE se.deleted_at IS NULL " .
-                "LIMIT $pageSize OFFSET $startOffset";
+                         p.name as phase_name, sa.name as session_activity_name, tc.name as treatment_category_name, v.name as venue_name
+                    FROM sessions as se
+                    LEFT JOIN field_offices as fe ON se.field_office_id = fe.field_office_id
+                    LEFT JOIN phases as p ON se.field_office_id = p.phase_id
+                    LEFT JOIN session_activities as sa ON se.session_activity_id = sa.session_activity_id
+                    LEFT JOIN treatment_categories as tc ON se.treatment_category_id = tc.treatment_category_id
+                    LEFT JOIN venues as v ON se.venue_id = v.venue_id
+                    WHERE se.deleted_at IS NULL ";
+
+            $result['totalItems'] = $this->helper->getCustomQueryPaginatedTotalItems($conn, $sql);
+
+            $sql .= "LIMIT $pageSize OFFSET $startOffset";
+
             $stmt = $conn->prepare($sql);
             $query = $stmt->executeQuery();
             $sessions = $query->fetchAllAssociative();
@@ -386,8 +390,6 @@ class SessionsRepository extends ServiceEntityRepository
                 $session['quarter_name'] = $this->appDateHelper->getQuarterByMonth(intval($session['quarter_month']));
                 $result['data'][] = $session;
             }
-
-            $result['totalItems'] = count($result['data']);
 
             return $result;
         });

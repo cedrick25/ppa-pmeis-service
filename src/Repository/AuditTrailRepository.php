@@ -99,7 +99,8 @@ class AuditTrailRepository extends ServiceEntityRepository
             $startOffset = $pageSize * ($page-1);
             $result = [];
 
-            $sql = "SELECT * FROM audit_trail ";
+            $sql = "SELECT BIN_TO_UUID(audit_trail_id, true) as audit_trail_id, `action`, user_id, action_details, created_at,
+                    email, first_name, middle_name, last_name FROM audit_trail ";
 
             if (! empty($searchColumn) && ! empty($searchValue)) {
                 if ('action_details' === $searchColumn && ! empty($jsonColumn)) {
@@ -108,6 +109,9 @@ class AuditTrailRepository extends ServiceEntityRepository
                     $sql .= "WHERE $searchColumn LIKE :searchValue ";
                 }
             }
+
+            // Get the total here before appending the limit
+            $result['totalItems'] = $this->helper->getCustomQueryPaginatedTotalItems($conn, $sql);
 
             $sql .=  "ORDER BY created_at DESC LIMIT $pageSize OFFSET $startOffset";
 
@@ -118,8 +122,7 @@ class AuditTrailRepository extends ServiceEntityRepository
             }
 
             $query = $stmt->executeQuery();
-            $result['data'] = mb_convert_encoding($query->fetchAllAssociative(), 'UTF-8', 'UTF-8');
-            $result['totalItems'] = count($result['data']);
+            $result['data'] = $query->fetchAllAssociative();
 
             return $result;
         });

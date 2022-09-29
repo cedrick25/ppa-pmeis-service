@@ -276,18 +276,19 @@ class ClientsRepository extends ServiceEntityRepository
             $result = [];
 
             $sql = "SELECT c.*, ct.code as client_type_code, ct.description as client_type_description, fo.name as field_office_name,
-                 rg.region_id, rg.name as region_name FROM clients as c " .
-                "LEFT JOIN client_types as ct ON c.client_type_id = ct.client_type_id " .
-                "LEFT JOIN field_offices as fo ON c.field_office_id = fo.field_office_id " .
-                "LEFT JOIN regions as rg ON fo.region_id = rg.region_id " .
-                "WHERE c.deleted_at IS NULL ORDER BY c.client_id DESC " .
-                "LIMIT $pageSize OFFSET $startOffset";
+                        rg.region_id, rg.name as region_name FROM clients as c
+                    LEFT JOIN client_types as ct ON c.client_type_id = ct.client_type_id
+                    LEFT JOIN field_offices as fo ON c.field_office_id = fo.field_office_id
+                    LEFT JOIN regions as rg ON fo.region_id = rg.region_id
+                    WHERE c.deleted_at IS NULL ORDER BY c.client_id DESC ";
+
+            $result['totalItems'] = $this->helper->getCustomQueryPaginatedTotalItems($conn, $sql);
+
+            $sql .= "LIMIT $pageSize OFFSET $startOffset";
+
             $stmt = $conn->prepare($sql);
             $query = $stmt->executeQuery();
             $result['data'] = $query->fetchAllAssociative();
-            $result['totalItems'] = count($this->findBy([
-                'deletedAt' => null
-            ]));
 
             return $result;
         });

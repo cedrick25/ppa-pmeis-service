@@ -75,16 +75,17 @@ class FieldOfficesRepository extends ServiceEntityRepository
             $result = [];
 
             $conn = $this->getEntityManager()->getConnection();
-            $sql = "SELECT fo.*, rg.name as region_name FROM field_offices as fo " .
-                "LEFT JOIN regions as rg ON fo.region_id = rg.region_id " .
-                "WHERE fo.deleted_at IS NULL " .
-                "LIMIT $pageSize OFFSET $startOffset";
+            $sql = "SELECT fo.*, rg.name as region_name FROM field_offices as fo
+                    LEFT JOIN regions as rg ON fo.region_id = rg.region_id
+                    WHERE fo.deleted_at IS NULL ";
+
+            $result['totalItems'] = $this->helper->getCustomQueryPaginatedTotalItems($conn, $sql);
+
+            $sql .="LIMIT $pageSize OFFSET $startOffset";
+
             $stmt = $conn->prepare($sql);
             $query = $stmt->executeQuery();
             $result['data'] = $query->fetchAllAssociative();
-            $result['totalItems'] = count($this->findBy([
-                'deletedAt' => null
-            ]));
 
             return $result;
         });
