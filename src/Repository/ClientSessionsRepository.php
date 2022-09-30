@@ -10,7 +10,6 @@ use App\Entity\ClientSessions;
 use App\Enum\Response as ResponseEnum;
 use App\Model\ClientSessions as ClientSessionModel;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
-use Doctrine\DBAL\Connection;
 use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\ORM\ORMException;
 use Doctrine\Persistence\ManagerRegistry;
@@ -310,6 +309,36 @@ class ClientSessionsRepository extends ServiceEntityRepository
         return $query->fetchAllAssociative();
     }
 
+    /**
+     * @param int[] $sessionIds
+     * @throws \Doctrine\DBAL\Driver\Exception
+     * @throws \Doctrine\DBAL\Exception
+     */
+    public function findAbsenteesBySessionIds(array $sessionIds): array
+    {
+        $conn = $this->getEntityManager()->getConnection();
+        $sessionIds = implode(',', $sessionIds);
+
+        $sql = "SELECT * FROM client_sessions cs WHERE cs.session_id IN ($sessionIds) AND cs.client_remarks_id IS NOT NULL";
+
+        $stmt = $conn->prepare($sql);
+        $query = $stmt->executeQuery();
+        $result = [];
+
+        foreach ($query->fetchAllAssociative() as $row) {
+            $result[] = new ClientSessionModel(
+                (int) $row['client_id'],
+                (int) $row['session_id'],
+                $row['role'],
+                (int) $row['client_remarks_id'],
+                $row['other_remarks'],
+                filter_var($row['fsi'], FILTER_VALIDATE_BOOLEAN)
+            );
+        }
+
+        return $result;
+    }
+
     public function getVPA3Report(int $volunteerId): array
     {
         $conn = $this->getEntityManager()->getConnection();
@@ -353,43 +382,31 @@ class ClientSessionsRepository extends ServiceEntityRepository
 
     /**
      * @param int[] $ids
-     * @param int $fieldOfficeId
      * @return array<int, array<string, mixed>>
-     * @throws \Doctrine\DBAL\Driver\Exception
      * @throws \Doctrine\DBAL\Exception
      */
-    public function findClientsBySessionIdsAndFieldOfficeId(array $ids, int $fieldOfficeId): array
+    public function findClientAttendeesBySessionIds(array $ids): array
     {
         $ids = implode(',', $ids);
         $conn = $this->getEntityManager()->getConnection();
-        $sql = "
-            SELECT 
-                c.* 
-            FROM client_sessions 
-            LEFT JOIN clients c on client_sessions.client_id = c.client_id
-            WHERE c.field_office_id = $fieldOfficeId 
-            AND client_sessions.session_id IN ($ids)
-        ";
+        $sql = "SELECT * FROM client_sessions WHERE client_sessions.session_id IN ($ids) AND client_sessions.client_remarks_id IS NULL";
 
         $stmt = $conn->prepare($sql);
         $query = $stmt->executeQuery();
+        $result = [];
 
-        return $query->fetchAllAssociative();
-    }
+        foreach ($query->fetchAllAssociative() as $row) {
+            $result[] = new ClientSessionModel(
+                (int) $row['client_id'],
+                (int) $row['session_id'],
+                $row['role'],
+                (int) $row['client_remarks_id'],
+                $row['other_remarks'],
+                filter_var($row['fsi'], FILTER_VALIDATE_BOOLEAN)
+            );
+        }
 
-    public function getFsiBySessionIds(array $sessionIds): array
-    {
-        $ids = implode(',', $sessionIds);
-        $conn = $this->getEntityManager()->getConnection();
-        $sql = "SELECT cs.session_id FROM client_sessions cs 
-            WHERE cs.session_id IN ($ids) 
-              AND cs.fsi IS NOT FALSE 
-              AND cs.fsi IS NOT NULL";
-
-        $stmt = $conn->prepare($sql);
-        $query = $stmt->executeQuery();
-
-        return $query->fetchAllAssociative();
+        return $result;
     }
 
     /**

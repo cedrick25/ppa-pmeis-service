@@ -8,9 +8,9 @@ use App\Common\AppDateHelper;
 use App\Common\AppFormatter;
 use App\Enum\AuditTrailActions;
 use App\Enum\Response as ResponseEnum;
+use App\Model\ClientSessions as ClientSessionModel;
 use App\Model\Sessions as SessionsModel;
 use App\Repository\ClientSessionsRepository;
-use App\Repository\ClientsRepository;
 use App\Repository\QuartersRepository;
 use App\Repository\ResourceFacilitatorSessionRepository;
 use App\Repository\SessionsRepository;
@@ -18,13 +18,12 @@ use App\Service\System\AuditTrail;
 use Doctrine\DBAL\Exception\InvalidArgumentException;
 use Exception;
 use Psr\Cache\CacheException;
+use ReflectionClass;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 class Sessions implements SessionsInterface
 {
     private string $shortName;
-
-    const ON_CS_CLIENT_TYPE_ID = 4;
 
     public function __construct(
         private AppFormatter                         $appFormatter,
@@ -32,12 +31,12 @@ class Sessions implements SessionsInterface
         private ValidatorInterface                   $validator,
         private AppDateHelper                        $appDateHelper,
         private QuartersRepository                   $quartersRepository,
-        private ClientsRepository                    $clientsRepository,
         private ClientSessionsRepository             $clientSessionsRepository,
         private ResourceFacilitatorSessionRepository $resourceFacilitatorSessionRepository,
         private AuditTrail                           $auditTrail,
-    ) {
-        $class = new \ReflectionClass($this);
+    )
+    {
+        $class = new ReflectionClass($this);
         $this->shortName = $class->getShortName();
     }
 
@@ -298,47 +297,32 @@ class Sessions implements SessionsInterface
     {
         try {
             $currentQuarter = $this->quartersRepository->find($quarterId);
+
             if ($currentQuarter == null) {
                 return $this->appFormatter->formatResponse(ResponseEnum::NO_DATA, null);
             }
 
-            $previousQuarter = $this->quartersRepository->fetchPreviousQuarterByNameAndYear($currentQuarter->getName(), $currentQuarter->getYear());
+            $initialValues = $this->getInitialValues();
+            $quarterInitialValues = $this->getCurrentQuarterInitialValues($currentQuarter);
 
-            $activeSupervisions = $this->getActiveSupervision($previousQuarter, $fieldOfficeId);
-            $activeCourtesySupervision = $this->getActiveSupervision($previousQuarter, $fieldOfficeId, self::ON_CS_CLIENT_TYPE_ID);
-            $superVisionReferrals = $this->getSupervisionReferrals($currentQuarter, $fieldOfficeId);
-            $courtesySupervisionReferrals = $this->getSupervisionReferrals($currentQuarter, $fieldOfficeId, self::ON_CS_CLIENT_TYPE_ID);
-            $supervisionCasesDropped = $this->getSupervisionCasesDropped($currentQuarter, $fieldOfficeId);
-            $totalSupervisionCasesHandled = $this
-                ->getTotalSupervisionCaseHandled(
-                    $activeSupervisions,
-                    $activeCourtesySupervision,
-                    $superVisionReferrals,
-                    $courtesySupervisionReferrals,
-                    $supervisionCasesDropped
-                );
-            $less = $this->getLess($currentQuarter, $fieldOfficeId);
-            $totalLess = $this->getTotalLess($less);
-            $totalAdjustedSupervisionCaseLoad = $this->getTotalAdjustedSupervisionCaseLoad($totalSupervisionCasesHandled, $totalLess);
-            $clientsAttendingTC = $this->getClientsAttendingTC($currentQuarter, $fieldOfficeId);
-            $percentageOfClientsAttendingTC = $this->getPercentageOfClientsAttendingTC($totalAdjustedSupervisionCaseLoad, $clientsAttendingTC);
-
-            return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_SUCCESS, [
-                'activeSupervisions' => $activeSupervisions,
-                'activeCourtesySupervision' => $activeCourtesySupervision,
-                'superVisionReferrals' => $superVisionReferrals,
-                'courtesySupervisionReferrals' => $courtesySupervisionReferrals,
-                'supervisionCasesDropped' => $supervisionCasesDropped,
-                'totalSupervisionCasesHandled' => $totalSupervisionCasesHandled,
-                'less' => $less,
-                'totalLess' => $totalLess,
-                'totalAdjustedSupervisionCaseLoad' => $totalAdjustedSupervisionCaseLoad,
-                'clientsAttendingTC' => $clientsAttendingTC,
-                'percentageOfClientsAttendingTC' => $percentageOfClientsAttendingTC
-            ]);
+            return $this->appFormatter->formatResponse(
+                ResponseEnum::FETCHING_SUCCESS,
+                [
+                    'activeSupervisions' => $initialValues,
+                    'activeCourtesySupervision' => $initialValues,
+                    'superVisionReferrals' => $quarterInitialValues,
+                    'courtesySupervisionReferrals' => $quarterInitialValues,
+                    'supervisionCasesDropped' => $quarterInitialValues,
+                    'totalSupervisionCasesHandled' => $initialValues,
+                    'less' => $this->getLess($currentQuarter, $fieldOfficeId),
+                    'totalAdjustedSupervisionCaseLoad' => $initialValues,
+                    'clientsAttendingTC' => $this->getClientsAttendingTC($currentQuarter, $fieldOfficeId),
+                    'percentageOfClientsAttendingTC' => $initialValues
+                ]
+            );
         } catch (Exception $e) {
             return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_FAILED, null, [
-                'app' => $e->getMessage(), $e->getFile(), $e->getLine(), $e->getTrace(),]);
+                'app' => $e->getMessage(), $e->getFile(), $e->getLine(), $e->getTrace()]);
 
         } catch (\Doctrine\DBAL\Driver\Exception $e) {
             return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_FAILED, null, ['orm' => $e->getMessage()]);
@@ -359,172 +343,6 @@ class Sessions implements SessionsInterface
     }
 
     /**
-     * @param \App\Entity\Quarters|null $quarter
-     * @param int $fieldOfficeId
-     * @param int|null $clientRemarksId
-     * @return int[]
-     */
-    private function getActiveSupervision(?\App\Entity\Quarters $quarter, int $fieldOfficeId, ?int $clientRemarksId = null): array
-    {
-        /**
-         * CRITERIA:
-         * Clients supervision end is within the previous quarter
-         * Same field office and client remarks = null | 4 (on CS)
-         *
-         * RETURNS:  [client_type_id:score]
-         */
-        if ($quarter == null) {
-            return [];
-        }
-
-        $result = [];
-        $previousQuarterDates = $this->quartersRepository->getQuarterMinMaxDate($quarter);
-        $clients = $this->clientsRepository->findBySupervisionPeriodDateRange($previousQuarterDates, 'END', $fieldOfficeId, $clientRemarksId);
-
-        foreach ($clients as $client) {
-            if (!isset($result[$client['client_type_id']])) {
-                $result[$client['client_type_id']] = 0;
-            }
-
-            $result[$client['client_type_id']]++;
-        }
-
-        return $result;
-    }
-
-    /**
-     * @param \App\Entity\Quarters $quarter
-     * @param int $fieldOfficeId
-     * @param int|null $clientRemarksId
-     * @return int[][]
-     * @throws \Doctrine\DBAL\Driver\Exception
-     * @throws \Doctrine\DBAL\Exception
-     */
-    private function getSupervisionReferrals(\App\Entity\Quarters $quarter, int $fieldOfficeId, ?int $clientRemarksId = null): array
-    {
-        /**
-         * CRITERIA:
-         * Clients supervision start is within the selected quarter
-         * Same field office and client remarks = null | 4 (on CS)
-         *
-         * RETURNS [month:[client_type_id:score]]
-         */
-
-        $result = [];
-        $quarterMinMaxDate = $this->quartersRepository->getQuarterMinMaxDate($quarter);
-        $clients = $this->clientsRepository->findBySupervisionPeriodDateRange($quarterMinMaxDate, 'START', $fieldOfficeId, $clientRemarksId);
-
-        foreach ($clients as $client) {
-            $supervisionStart = $this->appDateHelper->convertStringToImmutableDate($client['supervision_start']);
-            $supervisionMonth = intval($supervisionStart->format('m'));
-
-            if (!isset($result[$supervisionMonth][$client['client_type_id']])) {
-                $result[$supervisionMonth][$client['client_type_id']] = 0;
-            }
-
-            $result[$supervisionMonth][$client['client_type_id']]++;
-        }
-
-        return $result;
-    }
-
-    /**
-     * @param \App\Entity\Quarters $quarter
-     * @param int $fieldOfficeId
-     * @return int[][]
-     */
-    private function getSupervisionCasesDropped(\App\Entity\Quarters $quarter, int $fieldOfficeId): array
-    {
-        /**
-         * CRITERIA:
-         * Clients supervision end is within the selected quarter
-         * Same field office and client remarks = null | 4 (on CS)
-         *
-         * RETURNS [month:[client_type_id:score]]
-         */
-
-        $result = [];
-        $quarterMinMaxDate = $this->quartersRepository->getQuarterMinMaxDate($quarter);
-        $clients = $this->clientsRepository
-            ->findSupervisionCasesDropBySupervisionPeriodEndDateRange($quarterMinMaxDate, $fieldOfficeId);
-
-        foreach ($clients as $client) {
-            $supervisionStart = $this->appDateHelper->convertStringToImmutableDate($client['supervision_start']);
-            $supervisionMonth = intval($supervisionStart->format('m'));
-
-            if (!isset($result[$supervisionMonth][$client['client_type_id']])) {
-                $result[$supervisionMonth][$client['client_type_id']] = 0;
-            }
-
-            $result[$supervisionMonth][$client['client_type_id']]++;
-        }
-
-        return $result;
-    }
-
-    /**
-     * @param int[] $activeSupervisions
-     * @param int[] $activeCourtesySupervisions
-     * @param int[][] $superVisionReferrals
-     * @param int[][] $courtesySupervisionReferrals
-     * @param int[][] $supervisionCasesDropped
-     * @return int[]
-     */
-    private function getTotalSupervisionCaseHandled(
-        array $activeSupervisions,
-        array $activeCourtesySupervisions,
-        array $superVisionReferrals,
-        array $courtesySupervisionReferrals,
-        array $supervisionCasesDropped
-    ): array
-    {
-        $result = [];
-
-        foreach ($activeSupervisions as $clientTypeId => $score) {
-            if (!isset($result[$clientTypeId])) {
-                $result[$clientTypeId] = 0;
-            }
-            $result[$clientTypeId] += $score;
-        }
-
-        foreach ($activeCourtesySupervisions as $clientTypeId => $score) {
-            if (!isset($result[$clientTypeId])) {
-                $result[$clientTypeId] = 0;
-            }
-            $result[$clientTypeId] += $score;
-        }
-
-        foreach ($superVisionReferrals as $clientTypeId => $superVisionReferral) {
-            foreach ($superVisionReferral as $supervisionMonth => $score) {
-                if (!isset($result[$clientTypeId])) {
-                    $result[$clientTypeId] = 0;
-                }
-                $result[$clientTypeId] += $score;
-            }
-        }
-
-        foreach ($courtesySupervisionReferrals as $clientTypeId => $superVisionReferral) {
-            foreach ($superVisionReferral as $supervisionMonth => $score) {
-                if (!isset($result[$clientTypeId])) {
-                    $result[$clientTypeId] = 0;
-                }
-                $result[$clientTypeId] += $score;
-            }
-        }
-
-        foreach ($supervisionCasesDropped as $clientTypeId => $superVisionReferral) {
-            foreach ($superVisionReferral as $supervisionMonth => $score) {
-                if (!isset($result[$clientTypeId])) {
-                    $result[$clientTypeId] = 0;
-                }
-                $result[$clientTypeId] += $score;
-            }
-        }
-
-        return $result;
-    }
-
-    /**
      * @param \App\Entity\Quarters $quarter
      * @param int $fieldOfficeId
      * @return array<int, int[]>
@@ -534,98 +352,39 @@ class Sessions implements SessionsInterface
     private function getLess(\App\Entity\Quarters $quarter, int $fieldOfficeId): array
     {
         /**
-         * CRITERIA:
-         *  Clients that has no session in the current quarter, same field office as selected
-         *  and remarks are:
-         *      a.   On CS to other FOs
-         * b.   Died with no report submitted to Court/ BPP
-         * c.   Absconded with no report submitted to Court/ BPP
-         * d.   In jail with no report submitted to court/ BPP
-         * e.   With serious ailment
-         * f.   On travel abroad ( with permit)
-         * h.   Cases Pending in Court/ BPP
-         * i.   Others (specify):  No initial report
-         * RETURNS [client_remarks_id:[client_type_id:score]]
+         * All absentees(client_session record with remarks)
+         *
+         * RETURNS [client_remarks_id=>[form =>score]]
          */
 
         $result = [];
-        $quarterMinMaxDate = $this->quartersRepository->getQuarterMinMaxDate($quarter);
-        /** @var \App\Entity\Clients[] $clients */
+        $initialValues = $this->getInitialValues();
+        $sessionIds = $this->repository->findSessionsIdsByQuarter($quarter, $fieldOfficeId);
 
-        $sessionIds = $this->repository->findSessionsIdsByQuarter($quarter);
-
-        if ($sessionIds) {
-            $sessionIds = array_map(fn($sessionId) => $sessionId['session_id'], $sessionIds);
-
-            $sessionClients = $this->clientSessionsRepository->findClientsBySessionIds($sessionIds);
-            $sessionClientIds = array_map(fn($client) => $client['client_id'], $sessionClients);
-
-            $clients = $this->clientsRepository
-                ->findSupervisionCasesDropBySupervisionPeriodEndDateRangeLess($quarterMinMaxDate, $fieldOfficeId);
-            $existingClients = [];
-
-            foreach ($clients as $client) {
-                $clientRemarksId = $client['client_remarks_id'];
-                $clientTypeId = $client['client_type_id'];
-                // if (in_array($client['client_id'], $sessionClientIds)) {
-                if (!in_array($client['client_id'], $sessionClientIds)) {
-                    continue;
-                }
-
-                if (!in_array($client['client_id'], $existingClients)) {
-                    $existingClients[] = $client['client_id'];
-
-                    if (!isset($result[$clientRemarksId][$clientTypeId])) {
-                        $result[$clientRemarksId][$clientTypeId] = 0;
-                    }
-
-                    $result[$clientRemarksId][$clientTypeId]++;
-                }
-            }
+        if (\count($sessionIds) == 0) {
+            return $result;
         }
 
-        return $result;
-    }
+        /** @var ClientSessionModel[] $sessionClients */
+        $sessionClients = $this->clientSessionsRepository->findAbsenteesBySessionIds($sessionIds);
+        $clientTypeFormEquivalent = $this->getClientTypeFormEquivalent();
 
-    /**
-     * @param int[][] $less
-     * @return int[]
-     */
-    private function getTotalLess(array $less): array
-    {
-        $result = [];
-
-        foreach ($less as $les) {
-            foreach ($les as $clientTypeId => $score) {
-                if (!isset($result[$clientTypeId])) {
-                    $result[$clientTypeId] = 0;
-                }
-                $result[$clientTypeId] += $score;
+        foreach ($sessionClients as $sessionClient) {
+            if (! isset($clientTypeFormEquivalent[$sessionClient->getRole()])) {
+                continue;
             }
-        }
 
-        return $result;
-    }
+            $clientTypeForm = $clientTypeFormEquivalent[$sessionClient->getRole()];
 
-    /**
-     * @param int[] $totalSupervisionCasesHandled
-     * @param int[] $totalLess
-     * @return int[]
-     */
-    private function getTotalAdjustedSupervisionCaseLoad(array $totalSupervisionCasesHandled, array $totalLess): array
-    {
-        $result = [];
-
-        if (count($totalSupervisionCasesHandled) > count($totalLess)) {
-            foreach ($totalSupervisionCasesHandled as $clientTypeId => $score) {
-                $less = !isset($totalLess[$clientTypeId]) ? 0 : $totalLess[$clientTypeId];
-                $result[$clientTypeId] = $score - $less;
+            if (!isset($initialValues[$clientTypeForm])) {
+                continue;
             }
-        } else {
-            foreach ($totalLess as $clientTypeId => $score) {
-                $totalSupervision = !isset($totalSupervisionCasesHandled[$clientTypeId]) ? 0 : $totalSupervisionCasesHandled[$clientTypeId];
-                $result[$clientTypeId] = $totalSupervision - $score;
+
+            if (! isset($result[$sessionClient->getClientRemarksId()])) {
+                $result[$sessionClient->getClientRemarksId()] = $initialValues;
             }
+
+            $result[$sessionClient->getClientRemarksId()][$clientTypeForm]++;
         }
 
         return $result;
@@ -640,50 +399,61 @@ class Sessions implements SessionsInterface
      */
     private function getClientsAttendingTC(\App\Entity\Quarters $quarter, int $fieldOfficeId): array
     {
-        /**
-         * CRITERIA:
-         * All clients that attend session in current quarter and field office
-         *
-         * RETURNS [client_type_id:score]
-         */
-        $result = [];
-        $sessionIds = $this->repository->findSessionsIdsByQuarter($quarter);
+        $initialValues = $this->getInitialValues();
+        $sessionIds = $this->repository->findSessionsIdsByQuarter($quarter, $fieldOfficeId);
 
-        if ($sessionIds) {
-            $sessionIds = array_map(fn($sessionId) => $sessionId['session_id'], $sessionIds);
-            $sessionClients = $this->clientSessionsRepository->findClientsBySessionIdsAndFieldOfficeId($sessionIds, $fieldOfficeId);
-
-            foreach ($sessionClients as $sessionClient) {
-                if (!isset($result[$sessionClient['client_type_id']])) {
-                    $result[$sessionClient['client_type_id']] = 0;
-                }
-                $result[$sessionClient['client_type_id']]++;
-            }
+        if (\count($sessionIds) == 0) {
+            return $initialValues;
         }
 
-        return $result;
-    }
+        /** @var ClientSessionModel[] $sessionClients */
+        $sessionClients = $this->clientSessionsRepository->findClientAttendeesBySessionIds($sessionIds);
+        $clientTypeFormEquivalent = $this->getClientTypeFormEquivalent();
 
-    /**
-     * @param int[] $totalAdjustedSupervisionCaseLoad
-     * @param int[] $clientsAttendingTC
-     * @return int[]
-     */
-    private function getPercentageOfClientsAttendingTC(
-        array $totalAdjustedSupervisionCaseLoad,
-        array $clientsAttendingTC
-    ): array
-    {
-        $result = [];
-
-        foreach ($totalAdjustedSupervisionCaseLoad as $clientTypeId => $score) {
-            if (!isset($clientsAttendingTC[$clientTypeId])) {
+        foreach ($sessionClients as $sessionClient) {
+            if (! isset($clientTypeFormEquivalent[$sessionClient->getRole()])) {
                 continue;
             }
 
-            $result[$clientTypeId] = $score > 0 ? ($clientsAttendingTC[$clientTypeId] / $score) * 100 : 0;
+            $clientTypeForm = $clientTypeFormEquivalent[$sessionClient->getRole()];
+
+            if (!isset($initialValues[$clientTypeForm])) {
+                continue;
+            }
+
+            $initialValues[$clientTypeForm]++;
         }
 
-        return $result;
+        return $initialValues;
+    }
+
+    private function getInitialValues(): array
+    {
+        return ['form5' => 0, 'form21' => 0, 'form44' => 0, 'form45' => 0];
+    }
+
+    private function getClientTypeFormEquivalent(): array
+    {
+        return [
+            'PS' => 'form5',
+            'PR' => 'form21',
+            'PD' => 'form21',
+            'JICL' => 'form45',
+            'FTMDO' => 'form44',
+        ];
+    }
+
+    private function getCurrentQuarterInitialValues(\App\Entity\Quarters $quarterData): array
+    {
+        $values = [];
+        $initialValues = $this->getInitialValues();
+        $months = $this->appDateHelper->getMonthsByQuarterString($quarterData->getName());
+
+        foreach ($months as $month) {
+            $dateObj   = \DateTime::createFromFormat('!m', (string) $month);
+            $values[$dateObj->format('F')] = $initialValues;
+        }
+
+        return $values;
     }
 }

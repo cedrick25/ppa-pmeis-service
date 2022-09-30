@@ -323,52 +323,8 @@ class ClientsRepository extends ServiceEntityRepository
             ->getResult();
     }
 
-    /**
-     * @param string[] $minMaxDate
-     * @param string $direction
-     * @param int $fieldOfficeId
-     * @param int|null $clientRemarksId
-     * @return array<int, array<string, mixed>>
-     * @throws \Doctrine\DBAL\Driver\Exception
-     * @throws \Doctrine\DBAL\Exception
-     */
-    public function findBySupervisionPeriodDateRange(array $minMaxDate, string $direction, int $fieldOfficeId, ?int $clientRemarksId): array
-    {
-        $supervisionDirection = (strtoupper($direction) === 'END') ? 'supervision_end' : 'supervision_start';
-        $predicate = 'c.'.$supervisionDirection.' BETWEEN CAST("'.$minMaxDate['min'].'" AS DATE) AND CAST("'.$minMaxDate['max'].'" AS DATE)';
-        $clientRemarksIdWhere = ($clientRemarksId === null) ? "cs.client_remarks_id IS NULL" : "cs.client_remarks_id = $clientRemarksId";
-
-        $conn = $this->getEntityManager()->getConnection();
-        $sql = "SELECT c.client_type_id, c.supervision_start, c.supervision_end FROM client_sessions as cs
-                LEFT JOIN clients c on cs.client_id = c.client_id
-                WHERE $predicate AND c.field_office_id = $fieldOfficeId
-                AND c.deleted_at IS NULL AND $clientRemarksIdWhere";
-
-        $stmt = $conn->prepare($sql);
-        $query = $stmt->executeQuery();
-
-        return $query->fetchAllAssociative();
-    }
-
-    public function findSupervisionCasesDropBySupervisionPeriodEndDateRange(array $minMaxDate, int $fieldOfficeId): array
-    {
-        $predicate = 'c.updated_at BETWEEN CAST("'.$minMaxDate['min'].'" AS DATE) AND CAST("'.$minMaxDate['max'].'" AS DATE)';
-        $conn = $this->getEntityManager()->getConnection();
-        $sql = "SELECT c.client_type_id, c.supervision_start, c.supervision_end FROM client_sessions as cs
-                LEFT JOIN clients c on cs.client_id = c.client_id
-                WHERE (c.field_office_id = $fieldOfficeId AND $predicate AND cs.client_remarks_id = 2 AND c.deleted_at IS NULL)
-                   OR (c.field_office_id = $fieldOfficeId AND $predicate AND cs.client_remarks_id = 3 AND c.deleted_at IS NULL)
-                   OR (c.field_office_id = $fieldOfficeId AND $predicate AND cs.client_remarks_id = 5 AND c.deleted_at IS NULL)";
-
-        $stmt = $conn->prepare($sql);
-        $query = $stmt->executeQuery();
-
-        return $query->fetchAllAssociative();
-    }
-
     public function findSupervisionCasesDropBySupervisionPeriodEndDateRangeLess(array $minMaxDate, int $fieldOfficeId): array
     {
-        // $predicate = 'c.updated_at BETWEEN CAST("'.$minMaxDate['min'].'" AS DATE) AND CAST("'.$minMaxDate['max'].'" AS DATE)';
         $predicate = 's.date BETWEEN CAST("'.$minMaxDate['min'].'" AS DATE) AND CAST("'.$minMaxDate['max'].'" AS DATE)';
         $conn = $this->getEntityManager()->getConnection();
         $sql = "SELECT 

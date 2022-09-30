@@ -664,21 +664,25 @@ class SessionsRepository extends ServiceEntityRepository
 
     /**
      * @param Quarters $quarterData
-     * @return array<int, array<string, mixed>>
-     * @throws \Doctrine\DBAL\Driver\Exception
+     * @param int $fieldOfficeId
+     * @return int[]
      * @throws \Doctrine\DBAL\Exception
      */
-    public function findSessionsIdsByQuarter(Quarters $quarterData): array
+    public function findSessionsIdsByQuarter(Quarters $quarterData, int $fieldOfficeId): array
     {
         $conn = $this->getEntityManager()->getConnection();
         $minMaxDate = $this->quartersRepository->getQuarterMinMaxDate($quarterData);
         $minDate = $minMaxDate['min'];
         $maxDate = $minMaxDate['max'];
 
-        $sql = "SELECT s.session_id FROM sessions as s WHERE s.date BETWEEN CAST('$minDate' AS DATE) AND CAST('$maxDate' AS DATE)";
+        $sql = "SELECT s.session_id FROM sessions as s 
+                    WHERE s.date BETWEEN CAST('$minDate' AS DATE) AND CAST('$maxDate' AS DATE)
+                    AND field_office_id = $fieldOfficeId";
         $stmt = $conn->prepare($sql);
         $query = $stmt->executeQuery();
-        return $query->fetchAllAssociative();
+        $results = $query->fetchAllAssociative();
+
+        return array_map(fn($sessionId) => $sessionId['session_id'], $results);
     }
 
     /**
