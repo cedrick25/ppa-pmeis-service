@@ -303,18 +303,24 @@ class Sessions implements SessionsInterface
             }
 
             $initialValues = $this->getInitialValues();
+            $less = $this->getLess($currentQuarter, $fieldOfficeId);
             $quarterInitialValues = $this->getCurrentQuarterInitialValues($currentQuarter);
 
             return $this->appFormatter->formatResponse(
                 ResponseEnum::FETCHING_SUCCESS,
                 [
+                    'totalSupervisionCaseloadEndOfQuarter' => $initialValues,
                     'activeSupervisions' => $initialValues,
                     'activeCourtesySupervision' => $initialValues,
+                    'totalNewSuperVisionReferrals' => $initialValues,
                     'superVisionReferrals' => $quarterInitialValues,
+                    'totalNewCourtesySupervisionReferrals' => $initialValues,
                     'courtesySupervisionReferrals' => $quarterInitialValues,
+                    'totalSupervisionCasesDropped' => $initialValues,
                     'supervisionCasesDropped' => $quarterInitialValues,
                     'totalSupervisionCasesHandled' => $initialValues,
-                    'less' => $this->getLess($currentQuarter, $fieldOfficeId),
+                    'less' => $less,
+                    'totalLess' => $this->getTotalLess($less),
                     'totalAdjustedSupervisionCaseLoad' => $initialValues,
                     'clientsAttendingTC' => $this->getClientsAttendingTC($currentQuarter, $fieldOfficeId),
                     'percentageOfClientsAttendingTC' => $initialValues
@@ -388,6 +394,19 @@ class Sessions implements SessionsInterface
         }
 
         return $result;
+    }
+
+    private function getTotalLess(array $less): array
+    {
+        $total = ['form5' => 0, 'form21' => 0, 'form44' => 0, 'form45' => 0];
+
+        foreach ($less as $forms) {
+            foreach ($forms as $formName=>$value) {
+                $total[$formName] += $value;
+            }
+        }
+
+        return $total;
     }
 
     /**
