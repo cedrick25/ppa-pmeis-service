@@ -35,7 +35,7 @@ class TCIA7 implements Form
     public function generate(array $data): BinaryFileResponse
     {
         $quarter = $this->quartersRepository->find($data['quarter_id']);
-        $this->data['rows'] = $this->getData($data);
+        $this->data['rows'] = $data['rows'];
         $this->data['quarter'] = $quarter->getName();
         $this->data[SystemSettingNames::GENERATED_REPORTS_CODE] = $data[SystemSettingNames::GENERATED_REPORTS_CODE];
 
@@ -250,15 +250,5 @@ class TCIA7 implements Form
 
     private function buildFormCoordinates(int $x): array {
         return ['form5' => 'B' . $x, 'form21' => 'C' . $x, 'form44' => 'D' . $x, 'form45' => 'E' . $x, 'total' => 'F' . $x];
-    }
-
-    private function getData(array $data): array
-    {
-        $result = $this->sessionService->getTC7(
-            $data['quarter_id'],
-            $data['field_office_id']
-        );
-
-        return $result['data'] ?? [];
     }
 }
