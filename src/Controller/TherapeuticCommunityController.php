@@ -540,6 +540,14 @@ class TherapeuticCommunityController extends AbstractController
     }
 
     /**
+     * @Route("/session/regional-tca7/full/{quarterId}", methods={"GET"})
+     */
+    public function getRegionalTC7(Request $request): Response
+    {
+        return $this->json($this->sessionService->getRegionalTC7((int) $request->get("quarterId")));
+    }
+
+    /**
      * @Route("/session/duplicate/with-client-facilitator/{id}", methods={"GET"})
      */
     public function duplicateSessionWithClientAndFacilitatorById(Request $request): Response

@@ -339,6 +339,21 @@ class ClientSessionsRepository extends ServiceEntityRepository
         return $result;
     }
 
+    public function findAbsenteesRemarksIdAndFieldOfficeIdBySessionId(array $sessionIds): array
+    {
+        $conn = $this->getEntityManager()->getConnection();
+        $sessionIds = implode(',', $sessionIds);
+
+        $sql = "SELECT cs.client_remarks_id, s.field_office_id FROM client_sessions cs 
+                LEFT JOIN sessions s on cs.session_id = s.session_id
+                WHERE cs.session_id IN ($sessionIds) AND cs.client_remarks_id IS NOT NULL";
+
+        $stmt = $conn->prepare($sql);
+        $query = $stmt->executeQuery();
+
+        return $query->fetchAllAssociative();
+    }
+
     public function getVPA3Report(int $volunteerId): array
     {
         $conn = $this->getEntityManager()->getConnection();

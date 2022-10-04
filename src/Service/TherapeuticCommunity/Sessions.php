@@ -11,6 +11,7 @@ use App\Enum\Response as ResponseEnum;
 use App\Model\ClientSessions as ClientSessionModel;
 use App\Model\Sessions as SessionsModel;
 use App\Repository\ClientSessionsRepository;
+use App\Repository\FieldOfficesRepository;
 use App\Repository\QuartersRepository;
 use App\Repository\ResourceFacilitatorSessionRepository;
 use App\Repository\SessionsRepository;
@@ -34,6 +35,7 @@ class Sessions implements SessionsInterface
         private ClientSessionsRepository             $clientSessionsRepository,
         private ResourceFacilitatorSessionRepository $resourceFacilitatorSessionRepository,
         private AuditTrail                           $auditTrail,
+        private FieldOfficesRepository                $fieldOfficesRepository,
     )
     {
         $class = new ReflectionClass($this);
@@ -303,8 +305,8 @@ class Sessions implements SessionsInterface
             }
 
             $initialValues = $this->getInitialValues();
-            $less = $this->getLess($currentQuarter, $fieldOfficeId);
             $quarterInitialValues = $this->getCurrentQuarterInitialValues($currentQuarter);
+            $less = $this->getLess($currentQuarter, $fieldOfficeId);
 
             return $this->appFormatter->formatResponse(
                 ResponseEnum::FETCHING_SUCCESS,
@@ -345,6 +347,74 @@ class Sessions implements SessionsInterface
             return $this->appFormatter->formatResponse("Duplicating Successful", []);
         } catch (\Doctrine\DBAL\Driver\Exception|\Doctrine\DBAL\Exception $e) {
             return $this->appFormatter->formatResponse(ResponseEnum::UPDATING_FAILED, null, ['cache' => $e->getMessage()]);
+        }
+    }
+
+    public function getRegionalTC7(int $quarterId): array
+    {
+        try {
+            $currentQuarter = $this->quartersRepository->find($quarterId);
+
+            if ($currentQuarter == null) {
+                return $this->appFormatter->formatResponse(ResponseEnum::NO_DATA, null);
+            }
+
+            $results = [];
+            $tempResults = [];
+            $initialValues = $this->getRegionalTC7ClientRemarksInitialValues();
+            $sessionIds = $this->repository->findSessionsIdsByQuarter($currentQuarter);
+
+            if (\count($sessionIds) == 0) {
+                return $this->appFormatter->formatResponse(ResponseEnum::NO_DATA, null);
+            }
+
+            $fieldOfficesId = $this->repository->findFieldOfficeIdsInSessionByQuarter($currentQuarter);
+
+            foreach ($fieldOfficesId as $fieldOfficeId) {
+                $tempResults[$fieldOfficeId] = $initialValues;
+            }
+
+            $sessionClients = $this->clientSessionsRepository->findAbsenteesRemarksIdAndFieldOfficeIdBySessionId($sessionIds);
+
+            foreach ($sessionClients as $sessionClient) {
+                $fieldOfficeId = $sessionClient['field_office_id'];
+                $clientRemarksId = (string) $sessionClient['client_remarks_id'];
+
+                if (! isset($tempResults[$fieldOfficeId][$clientRemarksId])) {
+                    // Note: Log the error saying no matching field office id and client remarks id -- but this shouldn't happen
+                    continue;
+                }
+
+                $tempResults[$fieldOfficeId][$clientRemarksId]++;
+            }
+
+            $fieldOfficesName = $this->fieldOfficesRepository->findNamesByFieldOfficeIds($fieldOfficesId);
+
+            foreach ($tempResults as $fieldOfficeId=>$tempResult) {
+                $fieldOfficeName = $fieldOfficesName[$fieldOfficeId];
+                $subtotal = 0;
+                // to be filled out by frontend columns
+                $result = $this->generateRegionalTC7RowInitialValue();
+
+                foreach ($tempResult as $clientRemarksId=>$value) {
+                    $clientRemarksId = (int) $clientRemarksId;
+                    $equivalentColumnNumber = $this->getRegionalTC7ClientRemarksIdColumnNumberEquivalent($clientRemarksId);
+
+                    if (3 === $clientRemarksId || 4 === $clientRemarksId || 5 === $clientRemarksId) {
+                        $result[11] += $value;
+                    }
+
+                    $subtotal += $value;
+                    $result[$equivalentColumnNumber] += $value;
+                }
+
+                $result[14] = $subtotal;
+                $results[$fieldOfficeName] = $result;
+            }
+
+            return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_SUCCESS, $results);
+        } catch (\Doctrine\DBAL\Driver\Exception $e) {
+            return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_FAILED, null, ['orm' => $e->getMessage()]);
         }
     }
 
@@ -451,6 +521,23 @@ class Sessions implements SessionsInterface
         return ['form5' => 0, 'form21' => 0, 'form44' => 0, 'form45' => 0];
     }
 
+    private function getRegionalTC7ClientRemarksInitialValues(): array
+    {
+        return [
+            '3' => 0,
+            '4' => 0,
+            '5' => 0,
+            '13' => 0,
+            '7'=> 0,
+            '6'=> 0,
+            '8'=> 0,
+            '9'=> 0,
+            '10' => 0,
+            '11' => 0,
+            '12' => 0,
+        ];
+    }
+
     private function getClientTypeFormEquivalent(): array
     {
         return [
@@ -474,5 +561,36 @@ class Sessions implements SessionsInterface
         }
 
         return $values;
+    }
+
+    private function generateRegionalTC7RowInitialValue(): array
+    {
+        $result = [];
+
+        for ($i = 1; $i <= 17; $i++) {
+            $result[$i] = 0;
+        }
+
+        return $result;
+    }
+
+    private function getRegionalTC7ClientRemarksIdColumnNumberEquivalent(int $clientRemarksId): int
+    {
+        // client remarks id => column number
+        $equivalents = [
+            3 => 3,
+            4 => 3,
+            5 => 3,
+            13 => 5,
+            7 => 6,
+            6 => 7,
+            8 => 8,
+            9 => 9,
+            10 => 10,
+            11 => 12,
+            12 => 13,
+        ];
+
+        return $equivalents[$clientRemarksId];
     }
 }

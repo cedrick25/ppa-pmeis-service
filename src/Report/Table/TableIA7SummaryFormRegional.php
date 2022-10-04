@@ -20,13 +20,10 @@ class TableIA7SummaryFormRegional implements Form
 
 
     public function __construct(
-        private Sessions               $sessionService,
-        private FieldOfficesRepository  $fieldOfficesRepository,
         private QuartersRepository     $quartersRepository,
-        private RegionsRepository      $regionsRepository,
         private array                  $data = [],
-        private ?Regions               $region = null,
         private ?Quarters              $quarter = null,
+        private int                    $lastFilledOutCellY = 5,
     ) {}
 
     public function supports(string $tableName): bool
@@ -37,11 +34,8 @@ class TableIA7SummaryFormRegional implements Form
     public function generate(array $data): BinaryFileResponse
     {
         $quarterId = intval($data['quarter_id']);
-        $regionId = intval($data['region_id']);
-
-        $this->region = $this->regionsRepository->find($regionId);
         $this->quarter = $this->quartersRepository->find($quarterId);
-//        $this->data = $this->getData($quarterId, $regionId);
+        $this->data = $data;
 
         $spreadsheet = $this->footer();
         $writer = IOFactory::createWriter($spreadsheet, "Xlsx");
@@ -63,9 +57,19 @@ class TableIA7SummaryFormRegional implements Form
     public function body(): Spreadsheet
     {
         $spreadsheet = $this->header();
+        $this->lastFilledOutCellY++;
 
+        foreach ($this->data['rows'] as $fieldOfficeName=>$row) {
+            $columnName = 'B';
+            $spreadsheet->getActiveSheet()->setCellValue('A' . $this->lastFilledOutCellY, $fieldOfficeName);
 
+            foreach ($row as $value) {
+                $spreadsheet->getActiveSheet()->setCellValue($columnName . $this->lastFilledOutCellY, $value);
+                $columnName++;
+            }
 
+            $this->lastFilledOutCellY++;
+        }
 
         return $spreadsheet;
     }
@@ -152,42 +156,5 @@ class TableIA7SummaryFormRegional implements Form
         }
 
         return $spreadsheet;
-    }
-
-    private function getData(int $quarterId, int $regionId): array
-    {
-
-        $clientsAttendingTC = 0;
-        $totalSupervisionCasesHandled = 0;
-        $percentageOfClientsAttendingTCScore = 0;
-        $totalAdjustedSupervisionCaseLoad = 0;
-        $tc7 = $this->sessionService->getTC7($quarterId, $fieldOffice = 1);
-
-        foreach ($tc7['data']['totalSupervisionCasesHandled'] as $score) {
-            $totalSupervisionCasesHandled += $score;
-        }
-
-        foreach ($tc7['data']['totalAdjustedSupervisionCaseLoad'] as $score) {
-            $totalAdjustedSupervisionCaseLoad += $score;
-        }
-
-        foreach ($tc7['data']['clientsAttendingTC'] as $score) {
-            $clientsAttendingTC += $score;
-        }
-
-        $percentageOfClientsAttendingTC = $tc7['data']['percentageOfClientsAttendingTC'];
-        foreach ($percentageOfClientsAttendingTC as $score) {
-            $percentageOfClientsAttendingTCScore += $score;
-        }
-        $percentageOfClientsAttendingTCScore = count($percentageOfClientsAttendingTC) > 0
-            ? $percentageOfClientsAttendingTCScore / count($percentageOfClientsAttendingTC)
-            : 0;
-
-        return [
-            'total_supervision_cases_handled' => $totalSupervisionCasesHandled,
-            'total_adjusted_supervision_caseLoad' => $totalAdjustedSupervisionCaseLoad,
-            'clients_attending_tc' => $clientsAttendingTC,
-            'percentage_of_clients_attending_tc' => $percentageOfClientsAttendingTCScore,
-        ];
     }
 }

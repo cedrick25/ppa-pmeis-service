@@ -7,6 +7,7 @@ namespace App\Repository;
 use App\Common\CacheHelper;
 use App\Entity\FieldOffices;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
+use Doctrine\DBAL\Connection;
 use Doctrine\Persistence\ManagerRegistry;
 use Psr\Cache\CacheException;
 use Psr\Cache\InvalidArgumentException;
@@ -131,6 +132,23 @@ class FieldOfficesRepository extends ServiceEntityRepository
         $query = $stmt->executeQuery();
 
         return $query->fetchAssociative();
+    }
+
+    public function findNamesByFieldOfficeIds(array $fieldOfficesId): array
+    {
+        $conn = $this->getEntityManager()->getConnection();
+        $query = $conn->executeQuery(
+            "SELECT fo.name, fo.field_office_id FROM field_offices as fo WHERE fo.field_office_id IN (:field_offices_id)",
+            ['field_offices_id' => $fieldOfficesId],
+            ['field_offices_id' => Connection::PARAM_INT_ARRAY]);
+        $results = $query->fetchAllAssociative();
+        $response = [];
+
+        foreach ($results as $result) {
+            $response[$result['field_office_id']] = $result['name'];
+        }
+
+        return $response;
     }
 
     public function isExistingById(int $id): bool | FieldOffices

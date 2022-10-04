@@ -664,25 +664,49 @@ class SessionsRepository extends ServiceEntityRepository
 
     /**
      * @param Quarters $quarterData
-     * @param int $fieldOfficeId
+     * @param int|null $fieldOfficeId
      * @return int[]
      * @throws \Doctrine\DBAL\Exception
      */
-    public function findSessionsIdsByQuarter(Quarters $quarterData, int $fieldOfficeId): array
+    public function findSessionsIdsByQuarter(Quarters $quarterData, ?int $fieldOfficeId = null): array
     {
         $conn = $this->getEntityManager()->getConnection();
         $minMaxDate = $this->quartersRepository->getQuarterMinMaxDate($quarterData);
         $minDate = $minMaxDate['min'];
         $maxDate = $minMaxDate['max'];
 
-        $sql = "SELECT s.session_id FROM sessions as s 
-                    WHERE s.date BETWEEN CAST('$minDate' AS DATE) AND CAST('$maxDate' AS DATE)
-                    AND field_office_id = $fieldOfficeId";
+        $sql = "SELECT s.session_id FROM sessions as s WHERE s.date BETWEEN CAST('$minDate' AS DATE) AND CAST('$maxDate' AS DATE) ";
+
+        if (null != $fieldOfficeId) {
+            $sql .= "AND field_office_id = $fieldOfficeId";
+        }
+
         $stmt = $conn->prepare($sql);
         $query = $stmt->executeQuery();
         $results = $query->fetchAllAssociative();
 
         return array_map(fn($sessionId) => $sessionId['session_id'], $results);
+    }
+
+    /**
+     * @param Quarters $quarterData
+     * @return int[]
+     * @throws \Doctrine\DBAL\Exception
+     */
+    public function findFieldOfficeIdsInSessionByQuarter(Quarters $quarterData): array
+    {
+        $conn = $this->getEntityManager()->getConnection();
+        $minMaxDate = $this->quartersRepository->getQuarterMinMaxDate($quarterData);
+        $minDate = $minMaxDate['min'];
+        $maxDate = $minMaxDate['max'];
+
+        $sql = "SELECT s.field_office_id FROM sessions as s WHERE s.date BETWEEN CAST('$minDate' AS DATE) AND CAST('$maxDate' AS DATE) ";
+
+        $stmt = $conn->prepare($sql);
+        $query = $stmt->executeQuery();
+        $results = $query->fetchAllAssociative();
+
+        return array_map(fn($session) => $session['field_office_id'], $results);
     }
 
     /**

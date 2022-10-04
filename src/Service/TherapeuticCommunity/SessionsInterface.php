@@ -32,5 +32,7 @@ interface SessionsInterface
 
     public function getTC7(int $quarterId, int $fieldOfficeId):array;
 
+    public function getRegionalTC7(int $quarterId):array;
+
     public function duplicateWithSessionAndFacilitator(int $id): array;
 }
