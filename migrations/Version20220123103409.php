@@ -17,12 +17,11 @@ final class Version20220123103409 extends AbstractMigration
         $currentDate = date("Y-m-d H:m:s");
 
         $this->addSql("INSERT INTO rjprocess_status (name, created_at) VALUES "
+            . "('Agreement Reached', '$currentDate'),"
+            . "('Completed', '$currentDate'),"
             . "('Shelved', '$currentDate'),"
             . "('Deferred', '$currentDate'),"
-            . "('On-Going', '$currentDate'),"
-            . "('Completed', '$currentDate'),"
-            . "('Agreement', '$currentDate'),"
-            . "('Reached', '$currentDate')"
+            . "('On-Going', '$currentDate')"
         );
     }
 
