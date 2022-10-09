@@ -67,10 +67,6 @@ class RJConductProcessesRepository extends ServiceEntityRepository
      */
     public function create(RJConductProcessesModel $data): int | null
     {
-//        if ($this->isExisting($data)) {
-//            return null;
-//        }
-
         $this->cache->invalidateTags([self::CACHE_TAG]);
 
         $newRJConductProcesses = new RJConductProcesses();
@@ -89,7 +85,6 @@ class RJConductProcessesRepository extends ServiceEntityRepository
         $newRJConductProcesses->setRjoId($data->getRjoId());
         $newRJConductProcesses->setRjGroup($data->getRjGroup());
         $newRJConductProcesses->setPlannerId($data->getPlannerId());
-        $newRJConductProcesses->setStakeholders($data->getStakeholders());
         $newRJConductProcesses->setCreatedAt($this->appDateHelper->getCurrentImmutableDate());
 
         $this->getEntityManager()->persist($newRJConductProcesses);

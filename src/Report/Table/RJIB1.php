@@ -319,7 +319,7 @@ class RJIB1 implements Form
 
             $rjpFullName = $row['planner_fn'] . ' ' . $row['planner_mn'] . ' ' . $row['planner_ln'];
             $spreadsheet->getActiveSheet()->setCellValue('N' . $this->lastFilledOutCellY, $rjpFullName);
-            $spreadsheet->getActiveSheet()->setCellValue('O' . $this->lastFilledOutCellY, $row['stakeholders']);
+            $spreadsheet->getActiveSheet()->setCellValue('O' . $this->lastFilledOutCellY, $this->formatPersonsInvolve($row['personsInvolved']));
             $spreadsheet->getActiveSheet()->setCellValue('P' . $this->lastFilledOutCellY, $row['rjp_status']);
             if (\in_array($row['rjp_status'], $rjpStatusResolvedCriteria)) {
                 $totalData[$row['rj_group']]['rjp_status']['resolved']++;
@@ -397,5 +397,21 @@ class RJIB1 implements Form
         $result['footer'] = $data['footer'];
 
         return $result;
+    }
+
+    private function formatPersonsInvolve(array $personsInvolved): string
+    {
+        $names = [];
+        foreach ($personsInvolved as $personInvolved) {
+            if (strlen($personInvolved['othersName']) > 0) {
+                $names[] = $personInvolved['othersName'];
+
+                continue;
+            }
+
+            $names[] = $personInvolved['id']['label'];
+        }
+
+        return implode(', ', $names);
     }
 }

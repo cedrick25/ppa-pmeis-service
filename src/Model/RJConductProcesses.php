@@ -25,7 +25,7 @@ class RJConductProcesses implements \JsonSerializable
         private int $rjoId,
         private string $rjGroup,
         private int $plannerId,
-        private ?string $stakeholders = null,
+        private array $personsInvolved = [],
         private ?DateTimeImmutable $createdAt = null,
         private ?DateTimeImmutable $updatedAt = null,
         private ?DateTimeImmutable $deletedAt = null,
@@ -167,11 +167,11 @@ class RJConductProcesses implements \JsonSerializable
     }
 
     /**
-     * @return string|null
+     * @return array
      */
-    public function getStakeholders(): ?string
+    public function getPersonsInvolved(): array
     {
-        return $this->stakeholders;
+        return $this->personsInvolved;
     }
 
     /**

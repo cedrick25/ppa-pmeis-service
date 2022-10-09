@@ -30,7 +30,6 @@ final class Version20220121204634 extends AbstractMigration
                         rjo_id INT NOT NULL,
                         rj_group enum(\'ACTIVE_SUPERVISION\', \'PETITIONER\'),
                         planner_id INT NOT NULL,
-                        stakeholders VARCHAR(255) DEFAULT NULL,
                         created_at DATETIME NOT NULL COMMENT \'(DC2Type:datetime_immutable)\',
                         updated_at DATETIME DEFAULT NULL COMMENT \'(DC2Type:datetime_immutable)\',
                         deleted_at DATETIME DEFAULT NULL COMMENT \'(DC2Type:datetime_immutable)\',

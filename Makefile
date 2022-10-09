@@ -36,6 +36,3 @@ create-migration:
 
 create-migration-diff:
 	docker exec ${CONTAINER} bash -c "php bin/console doctrine:migrations:diff"
-
-create-migration-diff:
-	docker exec ${CONTAINER} bash -c "php bin/console doctrine:migrations:diff"

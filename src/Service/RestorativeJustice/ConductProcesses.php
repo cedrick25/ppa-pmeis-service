@@ -5,9 +5,12 @@ declare(strict_types=1);
 namespace App\Service\RestorativeJustice;
 
 use App\Common\AppFormatter;
+use App\Common\AppHydrator;
+use App\Entity\RjConductedProcessPersonsInvolved;
 use App\Enum\AuditTrailActions;
 use App\Enum\Response as ResponseEnum;
 use App\Model\RJConductProcesses as ConductProcessesModel;
+use App\Repository\RjConductedProcessPersonsInvolvedRepository;
 use App\Repository\RJConductProcessesRepository;
 use App\Service\System\AuditTrail;
 use Doctrine\ORM\Exception\ORMException;
@@ -21,10 +24,12 @@ class ConductProcesses implements ConductProcessesInterface
     private string $shortName;
 
     public function __construct(
-        private ValidatorInterface           $validator,
-        private AppFormatter                 $appFormatter,
-        private RJConductProcessesRepository $repository,
-        private AuditTrail                   $auditTrail,
+        private ValidatorInterface                          $validator,
+        private AppFormatter                                $appFormatter,
+        private RJConductProcessesRepository                $repository,
+        private RjConductedProcessPersonsInvolvedRepository $conductedProcessPersonsInvolvedRepository,
+        private AuditTrail                                  $auditTrail,
+        private AppHydrator                                 $hydrator,
     ) {
         $class = new \ReflectionClass($this);
         $this->shortName = $class->getShortName();
@@ -44,6 +49,8 @@ class ConductProcesses implements ConductProcessesInterface
             if ($id == null) {
                 return $this->appFormatter->formatResponse(ResponseEnum::CREATING_FAILED, null, ['app' => 'RJ conduct process already exist']);
             }
+
+            $this->conductedProcessPersonsInvolvedRepository->batchCreate($id, $conductProcessData->getPersonsInvolved());
 
             $this->auditTrail->log(
                 AuditTrailActions::CREATE,
@@ -71,7 +78,22 @@ class ConductProcesses implements ConductProcessesInterface
                 return $this->appFormatter->formatResponse(ResponseEnum::NO_DATA, null);
             }
 
-            return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_SUCCESS, $conductProcesses);
+            $return = [];
+            $conductProcessesId =  array_map(fn($conductProcess) => $conductProcess->getRJConductProcessId(), $conductProcesses);
+            $personsInvolved = $this->conductedProcessPersonsInvolvedRepository->findByConductedProcessIds($conductProcessesId);
+
+            foreach ($conductProcesses as $conductProcess) {
+                $conductProcessId = $conductProcess->getRJConductProcessId();
+                $arrayVersion = $this->hydrator->convertObjectToArray($conductProcess);
+                $arrayVersion['peDate'] = $conductProcess->getPeDate()->format('Y-m-d');
+                $arrayVersion['rjpDate'] = $conductProcess->getRjpDate()->format('Y-m-d');
+                $arrayVersion['personsInvolved'] = $personsInvolved[$conductProcessId];
+
+                $return[] = $arrayVersion;
+            }
+
+
+            return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_SUCCESS, $return);
         } catch (CacheException|InvalidArgumentException $exception) {
             return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_FAILED, null, ['cache' => $exception->getMessage()]);
         }
@@ -85,17 +107,26 @@ class ConductProcesses implements ConductProcessesInterface
             return $this->appFormatter->formatResponse(ResponseEnum::NO_DATA, null);
         }
 
-        return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_SUCCESS, $conductProcess);
+        $personInvolved = $this->conductedProcessPersonsInvolvedRepository->findByConductedProcessId($conductProcess->getRJConductProcessId());
+
+        $arrayVersion = $this->hydrator->convertObjectToArray($conductProcess);
+        $arrayVersion['peDate'] = $conductProcess->getPeDate()->format('Y-m-d');
+        $arrayVersion['rjpDate'] = $conductProcess->getRjpDate()->format('Y-m-d');
+        $arrayVersion['personsInvolved'] = $personInvolved;
+
+        return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_SUCCESS, $arrayVersion);
     }
 
     public function deleteById(int $id): array
     {
         try {
-            $isDeleted = $this->repository->softDelete($id);
+            $isDeleted = $this->repository->delete($id);
 
             if (! $isDeleted) {
                 return $this->appFormatter->formatResponse(ResponseEnum::DELETING_FAILED, null, ['app' => ResponseEnum::NO_DATA]);
             }
+
+            $this->conductedProcessPersonsInvolvedRepository->deleteByConductedProcessId($id);
 
             $this->auditTrail->log(AuditTrailActions::DELETE, [], $this->shortName, $id);
 
@@ -109,7 +140,6 @@ class ConductProcesses implements ConductProcessesInterface
 
     public function getRJIB1(int $quarterId, int $fieldOfficeId): array
     {
-        // TODO: replaced stakeholders to associates data
         try {
             $conductProcesses = $this->repository->getRJIB1Data($quarterId, $fieldOfficeId);
 
@@ -117,7 +147,17 @@ class ConductProcesses implements ConductProcessesInterface
                 return $this->appFormatter->formatResponse(ResponseEnum::NO_DATA, null);
             }
 
-            return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_SUCCESS, $conductProcesses);
+            $return = [];
+            $conductProcessesId =  array_map(fn($conductProcess) => $conductProcess['rj_conduct_process_id'], $conductProcesses);
+            $personsInvolved = $this->conductedProcessPersonsInvolvedRepository->findByConductedProcessIds($conductProcessesId);
+
+            foreach ($conductProcesses as $conductProcess) {
+                $conductProcess['personsInvolved'] = $personsInvolved[$conductProcess['rj_conduct_process_id']];
+
+                $return[] = $conductProcess;
+            }
+
+            return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_SUCCESS, $return);
         } catch (InvalidArgumentException | CacheException  $e) {
             return $this->appFormatter->formatResponse(ResponseEnum::UPDATING_FAILED, null, ['cache' => $e->getMessage()]);
         }
