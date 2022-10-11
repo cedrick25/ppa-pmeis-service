@@ -87,7 +87,8 @@ class ConductProcesses implements ConductProcessesInterface
                 $arrayVersion = $this->hydrator->convertObjectToArray($conductProcess);
                 $arrayVersion['peDate'] = $conductProcess->getPeDate()->format('Y-m-d');
                 $arrayVersion['rjpDate'] = $conductProcess->getRjpDate()->format('Y-m-d');
-                $arrayVersion['personsInvolved'] = $personsInvolved[$conductProcessId];
+
+                $arrayVersion['personsInvolved'] = $personsInvolved[$conductProcessId] ?? [];
 
                 $return[] = $arrayVersion;
             }
