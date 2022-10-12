@@ -81,10 +81,7 @@ class VolunteerRepository extends ServiceEntityRepository
         $newVolunteer->setSpecialSkill($volunteerData->getSpecialSkill());
         $newVolunteer->setEmergencyName($volunteerData->getEmergencyName());
         $newVolunteer->setEmergencyNumber($volunteerData->getEmergencyNumber());
-        $newVolunteer->setImage($volunteerData->getImage());
-        $newVolunteer->setApplicantSignature($volunteerData->getApplicantSignature());
         $newVolunteer->setDateAccomplished($this->appDateHelper->convertStringToImmutableDate($volunteerData->getDateAccomplished()));
-        $newVolunteer->setOfficerSignature($volunteerData->getOfficerSignature());
         $newVolunteer->setDateSigned($this->appDateHelper->convertStringToImmutableDate($volunteerData->getDateSigned()));
         $newVolunteer->setDateAppointed($this->appDateHelper->convertStringToImmutableDate($volunteerData->getDateAppointed()));
         $newVolunteer->setVpaStatus($volunteerData->getVpaStatus());
@@ -198,10 +195,7 @@ class VolunteerRepository extends ServiceEntityRepository
         $volunteer->setSpecialSkill($volunteerData->getSpecialSkill());
         $volunteer->setEmergencyName($volunteerData->getEmergencyName());
         $volunteer->setEmergencyNumber($volunteerData->getEmergencyNumber());
-        $volunteer->setImage($volunteerData->getImage());
-        $volunteer->setApplicantSignature($volunteerData->getApplicantSignature());
         $volunteer->setDateAccomplished($this->appDateHelper->convertStringToImmutableDate($volunteerData->getDateAccomplished()));
-        $volunteer->setOfficerSignature($volunteerData->getOfficerSignature());
         $volunteer->setDateSigned($this->appDateHelper->convertStringToImmutableDate($volunteerData->getDateSigned()));
         $volunteer->setDateAppointed($this->appDateHelper->convertStringToImmutableDate($volunteerData->getDateAppointed()));
         $volunteer->setVpaStatus($volunteerData->getVpaStatus());

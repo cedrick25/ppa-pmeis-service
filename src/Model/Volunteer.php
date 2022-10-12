@@ -32,10 +32,7 @@ class Volunteer implements \JsonSerializable
         private string $specialSkill,
         private string $emergencyName,
         private string $emergencyNumber,
-        private string $image,
-        private string $applicantSignature,
         private string $dateAccomplished,
-        private string $officerSignature,
         private string $dateSigned,
         private string $vpaStatus,
         private ?string $dateAppointed = null,
@@ -282,36 +279,9 @@ class Volunteer implements \JsonSerializable
      * @Assert\NotBlank
      * @return string
      */
-    public function getImage(): string
-    {
-        return $this->image;
-    }
-
-    /**
-     * @Assert\NotBlank
-     * @return string
-     */
-    public function getApplicantSignature(): string
-    {
-        return $this->applicantSignature;
-    }
-
-    /**
-     * @Assert\NotBlank
-     * @return string
-     */
     public function getDateAccomplished(): string
     {
         return $this->dateAccomplished;
-    }
-
-    /**
-     * @Assert\NotBlank
-     * @return string
-     */
-    public function getOfficerSignature(): string
-    {
-        return $this->officerSignature;
     }
 
     /**

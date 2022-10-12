@@ -157,24 +157,9 @@ class Volunteer
     private string $emergencyNumber;
 
     /**
-     * @ORM\Column(type="string", length=255)
-     */
-    private string $image;
-
-    /**
-     * @ORM\Column(type="string", length=255)
-     */
-    private string $applicantSignature;
-
-    /**
      * @ORM\Column(type="datetime_immutable")
      */
     private DateTimeImmutable $dateAccomplished;
-
-    /**
-     * @ORM\Column(type="string", length=255)
-     */
-    private string $officerSignature;
 
     /**
      * @ORM\Column(type="datetime_immutable")
@@ -644,42 +629,6 @@ class Volunteer
     }
 
     /**
-     * @return string
-     */
-    public function getImage(): string
-    {
-        return $this->image;
-    }
-
-    /**
-     * @param string $image
-     * @return Volunteer
-     */
-    public function setImage(string $image): Volunteer
-    {
-        $this->image = $image;
-        return $this;
-    }
-
-    /**
-     * @return string
-     */
-    public function getApplicantSignature(): string
-    {
-        return $this->applicantSignature;
-    }
-
-    /**
-     * @param string $applicantSignature
-     * @return Volunteer
-     */
-    public function setApplicantSignature(string $applicantSignature): Volunteer
-    {
-        $this->applicantSignature = $applicantSignature;
-        return $this;
-    }
-
-    /**
      * @return DateTimeImmutable
      */
     public function getDateAccomplished(): DateTimeImmutable
@@ -694,24 +643,6 @@ class Volunteer
     public function setDateAccomplished(DateTimeImmutable $dateAccomplished): Volunteer
     {
         $this->dateAccomplished = $dateAccomplished;
-        return $this;
-    }
-
-    /**
-     * @return string
-     */
-    public function getOfficerSignature(): string
-    {
-        return $this->officerSignature;
-    }
-
-    /**
-     * @param string $officerSignature
-     * @return Volunteer
-     */
-    public function setOfficerSignature(string $officerSignature): Volunteer
-    {
-        $this->officerSignature = $officerSignature;
         return $this;
     }
 
