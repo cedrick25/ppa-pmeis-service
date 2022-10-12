@@ -137,7 +137,18 @@ class RelatedActivities implements RelatedActivitiesInterface
                 return $this->appFormatter->formatResponse(ResponseEnum::NO_DATA, null);
             }
 
-            return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_SUCCESS, $relatedActivities);
+            $return = [];
+            $conductProcessesId =  array_map(fn($relatedActivity) => $relatedActivity['rj_related_activity_id'], $relatedActivities);
+            $personsInvolved = $this->relatedActivitiesPersonsInvolvedRepository->findByConductedProcessIds($conductProcessesId);
+
+            foreach ($relatedActivities as $relatedActivity) {
+                $relatedActivityId = $relatedActivity['rj_related_activity_id'];
+                $relatedActivity['persons_involved'] = $personsInvolved[$relatedActivityId] ?? [];
+
+                $return[] = $relatedActivity;
+            }
+
+            return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_SUCCESS, $return);
         } catch (InvalidArgumentException | CacheException  $e) {
             return $this->appFormatter->formatResponse(ResponseEnum::UPDATING_FAILED, null, ['cache' => $e->getMessage()]);
         }

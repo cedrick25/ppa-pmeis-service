@@ -210,20 +210,23 @@ class RJIB2 implements Form
 
             $spreadsheet->getActiveSheet()->setCellValue('I' . $this->lastFilledOutCellY, $row['venue_date'] . '/' . $row['venue']);
             $persons_involved = [];
+
             foreach ($row['persons_involved'] as $person_involved) {
-                $persons_involved[] = $person_involved['first_name'] . ' ' . $person_involved['middle_name'] . ' ' . $person_involved['last_name'];
+                $persons_involved[] = ('others' === $person_involved['type']['value']) ? $person_involved['othersName'] : $person_involved['id']['label'];
             }
 
-            $spreadsheet->getActiveSheet()->setCellValue('H' . $this->lastFilledOutCellY, implode(', ', $persons_involved));
+            $spreadsheet->getActiveSheet()->setCellValue('J' . $this->lastFilledOutCellY, implode(', ', $persons_involved));
             $spreadsheet->getActiveSheet()->setCellValue('K' . $this->lastFilledOutCellY, $row['outcome']);
             $spreadsheet->getActiveSheet()
                 ->getStyle("A" . $this->lastFilledOutCellY . ":K" . $this->lastFilledOutCellY)
                 ->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
         }
 
-        $spreadsheet->getActiveSheet()->getStyle('A10:K' . $this->lastFilledOutCellY)->getAlignment()->setWrapText(true);
-        $spreadsheet->getActiveSheet()->getStyle('A10:K' . $this->lastFilledOutCellY)->getAlignment()->setVertical('center');
-        $spreadsheet->getActiveSheet()->getStyle('A10:K' . $this->lastFilledOutCellY)->getAlignment()->setHorizontal('center');
+        $spreadsheet->getActiveSheet()->getStyle('A10:K' . $this->lastFilledOutCellY)
+            ->getAlignment()
+            ->setWrapText(true)
+            ->setVertical('center')
+            ->setHorizontal('center');
 
         $this->lastFilledOutCellY++;
         $spreadsheet->getActiveSheet()->setCellValue('A' . $this->lastFilledOutCellY, 'TOTAL');
@@ -261,6 +264,6 @@ class RJIB2 implements Form
             $data['field_office_id']
         );
 
-        return ['rows' => isset($results['data']) ? array_values($results['data']) : []];
+        return ['rows' => array_values($result['data'] ?? [])];
     }
 }
