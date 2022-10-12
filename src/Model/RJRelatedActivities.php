@@ -11,7 +11,7 @@ use Symfony\Component\Validator\Constraints as Assert;
 class RJRelatedActivities implements \JsonSerializable
 {
     /**
-     * @param int[] $volunteersId
+     * @param array<string, mixed> $personsInvolved
      */
     public function __construct(
         private int $quarterId,
@@ -24,7 +24,7 @@ class RJRelatedActivities implements \JsonSerializable
         private int $rjpId,
         private int $rjoId,
         private string $rjGroup,
-        private ?array $volunteersId = [],
+        private ?array $personsInvolved = [],
         private ?DateTimeImmutable $createdAt = null,
         private ?DateTimeImmutable $updatedAt = null,
         private ?DateTimeImmutable $deletedAt = null,
@@ -128,11 +128,11 @@ class RJRelatedActivities implements \JsonSerializable
     }
 
     /**
-     * @return int[]|null
+     * @return array|null
      */
-    public function getVolunteersId(): ?array
+    public function getPersonsInvolved(): ?array
     {
-        return $this->volunteersId;
+        return $this->personsInvolved;
     }
 
     /**

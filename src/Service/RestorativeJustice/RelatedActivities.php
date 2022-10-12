@@ -5,8 +5,10 @@ declare(strict_types=1);
 namespace App\Service\RestorativeJustice;
 
 use App\Common\AppFormatter;
+use App\Common\AppHydrator;
 use App\Enum\AuditTrailActions;
 use App\Enum\Response as ResponseEnum;
+use App\Repository\RjRelatedActivitiesPersonsInvolvedRepository;
 use App\Repository\RJRelatedActivitiesRepository;
 use App\Model\RJRelatedActivities as RelatedActivitiesModel;
 use App\Service\System\AuditTrail;
@@ -25,6 +27,8 @@ class RelatedActivities implements RelatedActivitiesInterface
         private AppFormatter                  $appFormatter,
         private RJRelatedActivitiesRepository $repository,
         private AuditTrail                    $auditTrail,
+        private RjRelatedActivitiesPersonsInvolvedRepository $relatedActivitiesPersonsInvolvedRepository,
+        private AppHydrator                                  $hydrator,
     ){
         $class = new \ReflectionClass($this);
         $this->shortName = $class->getShortName();
@@ -71,7 +75,18 @@ class RelatedActivities implements RelatedActivitiesInterface
                 return $this->appFormatter->formatResponse(ResponseEnum::NO_DATA, null);
             }
 
-            return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_SUCCESS, $relatedActivities);
+            $return = [];
+            $conductProcessesId =  array_map(fn($relatedActivity) => $relatedActivity['rj_related_activity_id'], $relatedActivities);
+            $personsInvolved = $this->relatedActivitiesPersonsInvolvedRepository->findByConductedProcessIds($conductProcessesId);
+
+            foreach ($relatedActivities as $relatedActivity) {
+                $relatedActivityId = $relatedActivity['rj_related_activity_id'];
+                $relatedActivity['personsInvolved'] = $personsInvolved[$relatedActivityId] ?? [];
+
+                $return[] = $relatedActivity;
+            }
+
+            return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_SUCCESS, $return);
         } catch (CacheException|InvalidArgumentException $exception) {
             return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_FAILED, null, ['cache' => $exception->getMessage()]);
         }
@@ -85,18 +100,24 @@ class RelatedActivities implements RelatedActivitiesInterface
             return $this->appFormatter->formatResponse(ResponseEnum::NO_DATA, null);
         }
 
-        return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_SUCCESS, $relatedActivity);
+        $arrayVersion = $this->hydrator->convertObjectToArray($relatedActivity);
+        $arrayVersion['venueDate'] = $relatedActivity->getVenueDate()->format('Y-m-d');
+        $arrayVersion['createdAt'] = $relatedActivity->getCreatedAt()->format('Y-m-d');
+        $arrayVersion['personsInvolved'] = $this->relatedActivitiesPersonsInvolvedRepository->findByRelatedActivityId($id);
+
+        return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_SUCCESS, $arrayVersion);
     }
 
     public function deleteById(int $id): array
     {
         try {
-            $isDeleted = $this->repository->softDelete($id);
+            $isDeleted = $this->repository->delete($id);
 
             if (! $isDeleted) {
                 return $this->appFormatter->formatResponse(ResponseEnum::DELETING_FAILED, null, ['app' => ResponseEnum::NO_DATA]);
             }
 
+            $this->relatedActivitiesPersonsInvolvedRepository->deleteByRelatedActivityId($id);
             $this->auditTrail->log(AuditTrailActions::DELETE, [], $this->shortName, $id);
 
             return $this->appFormatter->formatResponse(ResponseEnum::DELETING_SUCCESS, null);

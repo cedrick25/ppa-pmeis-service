@@ -81,12 +81,12 @@ class RJRelatedActivities
     /**
      * @ORM\Column(type="datetime_immutable", nullable=true)
      */
-    private DateTimeImmutable $updatedAt;
+    private ?DateTimeImmutable $updatedAt;
 
     /**
      * @ORM\Column(type="datetime_immutable", nullable=true)
      */
-    private DateTimeImmutable $deletedAt;
+    private ?DateTimeImmutable $deletedAt;
 
     public function getRjRelatedActivityId(): ?int
     {

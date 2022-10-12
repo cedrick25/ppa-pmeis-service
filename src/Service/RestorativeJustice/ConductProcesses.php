@@ -6,7 +6,6 @@ namespace App\Service\RestorativeJustice;
 
 use App\Common\AppFormatter;
 use App\Common\AppHydrator;
-use App\Entity\RjConductedProcessPersonsInvolved;
 use App\Enum\AuditTrailActions;
 use App\Enum\Response as ResponseEnum;
 use App\Model\RJConductProcesses as ConductProcessesModel;

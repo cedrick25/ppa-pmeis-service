@@ -33,7 +33,7 @@ class RJRelatedActivitiesRepository extends ServiceEntityRepository
         private CacheHelper             $cacheHelper,
         private Helper                  $helper,
         private AppDateHelper           $appDateHelper,
-        private RJVolunteersRepository  $RJVolunteersRepository
+        private RjRelatedActivitiesPersonsInvolvedRepository  $relatedActivitiesPersonsInvolvedRepository,
     ){
         parent::__construct($registry, RJRelatedActivities::class);
     }
@@ -97,7 +97,7 @@ class RJRelatedActivitiesRepository extends ServiceEntityRepository
         $this->getEntityManager()->flush();
 
         $id = $newRjRelatedActivity->getRjRelatedActivityId();
-        $this->RJVolunteersRepository->batchCreate($id, $data->getVolunteersId());
+        $this->relatedActivitiesPersonsInvolvedRepository->batchCreate($id, $data->getPersonsInvolved());
 
         return $id;
     }
@@ -182,7 +182,7 @@ class RJRelatedActivitiesRepository extends ServiceEntityRepository
             $data = [];
             $results = $query->fetchAllAssociative();
             foreach ($results as $result) {
-                $result['persons_involved'] = $this->RJVolunteersRepository->getVolunteersByRelatedActivityId((int) $result['rj_related_activity_id']);
+                $result['persons_involved'] = $this->relatedActivitiesPersonsInvolvedRepository->getVolunteersByRelatedActivityId((int) $result['rj_related_activity_id']);
                 $data[] = $result;
             }
 
