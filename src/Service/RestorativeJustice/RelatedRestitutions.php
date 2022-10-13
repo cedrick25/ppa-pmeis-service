@@ -36,11 +36,21 @@ class RelatedRestitutions implements RelatedRestitutionsInterface
                 return $this->appFormatter->formatResponse(ResponseEnum::VALIDATING_FAILED, null, $this->appFormatter->formatErrors($errors));
             }
 
+            $recentData = $this->repository->findOneBy(
+                ['fieldOfficeId' => $restitutions->getFieldOfficeId(), 'clientId' => $restitutions->getClientId()],
+                ['rjRelatedRestitutionId' => 'DESC']
+            );
+
+            if ($recentData->getOriginalAmount() !== $restitutions->getOriginalAmount()) {
+                return $this->appFormatter->formatResponse(ResponseEnum::CREATING_FAILED, null, ['app' => 'Original amount cant be modified: prior entry for this client is already existing.']);
+            }
+
             $id = $this->repository->create($restitutions);
 
-            if ($id == null) {
-                return $this->appFormatter->formatResponse(ResponseEnum::CREATING_FAILED, null, ['app' => 'RJ related restitution already exist']);
+            if (null == $id) {
+                return $this->appFormatter->formatResponse(ResponseEnum::CREATING_FAILED, null, ['app' => 'There is a problem in creating record.']);
             }
+
 
             $this->auditTrail->log(
                 AuditTrailActions::CREATE,

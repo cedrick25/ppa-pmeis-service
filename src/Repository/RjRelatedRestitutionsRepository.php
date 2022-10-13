@@ -69,10 +69,6 @@ class RjRelatedRestitutionsRepository extends ServiceEntityRepository
      */
     public function create(RjRelatedRestitutionsModel $data): int | null
     {
-        if ($this->isExisting($data)) {
-            return null;
-        }
-
         $this->cache->invalidateTags([self::CACHE_TAG]);
 
         $newRjRelatedRestitution = new RjRelatedRestitutions();
@@ -180,17 +176,5 @@ class RjRelatedRestitutionsRepository extends ServiceEntityRepository
 
             return $query->fetchAllAssociative();
         });
-    }
-
-    private function isExisting(RjRelatedRestitutionsModel $data): bool | RjRelatedRestitutions
-    {
-        $RJRelatedRestitution = $this->findOneBy([
-            'clientId' => $data->getClientId(),
-            'quarterId' => $data->getQuarterId(),
-            'fieldOfficeId' => $data->getFieldOfficeId(),
-            'deletedAt' => null
-        ]);
-
-        return ($RJRelatedRestitution == null) ? false : $RJRelatedRestitution;
     }
 }
