@@ -41,7 +41,7 @@ class RelatedRestitutions implements RelatedRestitutionsInterface
                 ['rjRelatedRestitutionId' => 'DESC']
             );
 
-            if ($recentData->getOriginalAmount() !== $restitutions->getOriginalAmount()) {
+            if (null !== $recentData && $recentData->getOriginalAmount() !== $restitutions->getOriginalAmount()) {
                 return $this->appFormatter->formatResponse(ResponseEnum::CREATING_FAILED, null, ['app' => 'Original amount cant be modified: prior entry for this client is already existing.']);
             }
 
