@@ -325,4 +325,15 @@ class RestorativeJusticeController extends AbstractController
             (int) $request->get("fieldOfficeId"),
         ));
     }
+
+    /**
+     * @Route("/related-restitutions/loadform/{fieldOfficeId}/{clientId}", methods={"GET"})
+     */
+    public function loadForm(Request $request): Response
+    {
+        return $this->json($this->relatedRestitutionsService->loadForm(
+            (int) $request->get("fieldOfficeId"),
+            (int) $request->get("clientId"),
+        ));
+    }
 }

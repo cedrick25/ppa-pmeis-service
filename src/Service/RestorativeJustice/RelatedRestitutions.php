@@ -118,4 +118,28 @@ class RelatedRestitutions implements RelatedRestitutionsInterface
             return $this->appFormatter->formatResponse(ResponseEnum::UPDATING_FAILED, null, ['cache' => $e->getMessage()]);
         }
     }
+
+    public function loadForm(int $fieldOfficeId, int $clientId): array
+    {
+        $recentData = $this->repository->findOneBy(
+            ['fieldOfficeId' => $fieldOfficeId, 'clientId' => $clientId,],
+            ['rjRelatedRestitutionId' => 'DESC']
+        );
+
+        return (null == $recentData) ?
+            $this->createLoadFormReturn() :
+            $this->createLoadFormReturn($recentData->getOriginalAmount(), $recentData->getBalance(), true);
+    }
+
+    private function createLoadFormReturn(
+        float $originalAmount = 0,
+        float $startOfQuarter = 0,
+        bool $isOriginalAmountDisabled = false
+    ): array {
+        return [
+            'originalAmount' => $originalAmount,
+            'startOfQuarter' => $startOfQuarter,
+            'isOriginalAmountDisabled' => $isOriginalAmountDisabled,
+        ];
+    }
 }
