@@ -15,4 +15,6 @@ interface RelatedActivitiesInterface
     public function deleteById(int $id): array;
 
     public function getRJIB2Data(int $quarterId, int $fieldOfficeId): array;
+
+    public function update(int $id, RJRelatedActivitiesModel $activities): array;
 }

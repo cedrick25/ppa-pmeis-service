@@ -6,6 +6,7 @@ namespace App\Repository;
 
 use App\Common\AppDateHelper;
 use App\Common\CacheHelper;
+use App\Enum\Response as ResponseEnum;
 use App\Model\RJConductProcesses as RJConductProcessesModel;
 use App\Entity\RJConductProcesses;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
@@ -180,16 +181,34 @@ class RJConductProcessesRepository extends ServiceEntityRepository
         });
     }
 
-    private function isExisting(RJConductProcessesModel $data): bool | RJConductProcesses
+    public function update(int $id, RJConductProcessesModel $data): string
     {
-        // TODO: Check correct existing RJ Process condition.
-        $RJConductProcesses = $this->findOneBy([
-            'clientId' => $data->getClientId(),
-            'quarterId' => $data->getQuarterId(),
-            'fieldOfficeId' => $data->getFieldOfficeId(),
-            'deletedAt' => null
-        ]);
+        $entity = $this->find($id);
 
-        return ($RJConductProcesses == null) ? false : $RJConductProcesses;
+        if (null == $entity) {
+            return ResponseEnum::NO_RECORD;
+        }
+
+        $this->cache->invalidateTags([self::CACHE_TAG]);
+
+        $entity->setClientId($data->getClientId());
+        $entity->setQuarterId($data->getQuarterId());
+        $entity->setFieldOfficeId($data->getFieldOfficeId());
+        $entity->setOffenseId($data->getOffenseId());
+        $entity->setPeVenueId($data->getPeVenueId());
+        $entity->setPeDate($this->appDateHelper->convertStringToImmutableDate($data->getPeDate()));
+        $entity->setPeActivity($data->getPeActivity());
+        $entity->setRjpDate($this->appDateHelper->convertStringToImmutableDate($data->getRjpDate()));
+        $entity->setRjpId($data->getRjpId());
+        $entity->setRjpVenueId($data->getRjpVenueId());
+        $entity->setRjpsId($data->getRjpsId());
+        $entity->setRjoId($data->getRjoId());
+        $entity->setRjGroup($data->getRjGroup());
+        $entity->setPlannerId($data->getPlannerId());
+        $entity->setUpdatedAt($this->appDateHelper->getCurrentImmutableDate());
+
+        $this->getEntityManager()->flush();
+
+        return ResponseEnum::OK;
     }
 }

@@ -153,4 +153,25 @@ class RelatedActivities implements RelatedActivitiesInterface
             return $this->appFormatter->formatResponse(ResponseEnum::UPDATING_FAILED, null, ['cache' => $e->getMessage()]);
         }
     }
+
+    public function update(int $id, RelatedActivitiesModel $activities): array
+    {
+
+        try {
+            $isUpdated = $this->repository->update($id, $activities);
+
+            if ($isUpdated !== ResponseEnum::OK) {
+                return $this->appFormatter->formatResponse(ResponseEnum::UPDATING_FAILED, null, ['app' => $isUpdated]);
+            }
+
+            $this->auditTrail->log(AuditTrailActions::UPDATE, $activities->jsonSerialize(), $this->shortName, $id);
+
+            $this->relatedActivitiesPersonsInvolvedRepository->deleteByRelatedActivityId($id);
+            $this->relatedActivitiesPersonsInvolvedRepository->batchCreate($id, $activities->getPersonsInvolved());
+
+            return $this->appFormatter->formatResponse(ResponseEnum::UPDATING_SUCCESS, null);
+        } catch (Exception $exception) {
+            return $this->appFormatter->formatResponse(ResponseEnum::UPDATING_FAILED, null, ['error' => $exception->getMessage()]);
+        }
+    }
 }

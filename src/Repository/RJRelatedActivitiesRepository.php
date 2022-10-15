@@ -7,6 +7,7 @@ namespace App\Repository;
 use App\Common\AppDateHelper;
 use App\Common\CacheHelper;
 use App\Entity\RJRelatedActivities;
+use App\Enum\Response as ResponseEnum;
 use App\Model\RJRelatedActivities as RJRelatedActivitiesModel;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\ORM\OptimisticLockException;
@@ -206,8 +207,8 @@ class RJRelatedActivitiesRepository extends ServiceEntityRepository
             $sql = "
                 SELECT DISTINCT v.volunteer_id
                 FROM rjrelated_activities as rjra
-                LEFT JOIN rjvolunteers as rjv ON rjv.related_activity_id = rjra.rj_related_activity_id
-                LEFT JOIN volunteer as v ON v.volunteer_id = rjv.volunteer_id
+                LEFT JOIN rj_related_activities_persons_involved as rrapi ON rrapi.related_activity_id = rjra.rj_related_activity_id
+                LEFT JOIN volunteer as v ON v.volunteer_id = rrapi.persons_involved_id
                 WHERE rjra.quarter_id = $quarterId 
                 AND rjra.field_office_id = $fieldOfficeId
                 AND rjra.deleted_at IS NULL
@@ -218,6 +219,31 @@ class RJRelatedActivitiesRepository extends ServiceEntityRepository
 
             return $results;
         });
+    }
+
+    public function update(int $id, RJRelatedActivitiesModel $data): string
+    {
+        $entity = $this->find($id);
+
+        if (null == $entity) {
+            return ResponseEnum::NO_RECORD;
+        }
+
+        $entity->setQuarterId($data->getQuarterId());
+        $entity->setFieldOfficeId($data->getFieldOfficeId());
+        $entity->setClientId($data->getClientId());
+        $entity->setOffenseId($data->getOffenseId());
+        $entity->setVenueDate($this->appDateHelper->convertStringToImmutableDate($data->getVenueDate()));
+        $entity->setVenueId($data->getVenueId());
+        $entity->setVictims($data->getVictims());
+        $entity->setRjpId($data->getRjpId());
+        $entity->setRjoId($data->getRjoId());
+        $entity->setRjGroup($data->getRjGroup());
+        $entity->setCreatedAt($this->appDateHelper->getCurrentImmutableDate());
+
+        $this->getEntityManager()->flush();
+
+        return ResponseEnum::OK;
     }
 
     private function isExisting(RJRelatedActivitiesModel $data): bool | RJRelatedActivities

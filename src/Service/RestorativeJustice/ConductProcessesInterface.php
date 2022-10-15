@@ -15,4 +15,6 @@ interface ConductProcessesInterface
     public function deleteById(int $id): array;
 
     public function getRJIB1(int $quarterId, int $fieldOfficeId): array;
+
+    public function update(int $id, RJConductProcessesModel $conductProcessData): array;
 }

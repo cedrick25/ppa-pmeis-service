@@ -96,6 +96,19 @@ class RestorativeJusticeController extends AbstractController
     }
 
     /**
+     * @Route("/conduct-process/update/{id}", methods={"POST"})
+     */
+    public function updateConductProcessById(Request $request): Response
+    {
+        $data = json_decode($request->getContent(), true);
+
+        /** @var ConductProcessesModel $conductProcesses */
+        $conductProcesses = $this->appHydrator->convertArrayToObject($data, ConductProcessesModel::class);
+
+        return $this->json($this->conductProcessesService->update((int) $request->get("id"), $conductProcesses));
+    }
+
+    /**
      * @Route("/offense/create/{name}/{type}", methods={"GET"})
      */
     public function createOffense(Request $request): Response
@@ -240,6 +253,19 @@ class RestorativeJusticeController extends AbstractController
             (int) $request->get("quarterId"),
             (int) $request->get("fieldOfficeId"),
         ));
+    }
+
+    /**
+     * @Route("/related-activities/update/{id}", methods={"POST"})
+     */
+    public function updateRelatedActivityById(Request $request): Response
+    {
+        $data = json_decode($request->getContent(), true);
+
+        /** @var RelatedActivitiesModel $relatedActivities */
+        $relatedActivities = $this->appHydrator->convertArrayToObject($data, RelatedActivitiesModel::class);
+
+        return $this->json($this->relatedActivitiesService->update((int) $request->get("id"), $relatedActivities));
     }
 
     /**

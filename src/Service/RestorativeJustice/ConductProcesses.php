@@ -92,7 +92,6 @@ class ConductProcesses implements ConductProcessesInterface
                 $return[] = $arrayVersion;
             }
 
-
             return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_SUCCESS, $return);
         } catch (CacheException|InvalidArgumentException $exception) {
             return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_FAILED, null, ['cache' => $exception->getMessage()]);
@@ -160,6 +159,26 @@ class ConductProcesses implements ConductProcessesInterface
             return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_SUCCESS, $return);
         } catch (InvalidArgumentException | CacheException  $e) {
             return $this->appFormatter->formatResponse(ResponseEnum::UPDATING_FAILED, null, ['cache' => $e->getMessage()]);
+        }
+    }
+
+    public function update(int $id, ConductProcessesModel $conductProcessData): array
+    {
+        try {
+            $isUpdated = $this->repository->update($id, $conductProcessData);
+
+            if ($isUpdated !== ResponseEnum::OK) {
+                return $this->appFormatter->formatResponse(ResponseEnum::UPDATING_FAILED, null, ['app' => $isUpdated]);
+            }
+
+            $this->auditTrail->log(AuditTrailActions::UPDATE, $conductProcessData->jsonSerialize(), $this->shortName, $id);
+
+            $this->conductedProcessPersonsInvolvedRepository->deleteByConductedProcessId($id);
+            $this->conductedProcessPersonsInvolvedRepository->batchCreate($id, $conductProcessData->getPersonsInvolved());
+
+            return $this->appFormatter->formatResponse(ResponseEnum::UPDATING_SUCCESS, null);
+        } catch (Exception $exception) {
+            return $this->appFormatter->formatResponse(ResponseEnum::UPDATING_FAILED, null, ['error' => $exception->getMessage()]);
         }
     }
 }
