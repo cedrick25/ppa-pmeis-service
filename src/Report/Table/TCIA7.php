@@ -18,7 +18,6 @@ class TCIA7 implements Form
     private const TABLE_NAME = "TCIA7";
 
     public function __construct(
-        private Sessions            $sessionService,
         private QuartersRepository  $quartersRepository,
         private int                 $lastFilledOutCellY = 5,
         private array               $data = [],
@@ -243,7 +242,6 @@ class TCIA7 implements Form
 
             $spreadsheet->getActiveSheet()->setCellValue($coordinates['total'], $total);
         }
-
 
         return $spreadsheet;
     }

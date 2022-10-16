@@ -157,4 +157,25 @@ class FieldOfficesRepository extends ServiceEntityRepository
 
         return ($fieldOffice == null) ? false : $fieldOffice;
     }
+
+    /**
+     * @param int[] $ids
+     * @return int[][]
+     */
+    public function getRegionIdsByFieldOfficeIds(array $ids): array
+    {
+        $return = [];
+        $query = $this->_em->getConnection()->executeQuery(
+            "SELECT region_id, field_office_id FROM field_offices WHERE field_office_id IN (:ids)",
+            ['ids' => $ids],
+            ['ids' => Connection::PARAM_INT_ARRAY]
+        );
+        $results = $query->fetchAllAssociative();
+
+        foreach ($results as $result) {
+            $return[$result['region_id']][] = (int) $result['field_office_id'];
+        }
+
+        return $return;
+    }
 }

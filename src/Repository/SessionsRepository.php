@@ -710,6 +710,30 @@ class SessionsRepository extends ServiceEntityRepository
     }
 
     /**
+     * @param Quarters $quarterData
+     * @return int[]
+     * @throws \Doctrine\DBAL\Exception
+     */
+    public function findFieldOfficeIdsInSessionByQuarterAndRegionId(Quarters $quarterData, int $regionId): array
+    {
+        $conn = $this->getEntityManager()->getConnection();
+        $minMaxDate = $this->quartersRepository->getQuarterMinMaxDate($quarterData);
+        $minDate = $minMaxDate['min'];
+        $maxDate = $minMaxDate['max'];
+
+        $sql = "SELECT s.field_office_id FROM sessions as s
+                LEFT JOIN field_offices fo on s.field_office_id = fo.field_office_id
+                WHERE fo.region_id =  $regionId
+                AND s.date BETWEEN CAST('$minDate' AS DATE) AND CAST('$maxDate' AS DATE) ";
+
+        $stmt = $conn->prepare($sql);
+        $query = $stmt->executeQuery();
+        $results = $query->fetchAllAssociative();
+
+        return array_map(fn($session) => $session['field_office_id'], $results);
+    }
+
+    /**
      * @throws \Doctrine\DBAL\Exception
      * @throws \Doctrine\DBAL\Driver\Exception
      */

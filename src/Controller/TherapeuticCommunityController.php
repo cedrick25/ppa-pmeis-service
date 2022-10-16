@@ -540,11 +540,22 @@ class TherapeuticCommunityController extends AbstractController
     }
 
     /**
-     * @Route("/session/regional-tca7/full/{quarterId}", methods={"GET"})
+     * @Route("/session/regional-tca7/full/{quarterId}/{regionId}", methods={"GET"})
      */
     public function getRegionalTC7(Request $request): Response
     {
-        return $this->json($this->sessionService->getRegionalTC7((int) $request->get("quarterId")));
+        return $this->json($this->sessionService->getRegionalTC7(
+            (int) $request->get("quarterId"),
+            (int) $request->get("regionId")
+        ));
+    }
+
+    /**
+     * @Route("/session/national-tca7/full/{quarterId}", methods={"GET"})
+     */
+    public function getNationalTC7(Request $request): Response
+    {
+        return $this->json($this->sessionService->getNationalTC7((int) $request->get("quarterId")));
     }
 
     /**

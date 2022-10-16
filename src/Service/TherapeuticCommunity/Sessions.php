@@ -15,6 +15,8 @@ use App\Repository\FieldOfficesRepository;
 use App\Repository\QuartersRepository;
 use App\Repository\ResourceFacilitatorSessionRepository;
 use App\Repository\SessionsRepository;
+use App\Service\FieldOfficeService;
+use App\Service\RegionService;
 use App\Service\System\AuditTrail;
 use Doctrine\DBAL\Exception\InvalidArgumentException;
 use Exception;
@@ -36,6 +38,8 @@ class Sessions implements SessionsInterface
         private ResourceFacilitatorSessionRepository $resourceFacilitatorSessionRepository,
         private AuditTrail                           $auditTrail,
         private FieldOfficesRepository                $fieldOfficesRepository,
+        private RegionService                        $regionService,
+        private FieldOfficeService                    $fieldOfficeService,
     )
     {
         $class = new ReflectionClass($this);
@@ -350,7 +354,8 @@ class Sessions implements SessionsInterface
         }
     }
 
-    public function getRegionalTC7(int $quarterId): array
+
+    public function getRegionalTC7(int $quarterId, int $regionId): array
     {
         try {
             $currentQuarter = $this->quartersRepository->find($quarterId);
@@ -368,7 +373,7 @@ class Sessions implements SessionsInterface
                 return $this->appFormatter->formatResponse(ResponseEnum::NO_DATA, null);
             }
 
-            $fieldOfficesId = $this->repository->findFieldOfficeIdsInSessionByQuarter($currentQuarter);
+            $fieldOfficesId = $this->repository->findFieldOfficeIdsInSessionByQuarterAndRegionId($currentQuarter, $regionId);
 
             foreach ($fieldOfficesId as $fieldOfficeId) {
                 $tempResults[$fieldOfficeId] = $initialValues;
@@ -410,6 +415,82 @@ class Sessions implements SessionsInterface
 
                 $result[14] = $subtotal;
                 $results[$fieldOfficeName] = $result;
+            }
+
+            return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_SUCCESS, $results);
+        } catch (\Doctrine\DBAL\Driver\Exception $e) {
+            return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_FAILED, null, ['orm' => $e->getMessage()]);
+        }
+    }
+    public function getNationalTC7(int $quarterId): array
+    {
+        try {
+            $currentQuarter = $this->quartersRepository->find($quarterId);
+
+            if ($currentQuarter == null) {
+                return $this->appFormatter->formatResponse(ResponseEnum::NO_DATA, null);
+            }
+
+            $results = [];
+            $tempResults = [];
+            $initialValues = $this->getRegionalTC7ClientRemarksInitialValues();
+            $sessionIds = $this->repository->findSessionsIdsByQuarter($currentQuarter);
+
+            if (\count($sessionIds) == 0) {
+                return $this->appFormatter->formatResponse(ResponseEnum::NO_DATA, null);
+            }
+
+            $fieldOfficesId = $this->repository->findFieldOfficeIdsInSessionByQuarter($currentQuarter);
+            $regionIdsWithFieldOffice = $this->getRegionIdsByFieldOfficeIds($fieldOfficesId);
+            $regionIds = array_keys($regionIdsWithFieldOffice);
+            $regionNamesWithId = $this->getRegionNames($regionIds);
+
+            foreach ($fieldOfficesId as $fieldOfficeId) {
+                $tempResults[$fieldOfficeId] = $initialValues;
+            }
+
+            $sessionClients = $this->clientSessionsRepository->findAbsenteesRemarksIdAndFieldOfficeIdBySessionId($sessionIds);
+
+            // TODO: group by region
+            foreach ($sessionClients as $sessionClient) {
+                $fieldOfficeId = $sessionClient['field_office_id'];
+                $clientRemarksId = (string) $sessionClient['client_remarks_id'];
+
+                if (! isset($tempResults[$fieldOfficeId][$clientRemarksId])) {
+                    // Note: Log the error saying no matching field office id and client remarks id -- but this shouldn't happen
+                    continue;
+                }
+
+                $tempResults[$fieldOfficeId][$clientRemarksId]++;
+            }
+
+            foreach ($tempResults as $fieldOfficeId=>$tempResult) {
+                $regionName = $this->extractRegionName($regionNamesWithId, $regionIdsWithFieldOffice, $fieldOfficeId);
+                $subtotal = 0;
+                $result = $this->generateRegionalTC7RowInitialValue();
+                if (! isset($results[$regionName])) {
+                    $results[$regionName] = null;
+                }
+
+                foreach ($tempResult as $clientRemarksId=>$value) {
+                    $clientRemarksId = (int) $clientRemarksId;
+                    $equivalentColumnNumber = $this->getRegionalTC7ClientRemarksIdColumnNumberEquivalent($clientRemarksId);
+
+                    if (3 === $clientRemarksId || 4 === $clientRemarksId || 5 === $clientRemarksId) {
+                        $result[11] += $value;
+                    }
+
+                    $subtotal += $value;
+                    $result[$equivalentColumnNumber] += $value;
+                }
+
+                $result[14] = $subtotal;
+
+                if (null != $results[$regionName]) {
+                    $result = $this->mergeResultWithOldResult($result, $results[$regionName]);
+                }
+
+                $results[$regionName] = $result;
             }
 
             return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_SUCCESS, $results);
@@ -592,5 +673,52 @@ class Sessions implements SessionsInterface
         ];
 
         return $equivalents[$clientRemarksId];
+    }
+
+    /**
+     * @param int[] $regionIds
+     * @return array<string, string>
+     */
+    private function getRegionNames(array $regionIds): array
+    {
+        return $this->regionService->getRegionNamesByIds($regionIds);
+    }
+
+    /**
+     * @param int[] $ids
+     * @return int[][]
+     */
+    private function getRegionIdsByFieldOfficeIds(array $ids): array
+    {
+        return $this->fieldOfficeService->getRegionIdsByFieldOfficeIds($ids);
+    }
+
+    private function extractRegionName(array $regionNamesWithId, array $regionIdsWithFieldOffice, int $fieldOfficeId): string
+    {
+        $regionId = $this->extractRegionId($regionIdsWithFieldOffice, $fieldOfficeId);
+        return $regionNamesWithId[$regionId];
+    }
+
+    private function extractRegionId(array $regionIdsWithFieldOffice, int $fieldOfficeId): int
+    {
+        $returnRegionId = 1;
+
+        foreach ($regionIdsWithFieldOffice as $regionId=>$fieldOffice) {
+            if ($fieldOffice === $fieldOfficeId) {
+                $returnRegionId = $regionId;
+                break;
+            }
+        }
+
+        return $returnRegionId;
+    }
+
+    private function mergeResultWithOldResult(array $result, array $oldResult): array
+    {
+        foreach ($oldResult as $key=>$value) {
+            $result[$key] += $value;
+        }
+
+        return $result;
     }
 }

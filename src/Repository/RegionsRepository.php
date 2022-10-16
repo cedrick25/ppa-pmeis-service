@@ -7,6 +7,7 @@ namespace App\Repository;
 use App\Common\CacheHelper;
 use App\Entity\Regions;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
+use Doctrine\DBAL\Connection;
 use Doctrine\Persistence\ManagerRegistry;
 use Psr\Cache\CacheException;
 use Psr\Cache\InvalidArgumentException;
@@ -86,5 +87,26 @@ class RegionsRepository extends ServiceEntityRepository
                 ->where('r.deletedAt IS NULL')
                 ->orderBy('r.regionId');
         });
+    }
+
+    /**
+     * @param int[] $ids
+     * @return array<string, string>
+     */
+    public function getRegionNamesByIds(array $ids): array
+    {
+        $return = [];
+        $query = $this->_em->getConnection()->executeQuery(
+          "SELECT region_id, name FROM regions WHERE region_id IN (:ids)",
+              ['ids' => $ids],
+              ['ids' => Connection::PARAM_INT_ARRAY]
+        );
+        $results = $query->fetchAllAssociative();
+
+        foreach ($results as $result) {
+            $return[$result['region_id']] = $result['name'];
+        }
+
+        return $return;
     }
 }
