@@ -2,13 +2,8 @@
 
 namespace App\Report\Table;
 
-use App\Entity\FieldOffices;
 use App\Entity\Quarters;
-use App\Entity\Regions;
-use App\Repository\FieldOfficesRepository;
 use App\Repository\QuartersRepository;
-use App\Repository\RegionsRepository;
-use App\Service\TherapeuticCommunity\Sessions;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Style\Border;
@@ -38,6 +33,7 @@ class TableIA7SummaryFormRegional implements Form
         $this->data = $data;
 
         $spreadsheet = $this->footer();
+        $spreadsheet->getActiveSheet()->removeColumn('D');
         $writer = IOFactory::createWriter($spreadsheet, "Xlsx");
 
         $filePath = $_ENV['XLSX_PATH_FILE'] . self::TABLE_NAME . "-" . time() . ".xlsx";

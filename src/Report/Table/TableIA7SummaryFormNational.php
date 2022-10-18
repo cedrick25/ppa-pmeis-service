@@ -42,6 +42,7 @@ class TableIA7SummaryFormNational implements Form
         $this->data = $data;
 
         $spreadsheet = $this->footer();
+        $spreadsheet->getActiveSheet()->removeColumn('D');
         $writer = IOFactory::createWriter($spreadsheet, "Xlsx");
 
         $filePath = $_ENV['XLSX_PATH_FILE'] . self::TABLE_NAME . "-" . time() . ".xlsx";
