@@ -9,6 +9,8 @@ use App\Common\AppHydrator;
 use App\Enum\AuditTrailActions;
 use App\Enum\Response as ResponseEnum;
 use App\Model\RJConductProcesses as ConductProcessesModel;
+use App\Repository\FieldOfficesRepository;
+use App\Repository\QuartersRepository;
 use App\Repository\RjConductedProcessPersonsInvolvedRepository;
 use App\Repository\RJConductProcessesRepository;
 use App\Service\System\AuditTrail;
@@ -29,6 +31,8 @@ class ConductProcesses implements ConductProcessesInterface
         private RjConductedProcessPersonsInvolvedRepository $conductedProcessPersonsInvolvedRepository,
         private AuditTrail                                  $auditTrail,
         private AppHydrator                                 $hydrator,
+        private FieldOfficesRepository                       $fieldOfficesRepository,
+        private QuartersRepository                          $quartersRepository,
     ) {
         $class = new \ReflectionClass($this);
         $this->shortName = $class->getShortName();
@@ -106,11 +110,14 @@ class ConductProcesses implements ConductProcessesInterface
             return $this->appFormatter->formatResponse(ResponseEnum::NO_DATA, null);
         }
 
+        $quarter = $this->quartersRepository->find($conductProcess->getQuarterId());
         $personInvolved = $this->conductedProcessPersonsInvolvedRepository->findByConductedProcessId($conductProcess->getRJConductProcessId());
 
         $arrayVersion = $this->hydrator->convertObjectToArray($conductProcess);
         $arrayVersion['peDate'] = $conductProcess->getPeDate()->format('Y-m-d');
         $arrayVersion['rjpDate'] = $conductProcess->getRjpDate()->format('Y-m-d');
+        $arrayVersion['regionName'] = $this->fieldOfficesRepository->getRegionNameByFieldOfficeId($conductProcess->getFieldOfficeId());
+        $arrayVersion['year'] = $quarter->getYear();
         $arrayVersion['personsInvolved'] = $personInvolved;
 
         return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_SUCCESS, $arrayVersion);

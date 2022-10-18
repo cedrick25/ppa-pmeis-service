@@ -122,7 +122,7 @@ class FieldOfficesRepository extends ServiceEntityRepository
      * @throws \Doctrine\DBAL\Driver\Exception
      * @throws \Doctrine\DBAL\Exception
      */
-    public function getRegionByFieldOfficeId(int $id): array
+    public function getRegionNameByFieldOfficeId(int $id): string
     {
         $conn = $this->getEntityManager()->getConnection();
         $sql = "SELECT rg.name as region_name FROM field_offices as fo
@@ -131,7 +131,7 @@ class FieldOfficesRepository extends ServiceEntityRepository
         $stmt = $conn->prepare($sql);
         $query = $stmt->executeQuery();
 
-        return $query->fetchAssociative();
+        return $query->fetchAssociative()['region_name'];
     }
 
     public function findNamesByFieldOfficeIds(array $fieldOfficesId): array

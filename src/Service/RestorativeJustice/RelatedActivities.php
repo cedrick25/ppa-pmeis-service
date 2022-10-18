@@ -8,6 +8,8 @@ use App\Common\AppFormatter;
 use App\Common\AppHydrator;
 use App\Enum\AuditTrailActions;
 use App\Enum\Response as ResponseEnum;
+use App\Repository\FieldOfficesRepository;
+use App\Repository\QuartersRepository;
 use App\Repository\RjRelatedActivitiesPersonsInvolvedRepository;
 use App\Repository\RJRelatedActivitiesRepository;
 use App\Model\RJRelatedActivities as RelatedActivitiesModel;
@@ -23,13 +25,16 @@ class RelatedActivities implements RelatedActivitiesInterface
     private string $shortName;
 
     public function __construct(
-        private ValidatorInterface            $validator,
-        private AppFormatter                  $appFormatter,
-        private RJRelatedActivitiesRepository $repository,
-        private AuditTrail                    $auditTrail,
+        private ValidatorInterface                           $validator,
+        private AppFormatter                                 $appFormatter,
+        private RJRelatedActivitiesRepository                $repository,
+        private AuditTrail                                   $auditTrail,
         private RjRelatedActivitiesPersonsInvolvedRepository $relatedActivitiesPersonsInvolvedRepository,
         private AppHydrator                                  $hydrator,
-    ){
+        private FieldOfficesRepository                        $fieldOfficesRepository,
+        private QuartersRepository                           $quartersRepository,
+    )
+    {
         $class = new \ReflectionClass($this);
         $this->shortName = $class->getShortName();
     }
@@ -76,7 +81,7 @@ class RelatedActivities implements RelatedActivitiesInterface
             }
 
             $return = [];
-            $conductProcessesId =  array_map(fn($relatedActivity) => $relatedActivity['rj_related_activity_id'], $relatedActivities);
+            $conductProcessesId = array_map(fn($relatedActivity) => $relatedActivity['rj_related_activity_id'], $relatedActivities);
             $personsInvolved = $this->relatedActivitiesPersonsInvolvedRepository->findByConductedProcessIds($conductProcessesId);
 
             foreach ($relatedActivities as $relatedActivity) {
@@ -96,6 +101,8 @@ class RelatedActivities implements RelatedActivitiesInterface
     {
         $relatedActivity = $this->repository->isExistingById($id);
 
+        $quarter = $this->quartersRepository->find($relatedActivity->getQuarterId());
+
         if (!$relatedActivity) {
             return $this->appFormatter->formatResponse(ResponseEnum::NO_DATA, null);
         }
@@ -103,6 +110,8 @@ class RelatedActivities implements RelatedActivitiesInterface
         $arrayVersion = $this->hydrator->convertObjectToArray($relatedActivity);
         $arrayVersion['venueDate'] = $relatedActivity->getVenueDate()->format('Y-m-d');
         $arrayVersion['createdAt'] = $relatedActivity->getCreatedAt()->format('Y-m-d');
+        $arrayVersion['regionName'] = $this->fieldOfficesRepository->getRegionNameByFieldOfficeId($relatedActivity->getFieldOfficeId());
+        $arrayVersion['year'] = $quarter->getYear();
         $arrayVersion['personsInvolved'] = $this->relatedActivitiesPersonsInvolvedRepository->findByRelatedActivityId($id);
 
         return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_SUCCESS, $arrayVersion);
@@ -113,7 +122,7 @@ class RelatedActivities implements RelatedActivitiesInterface
         try {
             $isDeleted = $this->repository->delete($id);
 
-            if (! $isDeleted) {
+            if (!$isDeleted) {
                 return $this->appFormatter->formatResponse(ResponseEnum::DELETING_FAILED, null, ['app' => ResponseEnum::NO_DATA]);
             }
 
@@ -123,7 +132,7 @@ class RelatedActivities implements RelatedActivitiesInterface
             return $this->appFormatter->formatResponse(ResponseEnum::DELETING_SUCCESS, null);
         } catch (InvalidArgumentException $exception) {
             return $this->appFormatter->formatResponse(ResponseEnum::DELETING_FAILED, null, ['cache' => $exception->getMessage()]);
-        } catch (\Doctrine\ORM\ORMException | ORMException $exception) {
+        } catch (\Doctrine\ORM\ORMException|ORMException $exception) {
             return $this->appFormatter->formatResponse(ResponseEnum::DELETING_FAILED, null, ['orm' => $exception->getMessage()]);
         }
     }
@@ -138,7 +147,7 @@ class RelatedActivities implements RelatedActivitiesInterface
             }
 
             $return = [];
-            $conductProcessesId =  array_map(fn($relatedActivity) => $relatedActivity['rj_related_activity_id'], $relatedActivities);
+            $conductProcessesId = array_map(fn($relatedActivity) => $relatedActivity['rj_related_activity_id'], $relatedActivities);
             $personsInvolved = $this->relatedActivitiesPersonsInvolvedRepository->findByConductedProcessIds($conductProcessesId);
 
             foreach ($relatedActivities as $relatedActivity) {
@@ -149,7 +158,7 @@ class RelatedActivities implements RelatedActivitiesInterface
             }
 
             return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_SUCCESS, $return);
-        } catch (InvalidArgumentException | CacheException  $e) {
+        } catch (InvalidArgumentException|CacheException  $e) {
             return $this->appFormatter->formatResponse(ResponseEnum::UPDATING_FAILED, null, ['cache' => $e->getMessage()]);
         }
     }
