@@ -45,18 +45,18 @@ final class Version20220208213412 extends AbstractMigration
         );
 
         $this->addSql('CREATE TABLE occupation (occupation_id INT AUTO_INCREMENT NOT NULL, name VARCHAR(255) NOT NULL, PRIMARY KEY(occupation_id)) DEFAULT CHARACTER SET utf8mb4 COLLATE `utf8mb4_unicode_ci` ENGINE = InnoDB');
-        $this->addSql("INSERT INTO occupation (name) VALUES "
-            . "('Brgy. Official'),"
-            . "('PNP'),"
-            . "('Government Employee'),"
-            . "('White Collar'),"
-            . "('Blue Collar'),"
-            . "('Self-Employed'),"
-            . "('Retirees'),"
-            . "('Unemployed'),"
-            . "('Students'),"
-            . "('Others'),"
-            . "('Not Indicated')"
+        $this->addSql("INSERT INTO occupation (name) VALUES
+            ('Armed Forces Occupation'),
+            ('Managers'),
+            ('Professionals'),
+            ('Technical Associate Professionals'),
+            ('Clerical Support Workers'),
+            ('Service and Sales Workers'),
+            ('Skilled Agricultural, Forestry and Fishery Workers'),
+            ('Craft and Related Trades Workers'),
+            ('Plant and Machines Operators and Assemblers'),
+            ('Elementary Occupation'),
+            ('Unemployed')"
         );
     }
 

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Report\Table;
 
+use App\Enum\OccupationType;
 use App\Service\Volunteerism\Volunteer;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
@@ -59,41 +60,41 @@ class SocioDemographicOccupation implements Form
 
         $coordinates = [
             'occupation' => [
-                'Brgy. Official' => 'B',
-                'PNP' => 'C',
-                'Government Employee' => 'D',
-                'White Collar' => 'E',
-                'Blue Collar' => 'F',
-                'Self-Employed' => 'G',
-                'Retirees' => 'H',
-                'Unemployed' => 'I',
-                'Students' => 'J',
-                'Others' => 'K',
-                'Not Indicated' => 'L'
+                OccupationType::ARMED_FORCES_OCCUPATION => 'B',
+                OccupationType::MANAGERS => 'C',
+                OccupationType::PROFESSIONALS => 'D',
+                OccupationType::TECHNICAL_ASSOCIATE_PROFESSIONALS => 'E',
+                OccupationType::CLERICAL_SUPPORT_WORKERS => 'F',
+                OccupationType::SERVICE_AND_SALES_WORKERS => 'G',
+                OccupationType::SKILLED_AGRICULTURAL_FORESTRY_AND_FISHERY_WORKERS => 'H',
+                OccupationType::CRAFT_AND_RELATED_TRADES_WORKERS => 'I',
+                OccupationType::PLANT_AND_MACHINES_OPERATORS_AND_ASSEMBLERS => 'J',
+                OccupationType::ELEMENTARY_OCCUPATION => 'K',
+                OccupationType::UNEMPLOYED => 'L'
             ]
         ];
 
         $total = [
-            'Brgy. Official' => 0,
-            'PNP' => 0,
-            'Government Employee' => 0,
-            'White Collar' => 0,
-            'Blue Collar' => 0,
-            'Self-Employed' => 0,
-            'Retirees' => 0,
-            'Unemployed' => 0,
-            'Students' => 0,
-            'Others' => 0,
-            'Not Indicated' => 0,
+            OccupationType::ARMED_FORCES_OCCUPATION => 0,
+            OccupationType::MANAGERS => 0,
+            OccupationType::PROFESSIONALS => 0,
+            OccupationType::TECHNICAL_ASSOCIATE_PROFESSIONALS => 0,
+            OccupationType::CLERICAL_SUPPORT_WORKERS => 0,
+            OccupationType::SERVICE_AND_SALES_WORKERS => 0,
+            OccupationType::SKILLED_AGRICULTURAL_FORESTRY_AND_FISHERY_WORKERS => 0,
+            OccupationType::CRAFT_AND_RELATED_TRADES_WORKERS => 0,
+            OccupationType::PLANT_AND_MACHINES_OPERATORS_AND_ASSEMBLERS => 0,
+            OccupationType::ELEMENTARY_OCCUPATION => 0,
+            OccupationType::UNEMPLOYED => 0,
             'Total' => 0
         ];
 
-        foreach ($this->data['rows'] as $region=>$row) {
+        foreach ($this->data['rows'] as $region => $row) {
             $this->lastFilledOutCellY++;
             $spreadsheet->getActiveSheet()->setCellValue("A" . $this->lastFilledOutCellY, $region);
 
             $totalScore = 0;
-            foreach ($row['occupation'] as $occupation=>$value) {
+            foreach ($row['occupation'] as $occupation => $value) {
                 $cellColumn = $coordinates['occupation'][$occupation];
                 $total[$occupation] += $value;
 
@@ -108,31 +109,50 @@ class SocioDemographicOccupation implements Form
         $this->lastFilledOutCellY++;
         $spreadsheet->getActiveSheet()->setCellValue('A' . $this->lastFilledOutCellY, 'GRAND TOTALS');
         $spreadsheet->getActiveSheet()->getStyle('A' . $this->lastFilledOutCellY)->getFont()->setBold(true);
-        $spreadsheet->getActiveSheet()->setCellValue('B' . $this->lastFilledOutCellY, $total['Brgy. Official']);
-        $spreadsheet->getActiveSheet()->setCellValue('C' . $this->lastFilledOutCellY, $total['PNP']);
-        $spreadsheet->getActiveSheet()->setCellValue('D' . $this->lastFilledOutCellY, $total['Government Employee']);
-        $spreadsheet->getActiveSheet()->setCellValue('E' . $this->lastFilledOutCellY, $total['White Collar']);
-        $spreadsheet->getActiveSheet()->setCellValue('F' . $this->lastFilledOutCellY, $total['Blue Collar']);
-        $spreadsheet->getActiveSheet()->setCellValue('G' . $this->lastFilledOutCellY, $total['Self-Employed']);
-        $spreadsheet->getActiveSheet()->setCellValue('H' . $this->lastFilledOutCellY, $total['Retirees']);
-        $spreadsheet->getActiveSheet()->setCellValue('I' . $this->lastFilledOutCellY, $total['Unemployed']);
-        $spreadsheet->getActiveSheet()->setCellValue('J' . $this->lastFilledOutCellY, $total['Students']);
-        $spreadsheet->getActiveSheet()->setCellValue('K' . $this->lastFilledOutCellY, $total['Others']);
-        $spreadsheet->getActiveSheet()->setCellValue('L' . $this->lastFilledOutCellY, $total['Not Indicated']);
+        $spreadsheet->getActiveSheet()
+            ->setCellValue('B' . $this->lastFilledOutCellY, $total[OccupationType::ARMED_FORCES_OCCUPATION]);
+        $spreadsheet->getActiveSheet()
+            ->setCellValue('C' . $this->lastFilledOutCellY, $total[OccupationType::MANAGERS]);
+        $spreadsheet->getActiveSheet()
+            ->setCellValue('D' . $this->lastFilledOutCellY, $total[OccupationType::PROFESSIONALS]);
+        $spreadsheet->getActiveSheet()
+            ->setCellValue('E' . $this->lastFilledOutCellY, $total[OccupationType::TECHNICAL_ASSOCIATE_PROFESSIONALS]);
+        $spreadsheet->getActiveSheet()
+            ->setCellValue('F' . $this->lastFilledOutCellY, $total[OccupationType::CLERICAL_SUPPORT_WORKERS]);
+        $spreadsheet->getActiveSheet()
+            ->setCellValue('G' . $this->lastFilledOutCellY, $total[OccupationType::SERVICE_AND_SALES_WORKERS]);
+        $spreadsheet->getActiveSheet()->setCellValue(
+            'H' . $this->lastFilledOutCellY,
+            $total[OccupationType::SKILLED_AGRICULTURAL_FORESTRY_AND_FISHERY_WORKERS]
+        );
+        $spreadsheet->getActiveSheet()
+            ->setCellValue('I' . $this->lastFilledOutCellY, $total[OccupationType::CRAFT_AND_RELATED_TRADES_WORKERS]);
+        $spreadsheet->getActiveSheet()->setCellValue(
+            'J' . $this->lastFilledOutCellY,
+            $total[OccupationType::PLANT_AND_MACHINES_OPERATORS_AND_ASSEMBLERS]
+        );
+        $spreadsheet->getActiveSheet()
+            ->setCellValue('K' . $this->lastFilledOutCellY, $total[OccupationType::ELEMENTARY_OCCUPATION]);
+        $spreadsheet->getActiveSheet()
+            ->setCellValue('L' . $this->lastFilledOutCellY, $total[OccupationType::UNEMPLOYED]);
         $spreadsheet->getActiveSheet()->setCellValue('M' . $this->lastFilledOutCellY, $total['Total']);
 
-        $spreadsheet->getActiveSheet()->getStyle('A10:M' . $this->lastFilledOutCellY)->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
-        $spreadsheet->getActiveSheet()->getStyle('A10:M' . $this->lastFilledOutCellY)->getAlignment()->setHorizontal('center');
-        $spreadsheet->getActiveSheet()->getStyle('A10:M' . $this->lastFilledOutCellY)->getAlignment()->setVertical('center');
+        $spreadsheet->getActiveSheet()
+            ->getStyle('A10:M' . $this->lastFilledOutCellY)
+            ->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
+        $spreadsheet->getActiveSheet()
+            ->getStyle('A10:M' . $this->lastFilledOutCellY)
+            ->getAlignment()->setHorizontal('center');
+        $spreadsheet->getActiveSheet()
+            ->getStyle('A10:M' . $this->lastFilledOutCellY)
+            ->getAlignment()->setVertical('center');
 
         return $spreadsheet;
     }
 
     public function header(): Spreadsheet
     {
-        $spreadsheet = $this->prepare();
-
-        return $spreadsheet;
+        return $this->prepare();
     }
 
     /**
@@ -142,29 +162,27 @@ class SocioDemographicOccupation implements Form
     {
         $spreadsheet = new Spreadsheet();
         $textAndCoordinates = [
-            'N1' => 'PPA-CSD-FR-011-00',
+            'M1' => 'PPA-CSD-FR-011-00',
             'A2' => 'VPA SOCIO-DEMOGRAPHIC REPORT',
             'A3' => 'As of________20__',
             'A5' => 'Field Office',
             'B5' => 'OCCUPATION',
-            'B6' => 'Goverment',
-            'E6' => 'Private',
-            'H6' => 'Retirees',
-            'I6' => 'Unemployed',
-            'J6' => 'Students',
-            'K6' => 'Others',
-            'L6' => 'Not Indicated',
+            'B6' => OccupationType::ARMED_FORCES_OCCUPATION,
+            'C6' => OccupationType::MANAGERS,
+            'D6' => OccupationType::PROFESSIONALS,
+            'E6' => OccupationType::TECHNICAL_ASSOCIATE_PROFESSIONALS,
+            'F6' => OccupationType::CLERICAL_SUPPORT_WORKERS,
+            'G6' => OccupationType::SERVICE_AND_SALES_WORKERS,
+            'H6' => OccupationType::SKILLED_AGRICULTURAL_FORESTRY_AND_FISHERY_WORKERS,
+            'I6' => OccupationType::CRAFT_AND_RELATED_TRADES_WORKERS,
+            'J6' => OccupationType::PLANT_AND_MACHINES_OPERATORS_AND_ASSEMBLERS,
+            'K6' => OccupationType::ELEMENTARY_OCCUPATION,
+            'L6' => OccupationType::UNEMPLOYED,
             'M6' => 'Total',
-            'B7' => 'Brgy. Official',
-            'C7' => 'PNP',
-            'D7' => 'Government Employee',
-            'E7' => 'White Collar',
-            'F7' => 'Blue Collar',
-            'G7' => 'Self-Employed'
         ];
         $mergesCoordinates = [
-            'A2:M2', 'A3:M3', 'A5:A10', 'B5:M5', 'B6:D6', 'D6:F6', 'G6:G10', 'H6:H10', 'I6:I10', 'J6:J10',
-            'K6:K10', 'L6:L10', 'M6:M10', 'B7:B10', 'C7:C10', 'D7:D10', 'E7:E10', 'F7:F10', 'G7:G10'
+            'A2:M2', 'A3:M3', 'A5:A10', 'B5:M5', 'B6:B10', 'C6:C10', 'D6:D10', 'E6:E10',
+            'F6:F10', 'G6:G10', 'H6:H10', 'I6:I10', 'J6:J10', 'K6:K10', 'L6:L10', 'M6:M10'
         ];
         $boldCoordinates = ['A1:M10'];
         $verticalAlignedCoordinates = ['A1:M10' => 'center'];
@@ -175,9 +193,10 @@ class SocioDemographicOccupation implements Form
             'K6:K10', 'L6:L10', 'M6:M10', 'B7:B10', 'C7:C10', 'D7:D10', 'E7:E10', 'F7:F10', 'G7:G10'
         ];
         $rotateTextCoordinates = [
-            'H6:H10', 'I6:I10', 'J6:J10', 'K6:K10', 'L6:L10', 'M6:M10',
-            'B7:B10', 'C7:C10', 'D7:D10', 'E7:E10', 'F7:F10', 'G7:G10'
+            'B6:B10', 'C6:C10', 'D6:D10', 'E6:E10', 'F6:F10', 'G6:G10',
+            'H6:H10', 'I6:I10', 'J6:J10', 'K6:K10', 'L6:L10', 'M6:M10'
         ];
+
         foreach ($textAndCoordinates as $coordinate => $text) {
             $spreadsheet->getActiveSheet()->setCellValue($coordinate, $text);
         }
@@ -203,7 +222,9 @@ class SocioDemographicOccupation implements Form
         }
 
         foreach ($outlineBorderThinCoordinates as $coordinate) {
-            $spreadsheet->getActiveSheet()->getStyle($coordinate)->getBorders()->getOutline()->setBorderStyle(Border::BORDER_THIN);
+            $spreadsheet->getActiveSheet()
+                ->getStyle($coordinate)
+                ->getBorders()->getOutline()->setBorderStyle(Border::BORDER_THIN);
         }
 
         foreach ($rotateTextCoordinates as $coordinate) {

@@ -11,7 +11,7 @@ class Occupation implements OccupationInterface
     public function __construct(
         private AppFormatter         $appFormatter,
         private OccupationRepository $repository,
-    ){}
+    ) {}
 
     public function getAll(): array
     {
