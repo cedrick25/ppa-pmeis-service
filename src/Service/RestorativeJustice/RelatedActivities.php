@@ -101,16 +101,18 @@ class RelatedActivities implements RelatedActivitiesInterface
     {
         $relatedActivity = $this->repository->isExistingById($id);
 
-        $quarter = $this->quartersRepository->find($relatedActivity->getQuarterId());
-
         if (!$relatedActivity) {
             return $this->appFormatter->formatResponse(ResponseEnum::NO_DATA, null);
         }
 
+        $quarter = $this->quartersRepository->find($relatedActivity->getQuarterId());
+        $region = $this->fieldOfficesRepository->getRegionByFieldOfficeId($relatedActivity->getFieldOfficeId());
+
         $arrayVersion = $this->hydrator->convertObjectToArray($relatedActivity);
         $arrayVersion['venueDate'] = $relatedActivity->getVenueDate()->format('Y-m-d');
         $arrayVersion['createdAt'] = $relatedActivity->getCreatedAt()->format('Y-m-d');
-        $arrayVersion['regionName'] = $this->fieldOfficesRepository->getRegionNameByFieldOfficeId($relatedActivity->getFieldOfficeId());
+        $arrayVersion['regionName'] = $region['region_name'];
+        $arrayVersion['regionId'] = $region['region_id'];
         $arrayVersion['year'] = $quarter->getYear();
         $arrayVersion['personsInvolved'] = $this->relatedActivitiesPersonsInvolvedRepository->findByRelatedActivityId($id);
 

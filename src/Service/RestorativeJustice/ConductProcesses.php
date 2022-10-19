@@ -111,12 +111,14 @@ class ConductProcesses implements ConductProcessesInterface
         }
 
         $quarter = $this->quartersRepository->find($conductProcess->getQuarterId());
+        $region = $this->fieldOfficesRepository->getRegionByFieldOfficeId($conductProcess->getFieldOfficeId());
         $personInvolved = $this->conductedProcessPersonsInvolvedRepository->findByConductedProcessId($conductProcess->getRJConductProcessId());
 
         $arrayVersion = $this->hydrator->convertObjectToArray($conductProcess);
         $arrayVersion['peDate'] = $conductProcess->getPeDate()->format('Y-m-d');
         $arrayVersion['rjpDate'] = $conductProcess->getRjpDate()->format('Y-m-d');
-        $arrayVersion['regionName'] = $this->fieldOfficesRepository->getRegionNameByFieldOfficeId($conductProcess->getFieldOfficeId());
+        $arrayVersion['regionName'] = $region['region_name'];
+        $arrayVersion['regionId'] = $region['region_id'];
         $arrayVersion['year'] = $quarter->getYear();
         $arrayVersion['personsInvolved'] = $personInvolved;
 
