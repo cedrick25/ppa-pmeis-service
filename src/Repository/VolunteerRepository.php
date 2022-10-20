@@ -242,8 +242,7 @@ class VolunteerRepository extends ServiceEntityRepository
                 LEFT JOIN religion as r ON v.religion = r.religion_id
                 LEFT JOIN occupation as o ON v.occupation = o.occupation_id
                 LEFT JOIN education_background as eb ON v.education_attainment = eb.education_background_id
-                WHERE v.volunteer_id = $id AND v.deleted_at IS NULL
-                  AND v.date_appointed IS NOT NULL ORDER BY v.volunteer_id DESC";
+                WHERE v.volunteer_id = $id AND v.deleted_at IS NULL ORDER BY v.volunteer_id DESC";
         $stmt = $conn->prepare($sql);
         $query = $stmt->executeQuery();
 
