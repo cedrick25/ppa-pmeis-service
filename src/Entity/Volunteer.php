@@ -67,6 +67,11 @@ class Volunteer
     private ?int $fieldOfficeId;
 
     /**
+     * @ORM\Column(type="boolean", nullable=true)
+     */
+    private ?bool $isTcTrained;
+
+    /**
      * @ORM\Column(type="datetime_immutable")
      */
     private DateTimeImmutable $dateRecruited;
@@ -302,6 +307,22 @@ class Volunteer
         $this->fieldOfficeId = $fieldOfficeId;
 
         return $this;
+    }
+
+    /**
+     * @return bool|null
+     */
+    public function getIsTcTrained(): ?bool
+    {
+        return $this->isTcTrained;
+    }
+
+    /**
+     * @param bool|null $isTcTrained
+     */
+    public function setIsTcTrained(?bool $isTcTrained): void
+    {
+        $this->isTcTrained = $isTcTrained;
     }
 
     /**

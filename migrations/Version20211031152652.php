@@ -47,6 +47,7 @@ final class Version20211031152652 extends AbstractMigration
             date_signed DATETIME NOT NULL COMMENT \'(DC2Type:datetime_immutable)\',
             date_appointed DATETIME DEFAULT NULL COMMENT \'(DC2Type:datetime_immutable)\',
             vpa_status VARCHAR(255) NOT NULL,
+            is_tc_trained TINYINT(1) DEFAULT NULL, 
             created_at DATETIME NOT NULL COMMENT \'(DC2Type:datetime_immutable)\', 
             updated_at DATETIME DEFAULT NULL COMMENT \'(DC2Type:datetime_immutable)\', 
             deleted_at DATETIME DEFAULT NULL COMMENT \'(DC2Type:datetime_immutable)\', 

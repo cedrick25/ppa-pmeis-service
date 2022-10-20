@@ -63,7 +63,10 @@ class VolunteerRepository extends ServiceEntityRepository
         $newVolunteer->setIsSeniorCitizen($volunteerData->getIsSeniorCitizen());
         $newVolunteer->setIsPwd($volunteerData->getIsPwd());
         $newVolunteer->setFieldOfficeId($volunteerData->getFieldOfficeId());
-        $newVolunteer->setDateRecruited($this->appDateHelper->convertStringToImmutableDate($volunteerData->getDateRecruited()));
+        $newVolunteer->setIsTcTrained($volunteerData->getIsTcTrained());
+        $newVolunteer->setDateRecruited(
+            $this->appDateHelper->convertStringToImmutableDate($volunteerData->getDateRecruited())
+        );
         $newVolunteer->setRecruitingOfficer($volunteerData->getRecruitingOfficer());
         $newVolunteer->setAge($volunteerData->getAge());
         $newVolunteer->setBirthPlace($volunteerData->getBirthPlace());
@@ -81,9 +84,15 @@ class VolunteerRepository extends ServiceEntityRepository
         $newVolunteer->setSpecialSkill($volunteerData->getSpecialSkill());
         $newVolunteer->setEmergencyName($volunteerData->getEmergencyName());
         $newVolunteer->setEmergencyNumber($volunteerData->getEmergencyNumber());
-        $newVolunteer->setDateAccomplished($this->appDateHelper->convertStringToImmutableDate($volunteerData->getDateAccomplished()));
-        $newVolunteer->setDateSigned($this->appDateHelper->convertStringToImmutableDate($volunteerData->getDateSigned()));
-        $newVolunteer->setDateAppointed($this->appDateHelper->convertStringToImmutableDate($volunteerData->getDateAppointed()));
+        $newVolunteer->setDateAccomplished(
+            $this->appDateHelper->convertStringToImmutableDate($volunteerData->getDateAccomplished())
+        );
+        $newVolunteer->setDateSigned(
+            $this->appDateHelper->convertStringToImmutableDate($volunteerData->getDateSigned())
+        );
+        $newVolunteer->setDateAppointed(
+            $this->appDateHelper->convertStringToImmutableDate($volunteerData->getDateAppointed())
+        );
         $newVolunteer->setVpaStatus($volunteerData->getVpaStatus());
         $newVolunteer->setCreatedAt($this->appDateHelper->getCurrentImmutableDate());
 
@@ -105,19 +114,20 @@ class VolunteerRepository extends ServiceEntityRepository
             'cacheTag' => self::CACHE_TAG
         ];
 
-        return $this->helper->createCachedResponseCustomQuery($params, function() {
+        return $this->helper->createCachedResponseCustomQuery($params, function () {
             $conn = $this->getEntityManager()->getConnection();
 
             $sql = "SELECT v.*, fo.name as field_office_name, rg.region_id, rg.name as region_name,
-                    v.civil_status as civil_status_id, v.religion as religion_id, v.occupation as occupation_id, v.education_attainment as education_attainment_id,
-                    cvs.name as civil_status, r.name as religion, o.name as occupation, eb.name as education_attainment
-                 FROM volunteer as v 
-                 LEFT JOIN field_offices as fo ON v.field_office_id = fo.field_office_id 
-                 LEFT JOIN regions as rg ON fo.region_id = rg.region_id 
-                 LEFT JOIN civil_status as cvs ON v.civil_status = cvs.civil_status_id 
-                 LEFT JOIN religion as r ON v.religion = r.religion_id 
-                 LEFT JOIN occupation as o ON v.occupation = o.occupation_id 
-                 LEFT JOIN education_background as eb ON v.education_attainment = eb.education_background_id 
+                    v.civil_status as civil_status_id, v.religion as religion_id, v.occupation as occupation_id,
+                    v.education_attainment as education_attainment_id, cvs.name as civil_status, r.name as religion,
+                    o.name as occupation, eb.name as education_attainment, v.is_tc_trained
+                 FROM volunteer as v
+                 LEFT JOIN field_offices as fo ON v.field_office_id = fo.field_office_id
+                 LEFT JOIN regions as rg ON fo.region_id = rg.region_id
+                 LEFT JOIN civil_status as cvs ON v.civil_status = cvs.civil_status_id
+                 LEFT JOIN religion as r ON v.religion = r.religion_id
+                 LEFT JOIN occupation as o ON v.occupation = o.occupation_id
+                 LEFT JOIN education_background as eb ON v.education_attainment = eb.education_background_id
                  WHERE v.deleted_at IS NULL AND v.date_appointed IS NOT NULL ORDER BY v.volunteer_id DESC";
             $stmt = $conn->prepare($sql);
             $query = $stmt->executeQuery();
@@ -127,8 +137,6 @@ class VolunteerRepository extends ServiceEntityRepository
     }
 
     /**
-     * @throws OptimisticLockException
-     * @throws ORMException
      * @throws InvalidArgumentException
      */
     public function softDelete(int $id): bool
@@ -177,7 +185,10 @@ class VolunteerRepository extends ServiceEntityRepository
         $volunteer->setIsSeniorCitizen($volunteerData->getIsSeniorCitizen());
         $volunteer->setIsPwd($volunteerData->getIsPwd());
         $volunteer->setFieldOfficeId($volunteerData->getFieldOfficeId());
-        $volunteer->setDateRecruited($this->appDateHelper->convertStringToImmutableDate($volunteerData->getDateRecruited()));
+        $volunteer->setIsTcTrained($volunteerData->getIsTcTrained());
+        $volunteer->setDateRecruited(
+            $this->appDateHelper->convertStringToImmutableDate($volunteerData->getDateRecruited())
+        );
         $volunteer->setRecruitingOfficer($volunteerData->getRecruitingOfficer());
         $volunteer->setAge($volunteerData->getAge());
         $volunteer->setBirthPlace($volunteerData->getBirthPlace());
@@ -195,9 +206,13 @@ class VolunteerRepository extends ServiceEntityRepository
         $volunteer->setSpecialSkill($volunteerData->getSpecialSkill());
         $volunteer->setEmergencyName($volunteerData->getEmergencyName());
         $volunteer->setEmergencyNumber($volunteerData->getEmergencyNumber());
-        $volunteer->setDateAccomplished($this->appDateHelper->convertStringToImmutableDate($volunteerData->getDateAccomplished()));
+        $volunteer->setDateAccomplished(
+            $this->appDateHelper->convertStringToImmutableDate($volunteerData->getDateAccomplished())
+        );
         $volunteer->setDateSigned($this->appDateHelper->convertStringToImmutableDate($volunteerData->getDateSigned()));
-        $volunteer->setDateAppointed($this->appDateHelper->convertStringToImmutableDate($volunteerData->getDateAppointed()));
+        $volunteer->setDateAppointed(
+            $this->appDateHelper->convertStringToImmutableDate($volunteerData->getDateAppointed())
+        );
         $volunteer->setVpaStatus($volunteerData->getVpaStatus());
         $volunteer->setUpdatedAt($this->appDateHelper->getCurrentImmutableDate());
 
@@ -217,16 +232,18 @@ class VolunteerRepository extends ServiceEntityRepository
         $conn = $this->getEntityManager()->getConnection();
 
         $sql = "SELECT v.*, fo.name as field_office_name, rg.region_id, rg.name as region_name,
-                    v.civil_status as civil_status_id, v.religion as religion_id, v.occupation as occupation_id, v.education_attainment as education_attainment_id,
-                    cvs.name as civil_status, r.name as religion, o.name as occupation, eb.name as education_attainment
+                    v.civil_status as civil_status_id, v.religion as religion_id, v.occupation as occupation_id,
+                    v.education_attainment as education_attainment_id, cvs.name as civil_status, v.is_tc_trained,
+                    r.name as religion, o.name as occupation, eb.name as education_attainment
                 FROM volunteer as v
                 LEFT JOIN field_offices as fo ON v.field_office_id = fo.field_office_id
                 LEFT JOIN regions as rg ON fo.region_id = rg.region_id
-                LEFT JOIN civil_status as cvs ON v.civil_status = cvs.civil_status_id 
-                LEFT JOIN religion as r ON v.religion = r.religion_id 
-                LEFT JOIN occupation as o ON v.occupation = o.occupation_id 
-                LEFT JOIN education_background as eb ON v.education_attainment = eb.education_background_id 
-                WHERE v.volunteer_id = $id AND v.deleted_at IS NULL AND v.date_appointed IS NOT NULL ORDER BY v.volunteer_id DESC";
+                LEFT JOIN civil_status as cvs ON v.civil_status = cvs.civil_status_id
+                LEFT JOIN religion as r ON v.religion = r.religion_id
+                LEFT JOIN occupation as o ON v.occupation = o.occupation_id
+                LEFT JOIN education_background as eb ON v.education_attainment = eb.education_background_id
+                WHERE v.volunteer_id = $id AND v.deleted_at IS NULL
+                  AND v.date_appointed IS NOT NULL ORDER BY v.volunteer_id DESC";
         $stmt = $conn->prepare($sql);
         $query = $stmt->executeQuery();
 
@@ -266,14 +283,15 @@ class VolunteerRepository extends ServiceEntityRepository
             $result = [];
 
             $sql = "SELECT v.*, fo.name as field_office_name, rg.region_id, rg.name as region_name,
-                    v.civil_status as civil_status_id, v.religion as religion_id, v.occupation as occupation_id, v.education_attainment as education_attainment_id,
-                    cvs.name as civil_status, r.name as religion, o.name as occupation, eb.name as education_attainment
+                    v.civil_status as civil_status_id, v.religion as religion_id, v.occupation as occupation_id,
+                    v.education_attainment as education_attainment_id, v.is_tc_trained, cvs.name as civil_status,
+                    r.name as religion, o.name as occupation, eb.name as education_attainment
                 FROM volunteer as v
                 LEFT JOIN field_offices as fo ON v.field_office_id = fo.field_office_id
                 LEFT JOIN regions as rg ON fo.region_id = rg.region_id
-                LEFT JOIN civil_status as cvs ON v.civil_status = cvs.civil_status_id 
-                LEFT JOIN religion as r ON v.religion = r.religion_id 
-                LEFT JOIN occupation as o ON v.occupation = o.occupation_id 
+                LEFT JOIN civil_status as cvs ON v.civil_status = cvs.civil_status_id
+                LEFT JOIN religion as r ON v.religion = r.religion_id
+                LEFT JOIN occupation as o ON v.occupation = o.occupation_id
                 LEFT JOIN education_background as eb ON v.education_attainment = eb.education_background_id
                 WHERE v.deleted_at IS NULL AND v.date_appointed IS NOT NULL ORDER BY v.volunteer_id DESC ";
 
@@ -327,8 +345,10 @@ class VolunteerRepository extends ServiceEntityRepository
         array $months,
         array $activeVolunteers
     ): array {
-        $appointedVolunteers = $this->volunteerOperationsRepository->findVolunteerIdsByMonthRange($year, $months, 'APPOINTED');
-        $reAppointedVolunteers = $this->volunteerOperationsRepository->findVolunteerIdsByMonthRange($year, $months, 'REAPPOINTED');
+        $appointedVolunteers = $this->volunteerOperationsRepository
+            ->findVolunteerIdsByMonthRange($year, $months, 'APPOINTED');
+        $reAppointedVolunteers = $this->volunteerOperationsRepository
+            ->findVolunteerIdsByMonthRange($year, $months, 'REAPPOINTED');
         $inActiveVolunteerIds = [];
         $activeVolunteerIds = [];
 
@@ -373,8 +393,10 @@ class VolunteerRepository extends ServiceEntityRepository
         array $months,
         array $activeVolunteers
     ): array {
-        $appointedVolunteers = $this->volunteerOperationsRepository->findVolunteerIdsByMonthRange($year, $months, 'APPOINTED');
-        $reAppointedVolunteers = $this->volunteerOperationsRepository->findVolunteerIdsByMonthRange($year, $months, 'REAPPOINTED');
+        $appointedVolunteers = $this->volunteerOperationsRepository
+            ->findVolunteerIdsByMonthRange($year, $months, 'APPOINTED');
+        $reAppointedVolunteers = $this->volunteerOperationsRepository
+            ->findVolunteerIdsByMonthRange($year, $months, 'REAPPOINTED');
         $inActiveVolunteerIds = [];
         $activeVolunteerIds = [];
 

@@ -42,6 +42,7 @@ class Volunteer implements \JsonSerializable
         private ?string $domesticPartner = null,
         private ?bool $isSeniorCitizen = false,
         private ?bool $isPwd = false,
+        private ?bool $isTcTrained = false,
         private ?DateTimeImmutable $createdAt = null,
         private ?DateTimeImmutable $updatedAt = null,
         private ?DateTimeImmutable $deletedAt = null
@@ -324,6 +325,14 @@ class Volunteer implements \JsonSerializable
     public function getIsPwd(): ?bool
     {
         return $this->isPwd;
+    }
+
+    /**
+     * @return bool|null
+     */
+    public function getIsTcTrained(): ?bool
+    {
+        return $this->isTcTrained;
     }
 
     /**
