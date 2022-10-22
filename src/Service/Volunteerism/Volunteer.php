@@ -8,6 +8,7 @@ use App\Entity\Quarters;
 use App\Enum\AuditTrailActions;
 use App\Enum\Response as ResponseEnum;
 use App\Enum\SystemSettingNames;
+use App\Enum\VolunteerStatus;
 use App\Model\Volunteer as VolunteerModel;
 use App\Repository\CivilStatusRepository;
 use App\Repository\EducationBackgroundRepository;
@@ -138,9 +139,15 @@ class Volunteer implements VolunteerInterface
 
             return $this->appFormatter->formatResponse(ResponseEnum::UPDATING_SUCCESS, null);
         } catch (Exception $e) {
-            return $this->appFormatter->formatResponse(ResponseEnum::UPDATING_FAILED, null, ['app' => $e->getMessage()]);
+            return $this->appFormatter->formatResponse(ResponseEnum::UPDATING_FAILED,
+                null,
+                ['app' => $e->getMessage()]
+            );
         } catch (InvalidArgumentException $e) {
-            return $this->appFormatter->formatResponse(ResponseEnum::UPDATING_FAILED, null, ['cache' => $e->getMessage()]);
+            return $this->appFormatter->formatResponse(ResponseEnum::UPDATING_FAILED,
+                null,
+                ['cache' => $e->getMessage()]
+            );
         }
     }
 
@@ -155,14 +162,21 @@ class Volunteer implements VolunteerInterface
 
             return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_SUCCESS, $volunteer);
         } catch (\Doctrine\DBAL\Exception | \Doctrine\DBAL\Driver\Exception $e) {
-            return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_SUCCESS, null, ['app' => $e->getMessage()]);
+            return $this->appFormatter->formatResponse(
+                ResponseEnum::FETCHING_SUCCESS,
+                null,
+                ['app' => $e->getMessage()]
+            );
         }
     }
 
-    public function getPaginated(int $page, int $pageSize): array
+    public function getPaginated(string $status, int $page, int $pageSize): array
     {
         try {
-            $volunteers = $this->repository->paginated($page, $pageSize);
+            $status = strtoupper($status);
+            $volunteers = (VolunteerStatus::EXPIRING == $status) ?
+                $this->repository->paginatedExpiring($page, $pageSize) :
+                $this->repository->paginated($status, $page, $pageSize);
 
             if ($volunteers == null) {
                 return $this->appFormatter->formatResponse(ResponseEnum::NO_DATA, null);
@@ -170,7 +184,11 @@ class Volunteer implements VolunteerInterface
 
             return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_SUCCESS, $volunteers);
         } catch (CacheException|InvalidArgumentException $exception) {
-            return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_FAILED, null, ['cache' => $exception->getMessage()]);
+            return $this->appFormatter->formatResponse(
+                ResponseEnum::FETCHING_FAILED,
+                null,
+                ['cache' => $exception->getMessage()]
+            );
         }
     }
 

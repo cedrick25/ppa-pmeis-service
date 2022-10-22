@@ -911,13 +911,14 @@ class TherapeuticCommunityController extends AbstractController
     }
 
     /**
-     * @Route("/volunteer/{page}/{pageSize}", methods={"GET"})
+     * @Route("/volunteer/{status}/{page}/{pageSize}", methods={"GET"})
      */
     public function getPaginatedVolunteers(Request $request): Response
     {
         return $this->json($this->volunteerService->getPaginated(
-            (int) $request->get("page"),
-            (int) $request->get("pageSize")
+            $request->get('status'),
+            (int) $request->get('page'),
+            (int) $request->get('pageSize')
         ));
     }
 

@@ -260,13 +260,11 @@ class VolunteerRepository extends ServiceEntityRepository
     }
 
     /**
-     * @param int $page
-     * @param int $pageSize
      * @return array<string, mixed>|null
      * @throws InvalidArgumentException
      * @throws CacheException
      */
-    public function paginated(int $page = 1, int $pageSize = 10): ?array
+    public function paginated(string $status, int $page = 1, int $pageSize = 10): ?array
     {
         $params = [
             'cacheKey' => $this->cacheHelper->getVolunteersPaginatedKey($page, $pageSize),
@@ -276,7 +274,7 @@ class VolunteerRepository extends ServiceEntityRepository
             'page' => $page
         ];
 
-        return $this->helper->createPaginatedResponseCustomQuery($params, function() use ($pageSize, $page) {
+        return $this->helper->createPaginatedResponseCustomQuery($params, function () use ($status, $pageSize, $page) {
             $conn = $this->getEntityManager()->getConnection();
             $startOffset = $pageSize * ($page-1);
             $result = [];
@@ -292,7 +290,53 @@ class VolunteerRepository extends ServiceEntityRepository
                 LEFT JOIN religion as r ON v.religion = r.religion_id
                 LEFT JOIN occupation as o ON v.occupation = o.occupation_id
                 LEFT JOIN education_background as eb ON v.education_attainment = eb.education_background_id
-                WHERE v.deleted_at IS NULL AND v.date_appointed IS NOT NULL ORDER BY v.volunteer_id DESC ";
+                WHERE v.deleted_at IS NULL AND v.vpa_status = '$status' ORDER BY v.volunteer_id DESC ";
+
+            $result['totalItems'] = $this->helper->getCustomQueryPaginatedTotalItems($conn, $sql);
+
+            $sql .= "LIMIT $pageSize OFFSET $startOffset";
+
+            $stmt = $conn->prepare($sql);
+            $query = $stmt->executeQuery();
+            $result['data'] = $query->fetchAllAssociative();
+
+            return $result;
+        });
+    }
+
+    /**
+     * @return array<string, mixed>|null
+     * @throws InvalidArgumentException
+     * @throws CacheException
+     */
+    public function paginatedExpiring(int $page = 1, int $pageSize = 10): ?array
+    {
+        $params = [
+            'cacheKey' => $this->cacheHelper->getVolunteersPaginatedKey($page, $pageSize),
+            'expiration' => $this->cacheHelper->getExpirationDateTime(),
+            'cacheTag' => self::CACHE_TAG,
+            'pageSize' => $pageSize,
+            'page' => $page
+        ];
+
+        return $this->helper->createPaginatedResponseCustomQuery($params, function () use ($pageSize, $page) {
+            $conn = $this->getEntityManager()->getConnection();
+            $startOffset = $pageSize * ($page-1);
+            $result = [];
+
+            $sql = "SELECT v.*, fo.name as field_office_name, rg.region_id, rg.name as region_name,
+                    v.civil_status as civil_status_id, v.religion as religion_id, v.occupation as occupation_id,
+                    v.education_attainment as education_attainment_id, v.is_tc_trained, cvs.name as civil_status,
+                    r.name as religion, o.name as occupation, eb.name as education_attainment
+                FROM volunteer as v
+                LEFT JOIN field_offices as fo ON v.field_office_id = fo.field_office_id
+                LEFT JOIN regions as rg ON fo.region_id = rg.region_id
+                LEFT JOIN civil_status as cvs ON v.civil_status = cvs.civil_status_id
+                LEFT JOIN religion as r ON v.religion = r.religion_id
+                LEFT JOIN occupation as o ON v.occupation = o.occupation_id
+                LEFT JOIN education_background as eb ON v.education_attainment = eb.education_background_id
+                WHERE v.deleted_at IS NULL AND v.date_appointed <= DATE_ADD(v.date_appointed, INTERVAL 21 MONTH)
+                ORDER BY v.volunteer_id DESC ";
 
             $result['totalItems'] = $this->helper->getCustomQueryPaginatedTotalItems($conn, $sql);
 
