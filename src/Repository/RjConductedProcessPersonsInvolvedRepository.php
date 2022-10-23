@@ -89,7 +89,8 @@ class RjConductedProcessPersonsInvolvedRepository extends ServiceEntityRepositor
     public function findByConductedProcessId(int $id): array
     {
         $query = $this->getEntityManager()->getConnection()->executeQuery(
-            "SELECT rcppi.rj_conducted_process_id, rcppi.persons_involved_id, rcppi.type, rcppi.others_name FROM rj_conducted_process_persons_involved as rcppi WHERE rcppi.rj_conducted_process_id = :id",
+            "SELECT rcppi.rj_conducted_process_id, rcppi.persons_involved_id, rcppi.type, rcppi.others_name
+                    FROM rj_conducted_process_persons_involved as rcppi WHERE rcppi.rj_conducted_process_id = :id",
             ['id' => $id]
         );
 
@@ -120,6 +121,19 @@ class RjConductedProcessPersonsInvolvedRepository extends ServiceEntityRepositor
         }
 
         return $return;
+    }
+
+    public function getVolunteerIdsByConductedProcessIds(array $conductedProcessIds): array
+    {
+        $query = $this->getEntityManager()->getConnection()->executeQuery(
+            "SELECT rcppi.persons_involved_id FROM rj_conducted_process_persons_involved as rcppi
+                    WHERE rcppi.rj_conducted_process_id IN (:ids)
+                    AND rcppi.type = 'VPA' ",
+            ['ids' => $conductedProcessIds],
+            ['ids' => Connection::PARAM_INT_ARRAY],
+        );
+
+        return $query->fetchAllAssociative();
     }
 
     private function convertData(

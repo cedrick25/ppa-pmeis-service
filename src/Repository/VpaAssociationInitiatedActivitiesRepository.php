@@ -133,18 +133,13 @@ class VpaAssociationInitiatedActivitiesRepository extends ServiceEntityRepositor
         return $query->fetchAllAssociative();
     }
 
-        /**
-     * @throws CacheException
-     * @throws InvalidArgumentException
-     */
     public function getVolunteerIdsByDateRange(int $quarterId, int $fieldOfficeId): ?array
     {
         $conn = $this->getEntityManager()->getConnection();
-        $sql = "SELECT 
-                    DISTINCT v.volunteer_id
+        $sql = "SELECT
+                    DISTINCT vaia.volunteer_id
                     FROM vpa_association_initiated_activities vaia
-                LEFT JOIN volunteer as v ON v.volunteer_id = vaia.volunteer_id
-                WHERE vaia.quarter_id = $quarterId 
+                WHERE vaia.quarter_id = $quarterId
                 AND vaia.field_office_id = $fieldOfficeId
                 AND vaia.deleted_at IS NULL
                 ";

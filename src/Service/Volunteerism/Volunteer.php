@@ -18,10 +18,12 @@ use App\Repository\QuartersRepository;
 use App\Repository\RegionsRepository;
 use App\Repository\ReligionRepository;
 use App\Repository\ResourceFacilitatorSessionRepository;
+use App\Repository\RjConductedProcessPersonsInvolvedRepository;
+use App\Repository\RJConductProcessesRepository;
+use App\Repository\SessionsRepository;
 use App\Repository\SocialMarketingRepository;
 use App\Repository\RJRelatedActivitiesRepository;
 use App\Repository\VpaAssociationInitiatedActivitiesRepository;
-use App\Repository\VolunteerOperationsRepository;
 use App\Repository\VolunteerRepository;
 use App\Repository\VolunteerSupervisionsRepository;
 use App\Service\System\AuditTrail;
@@ -42,18 +44,20 @@ class Volunteer implements VolunteerInterface
         private AppFormatter                                $appFormatter,
         private VolunteerRepository                         $repository,
         private QuartersRepository                          $quartersRepository,
+        private SessionsRepository                          $sessionsRepository,
         private AppDateHelper                               $appDateHelper,
         private RegionsRepository                           $regionsRepository,
         private CivilStatusRepository                       $civilStatusRepository,
         private ReligionRepository                          $religionRepository,
         private OccupationRepository                        $occupationRepository,
         private EducationBackgroundRepository               $educationBackgroundRepository,
-        private VolunteerOperationsRepository               $volunteerOperationsRepository,
         private FieldOfficesRepository                       $fieldOfficesRepository,
         private VolunteerSupervisionsRepository             $volunteerSupervisionsRepository,
         private ResourceFacilitatorSessionRepository        $resourceFacilitatorSessionRepository,
         private SocialMarketingRepository                   $socialMarketingRepository,
         private RJRelatedActivitiesRepository               $rjRelatedActivitiesRepository,
+        private RJConductProcessesRepository                $conductProcessesRepository,
+        private RjConductedProcessPersonsInvolvedRepository $conductedProcessPersonsInvolvedRepository,
         private VpaAssociationInitiatedActivitiesRepository $vpaAssociationRepository,
         private AuditTrail                                  $auditTrail,
         private SystemCodeSettings                          $systemCodeSettings,
@@ -346,89 +350,54 @@ class Volunteer implements VolunteerInterface
 
         $startOfQuarterVpa = $this->repository->findAppointedVpaByFieldOffice($fieldOfficeId);
         $volunteerIds = array_map(fn($volunteer) => $volunteer->getVolunteerId(), $startOfQuarterVpa);
+        $appointedDuringQuarter = $this->getAppointedVpaDuringQuarterCount($quarterData, $fieldOfficeId);
+        $dropped = $this->getDroppedVolunteers($quarterData, $fieldOfficeId);
+        $totalNumberOfVpa = (count($startOfQuarterVpa) + $appointedDuringQuarter) - $dropped;
 
         // to get number 7 wherein volunteers is in table
         // select * VPA I.C.3 (Name/volunteer id in table column name)
         // to get number 13 here so load volunteer supervision as a whole
         $supervisionActivities = $this->volunteerSupervisionsRepository->findByVolunteerIds($volunteerIds);
-
-        // to get number 9 wherein volunteers is in these tables select distinct:
-        //  TC I.A.1.,
-        //	RJ I.B.1,
-        //	RJ I.B.2,
-        //	VPA I.C.3,
-        //	VPA I.C.4,
-        //	Support I.D.,
-        //	SM III.A.1,
-        //	SM III.A.2,
-        //	SM III.A.3,
-        //	RM IV,
-        //	PMD V,
-        //	JD VI.A.1
-
-        // to get inactive merge array_unique(7) & array_unique(9) and find the volunteerIds that does not exist in the merged array
-        // to get 10 merge array_unique(7) & array_unique(9) and find the duplicate volunteer id
-
-
-        $appointedDuringQuarter = $this->getAppointedVpaDuringQuarterCount($quarterData, $fieldOfficeId);
-        $dropped = $this->getDroppedVolunteers($quarterData, $fieldOfficeId);
-        $totalNumberOfVpa = (count($startOfQuarterVpa) + $appointedDuringQuarter) - $dropped;
-        $inactive = $this->repository->findInactiveVolunteersByFieldOffice(
-            $fieldOfficeId,
-            $volunteerIds
+        $supervisionActivitiesVolunteerIds = array_unique(
+            array_map(
+                fn($supervisionActivity) => $supervisionActivity['volunteer_id'],
+                $supervisionActivities
+            )
         );
-//        $totalActiveVpa = $totalNumberOfVpa - count($inactive);
-//        $percentOfVpaMobilized = $totalNumberOfVpa > 0 ? ($totalActiveVpa / $totalNumberOfVpa) * 100 : 0;
-//        $vpaSupervisingClients = $this->volunteerSupervisionsRepository->findVpaInvolveByQuarter($quarterId, $fieldOfficeId);
-//        $noOfVpaSupervisingClients = count($vpaSupervisingClients);
-//        $noOfVpaSupervisingClientsPercentage = $totalActiveVpa > 0 ? ($noOfVpaSupervisingClients / $totalActiveVpa) * 100 : 0;
 
-        // Column 10 = 1.A.1 + 1.B.2 + 1.C.4 + 3.A.1
-        // Table 1.A.1
-//        $vpaActingAsResourceIndividualsInSessions = $this->resourceFacilitatorSessionRepository->getDistinctVolunteerIdsBySessionIds($sessionIds);
-//        $vpaActingAsResourceIndividualsInSessionsIds = $vpaActingAsResourceIndividualsInSessions ? array_map(fn($vpa) => $vpa['resourceFacilitatorId'], $vpaActingAsResourceIndividualsInSessions) : [];
-//
-//        // Table 1.B.2
-//        $vpasInvolvedInRJActivities = $this->rjRelatedActivitiesRepository->getVolunteerIdsByDateRange($quarterId, $fieldOfficeId);
-//        $vpasInvolvedInRJActivitiesIds = $vpasInvolvedInRJActivities ? array_map(fn($vpa) => $vpa['volunteer_id'], $vpasInvolvedInRJActivities) : [];
-//
-//        // Table 1.C.4
-//        $vpasInvolvedInAssociationActivities = $this->vpaAssociationRepository->getVolunteerIdsByDateRange($quarterId, $fieldOfficeId);
-//        $vpasInvolvedInAssociationActivitiesIds = $vpasInvolvedInAssociationActivities ? array_map(fn($vpa) => $vpa['volunteer_id'], $vpasInvolvedInAssociationActivities) : [];
-//
-//        // Table 3.A.1
-//        $minMaxDate = $this->quartersRepository->getQuarterMinMaxDate($quarterData);
-//        $vpasInvolvedInSocialMarketing = $this->socialMarketingRepository->getVolunteerIdsByDateRange($minMaxDate, $fieldOfficeId, 'INFORMATION_DISSEMINATION');
-//        $vpasInvolvedInSocialMarketingIds = $vpasInvolvedInSocialMarketing ? array_map(fn($vpa) => $vpa['volunteer_id'], $vpasInvolvedInSocialMarketing) : [];
-//
-//        $vpaActingAsResourceIndividuals = array_unique(array_merge($vpaActingAsResourceIndividualsInSessionsIds, $vpasInvolvedInRJActivitiesIds, $vpasInvolvedInAssociationActivitiesIds, $vpasInvolvedInSocialMarketingIds));
-//        $noOfVpaActingAsResourceIndividuals = count($vpaActingAsResourceIndividuals);
-//        $noOfVpaActingAsResourceIndividualsPercentage = $totalActiveVpa > 0 ? ($noOfVpaActingAsResourceIndividuals / $totalActiveVpa) * 100 : 0;
-//
-//        $vpaActingBothSupervisingAndResourceIndividual = count($this->getVpaActingBothSupervisingAndResourceIndividual($vpaSupervisingClients, $vpaActingAsResourceIndividuals));
-//        $percentageOfVpaActingBothSupervisingAndResourceIndividual = $totalActiveVpa > 0 ?
-//            ($vpaActingBothSupervisingAndResourceIndividual / $totalActiveVpa) * 100 : 0;
+        $noOfVpaSupervisingClients = \count($supervisionActivitiesVolunteerIds);
+
+        $vpaActingAsResourceIndividuals = $this->getVpaActingAsResourceIndividuals($quarterData, $fieldOfficeId);
+        $noOfVpaActingAsResourceIndividuals = count($vpaActingAsResourceIndividuals);
+
+        $activeVolunteersId = \array_unique(
+            array_merge($supervisionActivitiesVolunteerIds, $vpaActingAsResourceIndividuals)
+        );
+
+        $inactiveVolunteersId = \count(\array_diff($volunteerIds, $activeVolunteersId));
+
+        $vpaActingBothSupervisingAndResourceIndividual = \array_intersect(
+            $supervisionActivitiesVolunteerIds,
+            $vpaActingAsResourceIndividuals
+        );
+        $totalActiveVpa = $totalNumberOfVpa - $inactiveVolunteersId;
+
 //        $totalNumberOfClientsSupervised = count($this->volunteerSupervisionsRepository->findClientsSupervisedByQuarter($quarterId, $fieldOfficeId));
 //        $noOfServicesRenderedByVpa = count($this->volunteerSupervisionsRepository->findServicesRenderedByQuarter($quarterId, $fieldOfficeId));
-//        $noOfServicesRenderedByVpaPercentage = $totalActiveVpa > 0 ? ($noOfServicesRenderedByVpa / $totalActiveVpa) * 100 : 0;
 
         return [
-            'start_of_quarter_vpa' => count($startOfQuarterVpa),
+            'start_of_quarter_vpa' => \count($startOfQuarterVpa),
             'new_appointed' => $appointedDuringQuarter,
             'dropped' => $dropped,
             'total_number_of_vpa_during_quarter' => $totalNumberOfVpa,
-            'inactive' => count($inactive),
-//            'total_active_vpa' => $totalActiveVpa,
-//            'percentage_of_vpa_mobilized' => $percentOfVpaMobilized,
-//            'no_of_vpa_supervising_clients' => $noOfVpaSupervisingClients,
-//            'no_of_vpa_supervising_clients_percentage' => $noOfVpaSupervisingClientsPercentage,
-//            'no_of_vpa_acting_as_resource_individuals' => $noOfVpaActingAsResourceIndividuals,
-//            'no_of_vpa_acting_as_resource_individuals_percentage' => $noOfVpaActingAsResourceIndividualsPercentage,
-//            'vpa_acting_both_supervising_and_resource_individual' => $vpaActingBothSupervisingAndResourceIndividual,
-//            'percentage_of_vpa_acting_both_supervising_and_resource_individual' => $percentageOfVpaActingBothSupervisingAndResourceIndividual,
+            'inactive' => $inactiveVolunteersId,
+            'total_active_vpa' => $totalActiveVpa,
+            'no_of_vpa_supervising_clients' => $noOfVpaSupervisingClients,
+            'no_of_vpa_acting_as_resource_individuals' => $noOfVpaActingAsResourceIndividuals,
+            'vpa_acting_both_supervising_and_resource_individual' =>
+                \count($vpaActingBothSupervisingAndResourceIndividual),
 //            'total_number_of_clients_supervised' => $totalNumberOfClientsSupervised,
 //            'no_of_services_rendered_by_vpa' => $noOfServicesRenderedByVpa,
-//            'no_of_services_rendered_by_vpa_percentage' => $noOfServicesRenderedByVpaPercentage,
         ];
     }
 
@@ -684,23 +653,6 @@ class Volunteer implements VolunteerInterface
         return $educationBackgrounds;
     }
 
-    private function getVpaActingBothSupervisingAndResourceIndividual(
-        array $vpaSupervisingClients,
-        array $vpaActingAsResourceIndividuals,
-    ): array {
-        $result = [];
-
-        foreach ($vpaActingAsResourceIndividuals as $actingAsResourceIndividual) {
-            if (! in_array($actingAsResourceIndividual, $vpaSupervisingClients)) {
-                continue;
-            }
-
-            $result[] = $actingAsResourceIndividual;
-        }
-
-        return $result;
-    }
-
     private function getAppointedVpaDuringQuarterCount(
         Quarters $quarterData,
         int $fieldOfficeId
@@ -718,5 +670,53 @@ class Volunteer implements VolunteerInterface
         $minMaxDate = $this->quartersRepository->getQuarterMinMaxDate($quarterData);
 
         return count($this->repository->getDroppedVolunteer($minMaxDate, $fieldOfficeId));
+    }
+
+private function getVpaActingAsResourceIndividuals(Quarters $quarterData, int $fieldOfficeId): array
+    {
+        $volunteerIds = [];
+        // Table 1.A.1
+        $sessions = $this->sessionsRepository->getSessionDataByQuarterAndFieldOfficeId($fieldOfficeId, $quarterData);
+        $sessionIds = array_map(fn($session) => intval($session['session_id']), $sessions);
+
+        $vpaInSessions = $this->resourceFacilitatorSessionRepository->getDistinctVolunteerIdsBySessionIds($sessionIds);
+        $vpaIdsInSessions = $vpaInSessions ?
+            array_map(fn($vpa) => (int) $vpa['resourceFacilitatorId'], $vpaInSessions) : [];
+        $volunteerIds = \array_merge($vpaIdsInSessions, $volunteerIds);
+
+        // Table 1.B.1
+        $vpaInRjConductedProcess = $this->conductProcessesRepository
+            ->getVolunteerIdsByQuarterAndFieldOffice($quarterData->getQuarterId(), $fieldOfficeId);
+        $vpaIdsInRjConductedProcess = $vpaInRjConductedProcess ?
+            array_map(fn($vpa) =>  (int) $vpa['persons_involved_id'], $vpaInRjConductedProcess) : [];
+        $volunteerIds = \array_merge($vpaIdsInRjConductedProcess, $volunteerIds);
+
+        // Table 1.B.2
+        $vpasInvolvedInRJActivities = $this->rjRelatedActivitiesRepository
+            ->getVolunteerIdsByQuarterAndFieldOffice($quarterData->getQuarterId(), $fieldOfficeId);
+        $vpaInvolvedInRJActivitiesIds = $vpasInvolvedInRJActivities ?
+            array_map(fn($vpa) => (int) $vpa['persons_involved_id'], $vpasInvolvedInRJActivities) : [];
+        $volunteerIds = \array_merge($vpaInvolvedInRJActivitiesIds, $volunteerIds);
+//
+//        // Table 1.C.4
+        $vpasInvolvedInAssociationActivities = $this->vpaAssociationRepository
+            ->getVolunteerIdsByDateRange($quarterData->getQuarterId(), $fieldOfficeId);
+        $vpaInvolvedInAssociationActivitiesIds = $vpasInvolvedInAssociationActivities ?
+            array_map(fn($vpa) => $vpa['volunteer_id'], $vpasInvolvedInAssociationActivities) : [];
+        $volunteerIds = \array_merge($vpaInvolvedInAssociationActivitiesIds, $volunteerIds);
+
+          // Support ID
+
+//        // Table 3.A.1 - 3
+//        $minMaxDate = $this->quartersRepository->getQuarterMinMaxDate($quarterData);
+//        $vpasInvolvedInSocialMarketing = $this->socialMarketingRepository->getVolunteerIdsByDateRange($minMaxDate, $fieldOfficeId, 'INFORMATION_DISSEMINATION');
+//        $vpasInvolvedInSocialMarketingIds = $vpasInvolvedInSocialMarketing ? array_map(fn($vpa) => $vpa['volunteer_id'], $vpasInvolvedInSocialMarketing) : [];
+
+
+        //	RM IV,
+        //	PMD V,
+        //	JD VI.A.1
+
+        return \array_unique($volunteerIds);
     }
 }

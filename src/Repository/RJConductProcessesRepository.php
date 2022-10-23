@@ -211,4 +211,21 @@ class RJConductProcessesRepository extends ServiceEntityRepository
 
         return ResponseEnum::OK;
     }
+
+    public function getVolunteerIdsByQuarterAndFieldOffice(int $quarterId, int $fieldOfficeId): array
+    {
+        $conn = $this->getEntityManager()->getConnection();
+        $sql = "SELECT rcppi.persons_involved_id FROM rjconduct_processes as rp
+                LEFT JOIN rj_conducted_process_persons_involved as rcppi
+                    ON rp.rj_conduct_process_id = rcppi.rj_conducted_process_id
+                WHERE rp.quarter_id = :quarter_id AND rp.field_office_id = :field_office_id
+                  AND rcppi.type = 'VPA'
+                  AND rp.deleted_at IS NULL";
+        $query = $conn->executeQuery(
+            $sql,
+            ['quarter_id' => $quarterId, 'field_office_id' => $fieldOfficeId]
+        );
+
+        return $query->fetchAllAssociative();
+    }
 }

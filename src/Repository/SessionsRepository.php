@@ -900,7 +900,6 @@ class SessionsRepository extends ServiceEntityRepository
 
     /**
      * @throws \Doctrine\DBAL\Exception
-     * @throws \Doctrine\DBAL\Driver\Exception
      */
     public function getSessionDataByQuarterAndFieldOfficeId(int $fieldOfficeId, Quarters $quarterData): array
     {
@@ -910,17 +909,11 @@ class SessionsRepository extends ServiceEntityRepository
         $minDate = $minMaxDate['min'];
         $maxDate = $minMaxDate['max'];
 
-        $sql = "SELECT 
-                    s.session_id, 
-                    s.field_office_id, 
-                    s.li_lo 
-                FROM sessions as s 
-                WHERE 
-                    s.date BETWEEN CAST('$minDate' AS DATE) 
-                AND CAST('$maxDate' AS DATE) 
+        $sql = "SELECT s.session_id, s.field_office_id, s.li_lo FROM sessions as s
+                WHERE s.date BETWEEN CAST('$minDate' AS DATE)
+                AND CAST('$maxDate' AS DATE)
                 AND s.field_office_id = $fieldOfficeId
-                AND s.deleted_at IS NULL
-            ";
+                AND s.deleted_at IS NULL";
         $stmt = $conn->prepare($sql);
         $query = $stmt->executeQuery();
         return $query->fetchAllAssociative();
@@ -929,7 +922,6 @@ class SessionsRepository extends ServiceEntityRepository
     /**
      * @param int[] $sessionIds
      * @return array
-     * @throws \Doctrine\DBAL\Driver\Exception
      * @throws \Doctrine\DBAL\Exception
      */
     private function getResourceFacilitatorIds(array $sessionIds): array
