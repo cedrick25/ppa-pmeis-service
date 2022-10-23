@@ -51,7 +51,7 @@ class AuditTrailActionDetailsTransformer
     private function transformCreate(array $data): array
     {
         $build = [
-            'createdId' => $data['id'],
+            'createdId' => $data['id'] ?? '',
             'module' => $data['module'],
         ];
 

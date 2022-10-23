@@ -8,6 +8,7 @@ use App\Entity\VolunteerOperations;
 use App\Entity\VolunteerSupervisions;
 use App\Model\VolunteerSupervisions as VolunteerSupervisionsModel;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
+use Doctrine\DBAL\Connection;
 use Doctrine\ORM\ORMException;
 use Doctrine\Persistence\ManagerRegistry;
 use Psr\Cache\CacheException;
@@ -57,11 +58,11 @@ class VolunteerSupervisionsRepository extends ServiceEntityRepository
 
     /**
      * @throws InvalidArgumentException
-     * @throws ORMException
      * @throws \Exception
      */
-    public function bulkCreate(VolunteerSupervisionsModel $data): void
+    public function bulkCreate(VolunteerSupervisionsModel $data): array
     {
+        $ids = [];
         $this->cache->invalidateTags([self::CACHE_TAG]);
 
         foreach ($data->getClientIds() as $clientId) {
@@ -77,10 +78,14 @@ class VolunteerSupervisionsRepository extends ServiceEntityRepository
             $newVolunteerSupervisions->setCreatedAt($this->appDateHelper->getCurrentImmutableDate());
 
             $this->getEntityManager()->persist($newVolunteerSupervisions);
+            $this->getEntityManager()->flush();
+
+            $ids[] = $newVolunteerSupervisions->getVolunteerSupervisionsId();
         }
 
-        $this->getEntityManager()->flush();
         $this->getEntityManager()->clear();
+
+        return $ids;
     }
 
     /**
@@ -134,59 +139,17 @@ class VolunteerSupervisionsRepository extends ServiceEntityRepository
     }
 
     /**
-     * @param int $quarterId
-     * @param int $fieldOfficeId
-     * @return int[]
-     * @throws \Doctrine\DBAL\Driver\Exception
+     * @param array $ids
+     * @return array
      * @throws \Doctrine\DBAL\Exception
      */
-    public function findVpaInvolveByQuarter(int $quarterId, int $fieldOfficeId): array
+    public function findByVolunteerIds(array $ids): array
     {
         $conn = $this->getEntityManager()->getConnection();
-        $sql = "SELECT DISTINCT(volunteer_id) FROM volunteer_supervisions 
-                WHERE quarter_id = $quarterId AND field_office_id = $fieldOfficeId";
-        $stmt = $conn->prepare($sql);
-        $query = $stmt->executeQuery();
-        $result = $query->fetchAllAssociative();
+        $sql = "SELECT * FROM volunteer_supervisions
+                WHERE volunteer_id IN (:ids)";
+        $query = $conn->executeQuery($sql, ['ids' => $ids], ['ids' => Connection::PARAM_INT_ARRAY]);
 
-        return array_map(fn($volunteerSupervision) => intval($volunteerSupervision['volunteer_id']), $result);
-    }
-
-    /**
-     * @param int $quarterId
-     * @param int $fieldOfficeId
-     * @return int[]
-     * @throws \Doctrine\DBAL\Driver\Exception
-     * @throws \Doctrine\DBAL\Exception
-     */
-    public function findClientsSupervisedByQuarter(int $quarterId, int $fieldOfficeId): array
-    {
-        $conn = $this->getEntityManager()->getConnection();
-        $sql = "SELECT client_id FROM volunteer_supervisions 
-                WHERE quarter_id = $quarterId AND field_office_id = $fieldOfficeId";
-        $stmt = $conn->prepare($sql);
-        $query = $stmt->executeQuery();
-        $result = $query->fetchAllAssociative();
-
-        return array_map(fn($volunteerSupervision) => intval($volunteerSupervision['client_id']), $result);
-    }
-
-    /**
-     * @param int $quarterId
-     * @param int $fieldOfficeId
-     * @return int[]
-     * @throws \Doctrine\DBAL\Driver\Exception
-     * @throws \Doctrine\DBAL\Exception
-     */
-    public function findServicesRenderedByQuarter(int $quarterId, int $fieldOfficeId): array
-    {
-        $conn = $this->getEntityManager()->getConnection();
-        $sql = "SELECT services_rendered_id FROM volunteer_supervisions 
-                WHERE quarter_id = $quarterId AND field_office_id = $fieldOfficeId";
-        $stmt = $conn->prepare($sql);
-        $query = $stmt->executeQuery();
-        $result = $query->fetchAllAssociative();
-
-        return array_map(fn($volunteerSupervision) => intval($volunteerSupervision['services_rendered_id']), $result);
+        return $query->fetchAllAssociative();
     }
 }

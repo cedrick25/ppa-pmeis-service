@@ -375,6 +375,41 @@ class VolunteerRepository extends ServiceEntityRepository
 
     /**
      * @param int $fieldOfficeId
+     * @return Volunteer[]
+     */
+    public function findAppointedVpaByFieldOffice(int $fieldOfficeId): array
+    {
+        /** @var Volunteer[] */
+        return $this->createQueryBuilder('v')
+            ->where('v.fieldOfficeId = :fieldOfficeId')
+            ->andWhere("v.dateAppointed <= DATE_ADD(v.dateAppointed, 24, 'MONTH')")
+            ->andWhere("v.vpaStatus = 'APPOINTED'")
+            ->setParameter('fieldOfficeId', $fieldOfficeId)
+            ->getQuery()
+            ->getResult();
+    }
+
+    /**
+     * @throws \Doctrine\DBAL\Exception
+     */
+    public function getAppointedVpaDuringQuarter(array $minMaxDate, int $fieldOfficeId): array
+    {
+        $conn = $this->getEntityManager()->getConnection();
+        $min = $minMaxDate['min'];
+        $max = $minMaxDate['max'];
+
+        $sql = "SELECT v.volunteer_id FROM volunteer AS v
+                WHERE v.field_office_id = $fieldOfficeId
+                  AND v.vpa_status = 'APPOINTED'
+                  AND v.date_appointed BETWEEN CAST('$min' AS DATE) AND CAST('$max' AS DATE)";
+        $stmt = $conn->prepare($sql);
+        $query = $stmt->executeQuery();
+
+        return $query->fetchAllAssociative();
+    }
+
+    /**
+     * @param int $fieldOfficeId
      * @param int $year
      * @param array $months
      * @param array $activeVolunteers
@@ -423,48 +458,22 @@ class VolunteerRepository extends ServiceEntityRepository
 
     /**
      * @param int $fieldOfficeId
-     * @param int $year
-     * @param array $months
-     * @param Volunteer[] $activeVolunteers
+     * @param int[] $volunteerIds
      * @return Volunteer[]
      * @throws \Doctrine\DBAL\Driver\Exception
      * @throws \Doctrine\DBAL\Exception
      */
-    public function findInactiveVolunteersByFieldOfficeAndMonthRangeV2(
+    public function findInactiveVolunteersByFieldOffice(
         int $fieldOfficeId,
-        int $year,
-        array $months,
-        array $activeVolunteers
+        array $volunteerIds
     ): array {
-        $appointedVolunteers = $this->volunteerOperationsRepository
-            ->findVolunteerIdsByMonthRange($year, $months, 'APPOINTED');
-        $reAppointedVolunteers = $this->volunteerOperationsRepository
-            ->findVolunteerIdsByMonthRange($year, $months, 'REAPPOINTED');
-        $inActiveVolunteerIds = [];
-        $activeVolunteerIds = [];
-
-        foreach ($activeVolunteers as $activeVolunteer) {
-            $activeVolunteerIds[] = $activeVolunteer->getVolunteerId();
-        }
-
-        foreach ($appointedVolunteers as $appointedVolunteer) {
-            if (! in_array(intval($appointedVolunteer['volunteer_id']), $activeVolunteerIds)) {
-                $inActiveVolunteerIds[] = intval($appointedVolunteer['volunteer_id']);
-            }
-        }
-
-        foreach ($reAppointedVolunteers as $reAppointedVolunteer) {
-            if (! in_array(intval($reAppointedVolunteer['volunteer_id']), $activeVolunteerIds)) {
-                $inActiveVolunteerIds[] = intval($reAppointedVolunteer['volunteer_id']);
-            }
-        }
 
         return $this->createQueryBuilder('v')
             ->where('v.volunteerId IN (:inActiveVolunteerIds)')
             ->andWhere('v.fieldOfficeId = :fieldOfficeId')
             ->andWhere('v.deletedAt IS NULL')
             ->setParameter('fieldOfficeId', $fieldOfficeId)
-            ->setParameter('inActiveVolunteerIds', $inActiveVolunteerIds, Connection::PARAM_INT_ARRAY)
+            ->setParameter('inActiveVolunteerIds', $volunteerIds, Connection::PARAM_INT_ARRAY)
             ->getQuery()
             ->getResult();
     }
@@ -490,7 +499,6 @@ class VolunteerRepository extends ServiceEntityRepository
      * @param int $regionId
      * @return array<int, mixed>
      * @throws \Doctrine\DBAL\Exception
-     * @throws \Doctrine\DBAL\Driver\Exception
      */
     public function findByRegionId(int $regionId): array
     {
@@ -550,7 +558,6 @@ class VolunteerRepository extends ServiceEntityRepository
     }
 
     /**
-     * @throws \Doctrine\DBAL\Driver\Exception
      * @throws \Doctrine\DBAL\Exception
      */
     public function getDroppedVolunteer(array $minMaxDate, int $fieldOfficeId): array
@@ -562,7 +569,7 @@ class VolunteerRepository extends ServiceEntityRepository
         $sql = "SELECT v.volunteer_id FROM volunteer AS v
                 WHERE v.field_office_id = $fieldOfficeId
                   AND v.vpa_status = 'DROPPED'
-                  AND v.updated_at BETWEEN CAST('$min' AS DATE) AND CAST('$max' AS DATE)";
+                  AND v.date_appointed BETWEEN CAST('$min' AS DATE) AND CAST('$max' AS DATE)";
         $stmt = $conn->prepare($sql);
         $query = $stmt->executeQuery();
 
