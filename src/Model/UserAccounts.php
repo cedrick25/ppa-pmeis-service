@@ -54,7 +54,7 @@ class UserAccounts
 
     /**
      * @Assert\NotBlank
-     * @Assert\Length(2)
+     * @Assert\Length(5)
      * @return string
      */
     public function getUserType(): string
