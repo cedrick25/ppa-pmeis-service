@@ -10,12 +10,14 @@ use MyCLabs\Enum\Enum;
 /**
  * @extends Enum<string>
  * @method static self FO()
+ * @method static self CSD()
  * @method static self RD()
  * @method static self ND()
  */
 class UserType extends Enum implements Hashable
 {
     public const FO = "FO";
+    public const CSD = "FO";
     public const RD = "RD";
     public const ND = "ND";
 

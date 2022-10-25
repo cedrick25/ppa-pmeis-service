@@ -938,13 +938,9 @@ class TherapeuticCommunityController extends AbstractController
      */
     public function updateVolunteerStatus(Request $request): Response
     {
-        try {
-            $data = json_decode($request->getContent(), true);
+        $data = json_decode($request->getContent(), true);
 
-            return $this->json($this->volunteerService->updateVolunteerStatus($data));
-        } catch (ReflectionException $exception) {
-            return $this->json($this->appFormatter->formatResponse('Updating volunteer session failed', null, ['reflection' => $exception->getMessage()]));
-        }
+        return $this->json($this->volunteerService->updateVolunteerStatus($data));
     }
 
     /**

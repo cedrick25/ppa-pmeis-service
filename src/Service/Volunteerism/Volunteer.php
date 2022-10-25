@@ -72,24 +72,44 @@ class Volunteer implements VolunteerInterface
             $errors = $this->validator->validate($volunteerData);
 
             if (count($errors) > 0) {
-                return $this->appFormatter->formatResponse(ResponseEnum::VALIDATING_FAILED, null, $this->appFormatter->formatErrors($errors));
+                return $this->appFormatter->formatResponse(
+                    ResponseEnum::VALIDATING_FAILED,
+                    null,
+                    $this->appFormatter->formatErrors($errors)
+                );
             }
 
             $id = $this->repository->create($volunteerData);
 
             if ($id == null) {
-                return $this->appFormatter->formatResponse(ResponseEnum::CREATING_FAILED, null, ['app' => 'Volunteer already exist']);
+                return $this->appFormatter->formatResponse(
+                    ResponseEnum::CREATING_FAILED,
+                    null,
+                    ['app' => 'Volunteer already exist']
+                );
             }
 
             $this->auditTrail->log(AuditTrailActions::CREATE, $volunteerData->jsonSerialize(), $this->shortName, $id);
 
             return $this->appFormatter->formatResponse(ResponseEnum::CREATING_SUCCESS, ['id' => $id]);
         } catch (InvalidArgumentException $exception) {
-            return $this->appFormatter->formatResponse(ResponseEnum::CREATING_FAILED, null, ['cache' => $exception->getMessage()]);
+            return $this->appFormatter->formatResponse(
+                ResponseEnum::CREATING_FAILED,
+                null,
+                ['cache' => $exception->getMessage()]
+            );
         } catch (ORMException $exception) {
-            return $this->appFormatter->formatResponse(ResponseEnum::CREATING_FAILED, null, ['orm' => $exception->getMessage()]);
+            return $this->appFormatter->formatResponse(
+                ResponseEnum::CREATING_FAILED,
+                null,
+                ['orm' => $exception->getMessage()]
+            );
         } catch (\Exception $e) {
-            return $this->appFormatter->formatResponse(ResponseEnum::CREATING_FAILED, null, ['app' => $e->getMessage()]);
+            return $this->appFormatter->formatResponse(
+                ResponseEnum::CREATING_FAILED,
+                null,
+                ['app' => $e->getMessage()]
+            );
         }
     }
 
@@ -104,7 +124,11 @@ class Volunteer implements VolunteerInterface
 
             return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_SUCCESS, $volunteers);
         } catch (CacheException|InvalidArgumentException $exception) {
-            return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_FAILED, null, ['cache' => $exception->getMessage()]);
+            return $this->appFormatter->formatResponse(
+                esponseEnum::FETCHING_FAILED,
+                null,
+                ['cache' => $exception->getMessage()]
+            );
         }
     }
 
@@ -114,16 +138,28 @@ class Volunteer implements VolunteerInterface
             $isDeleted = $this->repository->softDelete($id);
 
             if (! $isDeleted) {
-                return $this->appFormatter->formatResponse(ResponseEnum::DELETING_FAILED, null, ['app' => ResponseEnum::NO_DATA]);
+                return $this->appFormatter->formatResponse(
+                    ResponseEnum::DELETING_FAILED,
+                    null,
+                    ['app' => ResponseEnum::NO_DATA]
+                );
             }
 
             $this->auditTrail->log(AuditTrailActions::DELETE, [], $this->shortName, $id);
 
             return $this->appFormatter->formatResponse(ResponseEnum::DELETING_SUCCESS, null);
         } catch (InvalidArgumentException $exception) {
-            return $this->appFormatter->formatResponse(ResponseEnum::DELETING_FAILED, null, ['cache' => $exception->getMessage()]);
+            return $this->appFormatter->formatResponse(
+                ResponseEnum::DELETING_FAILED,
+                null,
+                ['cache' => $exception->getMessage()]
+            );
         } catch (\Doctrine\ORM\ORMException $exception) {
-            return $this->appFormatter->formatResponse(ResponseEnum::DELETING_FAILED, null, ['orm' => $exception->getMessage()]);
+            return $this->appFormatter->formatResponse(
+                ResponseEnum::DELETING_FAILED,
+                null,
+                ['orm' => $exception->getMessage()]
+            );
         }
     }
 
@@ -201,7 +237,11 @@ class Volunteer implements VolunteerInterface
                 return [];
             }
             $months = $this->appDateHelper->getMonthsByQuarterString($quarter->getName());
-            $volunteers = $this->repository->findByFieldOfficeAndMonthRange($fieldOfficeId, intval($quarter->getYear()), $months);
+            $volunteers = $this->repository->findByFieldOfficeAndMonthRange(
+                $fieldOfficeId,
+                intval($quarter->getYear()),
+                $months
+            );
 
             if (sizeof($volunteers) <= 0) {
                 return $this->appFormatter->formatResponse(ResponseEnum::NO_DATA, null);
@@ -209,7 +249,11 @@ class Volunteer implements VolunteerInterface
 
             return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_SUCCESS, $volunteers);
         } catch (\Exception $e) {
-            return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_SUCCESS, null, ['app' => $e->getMessage()]);
+            return $this->appFormatter->formatResponse(
+                ResponseEnum::UPDATING_FAILED,
+                null,
+                ['app' => $e->getMessage()]
+            );
         }
     }
 
@@ -224,7 +268,11 @@ class Volunteer implements VolunteerInterface
 
             return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_SUCCESS, $applicants);
         } catch (\Exception $e) {
-            return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_SUCCESS, null, ['app' => $e->getMessage()]);
+            return $this->appFormatter->formatResponse(
+                ResponseEnum::UPDATING_FAILED,
+                null,
+                ['app' => $e->getMessage()]
+            );
         }
     }
 
@@ -241,9 +289,17 @@ class Volunteer implements VolunteerInterface
 
             return $this->appFormatter->formatResponse(ResponseEnum::UPDATING_SUCCESS, null);
         } catch (Exception $e) {
-            return $this->appFormatter->formatResponse(ResponseEnum::UPDATING_FAILED, null, ['app' => $e->getMessage()]);
+            return $this->appFormatter->formatResponse(
+                ResponseEnum::UPDATING_FAILED,
+                null,
+                ['app' => $e->getMessage()]
+            );
         } catch (InvalidArgumentException $e) {
-            return $this->appFormatter->formatResponse(ResponseEnum::UPDATING_FAILED, null, ['cache' => $e->getMessage()]);
+            return $this->appFormatter->formatResponse(
+                ResponseEnum::UPDATING_FAILED,
+                null,
+                ['cache' => $e->getMessage()]
+            );
         }
     }
 
@@ -297,8 +353,12 @@ class Volunteer implements VolunteerInterface
             }
 
             return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_SUCCESS, $data);
-        } catch (\Exception | \Doctrine\DBAL\Driver\Exception $e) {
-            return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_SUCCESS, null, ['app' => $e->getMessage()]);
+        } catch (\Exception $e) {
+            return $this->appFormatter->formatResponse(
+                ResponseEnum::FETCHING_SUCCESS,
+                null,
+                ['app' => $e->getMessage()]
+            );
         }
     }
 
@@ -331,8 +391,12 @@ class Volunteer implements VolunteerInterface
             }
 
             return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_SUCCESS, $data);
-        } catch (\Exception | \Doctrine\DBAL\Driver\Exception $e) {
-            return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_SUCCESS, null, ['app' => $e->getMessage()]);
+        } catch (\Exception $e) {
+            return $this->appFormatter->formatResponse(
+                ResponseEnum::FETCHING_SUCCESS,
+                null,
+                ['app' => $e->getMessage()]
+            );
         }
     }
 
@@ -356,7 +420,7 @@ class Volunteer implements VolunteerInterface
 
         // to get number 7 wherein volunteers is in table
         // select * VPA I.C.3 (Name/volunteer id in table column name)
-        // to get number 13 here so load volunteer supervision as a whole
+        // to get number 13 here, load volunteer supervision as a whole
         $supervisionActivities = $this->volunteerSupervisionsRepository->findByVolunteerIds($volunteerIds);
         $supervisionActivitiesVolunteerIds = array_unique(
             array_map(

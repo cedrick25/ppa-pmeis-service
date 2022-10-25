@@ -225,6 +225,10 @@ class UserAccount implements UserInterface, PasswordAuthenticatedUserInterface
             $userRoles['region_id'] = $this->getRegionId();
         }
 
+        if ($this->getUserType() == UserType::CSD) {
+            $userRoles[] = 'CSD';
+        }
+
         if ($this->getUserType() == UserType::RD) {
             $userRoles[] = 'REGIONAL_DIRECTOR';
         }

@@ -527,9 +527,7 @@ class VolunteerRepository extends ServiceEntityRepository
     }
 
     /**
-     * @throws OptimisticLockException
      * @throws InvalidArgumentException
-     * @throws ORMException
      * @throws Exception
      */
     public function updateVolunteerStatus(array $data): string
@@ -544,12 +542,16 @@ class VolunteerRepository extends ServiceEntityRepository
             $volunteer->setDateAppointed($this->appDateHelper->convertStringToImmutableDate($data['dateAppointed']));
         }
 
-        if ($data['status'] === 'REAPPOINTED') {
+        if ($data['status'] == 'REAPPOINTED') {
             $data['status'] = 'APPOINTED';
         }
 
         $volunteer->setVpaStatus($data['status']);
         $volunteer->setUpdatedAt($this->appDateHelper->getCurrentImmutableDate());
+
+        if ('APPOINTED' == $data['status']) {
+            $volunteer->setDateAppointed($this->appDateHelper->getCurrentImmutableDate());
+        }
 
         $this->getEntityManager()->flush();
         $this->cache->invalidateTags([self::CACHE_TAG]);
