@@ -66,7 +66,7 @@ class UserAccountWithDetails implements \JsonSerializable
 
     /**
      * @Assert\NotBlank
-     * @Assert\Length(5)
+     * @Assert\Length(min=5)
      * @return string
      */
     public function getUserType(): string
