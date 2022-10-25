@@ -17,7 +17,7 @@ use MyCLabs\Enum\Enum;
 class UserType extends Enum implements Hashable
 {
     public const FO = "FO";
-    public const CSD = "FO";
+    public const CSD = "CSD";
     public const RD = "RD";
     public const ND = "ND";
 
