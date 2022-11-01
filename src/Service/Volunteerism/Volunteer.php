@@ -13,16 +13,19 @@ use App\Model\Volunteer as VolunteerModel;
 use App\Repository\CivilStatusRepository;
 use App\Repository\EducationBackgroundRepository;
 use App\Repository\FieldOfficesRepository;
+use App\Repository\IdSupportRepository;
 use App\Repository\OccupationRepository;
+use App\Repository\ProgramMaterialsDevelopmentRepository;
 use App\Repository\QuartersRepository;
 use App\Repository\RegionsRepository;
 use App\Repository\ReligionRepository;
 use App\Repository\ResourceFacilitatorSessionRepository;
-use App\Repository\RjConductedProcessPersonsInvolvedRepository;
+use App\Repository\ResourceMobilizationRepository;
 use App\Repository\RJConductProcessesRepository;
 use App\Repository\SessionsRepository;
 use App\Repository\SocialMarketingRepository;
 use App\Repository\RJRelatedActivitiesRepository;
+use App\Repository\TechnicalAssistanceRepository;
 use App\Repository\VpaAssociationInitiatedActivitiesRepository;
 use App\Repository\VolunteerRepository;
 use App\Repository\VolunteerSupervisionsRepository;
@@ -57,8 +60,11 @@ class Volunteer implements VolunteerInterface
         private SocialMarketingRepository                   $socialMarketingRepository,
         private RJRelatedActivitiesRepository               $rjRelatedActivitiesRepository,
         private RJConductProcessesRepository                $conductProcessesRepository,
-        private RjConductedProcessPersonsInvolvedRepository $conductedProcessPersonsInvolvedRepository,
         private VpaAssociationInitiatedActivitiesRepository $vpaAssociationRepository,
+        private IdSupportRepository                         $idSupportRepository,
+        private TechnicalAssistanceRepository               $technicalAssistanceRepository,
+        private ResourceMobilizationRepository              $resourceMobilizationRepository,
+        private ProgramMaterialsDevelopmentRepository       $programMaterialsDevelopmentRepository,
         private AuditTrail                                  $auditTrail,
         private SystemCodeSettings                          $systemCodeSettings,
     ) {
@@ -444,10 +450,14 @@ class Volunteer implements VolunteerInterface
             $supervisionActivitiesVolunteerIds,
             $vpaActingAsResourceIndividuals
         );
+
         $totalActiveVpa = $totalNumberOfVpa - $inactiveVolunteersId;
 
-//        $totalNumberOfClientsSupervised = count($this->volunteerSupervisionsRepository->findClientsSupervisedByQuarter($quarterId, $fieldOfficeId));
-//        $noOfServicesRenderedByVpa = count($this->volunteerSupervisionsRepository->findServicesRenderedByQuarter($quarterId, $fieldOfficeId));
+        $totalNumberOfVpaMobilize = ($noOfVpaSupervisingClients + $noOfVpaActingAsResourceIndividuals) +
+            \count($vpaActingBothSupervisingAndResourceIndividual);
+        $percentOfVpaMobilized = $totalActiveVpa > 0 ? ($totalNumberOfVpaMobilize / $totalActiveVpa) * 100 : 0;
+        $noOfServicesRenderedByVpaDuringQuarter = $this->volunteerSupervisionsRepository
+            ->getServicesRenderedByVolunteersId($supervisionActivitiesVolunteerIds);
 
         return [
             'start_of_quarter_vpa' => \count($startOfQuarterVpa),
@@ -457,11 +467,15 @@ class Volunteer implements VolunteerInterface
             'inactive' => $inactiveVolunteersId,
             'total_active_vpa' => $totalActiveVpa,
             'no_of_vpa_supervising_clients' => $noOfVpaSupervisingClients,
+            'total_number_of_clients_supervised' => \count($supervisionActivities),
             'no_of_vpa_acting_as_resource_individuals' => $noOfVpaActingAsResourceIndividuals,
             'vpa_acting_both_supervising_and_resource_individual' =>
                 \count($vpaActingBothSupervisingAndResourceIndividual),
-//            'total_number_of_clients_supervised' => $totalNumberOfClientsSupervised,
-//            'no_of_services_rendered_by_vpa' => $noOfServicesRenderedByVpa,
+            'total_number_of_vpa_mobilize' => $totalNumberOfVpaMobilize,
+            'percent_of_vpa_mobilized' => $percentOfVpaMobilized,
+            'no_of_services_rendered_during_quarter' => \count($noOfServicesRenderedByVpaDuringQuarter),
+            'no_of_services_rendered_by_vpa' => $totalActiveVpa > 0 ?
+                (\count($noOfServicesRenderedByVpaDuringQuarter) / $totalActiveVpa) : 0,
         ];
     }
 
@@ -761,24 +775,38 @@ private function getVpaActingAsResourceIndividuals(Quarters $quarterData, int $f
         $vpaInvolvedInRJActivitiesIds = $vpasInvolvedInRJActivities ?
             array_map(fn($vpa) => (int) $vpa['persons_involved_id'], $vpasInvolvedInRJActivities) : [];
         $volunteerIds = \array_merge($vpaInvolvedInRJActivitiesIds, $volunteerIds);
-//
-//        // Table 1.C.4
+
+        // Table 1.C.4
         $vpasInvolvedInAssociationActivities = $this->vpaAssociationRepository
             ->getVolunteerIdsByDateRange($quarterData->getQuarterId(), $fieldOfficeId);
         $vpaInvolvedInAssociationActivitiesIds = $vpasInvolvedInAssociationActivities ?
             array_map(fn($vpa) => $vpa['volunteer_id'], $vpasInvolvedInAssociationActivities) : [];
         $volunteerIds = \array_merge($vpaInvolvedInAssociationActivitiesIds, $volunteerIds);
 
-          // Support ID
+        $minMaxDate = $this->quartersRepository->getQuarterMinMaxDate($quarterData);
+        // Support ID
+        $vpaInvolvedInSupportId = $this->idSupportRepository->getVolunteerIdsByDateRange($minMaxDate, $fieldOfficeId);
+        $vpaIdsInvolvedInSupportId = $vpaInvolvedInSupportId ?
+            array_map(fn($vpa) => (int) $vpa['vpa_personnel_id'], $vpaInvolvedInSupportId) : [];
+        $volunteerIds = \array_merge($vpaIdsInvolvedInSupportId, $volunteerIds);
 
-//        // Table 3.A.1 - 3
-//        $minMaxDate = $this->quartersRepository->getQuarterMinMaxDate($quarterData);
-//        $vpasInvolvedInSocialMarketing = $this->socialMarketingRepository->getVolunteerIdsByDateRange($minMaxDate, $fieldOfficeId, 'INFORMATION_DISSEMINATION');
-//        $vpasInvolvedInSocialMarketingIds = $vpasInvolvedInSocialMarketing ? array_map(fn($vpa) => $vpa['volunteer_id'], $vpasInvolvedInSocialMarketing) : [];
+        // Table 3.A.1 - 3
+        $vpasInvolvedInSocialMarketing = $this->socialMarketingRepository
+            ->getVolunteerIdsByDateRange($minMaxDate, $fieldOfficeId, 'INFORMATION_DISSEMINATION');
+        $vpasInvolvedInSocialMarketingIds = $vpasInvolvedInSocialMarketing ?
+            array_map(fn($vpa) => (int) $vpa['volunteer_id'], $vpasInvolvedInSocialMarketing) : [];
+        $volunteerIds = \array_merge($vpasInvolvedInSocialMarketingIds, $volunteerIds);
 
-
+        // SM 3
         //	RM IV,
+
         //	PMD V,
+        $vpaInvolvedInProgramMaterials = $this->programMaterialsDevelopmentRepository
+            ->getVolunteerIdsByDateRange($minMaxDate, $fieldOfficeId);
+        $vpaInvolvedInProgramMaterialsIds = $vpaInvolvedInProgramMaterials ?
+            array_map(fn($vpa) => (int) $vpa['vpa_ppo_id'], $vpaInvolvedInProgramMaterials) : [];
+        $volunteerIds = \array_merge($vpaInvolvedInProgramMaterialsIds, $volunteerIds);
+
         //	JD VI.A.1
 
         return \array_unique($volunteerIds);

@@ -146,4 +146,22 @@ class IdSupportRepository extends ServiceEntityRepository
 
         return $result;
     }
+
+    public function getVolunteerIdsByDateRange(array $minMaxDate, int $fieldOfficeId): ?array
+    {
+        $conn = $this->getEntityManager()->getConnection();
+        $min = $minMaxDate['min'];
+        $max = $minMaxDate['max'];
+
+        $sql = "SELECT DISTINCT is2.vpa_personnel_id FROM id_support is2
+                WHERE is2.field_office_id = $fieldOfficeId
+                AND is2.type = 'VPA'
+                AND is2.date BETWEEN CAST('$min' AS DATE) AND CAST('$max' AS DATE)
+                AND is2.deleted_at IS NULL
+                ";
+        $stmt = $conn->prepare($sql);
+        $query = $stmt->executeQuery();
+
+        return $query->fetchAllAssociative();
+    }
 }

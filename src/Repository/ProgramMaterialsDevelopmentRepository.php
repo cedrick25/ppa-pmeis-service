@@ -126,7 +126,8 @@ class ProgramMaterialsDevelopmentRepository extends ServiceEntityRepository
         $max = $minMaxDate['max'];
 
         $sql = "SELECT pmd.* FROM program_materials_development as pmd
-                WHERE pmd.field_office_id = $fieldOfficeId AND pmd.date BETWEEN CAST('$min' AS DATE) AND CAST('$max' AS DATE)";
+                WHERE pmd.field_office_id = $fieldOfficeId
+                AND pmd.date BETWEEN CAST('$min' AS DATE) AND CAST('$max' AS DATE)";
         $stmt = $conn->prepare($sql);
         $query = $stmt->executeQuery();
         $rows = $query->fetchAllAssociative();
@@ -145,5 +146,23 @@ class ProgramMaterialsDevelopmentRepository extends ServiceEntityRepository
         }
 
         return $result;
+    }
+
+    public function getVolunteerIdsByDateRange(array $minMaxDate, int $fieldOfficeId): ?array
+    {
+        $conn = $this->getEntityManager()->getConnection();
+        $min = $minMaxDate['min'];
+        $max = $minMaxDate['max'];
+
+        $sql = "SELECT DISTINCT pmd.vpa_ppo_id FROM program_materials_development pmd
+                WHERE pmd.field_office_id = $fieldOfficeId
+                AND pmd.person_responsible_type = 'VPA'
+                AND pmd.date BETWEEN CAST('$min' AS DATE) AND CAST('$max' AS DATE)
+                AND pmd.deleted_at IS NULL
+                ";
+        $stmt = $conn->prepare($sql);
+        $query = $stmt->executeQuery();
+
+        return $query->fetchAllAssociative();
     }
 }

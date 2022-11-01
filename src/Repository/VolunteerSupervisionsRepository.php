@@ -152,4 +152,17 @@ class VolunteerSupervisionsRepository extends ServiceEntityRepository
 
         return $query->fetchAllAssociative();
     }
+
+    public function getServicesRenderedByVolunteersId(array $volunteerIds): array
+    {
+        $query = $this->getEntityManager()->getConnection()
+            ->executeQuery(
+                "SELECT vs.services_rendered_id FROM volunteer_supervisions vs
+                    WHERE vs.volunteer_id IN (:volunteerIds)",
+                ['volunteerIds' => $volunteerIds],
+                ['volunteerIds' => Connection::PARAM_INT_ARRAY],
+            );
+
+        return $query->fetchAllAssociative();
+    }
 }

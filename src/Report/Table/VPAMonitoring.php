@@ -62,33 +62,57 @@ class VPAMonitoring implements Form
         foreach ($this->data['rows'] as $row) {
             $spreadsheet->getActiveSheet()->setCellValue('A' . $this->lastFilledOutCellY, $row['start_of_quarter_vpa']);
             $spreadsheet->getActiveSheet()->setCellValue('B' . $this->lastFilledOutCellY, $row['new_appointed']);
-            $spreadsheet->getActiveSheet()->setCellValue('C' . $this->lastFilledOutCellY, $row['reappointed']);
-            $spreadsheet->getActiveSheet()->setCellValue('D' . $this->lastFilledOutCellY, $row['dropped']);
-            $spreadsheet->getActiveSheet()->setCellValue('E' . $this->lastFilledOutCellY, $row['total_number_of_vpa_during_quarter']);
-            $spreadsheet->getActiveSheet()->setCellValue('F' . $this->lastFilledOutCellY, $row['inactive']);
-            $spreadsheet->getActiveSheet()->setCellValue('G' . $this->lastFilledOutCellY, $row['total_active_vpa']);
-            $spreadsheet->getActiveSheet()->setCellValue('H' . $this->lastFilledOutCellY, $row['percentage_of_vpa_mobilized'] . '%');
-            $spreadsheet->getActiveSheet()->setCellValue('I' . $this->lastFilledOutCellY, $row['no_of_vpa_supervising_clients']);
-            $spreadsheet->getActiveSheet()->setCellValue('J' . $this->lastFilledOutCellY, $row['no_of_vpa_supervising_clients_percentage'] . '%');
-            $spreadsheet->getActiveSheet()->setCellValue('K' . $this->lastFilledOutCellY, $row['no_of_vpa_acting_as_resource_individuals']);
-            $spreadsheet->getActiveSheet()->setCellValue('L' . $this->lastFilledOutCellY, $row['no_of_vpa_acting_as_resource_individuals_percentage'] . '%');
-            $spreadsheet->getActiveSheet()->setCellValue('M' . $this->lastFilledOutCellY, $row['vpa_acting_both_supervising_and_resource_individual']);
-            $spreadsheet->getActiveSheet()->setCellValue('N' . $this->lastFilledOutCellY, $row['percentage_of_vpa_acting_both_supervising_and_resource_individual'] . '%');
-            $spreadsheet->getActiveSheet()->setCellValue('O' . $this->lastFilledOutCellY, $row['total_number_of_clients_supervised']);
-            $spreadsheet->getActiveSheet()->setCellValue('P' . $this->lastFilledOutCellY, $row['no_of_services_rendered_by_vpa']);
-            $spreadsheet->getActiveSheet()->setCellValue('Q' . $this->lastFilledOutCellY, $row['no_of_services_rendered_by_vpa_percentage'] . '%');
+            $spreadsheet->getActiveSheet()->setCellValue('C' . $this->lastFilledOutCellY, $row['dropped']);
+            $spreadsheet->getActiveSheet()->setCellValue(
+                'D' . $this->lastFilledOutCellY,
+                $row['total_number_of_vpa_during_quarter']
+            );
+            $spreadsheet->getActiveSheet()->setCellValue('E' . $this->lastFilledOutCellY, $row['inactive']);
+            $spreadsheet->getActiveSheet()->setCellValue('F' . $this->lastFilledOutCellY, $row['total_active_vpa']);
+            $spreadsheet->getActiveSheet()->setCellValue(
+                'G' . $this->lastFilledOutCellY,
+                $row['no_of_vpa_supervising_clients']
+            );
+            $spreadsheet->getActiveSheet()->setCellValue(
+                'H' . $this->lastFilledOutCellY,
+                $row['total_number_of_clients_supervised']
+            );
+            $spreadsheet->getActiveSheet()->setCellValue(
+                'I' . $this->lastFilledOutCellY,
+                $row['no_of_vpa_acting_as_resource_individuals']
+            );
+            $spreadsheet->getActiveSheet()->setCellValue(
+                'J' . $this->lastFilledOutCellY,
+                $row['vpa_acting_both_supervising_and_resource_individual']
+            );
+            $spreadsheet->getActiveSheet()->setCellValue(
+                'K' . $this->lastFilledOutCellY,
+                $row['total_number_of_vpa_mobilize']
+            );
+            $spreadsheet->getActiveSheet()->setCellValue(
+                'L' . $this->lastFilledOutCellY,
+                $row['percent_of_vpa_mobilized'] . '%'
+            );
+            $spreadsheet->getActiveSheet()->setCellValue(
+                'M' . $this->lastFilledOutCellY,
+                $row['no_of_services_rendered_during_quarter']
+            );
+            $spreadsheet->getActiveSheet()->setCellValue(
+                'N' . $this->lastFilledOutCellY,
+                $row['no_of_services_rendered_by_vpa']
+            );
         }
 
-        $spreadsheet->getActiveSheet()->getStyle('A'. $this->lastFilledOutCellY .':Q' . $this->lastFilledOutCellY)->getAlignment()->setHorizontal('center');
-        $spreadsheet->getActiveSheet()->getStyle('A'. $this->lastFilledOutCellY .':Q' . $this->lastFilledOutCellY)->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
+        $spreadsheet->getActiveSheet()->getStyle('A'. $this->lastFilledOutCellY .':L' . $this->lastFilledOutCellY)
+            ->getAlignment()->setHorizontal('center');
+        $spreadsheet->getActiveSheet()->getStyle('A'. $this->lastFilledOutCellY .':L' . $this->lastFilledOutCellY)
+            ->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
         return $spreadsheet;
     }
 
     public function header(): Spreadsheet
     {
-        $spreadsheet = $this->prepare();
-
-        return $spreadsheet;
+        return $this->prepare();
     }
 
     /**
@@ -98,29 +122,51 @@ class VPAMonitoring implements Form
     {
         $spreadsheet = new Spreadsheet();
         $textAndCoordinates = [
-            'P1' => $this->data[SystemSettingNames::GENERATED_REPORTS_CODE], 'A2' => 'VPA MONITORING', 'A3' => 'No. of VPAs (start of the quarter)',
-            'B3' => 'Appointed', 'D3' => 'Dropped (expired appointment or any other cause)', 'E3' => 'TOTAL NUMBER OF VPAs  DURING THE QUARTER',
-            'F3' => 'No. of INACTIVE VPAs during the QTR', 'G3' => 'TOTAL  ACTIVE VPAs DURING THE QUARTER', 'H3' => '% of VPAs mobilized',
-            'I3' => 'No. of VPAs supervising clients during the quarter (Head count)', 'J3' => '%', 'K3' => 'No. of VPAs acting as resource individuals during the quarter (Head count)',
-            'L3' => '%', 'M3' => 'Acting as Both (Supervising VPAs and Resource Individual/ Head count)', 'N3' => '%', 'O3' => 'Total number of clients supervised (Headcount)',
-            'P3' => 'No. of services rendered by VPAs during the quarter (service count or frequency)', 'Q3' => 'Percent of services rendered by VPAs',
-            'B4' => 'New', 'C4' => 'Re-appointed', 'A5' => '(1)', 'B5' => '(2)', 'D5' => '(3)', 'E5' => '(4)', 'F5' => '(5)', 'G5' => '(6)', 'H5' => '(7)',
-            'I5' => '(8)', 'J5' => '(9)', 'K5' => '(10)', 'L5' => '(11)', 'M5' => '(12)', 'N5' => '(13)', 'O5' => '(14)', 'P5' => '(15)', 'Q5' => '(16)',
-            'E6' => '(1+2)-3', 'G6' => '4-5', 'H6' => '6÷4', 'J6' => '8÷6', 'L6' => '10÷6', 'N6' => '12÷6', 'Q6' => '15÷6'
+            'N1' => $this->data[SystemSettingNames::GENERATED_REPORTS_CODE],
+            'A2' => 'VPA MONITORING',
+            'A3' => 'No. of VPAs (start of the quarter)',
+            'B3' => 'Appointed',
+            'C3' => 'Dropped (expired appointment or any other cause)',
+            'D3' => 'TOTAL NUMBER OF VPAs  DURING THE QUARTER',
+            'E3' => 'No. of INACTIVE VPAs during the QTR',
+            'F3' => 'TOTAL  ACTIVE VPAs DURING THE QUARTER',
+            'G3' => 'No. of VPAs supervising clients during the quarter (Head count)',
+            'H3' => 'Total Number of clients Supervised',
+            'I3' => 'No. of VPAs acting as resource individuals during the quarter (Head count)',
+            'J3' => 'Acting as Both (Supervising VPAs and Resource Individual/ Head count)',
+            'K3' => 'Total Number of VPA mobilized (per head count)',
+            'L3' => 'Percent of VPA mobilized (per head count)',
+            'M3' => 'No. of services rendered by VPAs during the quarter',
+            'N3' => 'No. of services rendered By a VPA ',
+            'A5' => '(1)',
+            'B5' => '(2)',
+            'C5' => '(3)',
+            'D5' =>'(4)',
+            'E5' =>'(5)',
+            'F5' =>'(6)',
+            'G5' =>'(7)',
+            'H5' => '(8)',
+            'I5' => '(9)',
+            'J5' => '(10)',
+            'K5' => '(11)',
+            'L5' => '(12)',
+            'M5' => '(13)',
+            'N5' => '(14)',
+            'E6' => '(1+2)-3',
+            'G6' => '4-5',
+            'H6' => '6÷4',
+            'L6' => '7+9+10=11',
+            'M6' => '11/6=12',
+            'N6' => '13/6=14'
         ];
-        $mergesCoordinates = ['B3:C3', 'B5:C5'];
-        $boldCoordinates = ['P1', 'A2', 'E3', 'G3', 'A5:Q6'];
-        $verticalAlignedCoordinates = ['A3:Q6' => 'center'];
-        $horizontalAlignedCoordinates = ['A3:Q6' => 'center'];
+        $boldCoordinates = ['P1', 'A2', 'E3', 'G3', 'A5:N6'];
+        $verticalAlignedCoordinates = ['A3:N6' => 'center'];
+        $horizontalAlignedCoordinates = ['A3:N6' => 'center'];
         $adjustedColumnWidthCoordinates = [
             'B' => 12, 'C' => 12
         ];
         foreach ($textAndCoordinates as $coordinate => $text) {
             $spreadsheet->getActiveSheet()->setCellValue($coordinate, $text);
-        }
-
-        foreach ($mergesCoordinates as $coordinate) {
-            $spreadsheet->getActiveSheet()->mergeCells($coordinate);
         }
 
         foreach ($boldCoordinates as $coordinate) {
@@ -138,12 +184,12 @@ class VPAMonitoring implements Form
         foreach ($adjustedColumnWidthCoordinates as $coordinate => $width) {
             $spreadsheet->getActiveSheet()->getColumnDimension($coordinate)->setWidth($width);
         }
-        $spreadsheet->getActiveSheet()->getStyle('A3:Q7')->getAlignment()->setWrapText(true);
-        $spreadsheet->getActiveSheet()->getStyle('A6:Q6')->getFont()->getColor()->setARGB(Color::COLOR_RED);
+        $spreadsheet->getActiveSheet()->getStyle('A3:N7')->getAlignment()->setWrapText(true);
+        $spreadsheet->getActiveSheet()->getStyle('A6:N6')->getFont()->getColor()->setARGB(Color::COLOR_RED);
         $spreadsheet->getActiveSheet()->getRowDimension(3)->setRowHeight(170);
-        $spreadsheet->getActiveSheet()->getStyle('A3:Q7')->getBorders()->getAllBorders()
+        $spreadsheet->getActiveSheet()->getStyle('A3:N7')->getBorders()->getAllBorders()
             ->setBorderStyle(Border::BORDER_THIN);
-        $spreadsheet->getActiveSheet()->getStyle('A6:Q6')
+        $spreadsheet->getActiveSheet()->getStyle('A6:N6')
             ->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setARGB(Color::COLOR_YELLOW);
         $spreadsheet->getActiveSheet()->getStyle('B4:C4')
             ->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setARGB(Color::COLOR_YELLOW);

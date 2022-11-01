@@ -135,11 +135,30 @@ class ResourceMobilizationRepository extends ServiceEntityRepository
 
         $sql = "SELECT rm.*, pmd.particulars as materials_particulars FROM resource_mobilization as rm
                 LEFT JOIN program_materials_development as pmd ON rm.materials_id = pmd.program_materials_development_id
-                WHERE rm.field_office_id = $fieldOfficeId AND rm.date BETWEEN CAST('$min' AS DATE) AND CAST('$max' AS DATE)
+                WHERE rm.field_office_id = $fieldOfficeId
+                AND rm.date BETWEEN CAST('$min' AS DATE) AND CAST('$max' AS DATE)
                 ORDER BY rm.category DESC";
         $stmt = $conn->prepare($sql);
         $query = $stmt->executeQuery();
 
         return $query->fetchAllAssociative();
     }
+
+//    public function getVolunteerIdsByDateRange(array $minMaxDate, int $fieldOfficeId): ?array
+//    {
+//        $conn = $this->getEntityManager()->getConnection();
+//        $min = $minMaxDate['min'];
+//        $max = $minMaxDate['max'];
+//
+//        $sql = "SELECT DISTINCT rm.resources_secured_by FROM resource_mobilization as rm
+//                WHERE rm.field_office_id = $fieldOfficeId
+//                AND rm.type = 'VPA'
+//                AND is2.date BETWEEN CAST('$min' AS DATE) AND CAST('$max' AS DATE)
+//                AND is2.deleted_at IS NULL
+//                ";
+//        $stmt = $conn->prepare($sql);
+//        $query = $stmt->executeQuery();
+//
+//        return $query->fetchAllAssociative();
+//    }
 }
