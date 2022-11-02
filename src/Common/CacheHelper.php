@@ -367,4 +367,9 @@ class CacheHelper
 
         return 'positions_' . $page . '_' . $size . '_' . $searchColumn . '_' . $searchValue . '_' . $jsonColumn;
     }
+
+    public function getVolunteerSupervisionPaginatedKey(int $page, int $size): string
+    {
+        return 'volunteer_supervision_' . $page . '_' . $size;
+    }
 }

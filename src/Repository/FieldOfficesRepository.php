@@ -71,7 +71,7 @@ class FieldOfficesRepository extends ServiceEntityRepository
             'page' => $page
         ];
 
-        return $this->helper->createPaginatedResponseCustomQuery($params, function() use ($pageSize, $page) {
+        return $this->helper->createPaginatedResponseCustomQuery($params, function () use ($pageSize, $page) {
             $startOffset = $pageSize * ($page-1);
             $result = [];
 

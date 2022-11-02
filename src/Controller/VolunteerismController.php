@@ -636,6 +636,17 @@ class VolunteerismController extends AbstractController
     }
 
     /**
+     * @Route("/volunteer-supervision/{page}/{pageSize}", methods={"GET"})
+     */
+    public function getPaginatedVolunteerSupervision(Request $request): Response
+    {
+        return $this->json($this->volunteerSupervisionsService->getPaginated(
+            (int) $request->get("page"),
+            (int) $request->get("pageSize")
+        ));
+    }
+
+    /**
      * @Route("/capability-building/create", methods={"POST"})
      */
     public function createCapabilityBuilding(Request $request): Response

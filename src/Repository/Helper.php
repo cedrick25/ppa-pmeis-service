@@ -72,7 +72,7 @@ class Helper
      * @return array
      * @throws InvalidArgumentException|CacheException
      */
-    public function createPaginatedResponse(array $params, Callable $getQuery): array
+    public function createPaginatedResponse(array $params, callable $getQuery): array
     {
         return $this->cache->get($params['cacheKey'], function (ItemInterface $item) use ($params, $getQuery) {
             $item->expiresAt($params['expiration']);

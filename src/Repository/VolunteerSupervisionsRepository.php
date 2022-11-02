@@ -9,6 +9,7 @@ use App\Entity\VolunteerSupervisions;
 use App\Model\VolunteerSupervisions as VolunteerSupervisionsModel;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\DBAL\Connection;
+use Doctrine\DBAL\Exception;
 use Doctrine\ORM\ORMException;
 use Doctrine\Persistence\ManagerRegistry;
 use Psr\Cache\CacheException;
@@ -48,7 +49,7 @@ class VolunteerSupervisionsRepository extends ServiceEntityRepository
             'cacheTag' => self::CACHE_TAG
         ];
 
-        return $this->helper->createCachedResponse($params, function() {
+        return $this->helper->createCachedResponse($params, function () {
             return $this->createQueryBuilder('vs')
                 ->orderBy('vs.volunteerSupervisionsId', 'DESC')
                 ->getQuery()
@@ -117,8 +118,7 @@ class VolunteerSupervisionsRepository extends ServiceEntityRepository
     }
 
     /**
-     * @throws \Doctrine\DBAL\Exception
-     * @throws \Doctrine\DBAL\Driver\Exception
+     * @throws Exception
      */
     public function findByQuarter(int $quarterId, int $fieldOfficeId): array
     {
@@ -141,7 +141,7 @@ class VolunteerSupervisionsRepository extends ServiceEntityRepository
     /**
      * @param array $ids
      * @return array
-     * @throws \Doctrine\DBAL\Exception
+     * @throws Exception
      */
     public function findByVolunteerIds(array $ids): array
     {
@@ -164,5 +164,43 @@ class VolunteerSupervisionsRepository extends ServiceEntityRepository
             );
 
         return $query->fetchAllAssociative();
+    }
+
+    /**
+     * @param int $page
+     * @param int $pageSize
+     * @return array<string, mixed>
+     * @throws InvalidArgumentException
+     * @throws CacheException
+     */
+    public function paginated(int $page = 1, int $pageSize = 10): array
+    {
+        $params = [
+            'cacheKey' => $this->cacheHelper->getVolunteerSupervisionPaginatedKey($page, $pageSize),
+            'expiration' => $this->cacheHelper->getExpirationDateTime(),
+            'cacheTag' => self::CACHE_TAG,
+            'pageSize' => $pageSize,
+            'page' => $page
+        ];
+
+        return $this->helper->createPaginatedResponseCustomQuery($params, function () use ($pageSize, $page) {
+            $startOffset = $pageSize * ($page-1);
+            $result = [];
+
+            $conn = $this->getEntityManager()->getConnection();
+            $sql = "SELECT vs.*, c.last_name, c.first_name, c.middle_name FROM volunteer_supervisions as vs
+                    LEFT JOIN clients c on vs.client_id = c.client_id
+                    WHERE vs.deleted_at IS NULL ";
+
+            $result['totalItems'] = $this->helper->getCustomQueryPaginatedTotalItems($conn, $sql);
+
+            $sql .="LIMIT $pageSize OFFSET $startOffset";
+
+            $stmt = $conn->prepare($sql);
+            $query = $stmt->executeQuery();
+            $result['data'] = $query->fetchAllAssociative();
+
+            return $result;
+        });
     }
 }

@@ -82,7 +82,7 @@ class RegionsRepository extends ServiceEntityRepository
             'page' => $page
         ];
 
-        return $this->helper->createPaginatedResponse($params, function() {
+        return $this->helper->createPaginatedResponse($params, function () {
             return $this->createQueryBuilder('r')
                 ->where('r.deletedAt IS NULL')
                 ->orderBy('r.regionId');

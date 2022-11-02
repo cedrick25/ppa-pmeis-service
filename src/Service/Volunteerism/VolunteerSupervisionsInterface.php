@@ -15,4 +15,6 @@ interface VolunteerSupervisionsInterface
     public function deleteById(int $id): array;
 
     public function getReport(int $quarterId, int $fieldOfficeId): array;
+
+    public function getPaginated(int $page, int $pageSize): array;
 }
