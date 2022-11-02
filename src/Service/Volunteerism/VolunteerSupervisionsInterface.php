@@ -17,4 +17,6 @@ interface VolunteerSupervisionsInterface
     public function getReport(int $quarterId, int $fieldOfficeId): array;
 
     public function getPaginated(int $page, int $pageSize): array;
+
+    public function update(int $id, VolunteerSupervisionsModel $data): array;
 }

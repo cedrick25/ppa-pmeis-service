@@ -166,4 +166,17 @@ class VolunteerSupervisions implements VolunteerSupervisionsInterface
             );
         }
     }
+
+    public function update(int $id, VolunteerSupervisionsModel $data): array
+    {
+        $this->deleteById($id);
+
+        $response = $this->create($data);
+
+        if (ResponseEnum::CREATING_SUCCESS != $response['message']) {
+            return $this->appFormatter->formatResponse(ResponseEnum::UPDATING_FAILED, []);
+        }
+
+        return $this->appFormatter->formatResponse(ResponseEnum::UPDATING_SUCCESS, []);
+    }
 }

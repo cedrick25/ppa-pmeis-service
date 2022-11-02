@@ -647,6 +647,30 @@ class VolunteerismController extends AbstractController
     }
 
     /**
+     * @Route("/volunteer-supervision/update/{id}", methods={"POST"})
+     */
+    public function updateVolunteerSupervision(Request $request): Response
+    {
+        try {
+            $data = json_decode($request->getContent(), true);
+
+            /** @var VolunteerSupervisionsModel $volunteerSupervision */
+            $volunteerSupervision = $this->appHydrator->convertArrayToObject($data, VolunteerSupervisionsModel::class);
+
+            return $this->json($this->volunteerSupervisionsService->update(
+                (int) $request->get("id"),
+                $volunteerSupervision,
+            ));
+        } catch (\ReflectionException $exception) {
+            return $this->json($this->appFormatter->formatResponse(
+                'Updating Volunteer Supervision failed',
+                null,
+                ['reflection' => $exception->getMessage()])
+            );
+        }
+    }
+
+    /**
      * @Route("/capability-building/create", methods={"POST"})
      */
     public function createCapabilityBuilding(Request $request): Response
