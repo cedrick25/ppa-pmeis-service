@@ -27,11 +27,6 @@ class VolunteerSupervisions
     /**
      * @ORM\Column(type="integer")
      */
-    private int $clientId;
-
-    /**
-     * @ORM\Column(type="integer")
-     */
     private int $servicesRenderedId;
 
     /**
@@ -87,18 +82,6 @@ class VolunteerSupervisions
     public function setVolunteerId(int $volunteerId): self
     {
         $this->volunteerId = $volunteerId;
-
-        return $this;
-    }
-
-    public function getClientId(): ?int
-    {
-        return $this->clientId;
-    }
-
-    public function setClientId(int $clientId): self
-    {
-        $this->clientId = $clientId;
 
         return $this;
     }

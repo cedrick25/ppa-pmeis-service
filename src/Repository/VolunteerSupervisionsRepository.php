@@ -32,6 +32,7 @@ class VolunteerSupervisionsRepository extends ServiceEntityRepository
         private CacheHelper $cacheHelper,
         private Helper $helper,
         private AppDateHelper $appDateHelper,
+        private VolunteerSupervisionClientsRepository $supervisionClientsRepository,
     ) {
         parent::__construct($registry, VolunteerSupervisions::class);
     }
@@ -61,32 +62,27 @@ class VolunteerSupervisionsRepository extends ServiceEntityRepository
      * @throws InvalidArgumentException
      * @throws \Exception
      */
-    public function bulkCreate(VolunteerSupervisionsModel $data): array
+    public function create(VolunteerSupervisionsModel $data): int
     {
-        $ids = [];
         $this->cache->invalidateTags([self::CACHE_TAG]);
 
-        foreach ($data->getClientIds() as $clientId) {
-            $newVolunteerSupervisions = new VolunteerSupervisions();
-            $newVolunteerSupervisions->setVolunteerId($data->getVolunteerId());
-            $newVolunteerSupervisions->setClientId($clientId);
-            $newVolunteerSupervisions->setServicesRenderedId($data->getServicesRenderedId());
-            $newVolunteerSupervisions->setCommunityResourcesTapped($data->getCommunityResourcesTapped());
-            $newVolunteerSupervisions->setAssistanceReceived($data->getAssistanceReceived());
-            $newVolunteerSupervisions->setRemarks($data->getRemarks());
-            $newVolunteerSupervisions->setFieldOfficeId($data->getFieldOfficeId());
-            $newVolunteerSupervisions->setQuarterId($data->getQuarterId());
-            $newVolunteerSupervisions->setCreatedAt($this->appDateHelper->getCurrentImmutableDate());
+        $entity = new VolunteerSupervisions();
+        $entity->setVolunteerId($data->getVolunteerId());
+        $entity->setServicesRenderedId($data->getServicesRenderedId());
+        $entity->setCommunityResourcesTapped($data->getCommunityResourcesTapped());
+        $entity->setAssistanceReceived($data->getAssistanceReceived());
+        $entity->setRemarks($data->getRemarks());
+        $entity->setFieldOfficeId($data->getFieldOfficeId());
+        $entity->setQuarterId($data->getQuarterId());
+        $entity->setCreatedAt($this->appDateHelper->getCurrentImmutableDate());
+        $this->getEntityManager()->persist($entity);
+        $this->getEntityManager()->flush();
 
-            $this->getEntityManager()->persist($newVolunteerSupervisions);
-            $this->getEntityManager()->flush();
+        $id = $entity->getVolunteerSupervisionsId();
 
-            $ids[] = $newVolunteerSupervisions->getVolunteerSupervisionsId();
-        }
+        $this->supervisionClientsRepository->bulkCreate($id, $data->getClientIds());
 
-        $this->getEntityManager()->clear();
-
-        return $ids;
+        return $id;
     }
 
     /**
@@ -117,6 +113,21 @@ class VolunteerSupervisionsRepository extends ServiceEntityRepository
         return ($volunteerSupervision == null) ? false : $volunteerSupervision;
     }
 
+    public function getById(int $id): array|bool
+    {
+        return $this->getEntityManager()->getConnection()
+            ->executeQuery(
+                "SELECT vs.*, v.last_name, v.first_name, v.middle_name, fo.name field_office, r.name region,
+                        r.region_id as region_id
+                    FROM volunteer_supervisions as vs
+                    LEFT JOIN volunteer v on vs.volunteer_id = v.volunteer_id
+                    LEFT JOIN field_offices fo on vs.field_office_id = fo.field_office_id
+                    LEFT JOIN regions r on fo.region_id = r.region_id
+                    WHERE vs.volunteer_supervisions_id = :volunteer_supervisions_id AND vs.deleted_at IS NULL",
+                ['volunteer_supervisions_id' => $id]
+            )->fetchAssociative();
+    }
+
     /**
      * @throws Exception
      */
@@ -128,7 +139,9 @@ class VolunteerSupervisionsRepository extends ServiceEntityRepository
                 c.gender  c_gender, sr.name service_rendered
                 FROM volunteer_supervisions as vs
                 LEFT JOIN volunteer v on vs.volunteer_id = v.volunteer_id
-                LEFT JOIN clients c on vs.client_id = c.client_id
+                LEFT JOIN volunteer_supervision_clients vsc on
+                    vs.volunteer_supervisions_id = vsc.volunteer_supervision_id
+                LEFT JOIN clients c on vsc.client_id = c.client_id
                 LEFT JOIN services_rendered sr on vs.services_rendered_id = sr.services_rendered_id
                 WHERE vs.quarter_id = $quarterId AND vs.field_office_id = $fieldOfficeId";
 
@@ -188,8 +201,12 @@ class VolunteerSupervisionsRepository extends ServiceEntityRepository
             $result = [];
 
             $conn = $this->getEntityManager()->getConnection();
-            $sql = "SELECT vs.*, c.last_name, c.first_name, c.middle_name FROM volunteer_supervisions as vs
-                    LEFT JOIN clients c on vs.client_id = c.client_id
+            $sql = "SELECT vs.*, v.last_name, v.first_name, v.middle_name, fo.name field_office, r.name region,
+                        r.region_id as region_id
+                    FROM volunteer_supervisions as vs
+                    LEFT JOIN volunteer v on vs.volunteer_id = v.volunteer_id
+                    LEFT JOIN field_offices fo on vs.field_office_id = fo.field_office_id
+                    LEFT JOIN regions r on fo.region_id = r.region_id
                     WHERE vs.deleted_at IS NULL ";
 
             $result['totalItems'] = $this->helper->getCustomQueryPaginatedTotalItems($conn, $sql);

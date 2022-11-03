@@ -6,6 +6,7 @@ use App\Common\AppFormatter;
 use App\Enum\AuditTrailActions;
 use App\Enum\Response as ResponseEnum;
 use App\Model\VolunteerSupervisions as VolunteerSupervisionsModel;
+use App\Repository\VolunteerSupervisionClientsRepository;
 use App\Repository\VolunteerSupervisionsRepository;
 use App\Service\System\AuditTrail;
 use Psr\Cache\CacheException;
@@ -21,6 +22,7 @@ class VolunteerSupervisions implements VolunteerSupervisionsInterface
         private AppFormatter                    $appFormatter,
         private VolunteerSupervisionsRepository $repository,
         private AuditTrail                      $auditTrail,
+        private VolunteerSupervisionClientsRepository $supervisionClientsRepository,
     ) {
         $class = new \ReflectionClass($this);
         $this->shortName = $class->getShortName();
@@ -39,11 +41,8 @@ class VolunteerSupervisions implements VolunteerSupervisionsInterface
                 );
             }
 
-            $ids = $this->repository->bulkCreate($data);
-
-            foreach ($ids as $id) {
-                $this->auditTrail->log(AuditTrailActions::CREATE, $data->jsonSerialize(), $this->shortName, $id);
-            }
+            $id = $this->repository->create($data);
+            $this->auditTrail->log(AuditTrailActions::CREATE, $data->jsonSerialize(), $this->shortName, $id);
 
             return $this->appFormatter->formatResponse(ResponseEnum::CREATING_SUCCESS, []);
         } catch (InvalidArgumentException $exception) {
@@ -78,11 +77,15 @@ class VolunteerSupervisions implements VolunteerSupervisionsInterface
 
     public function getById(int $id): array
     {
-        $volunteerSupervision = $this->repository->isExistingById($id);
+        $volunteerSupervision = $this->repository->getById($id);
 
         if (! $volunteerSupervision) {
             return $this->appFormatter->formatResponse(ResponseEnum::NO_DATA, null);
         }
+
+        $clients = $this->supervisionClientsRepository
+            ->findClientsWithDetailsBySupervisionId([$id]);
+        $volunteerSupervision['clients'] = $clients[$id];
 
         return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_SUCCESS, $volunteerSupervision);
     }
@@ -153,8 +156,20 @@ class VolunteerSupervisions implements VolunteerSupervisionsInterface
         try {
             $results = $this->repository->paginated($page, $pageSize);
 
-            if (sizeof($results) == 0) {
+            if (empty($results)) {
                 return $this->appFormatter->formatResponse(ResponseEnum::NO_DATA, null);
+            }
+
+            $volunteerSupervisionsId = array_map(
+                fn($item) => (int) $item['volunteer_supervisions_id'],
+                $results['items']
+            );
+            $clients = $this->supervisionClientsRepository
+                ->findClientsWithDetailsBySupervisionId($volunteerSupervisionsId);
+
+            foreach ($results['items'] as $i => $item) {
+                $volunteerSupervisionsId = $item['volunteer_supervisions_id'];
+                $results['items'][$i]['clients'] = $clients[$volunteerSupervisionsId];
             }
 
             return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_SUCCESS, $results);
