@@ -118,11 +118,12 @@ class VolunteerSupervisionsRepository extends ServiceEntityRepository
         return $this->getEntityManager()->getConnection()
             ->executeQuery(
                 "SELECT vs.*, v.last_name, v.first_name, v.middle_name, fo.name field_office, r.name region,
-                        r.region_id as region_id
+                        r.region_id as region_id, q.year
                     FROM volunteer_supervisions as vs
                     LEFT JOIN volunteer v on vs.volunteer_id = v.volunteer_id
                     LEFT JOIN field_offices fo on vs.field_office_id = fo.field_office_id
                     LEFT JOIN regions r on fo.region_id = r.region_id
+                    LEFT JOIN quarters q on vs.quarter_id = q.quarter_id
                     WHERE vs.volunteer_supervisions_id = :volunteer_supervisions_id AND vs.deleted_at IS NULL",
                 ['volunteer_supervisions_id' => $id]
             )->fetchAssociative();
