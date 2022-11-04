@@ -5,6 +5,7 @@ namespace App\Repository;
 use App\Common\AppDateHelper;
 use App\Common\CacheHelper;
 use App\Entity\VpaAssociationInitiatedActivities;
+use App\Enum\Response as ResponseEnum;
 use App\Model\VpaAssociationInitiatedActivities as VpaAssociationInitiatedActivitiesModel;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\ORM\ORMException;
@@ -29,7 +30,7 @@ class VpaAssociationInitiatedActivitiesRepository extends ServiceEntityRepositor
         private CacheHelper $cacheHelper,
         private Helper $helper,
         private AppDateHelper $appDateHelper,
-    ){
+    ) {
         parent::__construct($registry, VpaAssociationInitiatedActivities::class);
     }
 
@@ -64,7 +65,9 @@ class VpaAssociationInitiatedActivitiesRepository extends ServiceEntityRepositor
 
         $newVpaAssociationInitiatedActivities = new VpaAssociationInitiatedActivities();
         $newVpaAssociationInitiatedActivities->setServiceRenderedId($data->getServicesRenderedId());
-        $newVpaAssociationInitiatedActivities->setVenueDate($this->appDateHelper->convertStringToImmutableDate($data->getVenueDate()));
+        $newVpaAssociationInitiatedActivities->setVenueDate(
+            $this->appDateHelper->convertStringToImmutableDate($data->getVenueDate())
+        );
         $newVpaAssociationInitiatedActivities->setVenueId($data->getVenueId());
         $newVpaAssociationInitiatedActivities->setVolunteerId($data->getVolunteerId());
         $newVpaAssociationInitiatedActivities->setRole($data->getRole());
@@ -119,13 +122,15 @@ class VpaAssociationInitiatedActivitiesRepository extends ServiceEntityRepositor
     public function getReport(int $quarterId, int $fieldOfficeId): array
     {
         $conn = $this->getEntityManager()->getConnection();
-        $sql = "SELECT sr.name service_rendered, vaia.venue_date, v.name as venue, v2.first_name, v2.middle_name, v2.last_name, v2.gender,
-                vaia.role, vaia.crd_resources_tapped, vaia.crd_assistance_received, vaia.remarks FROM vpa_association_initiated_activities vaia
+        $sql = "SELECT sr.name service_rendered, vaia.venue_date, v.name as venue, v2.first_name,
+                v2.middle_name, v2.last_name, v2.gender, vaia.role, vaia.crd_resources_tapped,
+                vaia.crd_assistance_received, vaia.remarks
+                FROM vpa_association_initiated_activities vaia
                 LEFT JOIN services_rendered sr on vaia.service_rendered_id = sr.services_rendered_id
                 LEFT JOIN venues v on vaia.venue_id = v.venue_id
                 LEFT JOIN volunteer v2 on vaia.volunteer_id = v2.volunteer_id
-                WHERE vaia.field_office_id = $fieldOfficeId 
-                AND vaia.quarter_id = $quarterId 
+                WHERE vaia.field_office_id = $fieldOfficeId
+                AND vaia.quarter_id = $quarterId
                 AND vaia.deleted_at IS NULL";
         $stmt = $conn->prepare($sql);
         $query = $stmt->executeQuery();
@@ -147,5 +152,101 @@ class VpaAssociationInitiatedActivitiesRepository extends ServiceEntityRepositor
         $query = $stmt->executeQuery();
 
         return $query->fetchAllAssociative();
+    }
+
+    /**
+     * @param int $page
+     * @param int $pageSize
+     * @return array<string, mixed>
+     * @throws InvalidArgumentException
+     * @throws CacheException
+     */
+    public function paginated(int $page = 1, int $pageSize = 10): array
+    {
+        $params = [
+            'cacheKey' => 'volunteer_association_' . $page . '_' . $pageSize,
+            'expiration' => $this->cacheHelper->getExpirationDateTime(),
+            'cacheTag' => self::CACHE_TAG,
+            'pageSize' => $pageSize,
+            'page' => $page
+        ];
+
+        return $this->helper->createPaginatedResponseCustomQuery($params, function () use ($pageSize, $page) {
+            $startOffset = $pageSize * ($page-1);
+            $result = [];
+
+            $conn = $this->getEntityManager()->getConnection();
+            $sql = "SELECT vaia.*, v.last_name, v.first_name, v.middle_name, fo.name field_office, r.name region,
+                        r.region_id as region_id, sr.name service_rendered, ve.name venue
+                    FROM vpa_association_initiated_activities as vaia
+                    LEFT JOIN volunteer v on vaia.volunteer_id = v.volunteer_id
+                    LEFT JOIN services_rendered sr on vaia.service_rendered_id = sr.services_rendered_id
+                    LEFT JOIN venues ve on vaia.venue_id = ve.venue_id
+                    LEFT JOIN field_offices fo on vaia.field_office_id = fo.field_office_id
+                    LEFT JOIN regions r on fo.region_id = r.region_id
+                    WHERE vaia.deleted_at IS NULL ";
+
+            $result['totalItems'] = $this->helper->getCustomQueryPaginatedTotalItems($conn, $sql);
+
+            $sql .="LIMIT $pageSize OFFSET $startOffset";
+
+            $stmt = $conn->prepare($sql);
+            $query = $stmt->executeQuery();
+            $result['data'] = $query->fetchAllAssociative();
+
+            return $result;
+        });
+    }
+
+    public function getById(int $id): array
+    {
+        return $this->getEntityManager()->getConnection()
+            ->executeQuery(
+                "SELECT vaia.*, v.last_name, v.first_name, v.middle_name, fo.name field_office, r.name region,
+                        r.region_id as region_id, sr.name service_rendered, ve.name venue
+                    FROM vpa_association_initiated_activities as vaia
+                    LEFT JOIN volunteer v on vaia.volunteer_id = v.volunteer_id
+                    LEFT JOIN services_rendered sr on vaia.service_rendered_id = sr.services_rendered_id
+                    LEFT JOIN venues ve on vaia.venue_id = ve.venue_id
+                    LEFT JOIN field_offices fo on vaia.field_office_id = fo.field_office_id
+                    LEFT JOIN regions r on fo.region_id = r.region_id
+                    WHERE vaia.vpa_association_initiated_activity_id = :id AND vaia.deleted_at IS NULL",
+                ['id' => $id]
+            )->fetchAssociative();
+    }
+
+    /**
+     * @throws \Psr\Cache\InvalidArgumentException
+     * @throws \Doctrine\ORM\ORMException
+     */
+    public function update(int $id, VpaAssociationInitiatedActivitiesModel $data): string
+    {
+        $this->cache->invalidateTags([self::CACHE_TAG]);
+
+        $entity = $this->isExistingById($id);
+
+        if (! $entity) {
+            return ResponseEnum::NO_RECORD;
+        }
+
+        $entity->setServiceRenderedId($data->getServicesRenderedId());
+        $entity->setVenueDate(
+            $this->appDateHelper->convertStringToImmutableDate($data->getVenueDate())
+        );
+        $entity->setVenueId($data->getVenueId());
+        $entity->setVolunteerId($data->getVolunteerId());
+        $entity->setRole($data->getRole());
+        $entity->setCrdResourcesTapped($data->getCrdResourcesTapped());
+        $entity->setCrdAssistanceReceived($data->getCrdAssistanceReceived());
+        $entity->setRemarks($data->getRemarks());
+        $entity->setFieldOfficeId($data->getFieldOfficeId());
+        $entity->setQuarterId($data->getQuarterId());
+        $entity->setCreatedAt($this->appDateHelper->getCurrentImmutableDate());
+        $entity->setUpdatedAt($this->appDateHelper->getCurrentImmutableDate());
+
+        $this->getEntityManager()->persist($entity);
+        $this->getEntityManager()->flush();
+
+        return ResponseEnum::OK;
     }
 }

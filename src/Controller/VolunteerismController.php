@@ -713,11 +713,18 @@ class VolunteerismController extends AbstractController
             $data = json_decode($request->getContent(), true);
 
             /** @var VpaAssociationInitiatedActivitiesModel $vpaAssociationInitiatedActivity */
-            $vpaAssociationInitiatedActivity = $this->appHydrator->convertArrayToObject($data, VpaAssociationInitiatedActivitiesModel::class);
+            $vpaAssociationInitiatedActivity = $this->appHydrator->convertArrayToObject(
+                $data,
+                VpaAssociationInitiatedActivitiesModel::class
+            );
 
             return $this->json($this->vpaAssociationInitiatedActivities->create($vpaAssociationInitiatedActivity));
         } catch (\ReflectionException $exception) {
-            return $this->json($this->appFormatter->formatResponse('Creating vpa association initiated activities failed', null, ['reflection' => $exception->getMessage()]));
+            return $this->json($this->appFormatter->formatResponse(
+                'Creating vpa association initiated activities failed',
+                null,
+                ['reflection' => $exception->getMessage()])
+            );
         }
     }
 
@@ -746,5 +753,51 @@ class VolunteerismController extends AbstractController
             (int) $request->get("quarterId"),
             (int) $request->get("fieldOfficeId")
         ));
+    }
+
+    /**
+     * @Route("/vpa-association-initiated-ctivity/{page}/{pageSize}", methods={"GET"})
+     */
+    public function getPaginatedVolunteerAssociation(Request $request): Response
+    {
+        return $this->json($this->vpaAssociationInitiatedActivities->getPaginated(
+            (int) $request->get("page"),
+            (int) $request->get("pageSize")
+        ));
+    }
+
+    /**
+     * @Route("/vpa-association-initiated-ctivity/by/id/{id}", methods={"GET"})
+     */
+    public function getVpaAssociationById(Request $request): Response
+    {
+        return $this->json($this->vpaAssociationInitiatedActivities->getById((int) $request->get("id")));
+    }
+
+    /**
+     * @Route("/vpa-association-initiated-ctivity/update/{id}", methods={"POST"})
+     */
+    public function updateVpaAssociationInitiatedActivity(Request $request): Response
+    {
+        try {
+            $data = json_decode($request->getContent(), true);
+
+            /** @var VpaAssociationInitiatedActivitiesModel $vpaAssociationInitiatedActivity */
+            $vpaAssociationInitiatedActivity = $this->appHydrator->convertArrayToObject(
+                $data,
+                VpaAssociationInitiatedActivitiesModel::class
+            );
+
+            return $this->json($this->vpaAssociationInitiatedActivities->update(
+                (int) $request->get("id"),
+                $vpaAssociationInitiatedActivity
+            ));
+        } catch (\ReflectionException $exception) {
+            return $this->json($this->appFormatter->formatResponse(
+                'Creating vpa association initiated activities failed',
+                null,
+                ['reflection' => $exception->getMessage()]
+            ));
+        }
     }
 }
