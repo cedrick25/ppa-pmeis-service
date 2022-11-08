@@ -14,7 +14,7 @@ interface SupportOfRegionToFieldOfficeInterface
 
     public function deleteById(int $id): array;
 
-    public function getReport(int $quarterId, int $fieldOfficeId, string $category): array;
+    public function getReport(int $quarterId, int $regionId, string $category): array;
 
     public function getAllCategoryReport(int $quarterId, int $fieldOfficeId): array;
 }

@@ -7,6 +7,7 @@ use App\Common\CacheHelper;
 use App\Entity\SupportOfRegionToFieldOffice;
 use App\Model\SupportOfRegionToFieldOffice as SupportOfRegionToFieldOfficeModel;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
+use Doctrine\DBAL\Exception;
 use Doctrine\ORM\OptimisticLockException;
 use Doctrine\ORM\ORMException;
 use Doctrine\Persistence\ManagerRegistry;
@@ -59,8 +60,6 @@ class SupportOfRegionToFieldOfficeRepository extends ServiceEntityRepository
      * @param SupportOfRegionToFieldOfficeModel $data
      * @return int|null
      * @throws InvalidArgumentException
-     * @throws ORMException
-     * @throws OptimisticLockException
      * @throws \Exception
      */
     public function create(SupportOfRegionToFieldOfficeModel $data): int | null
@@ -71,7 +70,7 @@ class SupportOfRegionToFieldOfficeRepository extends ServiceEntityRepository
         $newSupportOfRegionToFieldOffice->setCategory($data->getCategory());
         $newSupportOfRegionToFieldOffice->setSubCategory($data->getSubCategory());
         $newSupportOfRegionToFieldOffice->setDate($this->appDateHelper->convertStringToImmutableDate($data->getDate()));
-        $newSupportOfRegionToFieldOffice->setFieldOfficeId($data->getFieldOfficeId());
+        $newSupportOfRegionToFieldOffice->setRegionId($data->getRegionId());
         $newSupportOfRegionToFieldOffice->setParticulars($data->getParticulars());
         $newSupportOfRegionToFieldOffice->setAmount($data->getAmount());
         $newSupportOfRegionToFieldOffice->setAttributableCost($data->getAttributableCost());
@@ -87,7 +86,6 @@ class SupportOfRegionToFieldOfficeRepository extends ServiceEntityRepository
 
     /**
      * @throws InvalidArgumentException
-     * @throws ORMException
      */
     public function delete(int $id): bool
     {
@@ -116,20 +114,20 @@ class SupportOfRegionToFieldOfficeRepository extends ServiceEntityRepository
 
     /**
      * @param string[] $minMaxDate
-     * @param int $fieldOfficeId
+     * @param int $regionId
+     * @param string $category
      * @return array<int, array<string, mixed>>
-     * @throws \Doctrine\DBAL\Exception
-     * @throws \Doctrine\DBAL\Driver\Exception
+     * @throws Exception
      */
-    public function findByDateRange(array $minMaxDate, int $fieldOfficeId, string $category): array
+    public function findByDateRange(array $minMaxDate, int $regionId, string $category): array
     {
         $conn = $this->getEntityManager()->getConnection();
         $min = $minMaxDate['min'];
         $max = $minMaxDate['max'];
 
-        $sql = "SELECT sortfo.*, fo.name as field_office FROM support_of_region_to_field_office as sortfo
-                LEFT JOIN field_offices as fo ON sortfo.field_office_id = fo.field_office_id
-                WHERE sortfo.field_office_id = $fieldOfficeId
+        $sql = "SELECT sortfo.*, r.name as region FROM support_of_region_to_field_office as sortfo
+                LEFT JOIN regions as r ON sortfo.region_id = r.region_id
+                WHERE sortfo.region_id = $regionId
                   AND sortfo.category = '$category'
                   AND sortfo.date BETWEEN CAST('$min' AS DATE) AND CAST('$max' AS DATE)";
         $stmt = $conn->prepare($sql);
@@ -143,17 +141,16 @@ class SupportOfRegionToFieldOfficeRepository extends ServiceEntityRepository
      * @param int $fieldOfficeId
      * @return array<int, array<string, mixed>>
      * @throws \Doctrine\DBAL\Exception
-     * @throws \Doctrine\DBAL\Driver\Exception
      */
-    public function findByDateRangeAndAllCategory(array $minMaxDate, int $fieldOfficeId): array
+    public function findByDateRangeAndAllCategory(array $minMaxDate, int $regionId): array
     {
         $conn = $this->getEntityManager()->getConnection();
         $min = $minMaxDate['min'];
         $max = $minMaxDate['max'];
 
-        $sql = "SELECT sortfo.*, fo.name as field_office FROM support_of_region_to_field_office as sortfo
-                LEFT JOIN field_offices as fo ON sortfo.field_office_id = fo.field_office_id
-                WHERE sortfo.field_office_id = $fieldOfficeId
+        $sql = "SELECT sortfo.*, r.name as region FROM support_of_region_to_field_office as sortfo
+                LEFT JOIN regions as r ON sortfo.region_id = r.region_id
+                WHERE sortfo.region_id = $regionId
                   AND sortfo.date BETWEEN CAST('$min' AS DATE) AND CAST('$max' AS DATE)";
         $stmt = $conn->prepare($sql);
         $query = $stmt->executeQuery();

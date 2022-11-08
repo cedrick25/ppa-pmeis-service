@@ -10,7 +10,6 @@ use App\Service\Volunteerism\SupportOfRegionToFieldOffice;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Style\Border;
-use PhpOffice\PhpSpreadsheet\Style\Fill;
 use PhpOffice\PhpSpreadsheet\Writer\Exception;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
@@ -70,7 +69,7 @@ class SORTFO implements Form
             $date = $this->appDateHelper->convertStringToImmutableDate($row['date']);
 
             $spreadsheet->getActiveSheet()->setCellValue('A' . $this->lastFilledOutCellY, $date->format('d-M-y'));
-            $spreadsheet->getActiveSheet()->setCellValue('B' . $this->lastFilledOutCellY, $row['field_office']);
+            $spreadsheet->getActiveSheet()->setCellValue('B' . $this->lastFilledOutCellY, $row['region']);
             $spreadsheet->getActiveSheet()->setCellValue('C' . $this->lastFilledOutCellY, $row['particulars']);
             $spreadsheet->getActiveSheet()->setCellValue('D' . $this->lastFilledOutCellY, number_format(floatval($row['amount'])));
             $spreadsheet->getActiveSheet()->setCellValue('E' . $this->lastFilledOutCellY, number_format(floatval($row['attributable_cost'])));
@@ -110,7 +109,7 @@ class SORTFO implements Form
             'b2' => '_______________Quarter 20______________',
             'a4' => $clientTypes[$this->category],
             'a5' => 'DATE',
-            'b5' => 'FIELD OFFICE(S)',
+            'b5' => 'REGION (S)',
             'c5' => 'PARTICULARS',
             'd5' => 'AMOUNT',
             'e5' => 'ATTRIBUTABLE COST',
@@ -160,7 +159,7 @@ class SORTFO implements Form
     {
         $result = $this->service->getReport(
             $data['quarter_id'],
-            $data['field_office_id'],
+            $data['region_id'],
             $data['category']
         );
 

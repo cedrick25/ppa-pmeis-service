@@ -87,20 +87,26 @@ class SupportOfRegionToFieldOffice implements SupportOfRegionToFieldOfficeInterf
             $isDeleted = $this->repository->delete($id);
 
             if (! $isDeleted) {
-                return $this->appFormatter->formatResponse(ResponseEnum::DELETING_FAILED, null, ['app' => ResponseEnum::NO_DATA]);
+                return $this->appFormatter->formatResponse(
+                    ResponseEnum::DELETING_FAILED,
+                    null,
+                    ['app' => ResponseEnum::NO_DATA]
+                );
             }
 
             $this->auditTrail->log(AuditTrailActions::DELETE, [], $this->shortName, $id);
 
             return $this->appFormatter->formatResponse(ResponseEnum::DELETING_SUCCESS, null);
-        } catch (InvalidArgumentException $exception) {
-            return $this->appFormatter->formatResponse(ResponseEnum::DELETING_FAILED, null, ['cache' => $exception->getMessage()]);
-        } catch (\Doctrine\ORM\ORMException | ORMException $exception) {
-            return $this->appFormatter->formatResponse(ResponseEnum::DELETING_FAILED, null, ['orm' => $exception->getMessage()]);
+        } catch (InvalidArgumentException | ORMException $exception) {
+            return $this->appFormatter->formatResponse(
+                ResponseEnum::DELETING_FAILED,
+                null,
+                ['cache' => $exception->getMessage()]
+            );
         }
     }
 
-    public function getReport(int $quarterId, int $fieldOfficeId, string $category): array
+    public function getReport(int $quarterId, int $regionId, string $category): array
     {
         try {
             $quarter = $this->quartersRepository->find($quarterId);
@@ -109,7 +115,7 @@ class SupportOfRegionToFieldOffice implements SupportOfRegionToFieldOfficeInterf
             }
 
             $minMaxDate = $this->quartersRepository->getQuarterMinMaxDate($quarter);
-            $supportOfRegionToFieldOffices = $this->repository->findByDateRange($minMaxDate, $fieldOfficeId, $category);
+            $supportOfRegionToFieldOffices = $this->repository->findByDateRange($minMaxDate, $regionId, $category);
 
             if (count($supportOfRegionToFieldOffices) <= 0) {
                 return $this->appFormatter->formatResponse(ResponseEnum::NO_DATA, null);
@@ -117,9 +123,11 @@ class SupportOfRegionToFieldOffice implements SupportOfRegionToFieldOfficeInterf
 
             return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_SUCCESS, $supportOfRegionToFieldOffices);
         } catch (\Exception $e) {
-            return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_SUCCESS, null, ['app' => $e->getMessage()]);
-        } catch (Exception $e) {
-            return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_SUCCESS, null, ['orm' => $e->getMessage()]);
+            return $this->appFormatter->formatResponse(
+                ResponseEnum::FETCHING_SUCCESS,
+                null,
+                ['app' => $e->getMessage()]
+            );
         }
     }
 
@@ -132,17 +140,19 @@ class SupportOfRegionToFieldOffice implements SupportOfRegionToFieldOfficeInterf
             }
 
             $minMaxDate = $this->quartersRepository->getQuarterMinMaxDate($quarter);
-            $supportOfRegionToFieldOffices = $this->repository->findByDateRangeAndAllCategory($minMaxDate, $fieldOfficeId);
+            $results = $this->repository->findByDateRangeAndAllCategory($minMaxDate, $fieldOfficeId);
 
-            if (count($supportOfRegionToFieldOffices) <= 0) {
+            if (empty($results)) {
                 return $this->appFormatter->formatResponse(ResponseEnum::NO_DATA, null);
             }
 
-            return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_SUCCESS, $supportOfRegionToFieldOffices);
+            return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_SUCCESS, $results);
         } catch (\Exception $e) {
-            return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_SUCCESS, null, ['app' => $e->getMessage()]);
-        } catch (Exception $e) {
-            return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_SUCCESS, null, ['orm' => $e->getMessage()]);
+            return $this->appFormatter->formatResponse(
+                ResponseEnum::FETCHING_SUCCESS,
+                null,
+                ['app' => $e->getMessage()]
+            );
         }
     }
 }

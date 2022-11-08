@@ -572,13 +572,13 @@ class VolunteerismController extends AbstractController
     }
 
     /**
-     * @Route("/support-of-region/report/full/{quarterId}/{fieldOfficeId}/{category}", methods={"GET"})
+     * @Route("/support-of-region/report/full/{quarterId}/{regionId}/{category}", methods={"GET"})
      */
     public function getSupportOfRegionReport(Request $request): Response
     {
         return $this->json($this->supportOfRegionToFieldOfficeService->getReport(
             (int) $request->get("quarterId"),
-            (int) $request->get("fieldOfficeId"),
+            (int) $request->get("regionId"),
             $request->get("category"),
         ));
     }
