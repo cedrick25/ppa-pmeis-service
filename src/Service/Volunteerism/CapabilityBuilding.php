@@ -198,4 +198,20 @@ class CapabilityBuilding implements CapabilityBuildingInterface
             );
         }
     }
+
+    public function getById(int $id): array
+    {
+        $result = $this->repository->getById($id);
+
+        if (! $result) {
+            return $this->appFormatter->formatResponse(ResponseEnum::NO_DATA, null);
+        }
+
+
+        $result['participants'] = $this->capabilityBuildingParticipantsRepository
+            ->findParticipantsByCapabilityBuildingsId([$id])[$id];
+
+
+        return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_SUCCESS, $result);
+    }
 }

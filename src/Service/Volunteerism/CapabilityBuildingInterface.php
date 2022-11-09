@@ -18,4 +18,6 @@ interface CapabilityBuildingInterface
     public function getPaginated(int $page, int $pageSize): array;
 
     public function update(int $id, array $data): array;
+
+    public function getById(int $id): array;
 }

@@ -219,4 +219,17 @@ class CapabilityBuildingRepository extends ServiceEntityRepository
 
         return ResponseEnum::OK;
     }
+
+    public function getById(int $id): array
+    {
+        return $this->getEntityManager()->getConnection()
+            ->executeQuery(
+                "SELECT cb.*, fo.name field_office, r.region_id, r.name region
+                    FROM capability_building as cb
+                    LEFT JOIN field_offices fo on cb.field_office_id = fo.field_office_id
+                    LEFT JOIN regions r on fo.region_id = r.region_id
+                    WHERE cb.capability_building_id = :id AND cb.deleted_at IS NULL",
+                ['id' => $id],
+            )->fetchAssociative();
+    }
 }

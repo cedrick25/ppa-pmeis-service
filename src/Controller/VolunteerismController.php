@@ -814,6 +814,16 @@ class VolunteerismController extends AbstractController
     }
 
     /**
+     * @Route("/capability-building/by/id/{id}", methods={"GET"})
+     */
+    public function getCapabilityBuildingById(Request $request): Response
+    {
+        return $this->json($this->capabilityBuildingService->getById(
+            (int) $request->get("id"),
+        ));
+    }
+
+    /**
      * @Route("/vpa-association-initiated-ctivity/create", methods={"POST"})
      */
     public function createVpaAssociationInitiatedActivity(Request $request): Response
