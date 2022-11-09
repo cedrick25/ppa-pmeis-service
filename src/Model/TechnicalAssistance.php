@@ -15,12 +15,8 @@ class TechnicalAssistance implements \JsonSerializable
         private string $venue,
         private int $participantsNo,
         private int $fieldOfficeId,
-        private string $participantsType,
-        private ?int $personnelId = null,
-        private ?string $personnelRole = null,
-        private ?int $vpaId = null,
-        private ?string $vpaRole = null,
         private ?string $remarks = null,
+        private ?array $personsInvolved = [],
         private ?DateTimeInterface $createdAt = null,
         private ?DateTimeInterface $updatedAt = null,
         private ?DateTimeInterface $deletedAt = null,
@@ -80,52 +76,19 @@ class TechnicalAssistance implements \JsonSerializable
     }
 
     /**
-     * @Assert\NotBlank
-     * @return string
-     */
-    public function getParticipantsType(): string
-    {
-        return $this->participantsType;
-    }
-
-    /**
-     * @return int|null
-     */
-    public function getPersonnelId(): ?int
-    {
-        return $this->personnelId;
-    }
-
-    /**
-     * @return string|null
-     */
-    public function getPersonnelRole(): ?string
-    {
-        return $this->personnelRole;
-    }
-
-    /**
-     * @return int|null
-     */
-    public function getVpaId(): ?int
-    {
-        return $this->vpaId;
-    }
-
-    /**
-     * @return string|null
-     */
-    public function getVpaRole(): ?string
-    {
-        return $this->vpaRole;
-    }
-
-    /**
      * @return string|null
      */
     public function getRemarks(): ?string
     {
         return $this->remarks;
+    }
+
+    /**
+     * @return array|null
+     */
+    public function getPersonsInvolved(): ?array
+    {
+        return $this->personsInvolved;
     }
 
     /**

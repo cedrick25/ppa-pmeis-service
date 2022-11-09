@@ -6,6 +6,7 @@ use App\Common\AppFormatter;
 use App\Enum\AuditTrailActions;
 use App\Enum\Response as ResponseEnum;
 use App\Repository\QuartersRepository;
+use App\Repository\TechnicalAssistancePersonsInvolvedRepository;
 use App\Repository\TechnicalAssistanceRepository;
 use App\Model\TechnicalAssistance as TechnicalAssistanceModel;
 use App\Service\System\AuditTrail;
@@ -25,6 +26,7 @@ class TechnicalAssistance implements TechnicalAssistanceInterface
         private TechnicalAssistanceRepository   $repository,
         private QuartersRepository              $quartersRepository,
         private AuditTrail                      $auditTrail,
+        private TechnicalAssistancePersonsInvolvedRepository $technicalAssistancePersonsInvolvedRepository,
     ) {
         $class = new \ReflectionClass($this);
         $this->shortName = $class->getShortName();
@@ -35,15 +37,26 @@ class TechnicalAssistance implements TechnicalAssistanceInterface
         try {
             $errors = $this->validator->validate($technicalAssistanceData);
 
-            if (count($errors) > 0) {
-                return $this->appFormatter->formatResponse(ResponseEnum::VALIDATING_FAILED, null, $this->appFormatter->formatErrors($errors));
+            if ($errors->count() > 0) {
+                return $this->appFormatter->formatResponse(
+                    ResponseEnum::VALIDATING_FAILED,
+                    null,
+                    $this->appFormatter->formatErrors($errors)
+                );
             }
 
             $id = $this->repository->create($technicalAssistanceData);
 
             if ($id == null) {
-                return $this->appFormatter->formatResponse(ResponseEnum::CREATING_FAILED, null, ['app' => 'Technical Assistance already exist']);
+                return $this->appFormatter->formatResponse(
+                    ResponseEnum::CREATING_FAILED,
+                    null,
+                    ['app' => 'Technical Assistance already exist']
+                );
             }
+
+            $this->technicalAssistancePersonsInvolvedRepository
+                ->batchCreate($id, $technicalAssistanceData->getPersonsInvolved());
 
             $this->auditTrail->log(
                 AuditTrailActions::CREATE,
@@ -53,10 +66,12 @@ class TechnicalAssistance implements TechnicalAssistanceInterface
             );
 
             return $this->appFormatter->formatResponse(ResponseEnum::CREATING_SUCCESS, ['id' => $id]);
-        } catch (InvalidArgumentException $exception) {
-            return $this->appFormatter->formatResponse(ResponseEnum::CREATING_FAILED, null, ['cache' => $exception->getMessage()]);
-        } catch (\Exception $e) {
-            return $this->appFormatter->formatResponse(ResponseEnum::CREATING_FAILED, null, ['app' => $e->getMessage()]);
+        } catch (\Exception | InvalidArgumentException $exception) {
+            return $this->appFormatter->formatResponse(
+                ResponseEnum::CREATING_FAILED,
+                null,
+                ['app' => $exception->getMessage()]
+            );
         }
     }
 

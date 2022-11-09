@@ -43,17 +43,26 @@ class ConductProcesses implements ConductProcessesInterface
         try {
             $errors = $this->validator->validate($conductProcessData);
 
-            if (count($errors) > 0) {
-                return $this->appFormatter->formatResponse(ResponseEnum::VALIDATING_FAILED, null, $this->appFormatter->formatErrors($errors));
+            if ($errors->count() > 0) {
+                return $this->appFormatter->formatResponse(
+                    ResponseEnum::VALIDATING_FAILED,
+                    null,
+                    $this->appFormatter->formatErrors($errors)
+                );
             }
 
             $id = $this->repository->create($conductProcessData);
 
             if ($id == null) {
-                return $this->appFormatter->formatResponse(ResponseEnum::CREATING_FAILED, null, ['app' => 'RJ conduct process already exist']);
+                return $this->appFormatter->formatResponse(
+                    ResponseEnum::CREATING_FAILED,
+                    null,
+                    ['app' => 'RJ conduct process already exist']
+                );
             }
 
-            $this->conductedProcessPersonsInvolvedRepository->batchCreate($id, $conductProcessData->getPersonsInvolved());
+            $this->conductedProcessPersonsInvolvedRepository
+                ->batchCreate($id, $conductProcessData->getPersonsInvolved());
 
             $this->auditTrail->log(
                 AuditTrailActions::CREATE,

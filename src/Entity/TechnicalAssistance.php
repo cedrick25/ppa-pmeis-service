@@ -50,31 +50,6 @@ class TechnicalAssistance
     private string $participantsNo;
 
     /**
-     * @ORM\Column(type="string", length=255)
-     */
-    private string $participantsType;
-
-    /**
-     * @ORM\Column(type="integer", nullable=true)
-     */
-    private ?int $personnelId;
-
-    /**
-     * @ORM\Column(type="string", length=255, nullable=true)
-     */
-    private ?string $personnelRole;
-
-    /**
-     * @ORM\Column(type="integer", nullable=true)
-     */
-    private ?int $vpaId;
-
-    /**
-     * @ORM\Column(type="string", length=255, nullable=true)
-     */
-    private ?string $vpaRole;
-
-    /**
      * @ORM\Column(type="string", length=255, nullable=true)
      */
     private ?string $remarks;
@@ -180,96 +155,6 @@ class TechnicalAssistance
     public function setParticipantsNo(string $participantsNo): TechnicalAssistance
     {
         $this->participantsNo = $participantsNo;
-        return $this;
-    }
-
-    /**
-     * @return string
-     */
-    public function getParticipantsType(): string
-    {
-        return $this->participantsType;
-    }
-
-    /**
-     * @param string $participantsType
-     * @return TechnicalAssistance
-     */
-    public function setParticipantsType(string $participantsType): TechnicalAssistance
-    {
-        $this->participantsType = $participantsType;
-        return $this;
-    }
-
-    /**
-     * @return int|null
-     */
-    public function getPersonnelId(): ?int
-    {
-        return $this->personnelId;
-    }
-
-    /**
-     * @param int|null $personnelId
-     * @return TechnicalAssistance
-     */
-    public function setPersonnelId(?int $personnelId): TechnicalAssistance
-    {
-        $this->personnelId = $personnelId;
-        return $this;
-    }
-
-    /**
-     * @return string|null
-     */
-    public function getPersonnelRole(): ?string
-    {
-        return $this->personnelRole;
-    }
-
-    /**
-     * @param string|null $personnelRole
-     * @return TechnicalAssistance
-     */
-    public function setPersonnelRole(?string $personnelRole): TechnicalAssistance
-    {
-        $this->personnelRole = $personnelRole;
-        return $this;
-    }
-
-    /**
-     * @return int|null
-     */
-    public function getVpaId(): ?int
-    {
-        return $this->vpaId;
-    }
-
-    /**
-     * @param int|null $vpaId
-     * @return TechnicalAssistance
-     */
-    public function setVpaId(?int $vpaId): TechnicalAssistance
-    {
-        $this->vpaId = $vpaId;
-        return $this;
-    }
-
-    /**
-     * @return string|null
-     */
-    public function getVpaRole(): ?string
-    {
-        return $this->vpaRole;
-    }
-
-    /**
-     * @param string|null $vpaRole
-     * @return TechnicalAssistance
-     */
-    public function setVpaRole(?string $vpaRole): TechnicalAssistance
-    {
-        $this->vpaRole = $vpaRole;
         return $this;
     }
 

@@ -195,4 +195,16 @@ class IdSupportRepository extends ServiceEntityRepository
 
         return ResponseEnum::OK;
     }
+
+    public function getById(int $id): array
+    {
+        return $this->getEntityManager()->getConnection()
+            ->executeQuery(
+                "SELECT ids.*, fo.name as field_office, r.region_id, r.name region FROM id_support as ids
+                LEFT JOIN field_offices as fo ON ids.field_office_id = fo.field_office_id
+                LEFT JOIN regions r on fo.region_id = r.region_id
+                WHERE ids.id = :id",
+                ['id' => $id]
+            )->fetchAssociative();
+    }
 }

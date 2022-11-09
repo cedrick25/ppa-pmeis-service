@@ -49,7 +49,7 @@ class TechnicalAssistanceRepository extends ServiceEntityRepository
             'cacheTag' => self::CACHE_TAG
         ];
 
-        return $this->helper->createCachedResponse($params, function() {
+        return $this->helper->createCachedResponse($params, function () {
             return $this->createQueryBuilder('ta')
                 ->where('ta.deletedAt IS NULL')
                 ->orderBy('ta.id', 'DESC')
@@ -59,9 +59,7 @@ class TechnicalAssistanceRepository extends ServiceEntityRepository
     }
 
     /**
-     * @throws OptimisticLockException
      * @throws InvalidArgumentException
-     * @throws ORMException
      * @throws \Exception
      */
     public function create(TechnicalAssistanceModel $data): int | null
@@ -75,11 +73,6 @@ class TechnicalAssistanceRepository extends ServiceEntityRepository
         $newTechnicalAssistance->setVenue($data->getVenue());
         $newTechnicalAssistance->setFieldOfficeId($data->getFieldOfficeId());
         $newTechnicalAssistance->setParticipantsNo($data->getParticipantsNo());
-        $newTechnicalAssistance->setParticipantsType($data->getParticipantsType());
-        $newTechnicalAssistance->setPersonnelId($data->getPersonnelId());
-        $newTechnicalAssistance->setPersonnelRole($data->getPersonnelRole());
-        $newTechnicalAssistance->setVpaId($data->getVpaId());
-        $newTechnicalAssistance->setVpaRole($data->getVpaRole());
         $newTechnicalAssistance->setRemarks($data->getRemarks());
         $newTechnicalAssistance->setCreatedAt($this->appDateHelper->getCurrentImmutableDate());
 
@@ -91,7 +84,6 @@ class TechnicalAssistanceRepository extends ServiceEntityRepository
 
     /**
      * @throws InvalidArgumentException
-     * @throws ORMException
      */
     public function delete(int $id): bool
     {
@@ -123,7 +115,6 @@ class TechnicalAssistanceRepository extends ServiceEntityRepository
      * @param int $fieldOfficeId
      * @return array<int, array<string, mixed>>
      * @throws Exception
-     * @throws \Doctrine\DBAL\Driver\Exception
      */
     public function findByDateRange(array $minMaxDate, int $fieldOfficeId): array
     {
@@ -133,7 +124,9 @@ class TechnicalAssistanceRepository extends ServiceEntityRepository
 
         $sql = "SELECT ta.*, fo.name as field_office FROM technical_assistance as ta
                 LEFT JOIN field_offices as fo ON ta.field_office_id = fo.field_office_id
-                WHERE ta.field_office_id = $fieldOfficeId AND ta.date BETWEEN CAST('$min' AS DATE) AND CAST('$max' AS DATE)";
+                WHERE ta.field_office_id = $fieldOfficeId
+                AND ta.date BETWEEN CAST('$min' AS DATE)
+                AND CAST('$max' AS DATE)";
         $stmt = $conn->prepare($sql);
         $query = $stmt->executeQuery();
         $rows = $query->fetchAllAssociative();

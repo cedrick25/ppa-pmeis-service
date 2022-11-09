@@ -82,7 +82,7 @@ class IdSupport implements IdSupportInterface
 
     public function getById(int $id): array
     {
-        $idSupport = $this->repository->isExistingById($id);
+        $idSupport = $this->repository->getById($id);
 
         if (!$idSupport) {
             return $this->appFormatter->formatResponse(ResponseEnum::NO_DATA, null);
