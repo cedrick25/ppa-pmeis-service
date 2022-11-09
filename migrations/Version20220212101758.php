@@ -17,7 +17,6 @@ final class Version20220212101758 extends AbstractMigration
         $this->addSql('CREATE TABLE client_remarks (client_remarks_id INT AUTO_INCREMENT NOT NULL, name VARCHAR(255) NOT NULL, PRIMARY KEY(client_remarks_id)) DEFAULT CHARACTER SET utf8mb4 COLLATE `utf8mb4_unicode_ci` ENGINE = InnoDB');
         $this->addSql("INSERT INTO client_remarks (name) VALUES "
             . "('w/ FR/VR'),"
-            . "('on CS'),"
             . "('Terminated'),"
             . "('Revoked'),"
             . "('Transferred'),"
