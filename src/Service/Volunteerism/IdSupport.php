@@ -36,22 +36,32 @@ class IdSupport implements IdSupportInterface
             $errors = $this->validator->validate($idSupportData);
 
             if (count($errors) > 0) {
-                return $this->appFormatter->formatResponse(ResponseEnum::VALIDATING_FAILED, null, $this->appFormatter->formatErrors($errors));
+                return $this->appFormatter->formatResponse(
+                    ResponseEnum::VALIDATING_FAILED,
+                    null,
+                    $this->appFormatter->formatErrors($errors)
+                );
             }
 
             $id = $this->repository->create($idSupportData);
 
             if ($id == null) {
-                return $this->appFormatter->formatResponse(ResponseEnum::CREATING_FAILED, null, ['app' => 'ID support already exist']);
+                return $this->appFormatter->formatResponse(
+                    ResponseEnum::CREATING_FAILED,
+                    null,
+                    ['app' => 'ID support already exist']
+                );
             }
 
             $this->auditTrail->log(AuditTrailActions::CREATE, $idSupportData->jsonSerialize(), $this->shortName, $id);
 
             return $this->appFormatter->formatResponse(ResponseEnum::CREATING_SUCCESS, ['id' => $id]);
-        } catch (InvalidArgumentException $exception) {
-            return $this->appFormatter->formatResponse(ResponseEnum::CREATING_FAILED, null, ['cache' => $exception->getMessage()]);
-        } catch (\Exception $e) {
-            return $this->appFormatter->formatResponse(ResponseEnum::CREATING_FAILED, null, ['app' => $e->getMessage()]);
+        } catch (\Exception | InvalidArgumentException $exception) {
+            return $this->appFormatter->formatResponse(
+                ResponseEnum::CREATING_FAILED,
+                null,
+                ['app' => $exception->getMessage()]
+            );
         }
     }
 
@@ -116,6 +126,40 @@ class IdSupport implements IdSupportInterface
             return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_SUCCESS, null, ['app' => $e->getMessage()]);
         } catch (Exception $e) {
             return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_SUCCESS, null, ['orm' => $e->getMessage()]);
+        }
+    }
+
+    public function update(int $id, IdSupportModel $idSupportData): array
+    {
+        try {
+            $errors = $this->validator->validate($idSupportData);
+
+            if (count($errors) > 0) {
+                return $this->appFormatter->formatResponse(
+                    ResponseEnum::VALIDATING_FAILED,
+                    null,
+                    $this->appFormatter->formatErrors($errors)
+                );
+            }
+
+            $response = $this->repository->update($id, $idSupportData);
+
+            if (ResponseEnum::OK != $response) {
+                return $this->appFormatter->formatResponse(
+                    ResponseEnum::UPDATING_FAILED,
+                    null
+                );
+            }
+
+            $this->auditTrail->log(AuditTrailActions::UPDATE, $idSupportData->jsonSerialize(), $this->shortName, $id);
+
+            return $this->appFormatter->formatResponse(ResponseEnum::UPDATING_SUCCESS, ['id' => $id]);
+        } catch (\Exception | InvalidArgumentException $exception) {
+            return $this->appFormatter->formatResponse(
+                ResponseEnum::UPDATING_FAILED,
+                null,
+                ['app' => $exception->getMessage()]
+            );
         }
     }
 }

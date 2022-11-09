@@ -169,7 +169,11 @@ class VolunteerismController extends AbstractController
 
             return $this->json($this->idSupportService->create($idSupport));
         } catch (\ReflectionException $exception) {
-            return $this->json($this->appFormatter->formatResponse('Creating ID Support failed', null, ['reflection' => $exception->getMessage()]));
+            return $this->json($this->appFormatter->formatResponse(
+                'Creating ID Support failed',
+                null,
+                ['reflection' => $exception->getMessage()]
+            ));
         }
     }
 
@@ -206,6 +210,30 @@ class VolunteerismController extends AbstractController
             (int) $request->get("quarterId"),
             (int) $request->get("fieldOfficeId"),
         ));
+    }
+
+    /**
+     * @Route("/id-support/update/{id}", methods={"POST"})
+     */
+    public function updateIdSupport(Request $request): Response
+    {
+        try {
+            $data = json_decode($request->getContent(), true);
+
+            /** @var IdSupportModel $idSupport */
+            $idSupport = $this->appHydrator->convertArrayToObject($data, IdSupportModel::class);
+
+            return $this->json($this->idSupportService->update(
+                (int) $request->get("id"),
+                $idSupport,
+            ));
+        } catch (\ReflectionException $exception) {
+            return $this->json($this->appFormatter->formatResponse(
+                'Updating ID Support failed',
+                null,
+                ['reflection' => $exception->getMessage()]
+            ));
+        }
     }
 
     /**

@@ -15,4 +15,6 @@ interface IdSupportInterface
     public function deleteById(int $id): array;
 
     public function getIdSupportReport(int $quarterId, int $fieldOfficeId): array;
+
+    public function update(int $id, IdSupportModel $idSupportData): array;
 }

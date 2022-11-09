@@ -217,7 +217,6 @@ class VpaAssociationInitiatedActivitiesRepository extends ServiceEntityRepositor
 
     /**
      * @throws \Psr\Cache\InvalidArgumentException
-     * @throws \Doctrine\ORM\ORMException
      */
     public function update(int $id, VpaAssociationInitiatedActivitiesModel $data): string
     {

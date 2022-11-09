@@ -5,6 +5,7 @@ namespace App\Repository;
 use App\Common\AppDateHelper;
 use App\Common\CacheHelper;
 use App\Entity\IdSupport;
+use App\Enum\Response as ResponseEnum;
 use App\Model\IdSupport as IdSupportModel;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\ORM\ORMException;
@@ -163,5 +164,35 @@ class IdSupportRepository extends ServiceEntityRepository
         $query = $stmt->executeQuery();
 
         return $query->fetchAllAssociative();
+    }
+
+    /**
+     * @throws InvalidArgumentException
+     * @throws Exception
+     */
+    public function update(int $id, IdSupportModel $data): string
+    {
+        $this->cache->invalidateTags([self::CACHE_TAG]);
+
+        $entity = $this->isExistingById($id);
+
+        if (! $entity) {
+            return ResponseEnum::NO_RECORD;
+        }
+
+        $entity->setType($data->getType());
+        $entity->setVpaPersonnelId($data->getVpaPersonnelId());
+        $entity->setProgram($data->getProgram());
+        $entity->setFieldOfficeId($data->getFieldOfficeId());
+        $entity->setActivity($data->getActivity());
+        $entity->setDate($this->appDateHelper->convertStringToImmutableDate($data->getDate()));
+        $entity->setVenue($data->getVenue());
+        $entity->setAssistanceRendered($data->getAssistanceRendered());
+        $entity->setCreatedAt($this->appDateHelper->getCurrentImmutableDate());
+
+        $this->getEntityManager()->persist($entity);
+        $this->getEntityManager()->flush();
+
+        return ResponseEnum::OK;
     }
 }
