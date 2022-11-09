@@ -38,22 +38,32 @@ class SupportOfRegionToFieldOffice implements SupportOfRegionToFieldOfficeInterf
             $errors = $this->validator->validate($data);
 
             if (count($errors) > 0) {
-                return $this->appFormatter->formatResponse(ResponseEnum::VALIDATING_FAILED, null, $this->appFormatter->formatErrors($errors));
+                return $this->appFormatter->formatResponse(
+                    ResponseEnum::VALIDATING_FAILED,
+                    null,
+                    $this->appFormatter->formatErrors($errors)
+                );
             }
 
             $id = $this->repository->create($data);
 
             if ($id == null) {
-                return $this->appFormatter->formatResponse(ResponseEnum::CREATING_FAILED, null, ['app' => 'Support Of Region To Field Office support already exist']);
+                return $this->appFormatter->formatResponse(
+                    ResponseEnum::CREATING_FAILED,
+                    null,
+                    ['app' => 'Support Of Region To Field Office support already exist']
+                );
             }
 
             $this->auditTrail->log(AuditTrailActions::CREATE, $data->jsonSerialize(), $this->shortName, $id);
 
             return $this->appFormatter->formatResponse(ResponseEnum::CREATING_SUCCESS, ['id' => $id]);
-        } catch (InvalidArgumentException $exception) {
-            return $this->appFormatter->formatResponse(ResponseEnum::CREATING_FAILED, null, ['cache' => $exception->getMessage()]);
-        } catch (\Exception $e) {
-            return $this->appFormatter->formatResponse(ResponseEnum::CREATING_FAILED, null, ['app' => $e->getMessage()]);
+        } catch (InvalidArgumentException | \Exception $exception) {
+            return $this->appFormatter->formatResponse(
+                ResponseEnum::CREATING_FAILED,
+                null,
+                ['app' => $exception->getMessage()]
+            );
         }
     }
 
@@ -176,6 +186,40 @@ class SupportOfRegionToFieldOffice implements SupportOfRegionToFieldOfficeInterf
                 ResponseEnum::FETCHING_SUCCESS,
                 null,
                 ['app' => $e->getMessage()]
+            );
+        }
+    }
+
+    public function update(int $id, SupportOfRegionToFieldOfficeModel $data): array
+    {
+        try {
+            $errors = $this->validator->validate($data);
+
+            if (count($errors) > 0) {
+                return $this->appFormatter->formatResponse(
+                    ResponseEnum::VALIDATING_FAILED,
+                    null,
+                    $this->appFormatter->formatErrors($errors)
+                );
+            }
+
+            $response = $this->repository->update($id, $data);
+
+            if (ResponseEnum::OK != $response) {
+                return $this->appFormatter->formatResponse(
+                    ResponseEnum::UPDATING_FAILED,
+                    null
+                );
+            }
+
+            $this->auditTrail->log(AuditTrailActions::UPDATE, $data->jsonSerialize(), $this->shortName, $id);
+
+            return $this->appFormatter->formatResponse(ResponseEnum::UPDATING_SUCCESS, ['id' => $id]);
+        } catch (InvalidArgumentException | \Exception $exception) {
+            return $this->appFormatter->formatResponse(
+                ResponseEnum::UPDATING_FAILED,
+                null,
+                ['app' => $exception->getMessage()]
             );
         }
     }

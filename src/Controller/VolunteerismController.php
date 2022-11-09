@@ -567,11 +567,16 @@ class VolunteerismController extends AbstractController
             $data = json_decode($request->getContent(), true);
 
             /** @var SupportOfRegionToFieldOfficeModel $supportOfRegionToFieldOffice */
-            $supportOfRegionToFieldOffice = $this->appHydrator->convertArrayToObject($data, SupportOfRegionToFieldOfficeModel::class);
+            $supportOfRegionToFieldOffice = $this->appHydrator
+                ->convertArrayToObject($data, SupportOfRegionToFieldOfficeModel::class);
 
             return $this->json($this->supportOfRegionToFieldOfficeService->create($supportOfRegionToFieldOffice));
         } catch (\ReflectionException $exception) {
-            return $this->json($this->appFormatter->formatResponse('Creating Support Of Region To Field Office Support failed', null, ['reflection' => $exception->getMessage()]));
+            return $this->json($this->appFormatter->formatResponse(
+                'Creating Support Of Region To Field Office Support failed',
+                null,
+                ['reflection' => $exception->getMessage()]
+            ));
         }
     }
 
@@ -620,6 +625,31 @@ class VolunteerismController extends AbstractController
             (int) $request->get("regionId"),
             $request->get("category"),
         ));
+    }
+
+    /**
+     * @Route("/support-of-region/update/{id}", methods={"POST"})
+     */
+    public function updateSupportOfRegion(Request $request): Response
+    {
+        try {
+            $data = json_decode($request->getContent(), true);
+
+            /** @var SupportOfRegionToFieldOfficeModel $supportOfRegionToFieldOffice */
+            $supportOfRegionToFieldOffice = $this->appHydrator
+                ->convertArrayToObject($data, SupportOfRegionToFieldOfficeModel::class);
+
+            return $this->json($this->supportOfRegionToFieldOfficeService->update(
+                (int) $request->get("id"),
+                $supportOfRegionToFieldOffice,
+            ));
+        } catch (\ReflectionException $exception) {
+            return $this->json($this->appFormatter->formatResponse(
+                'Creating Support Of Region To Field Office Support failed',
+                null,
+                ['reflection' => $exception->getMessage()]
+            ));
+        }
     }
 
     /**
@@ -744,6 +774,46 @@ class VolunteerismController extends AbstractController
     }
 
     /**
+     * @Route("/capability-building/delete/{id}", methods={"GET"})
+     */
+    public function deleteCapabilityBuildingById(Request $request): Response
+    {
+        return $this->json($this->capabilityBuildingService->deleteById((int) $request->get("id")));
+    }
+
+    /**
+     * @Route("/capability-building/{page}/{pageSize}", methods={"GET"})
+     */
+    public function getPaginatedCapabilityBuilding(Request $request): Response
+    {
+        return $this->json($this->capabilityBuildingService->getPaginated(
+            (int) $request->get("page"),
+            (int) $request->get("pageSize")
+        ));
+    }
+
+    /**
+     * @Route("/capability-building/update/{id}", methods={"POST"})
+     */
+    public function updateCapabilityBuilding(Request $request): Response
+    {
+        try {
+            $data = json_decode($request->getContent(), true);
+
+            return $this->json($this->capabilityBuildingService->update(
+                (int) $request->get("id"),
+                $data
+            ));
+        } catch (\ReflectionException $exception) {
+            return $this->json($this->appFormatter->formatResponse(
+                'Updating vpa association initiated activities failed',
+                null,
+                ['reflection' => $exception->getMessage()]
+            ));
+        }
+    }
+
+    /**
      * @Route("/vpa-association-initiated-ctivity/create", methods={"POST"})
      */
     public function createVpaAssociationInitiatedActivity(Request $request): Response
@@ -833,7 +903,7 @@ class VolunteerismController extends AbstractController
             ));
         } catch (\ReflectionException $exception) {
             return $this->json($this->appFormatter->formatResponse(
-                'Creating vpa association initiated activities failed',
+                'Updating vpa association initiated activities failed',
                 null,
                 ['reflection' => $exception->getMessage()]
             ));

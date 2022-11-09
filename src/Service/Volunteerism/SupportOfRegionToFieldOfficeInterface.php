@@ -19,4 +19,6 @@ interface SupportOfRegionToFieldOfficeInterface
     public function getReport(int $quarterId, int $regionId, string $category): array;
 
     public function getAllCategoryReport(int $quarterId, int $fieldOfficeId): array;
+
+    public function update(int $id, SupportOfRegionToFieldOfficeModel $data): array;
 }

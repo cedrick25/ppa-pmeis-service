@@ -87,7 +87,6 @@ class VpaAssociationInitiatedActivitiesRepository extends ServiceEntityRepositor
 
     /**
      * @throws InvalidArgumentException
-     * @throws ORMException
      */
     public function delete(int $id): bool
     {

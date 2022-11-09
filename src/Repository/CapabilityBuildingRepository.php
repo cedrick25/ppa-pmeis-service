@@ -5,6 +5,7 @@ namespace App\Repository;
 use App\Common\AppDateHelper;
 use App\Common\CacheHelper;
 use App\Entity\CapabilityBuilding;
+use App\Enum\Response as ResponseEnum;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\ORM\ORMException;
 use Doctrine\Persistence\ManagerRegistry;
@@ -54,47 +55,89 @@ class CapabilityBuildingRepository extends ServiceEntityRepository
     }
 
     /**
-     * @throws \Doctrine\ORM\OptimisticLockException
+     * @param int $page
+     * @param int $pageSize
+     * @return array<string, mixed>
      * @throws InvalidArgumentException
-     * @throws ORMException
-     * @throws \Doctrine\Persistence\Mapping\MappingException
+     * @throws CacheException
+     */
+    public function paginated(int $page = 1, int $pageSize = 10): array
+    {
+        $params = [
+            'cacheKey' => 'capability_building_' . $page . '_' . $pageSize,
+            'expiration' => $this->cacheHelper->getExpirationDateTime(),
+            'cacheTag' => self::CACHE_TAG,
+            'pageSize' => $pageSize,
+            'page' => $page
+        ];
+
+        return $this->helper->createPaginatedResponseCustomQuery($params, function () use ($pageSize, $page) {
+            $startOffset = $pageSize * ($page-1);
+            $result = [];
+
+            $conn = $this->getEntityManager()->getConnection();
+            $sql = "SELECT cb.*, fo.name field_office, r.region_id, r.name region
+                    FROM capability_building as cb
+                    LEFT JOIN field_offices fo on cb.field_office_id = fo.field_office_id
+                    LEFT JOIN regions r on fo.region_id = r.region_id
+                    WHERE cb.deleted_at IS NULL ";
+
+            $result['totalItems'] = $this->helper->getCustomQueryPaginatedTotalItems($conn, $sql);
+
+            $sql .="LIMIT $pageSize OFFSET $startOffset";
+
+            $stmt = $conn->prepare($sql);
+            $query = $stmt->executeQuery();
+            $result['data'] = $query->fetchAllAssociative();
+
+            return $result;
+        });
+    }
+
+    /**
+     * @throws InvalidArgumentException
      * @throws \Doctrine\DBAL\Exception\InvalidArgumentException
      * @throws \Exception
      */
-    public function batchCreate(array $data): void
+    public function create(array $data): int | null
     {
+        $this->cache->invalidateTags([self::CACHE_TAG]);
         $participantCount = count($data['participants']);
 
-        foreach ($data['participants'] as $participant) {
-            $newCapabilityBuilding = new CapabilityBuilding();
-            $newCapabilityBuilding->setType($data['type']);
-            $newCapabilityBuilding->setSubtype($data['subtype']);
-            $newCapabilityBuilding->setTitle($data['title']);
-            $newCapabilityBuilding->setStartDate(
-                $this->appDateHelper->convertStringToImmutableDate($data['startDate'])
-            );
-            $newCapabilityBuilding->setEndDate($this->appDateHelper->convertStringToImmutableDate($data['endDate']));
-            $newCapabilityBuilding->setNoOfParticipants($participantCount);
-            $newCapabilityBuilding->setNames($participant['id']['label']);
-            // TODO: Fetch from real table base type
-            $newCapabilityBuilding->setIsPwd(false);
-            $newCapabilityBuilding->setIsSeniorCitizen(false);
-            $newCapabilityBuilding->setNotManagerialSupervisory($data['notManagerialSupervisory'] ?? '');
-            $newCapabilityBuilding->setNotTechnical($data['notTechnical'] ?? '');
-            $newCapabilityBuilding->setNotFoundation($data['notFoundation'] ?? '');
-            $newCapabilityBuilding->setNoOfTrainingHours($data['noOfTrainingHours']);
-            $newCapabilityBuilding->setTcInHouse($data['tcInHouse'] ?? '');
-            $newCapabilityBuilding->setTcOutHouse($data['tcOutHouse'] ?? '');
-            $newCapabilityBuilding->setRemarks($participant['remarks']);
-            $newCapabilityBuilding->setFieldOfficeId($data['fieldOfficeId']);
-            $newCapabilityBuilding->setCreatedAt($this->appDateHelper->getCurrentImmutableDate());
+        $entity = new CapabilityBuilding();
+        $entity->setType($data['type']);
+        $entity->setSubtype($data['subtype']);
+        $entity->setTitle($data['title']);
+        $entity->setStartDate(
+            $this->appDateHelper->convertStringToImmutableDate($data['startDate'])
+        );
+        $entity->setEndDate($this->appDateHelper->convertStringToImmutableDate($data['endDate']));
+        $entity->setNoOfParticipants($participantCount);
+        $entity->setIsPwd(false);
+        $entity->setIsSeniorCitizen(false);
+        $entity->setNotManagerialSupervisory($data['notManagerialSupervisory'] ?? '');
+        $entity->setNotTechnical($data['notTechnical'] ?? '');
+        $entity->setNotFoundation($data['notFoundation'] ?? '');
+        $entity->setNoOfTrainingHours($data['noOfTrainingHours']);
+        $entity->setTcInHouse($data['tcInHouse'] ?? '');
+        $entity->setTcOutHouse($data['tcOutHouse'] ?? '');
+        $entity->setFieldOfficeId($data['fieldOfficeId']);
+        $entity->setCreatedAt($this->appDateHelper->getCurrentImmutableDate());
 
-            $this->getEntityManager()->persist($newCapabilityBuilding);
-        }
-
+        $this->getEntityManager()->persist($entity);
         $this->getEntityManager()->flush();
-        $this->getEntityManager()->clear(CapabilityBuilding::class);
-        $this->cache->invalidateTags([self::CACHE_TAG]);
+
+        return $entity->getCapabilityBuildingId();
+    }
+
+    public function isExistingById(int $id): bool | CapabilityBuilding
+    {
+        $entity = $this->findOneBy([
+            'capabilityBuildingId' => $id,
+            'deletedAt' => null
+        ]);
+
+        return ($entity == null) ? false : $entity;
     }
 
     /**
@@ -115,5 +158,65 @@ class CapabilityBuildingRepository extends ServiceEntityRepository
         $query = $stmt->executeQuery();
 
         return $query->fetchAllAssociative();
+    }
+
+    /**
+     * @throws InvalidArgumentException
+     */
+    public function delete(int $id): bool
+    {
+        $entity = $this->isExistingById($id);
+        if (! $entity) {
+            return false;
+        }
+
+        $this->cache->invalidateTags([self::CACHE_TAG]);
+
+        $this->getEntityManager()->remove($entity);
+        $this->getEntityManager()->flush();
+
+        return true;
+    }
+
+    /**
+     * @throws InvalidArgumentException
+     * @throws \Doctrine\DBAL\Exception\InvalidArgumentException
+     * @throws \Exception
+     */
+    public function update(int $id, array $data): string
+    {
+        $this->cache->invalidateTags([self::CACHE_TAG]);
+
+        $entity = $this->isExistingById($id);
+
+        if (! $entity) {
+            return ResponseEnum::NO_RECORD;
+        }
+
+        $participantCount = count($data['participants']);
+
+        $entity->setType($data['type']);
+        $entity->setSubtype($data['subtype']);
+        $entity->setTitle($data['title']);
+        $entity->setStartDate(
+            $this->appDateHelper->convertStringToImmutableDate($data['startDate'])
+        );
+        $entity->setEndDate($this->appDateHelper->convertStringToImmutableDate($data['endDate']));
+        $entity->setNoOfParticipants($participantCount);
+        $entity->setIsPwd(false);
+        $entity->setIsSeniorCitizen(false);
+        $entity->setNotManagerialSupervisory($data['notManagerialSupervisory'] ?? '');
+        $entity->setNotTechnical($data['notTechnical'] ?? '');
+        $entity->setNotFoundation($data['notFoundation'] ?? '');
+        $entity->setNoOfTrainingHours($data['noOfTrainingHours']);
+        $entity->setTcInHouse($data['tcInHouse'] ?? '');
+        $entity->setTcOutHouse($data['tcOutHouse'] ?? '');
+        $entity->setFieldOfficeId($data['fieldOfficeId']);
+        $entity->setCreatedAt($this->appDateHelper->getCurrentImmutableDate());
+
+        $this->getEntityManager()->persist($entity);
+        $this->getEntityManager()->flush();
+
+        return ResponseEnum::OK;
     }
 }

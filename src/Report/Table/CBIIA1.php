@@ -59,17 +59,16 @@ class CBIIA1 implements Form
 
         $total = ['nop' => 0, 'technical' => 0, 'foundation' => 0];
 
-        foreach ($this->data['rows'] as $subtype=>$rows) {
+        foreach ($this->data['rows'] as $subtype => $rows) {
             $this->lastFilledOutCellY++;
             $spreadsheet->getActiveSheet()->setCellValue("A" . $this->lastFilledOutCellY, $subtype);
 
+            $this->lastFilledOutCellY++;
             foreach ($rows as $row) {
-                $this->lastFilledOutCellY++;
-                $spreadsheet->getActiveSheet()->setCellValue("A" . $this->lastFilledOutCellY, $row['title']);
+                $spreadsheet->getActiveSheet()->setCellValue("a" . $this->lastFilledOutCellY, $row['title']);
                 $spreadsheet->getActiveSheet()->setCellValue("b" . $this->lastFilledOutCellY, $row['start_date'] . ' - ' . $row['end_date']);
                 $spreadsheet->getActiveSheet()->setCellValue("c" . $this->lastFilledOutCellY, $row['no_of_participants']);
-                $total['nop']++;
-                $spreadsheet->getActiveSheet()->setCellValue("d" . $this->lastFilledOutCellY, $row['names']);
+                $total['nop'] += (int) $row['no_of_participants'];
                 if (intval($row['is_pwd']) > 0) {
                     $spreadsheet->getActiveSheet()->setCellValue("e" . $this->lastFilledOutCellY, '/');
                 }
@@ -87,7 +86,12 @@ class CBIIA1 implements Form
                     $total['foundation']++;
                 }
                 $spreadsheet->getActiveSheet()->setCellValue("j" . $this->lastFilledOutCellY, $row['no_of_training_hours']);
-                $spreadsheet->getActiveSheet()->setCellValue("k" . $this->lastFilledOutCellY, $row['remarks']);
+
+                foreach ($row['participants'] as $participant) {
+                    $spreadsheet->getActiveSheet()->setCellValue("d" . $this->lastFilledOutCellY, $participant['personnel_name']);
+                    $spreadsheet->getActiveSheet()->setCellValue("k" . $this->lastFilledOutCellY, $participant['remarks']);
+                    $this->lastFilledOutCellY++;
+                }
             }
         }
 

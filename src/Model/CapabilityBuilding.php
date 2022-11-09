@@ -13,7 +13,6 @@ class CapabilityBuilding
         private string $title,
         private string $date,
         private int $noOfParticipants,
-        private string $names,
         private int $fieldOfficeId,
         private bool $isPwd = false,
         private bool $isSeniorCitizen = false,
@@ -23,7 +22,6 @@ class CapabilityBuilding
         private int $noOfTrainingHours = 0,
         private ?string $tcInHouse = null,
         private ?string $tcOutHouse = null,
-        private ?string $remarks = null,
         private ?DateTimeInterface $createdAt = null,
         private ?DateTimeInterface $updatedAt = null,
         private ?DateTimeInterface $deletedAt = null
@@ -72,14 +70,6 @@ class CapabilityBuilding
     public function getNoOfParticipants(): int
     {
         return $this->noOfParticipants;
-    }
-
-    /**
-     * @return string
-     */
-    public function getNames(): string
-    {
-        return $this->names;
     }
 
     /**
@@ -154,14 +144,6 @@ class CapabilityBuilding
     public function getTcOutHouse(): ?string
     {
         return $this->tcOutHouse;
-    }
-
-    /**
-     * @return string|null
-     */
-    public function getRemarks(): ?string
-    {
-        return $this->remarks;
     }
 
     /**

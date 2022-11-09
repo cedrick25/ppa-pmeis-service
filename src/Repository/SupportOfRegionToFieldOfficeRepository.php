@@ -5,6 +5,7 @@ namespace App\Repository;
 use App\Common\AppDateHelper;
 use App\Common\CacheHelper;
 use App\Entity\SupportOfRegionToFieldOffice;
+use App\Enum\Response as ResponseEnum;
 use App\Model\SupportOfRegionToFieldOffice as SupportOfRegionToFieldOfficeModel;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\DBAL\Connection;
@@ -199,5 +200,39 @@ class SupportOfRegionToFieldOfficeRepository extends ServiceEntityRepository
         $query = $stmt->executeQuery();
 
         return $query->fetchAllAssociative();
+    }
+
+    /**
+     * @param int $id
+     * @param SupportOfRegionToFieldOfficeModel $data
+     * @return string
+     * @throws Exception\InvalidArgumentException
+     * @throws InvalidArgumentException
+     */
+    public function update(int $id, SupportOfRegionToFieldOfficeModel $data): string
+    {
+        $this->cache->invalidateTags([self::CACHE_TAG]);
+
+        $entity = $this->isExistingById($id);
+
+        if (! $entity) {
+            return ResponseEnum::NO_RECORD;
+        }
+
+        $entity->setCategory($data->getCategory());
+        $entity->setSubCategory($data->getSubCategory());
+        $entity->setDate($this->appDateHelper->convertStringToImmutableDate($data->getDate()));
+        $entity->setFieldOfficeId($data->getFieldOfficeId());
+        $entity->setParticulars($data->getParticulars());
+        $entity->setAmount($data->getAmount());
+        $entity->setAttributableCost($data->getAttributableCost());
+        $entity->setTotalAmount($data->getTotalAmount());
+        $entity->setRemarks($data->getRemarks());
+        $entity->setCreatedAt($this->appDateHelper->getCurrentImmutableDate());
+
+        $this->getEntityManager()->persist($entity);
+        $this->getEntityManager()->flush();
+
+        return ResponseEnum::OK;
     }
 }

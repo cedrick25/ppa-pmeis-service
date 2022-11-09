@@ -51,11 +51,6 @@ class CapabilityBuilding
     private int $noOfParticipants;
 
     /**
-     * @ORM\Column(type="text")
-     */
-    private string $names;
-
-    /**
      * @ORM\Column(type="boolean")
      */
     private bool $isPwd;
@@ -94,11 +89,6 @@ class CapabilityBuilding
      * @ORM\Column(type="string", length=255, nullable=true)
      */
     private ?string $tcOutHouse;
-
-    /**
-     * @ORM\Column(type="string", length=255, nullable=true)
-     */
-    private ?string $remarks;
 
     /**
      * @ORM\Column(type="integer")
@@ -217,18 +207,6 @@ class CapabilityBuilding
         return $this;
     }
 
-    public function getNames(): ?string
-    {
-        return $this->names;
-    }
-
-    public function setNames(string $names): self
-    {
-        $this->names = $names;
-
-        return $this;
-    }
-
     public function getIsPwd(): ?bool
     {
         return $this->isPwd;
@@ -327,18 +305,6 @@ class CapabilityBuilding
     public function setTcOutHouse(?string $tcOutHouse): self
     {
         $this->tcOutHouse = $tcOutHouse;
-
-        return $this;
-    }
-
-    public function getRemarks(): ?string
-    {
-        return $this->remarks;
-    }
-
-    public function setRemarks(?string $remarks): self
-    {
-        $this->remarks = $remarks;
 
         return $this;
     }
