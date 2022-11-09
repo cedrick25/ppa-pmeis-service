@@ -12,7 +12,7 @@ class SupportOfRegionToFieldOffice implements \JsonSerializable
         private string $category,
         private string $subCategory,
         private string $date,
-        private int $regionId,
+        private int $fieldOfficeId,
         private string $particulars,
         private float $amount,
         private float $attributableCost,
@@ -55,9 +55,9 @@ class SupportOfRegionToFieldOffice implements \JsonSerializable
      * @Assert\GreaterThan(0)
      * @return int
      */
-    public function getRegionId(): int
+    public function getFieldOfficeId(): int
     {
-        return $this->regionId;
+        return $this->fieldOfficeId;
     }
 
     /**

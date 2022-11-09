@@ -37,7 +37,7 @@ class SupportOfRegionToFieldOffice
     /**
      * @ORM\Column(type="integer")
      */
-    private int $regionId;
+    private int $fieldOfficeId;
 
     /**
      * @ORM\Column(type="string", length=255)
@@ -126,20 +126,16 @@ class SupportOfRegionToFieldOffice
         return $this;
     }
 
-    /**
-     * @return int
-     */
-    public function getRegionId(): int
+    public function getFieldOfficeId(): ?int
     {
-        return $this->regionId;
+        return $this->fieldOfficeId;
     }
 
-    /**
-     * @param int $regionId
-     */
-    public function setRegionId(int $regionId): void
+    public function setFieldOfficeId(int $fieldOfficeId): self
     {
-        $this->regionId = $regionId;
+        $this->fieldOfficeId = $fieldOfficeId;
+
+        return $this;
     }
 
     public function getParticulars(): ?string

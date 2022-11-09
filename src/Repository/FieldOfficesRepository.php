@@ -8,6 +8,7 @@ use App\Common\CacheHelper;
 use App\Entity\FieldOffices;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\DBAL\Connection;
+use Doctrine\DBAL\Exception;
 use Doctrine\Persistence\ManagerRegistry;
 use Psr\Cache\CacheException;
 use Psr\Cache\InvalidArgumentException;
@@ -140,7 +141,8 @@ class FieldOfficesRepository extends ServiceEntityRepository
         $query = $conn->executeQuery(
             "SELECT fo.name, fo.field_office_id FROM field_offices as fo WHERE fo.field_office_id IN (:field_offices_id)",
             ['field_offices_id' => $fieldOfficesId],
-            ['field_offices_id' => Connection::PARAM_INT_ARRAY]);
+            ['field_offices_id' => Connection::PARAM_INT_ARRAY]
+        );
         $results = $query->fetchAllAssociative();
         $response = [];
 
@@ -161,6 +163,7 @@ class FieldOfficesRepository extends ServiceEntityRepository
     /**
      * @param int[] $ids
      * @return int[][]
+     * @throws Exception
      */
     public function getRegionIdsByFieldOfficeIds(array $ids): array
     {
@@ -174,6 +177,27 @@ class FieldOfficesRepository extends ServiceEntityRepository
 
         foreach ($results as $result) {
             $return[$result['region_id']][] = (int) $result['field_office_id'];
+        }
+
+        return $return;
+    }
+
+    /**
+     * @param int $regionId
+     * @return int[]
+     * @throws Exception
+     */
+    public function getFieldOfficeIdsByRegionId(int $regionId): array
+    {
+        $return = [];
+        $query = $this->_em->getConnection()->executeQuery(
+            "SELECT field_office_id FROM field_offices WHERE region_id = :regionId",
+            ['regionId' => $regionId],
+        );
+        $results = $query->fetchAllAssociative();
+
+        foreach ($results as $result) {
+            $return[] = (int) $result['field_office_id'];
         }
 
         return $return;

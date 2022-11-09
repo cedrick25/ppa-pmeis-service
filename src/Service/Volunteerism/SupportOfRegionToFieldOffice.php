@@ -6,6 +6,7 @@ use App\Common\AppFormatter;
 use App\Enum\AuditTrailActions;
 use App\Enum\Response as ResponseEnum;
 use App\Model\SupportOfRegionToFieldOffice as SupportOfRegionToFieldOfficeModel;
+use App\Repository\FieldOfficesRepository;
 use App\Repository\QuartersRepository;
 use App\Repository\SupportOfRegionToFieldOfficeRepository;
 use App\Service\System\AuditTrail;
@@ -25,6 +26,7 @@ class SupportOfRegionToFieldOffice implements SupportOfRegionToFieldOfficeInterf
         private SupportOfRegionToFieldOfficeRepository   $repository,
         private QuartersRepository                      $quartersRepository,
         private AuditTrail                              $auditTrail,
+        private FieldOfficesRepository                   $fieldOfficesRepository,
     ) {
         $class = new \ReflectionClass($this);
         $this->shortName = $class->getShortName();
@@ -67,6 +69,25 @@ class SupportOfRegionToFieldOffice implements SupportOfRegionToFieldOfficeInterf
             return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_SUCCESS, $supportOfRegionToFieldOffices);
         } catch (CacheException|InvalidArgumentException $exception) {
             return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_FAILED, null, ['cache' => $exception->getMessage()]);
+        }
+    }
+
+    public function getPaginated(int $page, int $pageSize): array
+    {
+        try {
+            $results = $this->repository->paginated($page, $pageSize);
+
+            if (empty($results)) {
+                return $this->appFormatter->formatResponse(ResponseEnum::NO_DATA, null);
+            }
+
+            return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_SUCCESS, $results);
+        } catch (CacheException|InvalidArgumentException $exception) {
+            return $this->appFormatter->formatResponse(
+                ResponseEnum::FETCHING_FAILED,
+                null,
+                ['cache' => $exception->getMessage()]
+            );
         }
     }
 
@@ -115,7 +136,10 @@ class SupportOfRegionToFieldOffice implements SupportOfRegionToFieldOfficeInterf
             }
 
             $minMaxDate = $this->quartersRepository->getQuarterMinMaxDate($quarter);
-            $supportOfRegionToFieldOffices = $this->repository->findByDateRange($minMaxDate, $regionId, $category);
+            $fieldOfficeIds = $this->fieldOfficesRepository->getFieldOfficeIdsByRegionId($regionId);
+
+            $supportOfRegionToFieldOffices = $this->repository
+                ->findByDateRange($minMaxDate, $fieldOfficeIds, $category);
 
             if (count($supportOfRegionToFieldOffices) <= 0) {
                 return $this->appFormatter->formatResponse(ResponseEnum::NO_DATA, null);

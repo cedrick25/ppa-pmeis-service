@@ -105,7 +105,7 @@ class Helper
      * @return array | null
      * @throws InvalidArgumentException|CacheException
      */
-    public function createPaginatedResponseCustomQuery(array $params, Callable $getResult): ?array
+    public function createPaginatedResponseCustomQuery(array $params, callable $getResult): ?array
     {
         return $this->cache->get($params['cacheKey'], function (ItemInterface $item) use ($params, $getResult) {
             $dateTimeExpiration = new \DateTime();

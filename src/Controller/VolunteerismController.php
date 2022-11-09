@@ -556,6 +556,17 @@ class VolunteerismController extends AbstractController
     }
 
     /**
+     * @Route("/support-of-region/{page}/{pageSize}", methods={"GET"})
+     */
+    public function getPaginatedSupportOfRegion(Request $request): Response
+    {
+        return $this->json($this->supportOfRegionToFieldOfficeService->getPaginated(
+            (int) $request->get("page"),
+            (int) $request->get("pageSize")
+        ));
+    }
+
+    /**
      * @Route("/support-of-region/by/id/{id}", methods={"GET"})
      */
     public function getSupportOfRegionById(Request $request): Response
