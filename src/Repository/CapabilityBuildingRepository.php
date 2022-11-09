@@ -70,7 +70,9 @@ class CapabilityBuildingRepository extends ServiceEntityRepository
             $newCapabilityBuilding->setType($data['type']);
             $newCapabilityBuilding->setSubtype($data['subtype']);
             $newCapabilityBuilding->setTitle($data['title']);
-            $newCapabilityBuilding->setStartDate($this->appDateHelper->convertStringToImmutableDate($data['startDate']));
+            $newCapabilityBuilding->setStartDate(
+                $this->appDateHelper->convertStringToImmutableDate($data['startDate'])
+            );
             $newCapabilityBuilding->setEndDate($this->appDateHelper->convertStringToImmutableDate($data['endDate']));
             $newCapabilityBuilding->setNoOfParticipants($participantCount);
             $newCapabilityBuilding->setNames($participant['id']['label']);

@@ -16,10 +16,14 @@ final class Version20220213024745 extends AbstractMigration
     {
         $this->addSql('CREATE TABLE social_marketing_activities (id INT AUTO_INCREMENT NOT NULL, name TEXT NOT NULL, type VARCHAR(255) NOT NULL, PRIMARY KEY(id)) DEFAULT CHARACTER SET utf8mb4 COLLATE `utf8mb4_unicode_ci` ENGINE = InnoDB');
         $this->addSql("INSERT INTO social_marketing_activities (name, type) VALUES "
-            . "('Fora, symposia (Planned, coordinated, organized with 
+            . "('Fora,symposia (Planned, coordinated, organized with 
                     program and topics, personnel/ VPAs with specific roles, letter, request (if applicable), with target number of participants and
                     content limited to programs and services of the Agency.)', 'INFORMATION_DISSEMINATION'),"
-            . "('Publication/ Press Releases/ TV / Radio Interviews/ Guestings Screen reader support enabled.', 'INFORMATION_DISSEMINATION'),"
+            . "('Publication', 'INFORMATION_DISSEMINATION'),"
+            . "('Press Releases', 'INFORMATION_DISSEMINATION'),"
+            . "('TV', 'INFORMATION_DISSEMINATION'),"
+            . "('Radio Interviews', 'INFORMATION_DISSEMINATION'),"
+            . "('Guestings Screen reader support enabled.', 'INFORMATION_DISSEMINATION'),"
             . "('Peace and Order Councils (POC) / Anti-Drug Abuse Council ( CADAC)/Government Information Officers  League, MSEC, etc.', 'MEETINGS_PARTICIPATIONS'),"
             . "('Others (Attendance/ Participation in significant events as representative of the Agency)', 'MEETINGS_PARTICIPATIONS')"
         );
