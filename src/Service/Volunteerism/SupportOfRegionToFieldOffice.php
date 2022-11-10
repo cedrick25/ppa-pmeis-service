@@ -103,7 +103,7 @@ class SupportOfRegionToFieldOffice implements SupportOfRegionToFieldOfficeInterf
 
     public function getById(int $id): array
     {
-        $supportOfRegionToFieldOffice = $this->repository->isExistingById($id);
+        $supportOfRegionToFieldOffice = $this->repository->getById($id);
 
         if (!$supportOfRegionToFieldOffice) {
             return $this->appFormatter->formatResponse(ResponseEnum::NO_DATA, null);

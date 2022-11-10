@@ -235,4 +235,17 @@ class SupportOfRegionToFieldOfficeRepository extends ServiceEntityRepository
 
         return ResponseEnum::OK;
     }
+
+    public function getById(int $id): bool | array
+    {
+        return $this->getEntityManager()->getConnection()
+            ->executeQuery(
+                "SELECT sortfo.*, fo.name as field_office, r.name region
+                    FROM support_of_region_to_field_office as sortfo
+                    LEFT JOIN field_offices as fo ON sortfo.field_office_id = fo.field_office_id
+                    LEFT JOIN regions r on fo.region_id = r.region_id
+                    WHERE sortfo.id = :id AND sortfo.deleted_at IS NULL ",
+                ['id' => $id],
+            )->fetchAssociative();
+    }
 }
