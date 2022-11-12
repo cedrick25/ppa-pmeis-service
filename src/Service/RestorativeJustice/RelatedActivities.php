@@ -167,7 +167,6 @@ class RelatedActivities implements RelatedActivitiesInterface
 
     public function update(int $id, RelatedActivitiesModel $activities): array
     {
-
         try {
             $isUpdated = $this->repository->update($id, $activities);
 
@@ -182,7 +181,11 @@ class RelatedActivities implements RelatedActivitiesInterface
 
             return $this->appFormatter->formatResponse(ResponseEnum::UPDATING_SUCCESS, null);
         } catch (Exception $exception) {
-            return $this->appFormatter->formatResponse(ResponseEnum::UPDATING_FAILED, null, ['error' => $exception->getMessage()]);
+            return $this->appFormatter->formatResponse(
+                ResponseEnum::UPDATING_FAILED,
+                null,
+                ['error' => $exception->getMessage()]
+            );
         }
     }
 }

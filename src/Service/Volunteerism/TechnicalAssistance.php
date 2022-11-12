@@ -86,17 +86,55 @@ class TechnicalAssistance implements TechnicalAssistanceInterface
 
             return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_SUCCESS, $technicalAssistance);
         } catch (CacheException|InvalidArgumentException $exception) {
-            return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_FAILED, null, ['cache' => $exception->getMessage()]);
+            return $this->appFormatter->formatResponse(
+                ResponseEnum::FETCHING_FAILED,
+                null,
+                ['cache' => $exception->getMessage()]
+            );
+        }
+    }
+
+    public function getPaginated(int $page, int $pageSize): array
+    {
+        try {
+            $results = $this->repository->paginated($page, $pageSize);
+
+            if (empty($results)) {
+                return $this->appFormatter->formatResponse(ResponseEnum::NO_DATA, null);
+            }
+
+            $technicalAssistanceIds = array_map(
+                fn($item) => (int) $item['id'],
+                $results['items']
+            );
+            $participants = $this->technicalAssistancePersonsInvolvedRepository
+                ->findPersonsInvolvedByTechnicalAssistanceId($technicalAssistanceIds);
+
+            foreach ($results['items'] as $i => $item) {
+                $technicalAssistanceId = $item['id'];
+                $results['items'][$i]['participants'] = $participants[$technicalAssistanceId];
+            }
+
+            return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_SUCCESS, $results);
+        } catch (CacheException|InvalidArgumentException $exception) {
+            return $this->appFormatter->formatResponse(
+                ResponseEnum::FETCHING_FAILED,
+                null,
+                ['cache' => $exception->getMessage()]
+            );
         }
     }
 
     public function getById(int $id): array
     {
-        $technicalAssistance = $this->repository->isExistingById($id);
+        $technicalAssistance = $this->repository->getById($id);
 
         if (!$technicalAssistance) {
             return $this->appFormatter->formatResponse(ResponseEnum::NO_DATA, null);
         }
+
+        $technicalAssistance['participants'] = $this->technicalAssistancePersonsInvolvedRepository
+            ->findPersonsInvolvedByTechnicalAssistanceId([$id])[$id];
 
         return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_SUCCESS, $technicalAssistance);
     }
@@ -107,16 +145,23 @@ class TechnicalAssistance implements TechnicalAssistanceInterface
             $isDeleted = $this->repository->delete($id);
 
             if (! $isDeleted) {
-                return $this->appFormatter->formatResponse(ResponseEnum::DELETING_FAILED, null, ['app' => ResponseEnum::NO_DATA]);
+                return $this->appFormatter->formatResponse(
+                    ResponseEnum::DELETING_FAILED,
+                    null,
+                    ['app' => ResponseEnum::NO_DATA]
+                );
             }
 
+            $this->technicalAssistancePersonsInvolvedRepository->deleteByTechnicalAssistanceId($id);
             $this->auditTrail->log(AuditTrailActions::DELETE, [], $this->shortName, $id);
 
             return $this->appFormatter->formatResponse(ResponseEnum::DELETING_SUCCESS, null);
-        } catch (InvalidArgumentException $exception) {
-            return $this->appFormatter->formatResponse(ResponseEnum::DELETING_FAILED, null, ['cache' => $exception->getMessage()]);
-        } catch (\Doctrine\ORM\ORMException | ORMException $exception) {
-            return $this->appFormatter->formatResponse(ResponseEnum::DELETING_FAILED, null, ['orm' => $exception->getMessage()]);
+        } catch (InvalidArgumentException | \Doctrine\ORM\ORMException | ORMException $exception) {
+            return $this->appFormatter->formatResponse(
+                ResponseEnum::DELETING_FAILED,
+                null,
+                ['app' => $exception->getMessage()]
+            );
         }
     }
 
@@ -124,6 +169,7 @@ class TechnicalAssistance implements TechnicalAssistanceInterface
     {
         try {
             $quarter = $this->quartersRepository->find($quarterId);
+
             if ($quarter === null) {
                 return $this->appFormatter->formatResponse(ResponseEnum::NO_DATA, null);
             }
@@ -131,11 +177,55 @@ class TechnicalAssistance implements TechnicalAssistanceInterface
             $minMaxDate = $this->quartersRepository->getQuarterMinMaxDate($quarter);
             $technicalAssistance = $this->repository->findByDateRange($minMaxDate, $fieldOfficeId);
 
+            $technicalAssistanceIds = array_map(
+                fn($item) => (int) $item['id'],
+                $technicalAssistance
+            );
+            $participants = $this->technicalAssistancePersonsInvolvedRepository
+                ->findPersonsInvolvedByTechnicalAssistanceId($technicalAssistanceIds);
+
+            foreach ($technicalAssistance as $i => $item) {
+                $technicalAssistanceId = $item['id'];
+                $technicalAssistance[$i]['participants'] = $participants[$technicalAssistanceId];
+            }
+
             return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_SUCCESS, $technicalAssistance);
         } catch (\Exception $e) {
-            return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_SUCCESS, null, ['app' => $e->getMessage()]);
-        } catch (Exception $e) {
-            return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_SUCCESS, null, ['orm' => $e->getMessage()]);
+            return $this->appFormatter->formatResponse(
+                ResponseEnum::FETCHING_SUCCESS,
+                null,
+                ['app' => $e->getMessage()]
+            );
+        }
+    }
+
+    public function update(int $id, TechnicalAssistanceModel $technicalAssistanceData): array
+    {
+        try {
+            $isUpdated = $this->repository->update($id, $technicalAssistanceData);
+
+            if ($isUpdated !== ResponseEnum::OK) {
+                return $this->appFormatter->formatResponse(ResponseEnum::UPDATING_FAILED, null, ['app' => $isUpdated]);
+            }
+
+            $this->auditTrail->log(
+                AuditTrailActions::UPDATE,
+                $technicalAssistanceData->jsonSerialize(),
+                $this->shortName,
+                $id
+            );
+
+            $this->technicalAssistancePersonsInvolvedRepository->deleteByTechnicalAssistanceId($id);
+            $this->technicalAssistancePersonsInvolvedRepository
+                ->batchCreate($id, $technicalAssistanceData->getPersonsInvolved());
+
+            return $this->appFormatter->formatResponse(ResponseEnum::UPDATING_SUCCESS, null);
+        } catch (\Exception | InvalidArgumentException $exception) {
+            return $this->appFormatter->formatResponse(
+                ResponseEnum::UPDATING_FAILED,
+                null,
+                ['error' => $exception->getMessage()]
+            );
         }
     }
 }

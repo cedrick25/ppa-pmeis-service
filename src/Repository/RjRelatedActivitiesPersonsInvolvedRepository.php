@@ -70,7 +70,13 @@ use Doctrine\Persistence\ManagerRegistry;
         foreach ($results as $result) {
             $personsInvolvedId = $result['persons_involved_id'];
 
-            ['type' => $type, 'name' => $name] = $this->convertData($result['type'], $personsInvolvedId, $users, $volunteers, $result['others_name']);
+            ['type' => $type, 'name' => $name] = $this->convertData(
+                $result['type'],
+                $personsInvolvedId,
+                $users,
+                $volunteers,
+                $result['others_name']
+            );
 
             $return[$result['related_activity_id']][] = [
                 'type' => $type,
@@ -179,40 +185,40 @@ use Doctrine\Persistence\ManagerRegistry;
         return $data;
     }
 
-        private function convertData(
-            string $type,
-            int $personsInvolvedId,
-            array $users,
-            array $volunteers,
-            ?string $othersName = ''
-        ): array {
-            switch ($type) {
-                case 'PPO':
-                    $name = $users[$personsInvolvedId];
-                    $type = [
-                        'label' => 'PPO (Parole Probation Officer)',
-                        'value' => 'PPO'
-                    ];
-                    break;
-                case 'VPA':
-                    $name = $volunteers[$personsInvolvedId];
-                    $type = [
-                        'label' => 'VPA (Volunteer Probation Assistant)',
-                        'value' => 'VPA'
-                    ];
-                    break;
-                default:
-                    $name = $othersName;
-                    $type = [
-                        'label' => 'Others',
-                        'value' => 'others'
-                    ];
-                    break;
-            }
-
-            return [
-                'type' => $type,
-                'name' => $name
-            ];
+    private function convertData(
+        string $type,
+        int $personsInvolvedId,
+        array $users,
+        array $volunteers,
+        ?string $othersName = ''
+    ): array {
+        switch ($type) {
+            case 'PPO':
+                $name = $users[$personsInvolvedId];
+                $type = [
+                    'label' => 'PPO (Parole Probation Officer)',
+                    'value' => 'PPO'
+                ];
+                break;
+            case 'VPA':
+                $name = $volunteers[$personsInvolvedId];
+                $type = [
+                    'label' => 'VPA (Volunteer Probation Assistant)',
+                    'value' => 'VPA'
+                ];
+                break;
+            default:
+                $name = $othersName;
+                $type = [
+                    'label' => 'Others',
+                    'value' => 'others'
+                ];
+                break;
         }
+
+        return [
+            'type' => $type,
+            'name' => $name
+        ];
+    }
 }

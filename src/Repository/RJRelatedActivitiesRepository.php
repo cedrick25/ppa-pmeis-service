@@ -226,7 +226,7 @@ class RJRelatedActivitiesRepository extends ServiceEntityRepository
         $entity->setRjpId($data->getRjpId());
         $entity->setRjoId($data->getRjoId());
         $entity->setRjGroup($data->getRjGroup());
-        $entity->setCreatedAt($this->appDateHelper->getCurrentImmutableDate());
+        $entity->setUpdatedAt($this->appDateHelper->getCurrentImmutableDate());
 
         $this->getEntityManager()->flush();
 

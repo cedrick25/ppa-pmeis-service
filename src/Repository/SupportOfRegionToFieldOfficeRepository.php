@@ -228,7 +228,7 @@ class SupportOfRegionToFieldOfficeRepository extends ServiceEntityRepository
         $entity->setAttributableCost($data->getAttributableCost());
         $entity->setTotalAmount($data->getTotalAmount());
         $entity->setRemarks($data->getRemarks());
-        $entity->setCreatedAt($this->appDateHelper->getCurrentImmutableDate());
+        $entity->setUpdatedAt($this->appDateHelper->getCurrentImmutableDate());
 
         $this->getEntityManager()->persist($entity);
         $this->getEntityManager()->flush();

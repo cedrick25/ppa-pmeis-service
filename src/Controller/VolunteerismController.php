@@ -262,6 +262,17 @@ class VolunteerismController extends AbstractController
     }
 
     /**
+     * @Route("/technical-assistance/{page}/{pageSize}", methods={"GET"})
+     */
+    public function getPaginatedTechnicalAssistance(Request $request): Response
+    {
+        return $this->json($this->technicalAssistanceService->getPaginated(
+            (int) $request->get("page"),
+            (int) $request->get("pageSize")
+        ));
+    }
+
+    /**
      * @Route("/technical-assistance/by/id/{id}", methods={"GET"})
      */
     public function getTechnicalAssistanceById(Request $request): Response
@@ -286,6 +297,30 @@ class VolunteerismController extends AbstractController
             (int) $request->get("quarterId"),
             (int) $request->get("fieldOfficeId"),
         ));
+    }
+
+    /**
+     * @Route("/technical-assistance/update/{id}", methods={"POST"})
+     */
+    public function updateTechnicalAssistance(Request $request): Response
+    {
+        try {
+            $data = json_decode($request->getContent(), true);
+
+            /** @var TechnicalAssistanceModel $technicalAssistance */
+            $technicalAssistance = $this->appHydrator->convertArrayToObject($data, TechnicalAssistanceModel::class);
+
+            return $this->json($this->technicalAssistanceService->update(
+                (int) $request->get("id"),
+                $technicalAssistance,
+            ));
+        } catch (\ReflectionException $exception) {
+            return $this->json($this->appFormatter->formatResponse(
+                'Updating Technical Assistance failed',
+                null,
+                ['reflection' => $exception->getMessage()]
+            ));
+        }
     }
 
     /**

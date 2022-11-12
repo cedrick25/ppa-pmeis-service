@@ -62,25 +62,59 @@ class SMIIIA3 implements Form
 
         foreach ($this->data['rows'] as $row) {
             $this->lastFilledOutCellY++;
-            $spreadsheet->getActiveSheet()->setCellValue("a" . $this->lastFilledOutCellY, $row['activity_name']);
-            $spreadsheet->getActiveSheet()->setCellValue("b" . $this->lastFilledOutCellY, $row['agency_name']);
-            $spreadsheet->getActiveSheet()->setCellValue("c" . $this->lastFilledOutCellY, $row['date'] . ' ' . $row['venue']);
-            $spreadsheet->getActiveSheet()->setCellValue("d" . $this->lastFilledOutCellY, $row['participants_no']);
-            $spreadsheet->getActiveSheet()->setCellValue("e" . $this->lastFilledOutCellY, $row['participants_type']);
-            $spreadsheet->getActiveSheet()->setCellValue("f" . $this->lastFilledOutCellY, $row['name']);
-            $spreadsheet->getActiveSheet()->setCellValue("g" . $this->lastFilledOutCellY, $row['role']);
-            $spreadsheet->getActiveSheet()->setCellValue("h" . $this->lastFilledOutCellY, $row['remarks']);
+
+            $spreadsheet->getActiveSheet()->setCellValue('A' . $this->lastFilledOutCellY, $row['activity_name']);
+            $spreadsheet->getActiveSheet()->setCellValue('B' . $this->lastFilledOutCellY, $row['agency_name']);
+            $spreadsheet->getActiveSheet()->setCellValue(
+                'C' . $this->lastFilledOutCellY,
+                $row['date'] . ' ' . $row['venue']
+            );
+
+            foreach ($row['participants'] as $i => $participant) {
+                if ($i > 0) {
+                    $this->lastFilledOutCellY++;
+                }
+
+                if (strlen($participant['othersName']) > 0) {
+                    $spreadsheet->getActiveSheet()->setCellValue('E' . $this->lastFilledOutCellY, 'Others');
+                    $spreadsheet->getActiveSheet()->setCellValue(
+                        'F' . $this->lastFilledOutCellY,
+                        $participant['othersName']
+                    );
+                    $spreadsheet->getActiveSheet()->setCellValue('G' . $this->lastFilledOutCellY, 'Others');
+
+                    continue;
+                }
+
+                $spreadsheet->getActiveSheet()->setCellValue(
+                    'E' . $this->lastFilledOutCellY,
+                    $participant['type']['value']
+                );
+                $spreadsheet->getActiveSheet()->setCellValue(
+                    'F' . $this->lastFilledOutCellY,
+                    $participant['id']['label']
+                );
+                $spreadsheet->getActiveSheet()->setCellValue(
+                    'G' . $this->lastFilledOutCellY,
+                    $participant['type']['value']
+                );
+            }
+            $spreadsheet->getActiveSheet()->setCellValue('D' . $this->lastFilledOutCellY, count($row['participants']));
+
+            $spreadsheet->getActiveSheet()->setCellValue('H' . $this->lastFilledOutCellY, $row['remarks']);
         }
-        $spreadsheet->getActiveSheet()->getStyle('A6:h' . $this->lastFilledOutCellY)->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
+        $spreadsheet->getActiveSheet()
+            ->getStyle('A6:H' . $this->lastFilledOutCellY)
+            ->getBorders()
+            ->getAllBorders()
+            ->setBorderStyle(Border::BORDER_THIN);
 
         return $spreadsheet;
     }
 
     public function header(): Spreadsheet
     {
-        $spreadsheet = $this->prepare();
-
-        return $spreadsheet;
+        return $this->prepare();
     }
 
     /**

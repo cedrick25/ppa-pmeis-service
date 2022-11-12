@@ -5,6 +5,7 @@ namespace App\Repository;
 use App\Common\AppDateHelper;
 use App\Common\CacheHelper;
 use App\Entity\TechnicalAssistance;
+use App\Enum\Response as ResponseEnum;
 use App\Model\TechnicalAssistance as TechnicalAssistanceModel;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\DBAL\Exception;
@@ -59,6 +60,46 @@ class TechnicalAssistanceRepository extends ServiceEntityRepository
     }
 
     /**
+     * @param int $page
+     * @param int $pageSize
+     * @return array<string, mixed>
+     * @throws InvalidArgumentException
+     * @throws CacheException
+     */
+    public function paginated(int $page = 1, int $pageSize = 10): array
+    {
+        $params = [
+            'cacheKey' => 'technical_assistance_' . $page . '_' . $pageSize,
+            'expiration' => $this->cacheHelper->getExpirationDateTime(),
+            'cacheTag' => self::CACHE_TAG,
+            'pageSize' => $pageSize,
+            'page' => $page
+        ];
+
+        return $this->helper->createPaginatedResponseCustomQuery($params, function () use ($pageSize, $page) {
+            $startOffset = $pageSize * ($page-1);
+            $result = [];
+
+            $conn = $this->getEntityManager()->getConnection();
+            $sql = "SELECT ta.*, fo.name field_office, r.region_id, r.name region
+                    FROM technical_assistance as ta
+                    LEFT JOIN field_offices fo on ta.field_office_id = fo.field_office_id
+                    LEFT JOIN regions r on fo.region_id = r.region_id
+                    WHERE ta.deleted_at IS NULL ";
+
+            $result['totalItems'] = $this->helper->getCustomQueryPaginatedTotalItems($conn, $sql);
+
+            $sql .="LIMIT $pageSize OFFSET $startOffset";
+
+            $stmt = $conn->prepare($sql);
+            $query = $stmt->executeQuery();
+            $result['data'] = $query->fetchAllAssociative();
+
+            return $result;
+        });
+    }
+
+    /**
      * @throws InvalidArgumentException
      * @throws \Exception
      */
@@ -66,20 +107,20 @@ class TechnicalAssistanceRepository extends ServiceEntityRepository
     {
         $this->cache->invalidateTags([self::CACHE_TAG]);
 
-        $newTechnicalAssistance = new TechnicalAssistance();
-        $newTechnicalAssistance->setActivityName($data->getActivityName());
-        $newTechnicalAssistance->setAgencyName($data->getAgencyName());
-        $newTechnicalAssistance->setDate($this->appDateHelper->convertStringToImmutableDate($data->getDate()));
-        $newTechnicalAssistance->setVenue($data->getVenue());
-        $newTechnicalAssistance->setFieldOfficeId($data->getFieldOfficeId());
-        $newTechnicalAssistance->setParticipantsNo($data->getParticipantsNo());
-        $newTechnicalAssistance->setRemarks($data->getRemarks());
-        $newTechnicalAssistance->setCreatedAt($this->appDateHelper->getCurrentImmutableDate());
+        $entity = new TechnicalAssistance();
+        $entity->setActivityName($data->getActivityName());
+        $entity->setAgencyName($data->getAgencyName());
+        $entity->setDate($this->appDateHelper->convertStringToImmutableDate($data->getDate()));
+        $entity->setVenue($data->getVenue());
+        $entity->setFieldOfficeId($data->getFieldOfficeId());
+        $entity->setParticipantsNo($data->getParticipantsNo());
+        $entity->setRemarks($data->getRemarks());
+        $entity->setCreatedAt($this->appDateHelper->getCurrentImmutableDate());
 
-        $this->getEntityManager()->persist($newTechnicalAssistance);
+        $this->getEntityManager()->persist($entity);
         $this->getEntityManager()->flush();
 
-        return $newTechnicalAssistance->getId();
+        return $entity->getId();
     }
 
     /**
@@ -129,23 +170,49 @@ class TechnicalAssistanceRepository extends ServiceEntityRepository
                 AND CAST('$max' AS DATE)";
         $stmt = $conn->prepare($sql);
         $query = $stmt->executeQuery();
-        $rows = $query->fetchAllAssociative();
-        $result = [];
 
-        foreach ($rows as $row) {
-            if ($row['personnel_id'] != null) {
-                $userDetail = $this->userDetailsRepository->findOneBy(['userAccountId' => $row['personnel_id']]);
-                $name = $userDetail->getFirstName() . ' ' . $userDetail->getMiddleName() . ' ' . $userDetail->getLastName();
-                $row['role'] = $row['personnel_role'];
-            } else {
-                $vpa = $this->volunteerRepository->find(intval($row['vpa_id']));
-                $name = $vpa->getFirstName() . ' ' . $vpa->getMiddleName() . ' ' . $vpa->getLastName();
-                $row['role'] = $row['vpa_role'];
-            }
-            $row['name'] = $name;
-            $result[] = $row;
+        return $query->fetchAllAssociative();
+    }
+
+    public function getById(int $id): array | bool
+    {
+        return $this->getEntityManager()->getConnection()
+            ->executeQuery(
+                "SELECT ta.*, fo.name field_office, r.region_id, r.name region
+                    FROM technical_assistance as ta
+                    LEFT JOIN field_offices fo on ta.field_office_id = fo.field_office_id
+                    LEFT JOIN regions r on fo.region_id = r.region_id
+                    WHERE ta.id = :id AND ta.deleted_at IS NULL ",
+                ['id' => $id]
+            )->fetchAssociative();
+    }
+
+    /**
+     * @throws InvalidArgumentException
+     * @throws \Exception
+     */
+    public function update(int $id, TechnicalAssistanceModel $data): string
+    {
+        $this->cache->invalidateTags([self::CACHE_TAG]);
+
+        $entity = $this->isExistingById($id);
+
+        if (null == $entity) {
+            return ResponseEnum::NO_RECORD;
         }
 
-        return $result;
+        $entity->setActivityName($data->getActivityName());
+        $entity->setAgencyName($data->getAgencyName());
+        $entity->setDate($this->appDateHelper->convertStringToImmutableDate($data->getDate()));
+        $entity->setVenue($data->getVenue());
+        $entity->setFieldOfficeId($data->getFieldOfficeId());
+        $entity->setParticipantsNo($data->getParticipantsNo());
+        $entity->setRemarks($data->getRemarks());
+        $entity->setUpdatedAt($this->appDateHelper->getCurrentImmutableDate());
+
+        $this->getEntityManager()->persist($entity);
+        $this->getEntityManager()->flush();
+
+        return ResponseEnum::OK;
     }
 }

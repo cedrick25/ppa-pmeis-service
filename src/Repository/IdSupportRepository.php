@@ -188,7 +188,7 @@ class IdSupportRepository extends ServiceEntityRepository
         $entity->setDate($this->appDateHelper->convertStringToImmutableDate($data->getDate()));
         $entity->setVenue($data->getVenue());
         $entity->setAssistanceRendered($data->getAssistanceRendered());
-        $entity->setCreatedAt($this->appDateHelper->getCurrentImmutableDate());
+        $entity->setUpdatedAt($this->appDateHelper->getCurrentImmutableDate());
 
         $this->getEntityManager()->persist($entity);
         $this->getEntityManager()->flush();

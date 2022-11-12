@@ -282,7 +282,7 @@ class SessionsRepository extends ServiceEntityRepository
         $session->setPeriod($sessionData->getPeriod());
         $session->setLiLo($sessionData->getLiLo());
         $session->setCreatedBy($sessionData->getCreatedBy());
-        $session->setCreatedAt($this->appDateHelper->getCurrentImmutableDate());
+        $session->setUpdatedAt($this->appDateHelper->getCurrentImmutableDate());
 
         $this->getEntityManager()->flush();
 
@@ -321,7 +321,7 @@ class SessionsRepository extends ServiceEntityRepository
         $session->setPeriod($sessionData->getPeriod());
         $session->setLiLo($sessionData->getLiLo());
         $session->setCreatedBy($sessionData->getCreatedBy());
-        $session->setCreatedAt($this->appDateHelper->getCurrentImmutableDate());
+        $session->setUpdatedAt($this->appDateHelper->getCurrentImmutableDate());
 
         $this->getEntityManager()->flush();
 

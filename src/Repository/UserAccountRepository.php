@@ -156,7 +156,7 @@ class UserAccountRepository extends ServiceEntityRepository
         $user->setRegionId($userAccountWithDetails->getRegion());
         $user->setFieldOfficeId($userAccountWithDetails->getFieldOffice());
         $user->setStatus($userAccountWithDetails->getStatus());
-        $user->setCreatedAt($this->appDateHelper->getCurrentImmutableDate());
+        $user->setUpdatedAt($this->appDateHelper->getCurrentImmutableDate());
 
         $this->userDetailsRepository->updateByAccountId($user->getUserAccountId(), $userAccountWithDetails);
 
