@@ -11,11 +11,10 @@ class ProgramMaterialsDevelopment implements \JsonSerializable
     public function __construct(
         private string $particulars,
         private string $date,
-        private string $personResponsibleType,
-        private int $vpaPpoId,
-        private string $utilizedFor,
+        private string $program,
         private string $remarks,
         private int $fieldOfficeId,
+        private array $personsResponsible,
         private ?DateTimeInterface $createdAt = null,
         private ?DateTimeInterface $updatedAt = null,
         private ?DateTimeInterface $deletedAt = null
@@ -43,28 +42,9 @@ class ProgramMaterialsDevelopment implements \JsonSerializable
      * @Assert\NotBlank
      * @return string
      */
-    public function getPersonResponsibleType(): string
+    public function getProgram(): string
     {
-        return $this->personResponsibleType;
-    }
-
-    /**
-     * @Assert\NotBlank
-     * @Assert\GreaterThan(0)
-     * @return int
-     */
-    public function getVpaPpoId(): int
-    {
-        return $this->vpaPpoId;
-    }
-
-    /**
-     * @Assert\NotBlank
-     * @return string
-     */
-    public function getUtilizedFor(): string
-    {
-        return $this->utilizedFor;
+        return $this->program;
     }
 
     /**
@@ -84,6 +64,14 @@ class ProgramMaterialsDevelopment implements \JsonSerializable
     public function getFieldOfficeId(): int
     {
         return $this->fieldOfficeId;
+    }
+
+    /**
+     * @return array
+     */
+    public function getPersonsResponsible(): array
+    {
+        return $this->personsResponsible;
     }
 
     /**

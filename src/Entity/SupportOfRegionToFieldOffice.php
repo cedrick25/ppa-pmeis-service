@@ -2,7 +2,7 @@
 
 namespace App\Entity;
 
-use App\Enum\UtilizedFor;
+use App\Enum\Program;
 use App\Repository\SupportOfRegionToFieldOfficeRepository;
 use Doctrine\DBAL\Exception\InvalidArgumentException;
 use Doctrine\ORM\Mapping as ORM;
@@ -94,7 +94,7 @@ class SupportOfRegionToFieldOffice
      */
     public function setCategory(string $category): self
     {
-        if (! UtilizedFor::isValid($category)) {
+        if (! Program::isValid($category)) {
             throw new InvalidArgumentException("Invalid Category For");
         }
         $this->category = $category;

@@ -384,7 +384,6 @@ class VolunteerismController extends AbstractController
         ));
     }
 
-
     /**
      * @Route("/program-materials-development/create", methods={"POST"})
      */
@@ -394,11 +393,18 @@ class VolunteerismController extends AbstractController
             $data = json_decode($request->getContent(), true);
 
             /** @var ProgramMaterialsDevelopmentModel $programMaterialsDevelopmentModel */
-            $programMaterialsDevelopmentModel = $this->appHydrator->convertArrayToObject($data, ProgramMaterialsDevelopmentModel::class);
+            $programMaterialsDevelopmentModel = $this->appHydrator->convertArrayToObject(
+                $data,
+                ProgramMaterialsDevelopmentModel::class
+            );
 
             return $this->json($this->programMaterialsDevelopmentService->create($programMaterialsDevelopmentModel));
         } catch (\ReflectionException $exception) {
-            return $this->json($this->appFormatter->formatResponse('Creating Program Materials Development failed', null, ['reflection' => $exception->getMessage()]));
+            return $this->json($this->appFormatter->formatResponse(
+                'Creating Program Materials Development failed',
+                null,
+                ['reflection' => $exception->getMessage()]
+            ));
         }
     }
 
@@ -408,6 +414,17 @@ class VolunteerismController extends AbstractController
     public function getAllProgramMaterialsDevelopment(): Response
     {
         return $this->json($this->programMaterialsDevelopmentService->getAll());
+    }
+
+    /**
+     * @Route("/program-materials-development/{page}/{pageSize}", methods={"GET"})
+     */
+    public function getPaginatedPmd(Request $request): Response
+    {
+        return $this->json($this->programMaterialsDevelopmentService->getPaginated(
+            (int) $request->get("page"),
+            (int) $request->get("pageSize")
+        ));
     }
 
     /**
@@ -435,6 +452,32 @@ class VolunteerismController extends AbstractController
             (int) $request->get("quarterId"),
             (int) $request->get("fieldOfficeId"),
         ));
+    }
+    /**
+     * @Route("/program-materials-development/update/{id}", methods={"POST"})
+     */
+    public function updateProgramMaterialsDevelopment(Request $request): Response
+    {
+        try {
+            $data = json_decode($request->getContent(), true);
+
+            /** @var ProgramMaterialsDevelopmentModel $programMaterialsDevelopmentModel */
+            $programMaterialsDevelopmentModel = $this->appHydrator->convertArrayToObject(
+                $data,
+                ProgramMaterialsDevelopmentModel::class
+            );
+
+            return $this->json($this->programMaterialsDevelopmentService->update(
+                (int) $request->get("id"),
+                $programMaterialsDevelopmentModel,
+            ));
+        } catch (\ReflectionException $exception) {
+            return $this->json($this->appFormatter->formatResponse(
+                'Updating Program Materials Development failed',
+                null,
+                ['reflection' => $exception->getMessage()]
+            ));
+        }
     }
 
     /**

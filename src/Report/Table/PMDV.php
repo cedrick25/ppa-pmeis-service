@@ -57,29 +57,47 @@ class PMDV implements Form
     {
         $spreadsheet = $this->header();
 
-        $utilizedFor = [
+        $program = [
             'TC' => 'D', 'RJ' => 'E', 'VPA' => 'F', 'GAD' => 'G', 'OTHERS' => 'H'
         ];
 
         foreach ($this->data['rows'] as $row) {
             $this->lastFilledOutCellY++;
+
             $spreadsheet->getActiveSheet()->setCellValue("A" . $this->lastFilledOutCellY, $row['particulars']);
             $spreadsheet->getActiveSheet()->setCellValue("B" . $this->lastFilledOutCellY, $row['date']);
-            $spreadsheet->getActiveSheet()->setCellValue("C" . $this->lastFilledOutCellY, $row['name']);
-            $spreadsheet->getActiveSheet()->setCellValue($utilizedFor[$row['utilized_for']] . $this->lastFilledOutCellY, '/');
+            $spreadsheet->getActiveSheet()->setCellValue($program[$row['program']] . $this->lastFilledOutCellY, '/');
             $spreadsheet->getActiveSheet()->setCellValue("I" . $this->lastFilledOutCellY, $row['remarks']);
+
+            foreach ($row['personsResponsible'] as $personResponsible) {
+                if (strlen($personResponsible['othersName']) > 0) {
+                    $spreadsheet->getActiveSheet()->setCellValue(
+                        "C" . $this->lastFilledOutCellY,
+                        $personResponsible['othersName']
+                    );
+
+                    continue;
+                }
+
+                $spreadsheet->getActiveSheet()->setCellValue(
+                    "C" . $this->lastFilledOutCellY,
+                    $personResponsible['type']['value']
+                    . ' - ' . $personResponsible['id']['label']
+                );
+
+                $this->lastFilledOutCellY++;
+            }
         }
 
-        $spreadsheet->getActiveSheet()->getStyle('A9:i' . $this->lastFilledOutCellY)->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
+        $spreadsheet->getActiveSheet()->getStyle('A9:i' . $this->lastFilledOutCellY)
+            ->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
 
         return $spreadsheet;
     }
 
     public function header(): Spreadsheet
     {
-        $spreadsheet = $this->prepare();
-
-        return $spreadsheet;
+        return $this->prepare();
     }
 
     /**
@@ -92,16 +110,13 @@ class PMDV implements Form
             'a1' => 'V.  PROGRAM AND MATERIALS DEVELOPMENT',
             'j1' => $this->data[SystemSettingNames::GENERATED_REPORTS_CODE],
             'a4' => 'Table V.  MATERIALS/ SESSION PLANS DEVELOPED AND USED FOR AGENCY PROGRAMS',
-            'a6' => 'Particulars', 
+            'a6' => 'Particulars',
             'a7' => '(1)',
-
             'b6' => 'Date',
             'b7' => '(2)',
-            
             'c6' => 'Person Responsible ',
             'c7' => '(Personnel/ VPA)',
             'c8' => '(3)',
-
             'd6' => 'Utilized for:  (4)',
             'd7' => 'TC',
             'e7' => 'RJ',
@@ -120,13 +135,14 @@ class PMDV implements Form
         $verticalAlignedCoordinates = ['B3:T30' => 'center', 'A3:A8' => 'center'];
         $horizontalAlignedCoordinates = ['B3:T30' => 'center', 'A3:A8' => 'center'];
         $adjustedColumnWidthCoordinates = [
-            'A' => 40, 'B' => 20, 'C' => 20, 'D' => 15, 'E' => 5, 'F' => 5, 'G' => 5, 'H' => 30, 'I' => 30, 'J' => 30, 'K' => 5, 'L' => 5, 'M' => 5, 'N' => 30, 'O' => 20, 'P' => 20, 'Q' => 5, 'R' => 5, 'S' => 5, 'T' => 20,
+            'A' => 40, 'B' => 20, 'C' => 20, 'D' => 15, 'E' => 5, 'F' => 5, 'G' => 5, 'H' => 30, 'I' => 30, 'J' => 30,
+            'K' => 5, 'L' => 5, 'M' => 5, 'N' => 30, 'O' => 20, 'P' => 20, 'Q' => 5, 'R' => 5, 'S' => 5, 'T' => 20,
         ];
         $outlineBorderThinCoordinates = [
             'A6:A8', 'B6:B8', 'C6:C8', 'D6:G6', 'D7:D8', 'E7:E8', 'F7:F8', 'G7:G8', 'H7:H8', 'I6:I8'
         ];
 
-        foreach ($textAndCoordinates as $coordinate=>$text) {
+        foreach ($textAndCoordinates as $coordinate => $text) {
             $spreadsheet->getActiveSheet()->setCellValue($coordinate, $text);
         }
         foreach ($mergesCoordinates as $coordinate) {
@@ -145,7 +161,8 @@ class PMDV implements Form
             $spreadsheet->getActiveSheet()->getColumnDimension($coordinate)->setWidth($width);
         }
         foreach ($outlineBorderThinCoordinates as $coordinate) {
-            $spreadsheet->getActiveSheet()->getStyle($coordinate)->getBorders()->getOutline()->setBorderStyle(Border::BORDER_THIN);
+            $spreadsheet->getActiveSheet()->getStyle($coordinate)
+                ->getBorders()->getOutline()->setBorderStyle(Border::BORDER_THIN);
         }
 
         return $spreadsheet;
@@ -153,7 +170,8 @@ class PMDV implements Form
 
     private function getData(array $data): array
     {
-        $results = $this->programMaterialsDevelopmentService->getIdSupportReport($data['quarter_id'], $data['field_office_id']);
+        $results = $this->programMaterialsDevelopmentService
+            ->getIdSupportReport($data['quarter_id'], $data['field_office_id']);
 
         return ['rows' => isset($results['data']) ? array_values($results['data']) : []];
     }

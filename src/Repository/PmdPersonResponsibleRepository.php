@@ -2,7 +2,7 @@
 
 namespace App\Repository;
 
-use App\Entity\TechnicalAssistancePersonsInvolved;
+use App\Entity\PmdPersonResponsible;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\DBAL\Connection;
 use Doctrine\ORM\OptimisticLockException;
@@ -10,61 +10,60 @@ use Doctrine\ORM\ORMException;
 use Doctrine\Persistence\ManagerRegistry;
 
 /**
- * @extends ServiceEntityRepository<TechnicalAssistancePersonsInvolved>
+ * @extends ServiceEntityRepository<PmdPersonResponsible>
  *
- * @method TechnicalAssistancePersonsInvolved|null find($id, $lockMode = null, $lockVersion = null)
- * @method TechnicalAssistancePersonsInvolved|null findOneBy(array $criteria, array $orderBy = null)
- * @method TechnicalAssistancePersonsInvolved[]    findAll()
- * @method TechnicalAssistancePersonsInvolved[]    findBy(array $criteria, array $orderBy = null, $limit = null, $offset = null)
+ * @method PmdPersonResponsible|null find($id, $lockMode = null, $lockVersion = null)
+ * @method PmdPersonResponsible|null findOneBy(array $criteria, array $orderBy = null)
+ * @method PmdPersonResponsible[]    findAll()
+ * @method PmdPersonResponsible[]    findBy(array $criteria, array $orderBy = null, $limit = null, $offset = null)
  */
-class TechnicalAssistancePersonsInvolvedRepository extends ServiceEntityRepository
+class PmdPersonResponsibleRepository extends ServiceEntityRepository
 {
     public function __construct(
         ManagerRegistry $registry,
         private VolunteerRepository    $volunteerRepository,
         private UserDetailsRepository  $userDetailsRepository,
     ) {
-        parent::__construct($registry, TechnicalAssistancePersonsInvolved::class);
+        parent::__construct($registry, PmdPersonResponsible::class);
     }
 
-    public function batchCreate(int $technicalAssistanceId, array $personsInvolved): void
+    public function batchCreate(int $id, array $personsResponsible): void
     {
-        foreach ($personsInvolved as $personInvolved) {
-            $type = $personInvolved['type']['value'];
-            $id = 'others' === $type ? 0 : (int) $personInvolved['id']['value'];
+        foreach ($personsResponsible as $personResponsible) {
+            $type = $personResponsible['type']['value'];
+            $personResponsibleId = 'others' === $type ? 0 : (int) $personResponsible['id']['value'];
 
-            $entity = new TechnicalAssistancePersonsInvolved();
-            $entity->setTechnicalAssistanceId($technicalAssistanceId);
-            $entity->setPersonsInvolvedId($id);
+            $entity = new PmdPersonResponsible();
+            $entity->setPmdId($id);
+            $entity->setPersonResponsibleId($personResponsibleId);
             $entity->setType($type);
 
             if ('others' === $type) {
-                $entity->setOthersName($personInvolved['othersName']);
+                $entity->setOthersName($personResponsible['othersName']);
             }
 
             $this->getEntityManager()->persist($entity);
         }
 
         $this->getEntityManager()->flush();
-        $this->getEntityManager()->clear(TechnicalAssistancePersonsInvolved::class);
+        $this->getEntityManager()->clear(PmdPersonResponsible::class);
     }
 
-    public function deleteByTechnicalAssistanceId(int $technicalAssistanceId): void
+    public function deleteByPmdId(int $pmdId): void
     {
         $this->getEntityManager()->getConnection()
             ->executeQuery(
-                "DELETE FROM technical_assistance_persons_involved
-                        WHERE technical_assistance_id = :technical_assistance_id",
-                ['technical_assistance_id' => $technicalAssistanceId],
+                "DELETE FROM pmd_person_responsible WHERE pmd_id = :pmd_id",
+                ['pmd_id' => $pmdId],
             );
     }
 
-    public function findPersonsInvolvedByTechnicalAssistanceId(array $ids): array
+    public function findPersonsResponsibleByPmdId(array $ids): array
     {
         $results = $this->getEntityManager()->getConnection()
             ->executeQuery(
-                "SELECT tapi.* FROM technical_assistance_persons_involved tapi
-                    WHERE tapi.technical_assistance_id IN (:ids)",
+                "SELECT ppr.* FROM pmd_person_responsible ppr
+                    WHERE ppr.pmd_id IN (:ids)",
                 ['ids' => $ids],
                 ['ids' => Connection::PARAM_INT_ARRAY]
             )->fetchAllAssociative();
@@ -78,22 +77,22 @@ class TechnicalAssistancePersonsInvolvedRepository extends ServiceEntityReposito
         $volunteers = $this->getVolunteerNames();
 
         foreach ($results as $result) {
-            $personsInvolvedId = $result['persons_involved_id'];
+            $personsResponsibleId = (int) $result['pmd_id'];
 
             ['type' => $type, 'name' => $name] = $this->convertData(
                 $result['type'],
-                $personsInvolvedId,
+                $personsResponsibleId,
                 $users,
                 $volunteers,
                 $result['others_name']
             );
 
-            $return[$result['technical_assistance_id']][] = [
+            $return[$result['pmd_id']][] = [
                 'type' => $type,
                 'id' => 'others' !== $result['type'] ?
                     [
                         'label' => $name,
-                        'value' => $personsInvolvedId
+                        'value' => $personsResponsibleId
                     ] : null,
                 'othersName' => 'others' !== $result['type'] ? '' : $name,
             ];

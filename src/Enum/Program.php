@@ -14,7 +14,7 @@ use MyCLabs\Enum\Enum;
  * @method static self PWDSC()
  * @method static self OTHERS()
  */
-class UtilizedFor extends Enum implements Hashable
+class Program extends Enum implements Hashable
 {
     public const TC = "TC";
     public const RJ = "RJ";

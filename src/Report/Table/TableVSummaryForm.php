@@ -5,11 +5,8 @@ namespace App\Report\Table;
 use App\Service\Volunteerism\ProgramMaterialsDevelopment;
 use App\Entity\FieldOffices;
 use App\Entity\Quarters;
-use App\Repository\ClientSessionsRepository;
-use App\Repository\ClientsRepository;
 use App\Repository\FieldOfficesRepository;
 use App\Repository\QuartersRepository;
-use App\Repository\SessionsRepository;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Style\Border;
@@ -25,14 +22,10 @@ class TableVSummaryForm implements Form
         private ProgramMaterialsDevelopment $programMaterialsDevelopmentService,
         private FieldOfficesRepository      $fieldOfficesRepository,
         private QuartersRepository          $quartersRepository,
-        private SessionsRepository          $sessionsRepository,
-        private ClientSessionsRepository    $clientSessionsRepository,
-        private ClientsRepository           $clientsRepository,
         private array                       $data = [],
-        private array                       $sessionIds = [],
         private ?FieldOffices               $fieldOffice = null,
         private ?Quarters                   $quarters = null,
-    ){}
+    ) {}
 
     public function supports(string $tableName): bool
     {
@@ -65,7 +58,8 @@ class TableVSummaryForm implements Form
         ];
 
         foreach ($thinBorders as $coordinate) {
-            $spreadsheet->getActiveSheet()->getStyle($coordinate)->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
+            $spreadsheet->getActiveSheet()->getStyle($coordinate)
+                ->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
         }
         return $spreadsheet;
     }
@@ -86,7 +80,7 @@ class TableVSummaryForm implements Form
 
         if ($result['rows']) {
             foreach ($result['rows'][0] as $v) {
-                $count[$v['utilized_for']] ++;
+                $count[$v['program']] ++;
             }
         }
 
@@ -130,20 +124,13 @@ class TableVSummaryForm implements Form
             'A12' => '4. Gender and Development',
             'A13' => '5. Others',
             'A15' => 'T O T A L',
-
             'B7' => 'NUMBER OF',
             'B8' => 'Materials/ Session Plans Developed',
             'C8' => 'Materials Reproduced/Distributed (If applicable)',
         ];
 
         $mergesCoordinates = [
-            'A1:C1',
-            'A2:C2',
-            'A3:C3',
-            'A4:C4',
-            'A5:C5',
-            'A7:A8',
-            'B7:C7',
+            'A1:C1', 'A2:C2', 'A3:C3', 'A4:C4', 'A5:C5', 'A7:A8', 'B7:C7',
         ];
 
         $boldCoordinates = [
@@ -199,7 +186,8 @@ class TableVSummaryForm implements Form
         }
 
         foreach ($wrappedTextCoordinates as $coordinate => $width) {
-            $spreadsheet->getActiveSheet()->getStyle($coordinate)->getAlignment()->setWrapText(true); 
+            $spreadsheet->getActiveSheet()->getStyle($coordinate)
+                ->getAlignment()->setWrapText(true);
         }
 
         return $spreadsheet;
@@ -210,7 +198,8 @@ class TableVSummaryForm implements Form
         $this->fieldOffice = $this->fieldOfficesRepository->find($data['field_office_id']);
         $this->quarters = $this->quartersRepository->find($data['quarter_id']);
 
-        $results = $this->programMaterialsDevelopmentService->getIdSupportReport($data['quarter_id'], $data['field_office_id']);
+        $results = $this->programMaterialsDevelopmentService
+            ->getIdSupportReport($data['quarter_id'], $data['field_office_id']);
     
         return ['rows' => array_values($results['data'] ?? [])];
     }

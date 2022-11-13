@@ -2,7 +2,7 @@
 
 namespace App\Entity;
 
-use App\Enum\UtilizedFor;
+use App\Enum\Program;
 use App\Repository\ProgramMaterialsDevelopmentRepository;
 use Doctrine\DBAL\Exception\InvalidArgumentException;
 use Doctrine\ORM\Mapping as ORM;
@@ -30,20 +30,10 @@ class ProgramMaterialsDevelopment
     private \DateTimeInterface $date;
 
     /**
-     * @ORM\Column(type="string", length=255)
-     */
-    private string $personResponsibleType;
-
-    /**
-     * @ORM\Column(type="integer")
-     */
-    private int $vpaPpoId;
-
-    /**
      *
      * @ORM\Column(type="string", length=255)
      */
-    private string $utilizedFor;
+    private string $program;
 
     /**
      * @ORM\Column(type="string", length=255)
@@ -99,44 +89,20 @@ class ProgramMaterialsDevelopment
         return $this;
     }
 
-    public function getPersonResponsibleType(): ?string
+    public function getProgram(): ?string
     {
-        return $this->personResponsibleType;
-    }
-
-    public function setPersonResponsibleType(string $personResponsibleType): self
-    {
-        $this->personResponsibleType = $personResponsibleType;
-
-        return $this;
-    }
-
-    public function getVpaPpoId(): ?int
-    {
-        return $this->vpaPpoId;
-    }
-
-    public function setVpaPpoId(int $vpaPpoId): self
-    {
-        $this->vpaPpoId = $vpaPpoId;
-
-        return $this;
-    }
-
-    public function getUtilizedFor(): ?string
-    {
-        return $this->utilizedFor;
+        return $this->program;
     }
 
     /**
      * @throws InvalidArgumentException
      */
-    public function setUtilizedFor(string $utilizedFor): self
+    public function setProgram(string $program): self
     {
-        if (! UtilizedFor::isValid($utilizedFor)) {
-            throw new InvalidArgumentException("Invalid Utilized For");
+        if (! Program::isValid($program)) {
+            throw new InvalidArgumentException("Invalid Program");
         }
-        $this->utilizedFor = $utilizedFor;
+        $this->program = $program;
 
         return $this;
     }
