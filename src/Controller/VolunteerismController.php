@@ -493,7 +493,35 @@ class VolunteerismController extends AbstractController
 
             return $this->json($this->resourceMobilizationService->create($resourceMobilization));
         } catch (\ReflectionException $exception) {
-            return $this->json($this->appFormatter->formatResponse('Creating Resource Mobilization failed', null, ['reflection' => $exception->getMessage()]));
+            return $this->json($this->appFormatter->formatResponse(
+                'Updating Resource Mobilization failed',
+                null,
+                ['reflection' => $exception->getMessage()]
+            ));
+        }
+    }
+
+    /**
+     * @Route("/resource-mobilization/update/{id}", methods={"POST"})
+     */
+    public function updateResourceMobilization(Request $request): Response
+    {
+        try {
+            $data = json_decode($request->getContent(), true);
+
+            /** @var ResourceMobilizationModel $resourceMobilization */
+            $resourceMobilization = $this->appHydrator->convertArrayToObject($data, ResourceMobilizationModel::class);
+
+            return $this->json($this->resourceMobilizationService->update(
+                (int) $request->get('id'),
+                $resourceMobilization,
+            ));
+        } catch (\ReflectionException $exception) {
+            return $this->json($this->appFormatter->formatResponse(
+                'Updating Resource Mobilization failed',
+                null,
+                ['reflection' => $exception->getMessage()]
+            ));
         }
     }
 
@@ -506,6 +534,18 @@ class VolunteerismController extends AbstractController
     }
 
     /**
+     * @Route("/resource-mobilization/{page}/{pageSize}", methods={"GET"})
+     */
+    public function getPaginatedResMob(Request $request): Response
+    {
+
+        return $this->json($this->resourceMobilizationService->getPaginated(
+            (int) $request->get("page"),
+            (int) $request->get("pageSize")
+        ));
+    }
+
+    /**
      * @Route("/resource-mobilization/by/id/{id}", methods={"GET"})
      */
     public function getResourceMobilizationById(Request $request): Response
@@ -514,7 +554,7 @@ class VolunteerismController extends AbstractController
     }
 
     /**
-     * @Route("/resource-mobilization/delete/{id}", methods={"GET"})
+     * @Route("/resource-mobilization/delete/by/id/{id}", methods={"GET"})
      */
     public function deleteResourceMobilizationById(Request $request): Response
     {

@@ -52,7 +52,8 @@ class RjConductedProcessPersonsInvolvedRepository extends ServiceEntityRepositor
     public function findByConductedProcessIds(array $ids): array
     {
         $query = $this->getEntityManager()->getConnection()->executeQuery(
-            "SELECT rcppi.rj_conducted_process_id, rcppi.persons_involved_id, rcppi.type, rcppi.others_name FROM rj_conducted_process_persons_involved as rcppi WHERE rcppi.rj_conducted_process_id IN (:ids)",
+            "SELECT rcppi.rj_conducted_process_id, rcppi.persons_involved_id, rcppi.type, rcppi.others_name
+                 FROM rj_conducted_process_persons_involved as rcppi WHERE rcppi.rj_conducted_process_id IN (:ids)",
             ['ids' => $ids],
             ['ids' => Connection::PARAM_INT_ARRAY]
         );

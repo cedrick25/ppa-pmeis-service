@@ -196,7 +196,7 @@ class IdSupportRepository extends ServiceEntityRepository
         return ResponseEnum::OK;
     }
 
-    public function getById(int $id): array
+    public function getById(int $id): array | bool
     {
         return $this->getEntityManager()->getConnection()
             ->executeQuery(

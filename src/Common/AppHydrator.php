@@ -12,7 +12,7 @@ class AppHydrator
     /**
      * @throws ReflectionException
      */
-    public function convertObjectToArray($object): array
+    public function convertObjectToArray(object $object): array
     {
         $reflectionClass = new ReflectionClass($object);
 
@@ -22,6 +22,7 @@ class AppHydrator
         foreach ($properties as $property) {
             $property->setAccessible(true);
             $value = $property->getValue($object);
+
             if (is_object($value)) {
                 $array[$property->getName()] = self::convertObjectToArray($value);
             } else {

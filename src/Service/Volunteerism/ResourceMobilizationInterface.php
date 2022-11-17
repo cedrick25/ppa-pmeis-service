@@ -8,7 +8,11 @@ interface ResourceMobilizationInterface
 {
     public function create(ResourceMobilizationModel $data): array;
 
+    public function update(int $id, ResourceMobilizationModel $data): array;
+
     public function getAll(): array;
+
+    public function getPaginated(int $page, int $pageSize): array;
 
     public function getById(int $id): array;
 

@@ -5,6 +5,7 @@ namespace App\Model;
 use App\Common\AppHydrator;
 use DateTimeInterface;
 use Symfony\Component\Validator\Constraints as Assert;
+
 class ResourceMobilization implements \JsonSerializable
 {
     public function __construct(
@@ -12,24 +13,15 @@ class ResourceMobilization implements \JsonSerializable
         private string $activityName,
         private string $date,
         private string $venue,
-        private float $amount,
-        private string $cashSourceName,
-        private string $cashSourceType,
-        private int $materialsId,
-        private int $materialsQty,
-        private float $materialsAmount,
-        private string $materialSourceName,
-        private string $materialSourceType,
-        private string $technicalAssistanceParticulars,
-        private float $technicalAssistanceAmount,
-        private string $technicalAssistanceName,
-        private string $technicalAssistanceType,
-        private string $resourcesSecuredBy,
+        private array $cash,
+        private array $materials,
+        private array $technicalAssistance,
+        private array $securedBy,
         private int $fieldOfficeId,
         private ?DateTimeInterface $createdAt = null,
         private ?DateTimeInterface $updatedAt = null,
         private ?DateTimeInterface $deletedAt = null
-    ){}
+    ) {}
 
     /**
      * @Assert\NotBlank
@@ -68,123 +60,35 @@ class ResourceMobilization implements \JsonSerializable
     }
 
     /**
-     * @Assert\NotBlank
-     * @Assert\GreaterThan(0)
-     * @return float
+     * @return array
      */
-    public function getAmount(): float
+    public function getCash(): array
     {
-        return $this->amount;
+        return $this->cash;
     }
 
     /**
-     * @Assert\NotBlank
-     * @return string
+     * @return array
      */
-    public function getCashSourceName(): string
+    public function getMaterials(): array
     {
-        return $this->cashSourceName;
+        return $this->materials;
     }
 
     /**
-     * @Assert\NotBlank
-     * @return string
+     * @return array
      */
-    public function getCashSourceType(): string
+    public function getTechnicalAssistance(): array
     {
-        return $this->cashSourceType;
+        return $this->technicalAssistance;
     }
 
     /**
-     * @Assert\NotBlank
-     * @Assert\GreaterThan(0)
-     * @return int
+     * @return array
      */
-    public function getMaterialsId(): int
+    public function getSecuredBy(): array
     {
-        return $this->materialsId;
-    }
-
-    /**
-     * @Assert\NotBlank
-     * @Assert\GreaterThan(0)
-     * @return int
-     */
-    public function getMaterialsQty(): int
-    {
-        return $this->materialsQty;
-    }
-
-    /**
-     * @return float
-     */
-    public function getMaterialsAmount(): float
-    {
-        return $this->materialsAmount;
-    }
-
-    /**
-     * @Assert\NotBlank
-     * @return string
-     */
-    public function getMaterialSourceName(): string
-    {
-        return $this->materialSourceName;
-    }
-
-    /**
-     * @Assert\NotBlank
-     * @return string
-     */
-    public function getMaterialSourceType(): string
-    {
-        return $this->materialSourceType;
-    }
-
-    /**
-     * @Assert\NotBlank
-     * @return string
-     */
-    public function getTechnicalAssistanceParticulars(): string
-    {
-        return $this->technicalAssistanceParticulars;
-    }
-
-    /**
-     * @Assert\NotBlank
-     * @Assert\GreaterThan(0)
-     * @return float
-     */
-    public function getTechnicalAssistanceAmount(): float
-    {
-        return $this->technicalAssistanceAmount;
-    }
-
-    /**
-     * @Assert\NotBlank
-     * @return string
-     */
-    public function getTechnicalAssistanceName(): string
-    {
-        return $this->technicalAssistanceName;
-    }
-
-    /**
-     * @Assert\NotBlank
-     * @return string
-     */
-    public function getTechnicalAssistanceType(): string
-    {
-        return $this->technicalAssistanceType;
-    }
-
-    /**
-     * @Assert\NotBlank
-     * @return string
-     */
-    public function getResourcesSecuredBy(): string
-    {
-        return $this->resourcesSecuredBy;
+        return $this->securedBy;
     }
 
     /**

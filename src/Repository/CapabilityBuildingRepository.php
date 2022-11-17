@@ -45,7 +45,7 @@ class CapabilityBuildingRepository extends ServiceEntityRepository
             'cacheTag' => self::CACHE_TAG
         ];
 
-        return $this->helper->createCachedResponse($params, function() {
+        return $this->helper->createCachedResponse($params, function () {
             return $this->createQueryBuilder('cb')
                 ->where('cb.deletedAt IS NULL')
                 ->orderBy('cb.capabilityBuildingId', 'DESC')
@@ -220,7 +220,7 @@ class CapabilityBuildingRepository extends ServiceEntityRepository
         return ResponseEnum::OK;
     }
 
-    public function getById(int $id): array
+    public function getById(int $id): array | bool
     {
         return $this->getEntityManager()->getConnection()
             ->executeQuery(

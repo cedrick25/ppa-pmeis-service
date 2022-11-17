@@ -29,7 +29,7 @@ final class Version20220928003658 extends AbstractMigration
         $this->addSql('ALTER TABLE phases CHANGE name name VARCHAR(255) NOT NULL');
         $this->addSql('ALTER TABLE program_materials_development CHANGE program program VARCHAR(255) NOT NULL');
         $this->addSql('ALTER TABLE resource_facilitator_session CHANGE resource_facilitator_type resource_facilitator_type VARCHAR(3) NOT NULL');
-        $this->addSql('ALTER TABLE resource_mobilization CHANGE category category VARCHAR(255) NOT NULL, CHANGE cash_source_type cash_source_type VARCHAR(255) NOT NULL, CHANGE material_source_type material_source_type VARCHAR(255) NOT NULL, CHANGE technical_assistance_type technical_assistance_type VARCHAR(255) NOT NULL');
+        $this->addSql('ALTER TABLE resource_mobilization CHANGE category category VARCHAR(255) NOT NULL');
         $this->addSql('ALTER TABLE rj_related_restitutions CHANGE rj_group rj_group VARCHAR(255) NOT NULL');
         $this->addSql('ALTER TABLE rjconduct_processes CHANGE rj_group rj_group VARCHAR(255) NOT NULL');
         $this->addSql('ALTER TABLE rjrelated_activities CHANGE rj_group rj_group VARCHAR(255) NOT NULL');
@@ -48,7 +48,7 @@ final class Version20220928003658 extends AbstractMigration
         $this->addSql('ALTER TABLE phases CHANGE name name VARCHAR(255) DEFAULT NULL');
         $this->addSql('ALTER TABLE program_materials_development CHANGE program program VARCHAR(255) DEFAULT NULL');
         $this->addSql('ALTER TABLE resource_facilitator_session CHANGE resource_facilitator_type resource_facilitator_type VARCHAR(255) DEFAULT NULL');
-        $this->addSql('ALTER TABLE resource_mobilization CHANGE category category VARCHAR(255) DEFAULT NULL, CHANGE cash_source_type cash_source_type VARCHAR(255) DEFAULT NULL, CHANGE material_source_type material_source_type VARCHAR(255) DEFAULT NULL, CHANGE technical_assistance_type technical_assistance_type VARCHAR(255) DEFAULT NULL');
+        $this->addSql('ALTER TABLE resource_mobilization CHANGE category category VARCHAR(255) DEFAULT NULL');
         $this->addSql('ALTER TABLE rj_related_restitutions CHANGE rj_group rj_group VARCHAR(255) DEFAULT NULL');
         $this->addSql('ALTER TABLE rjconduct_processes CHANGE rj_group rj_group VARCHAR(255) DEFAULT NULL');
         $this->addSql('ALTER TABLE rjrelated_activities CHANGE rj_group rj_group VARCHAR(255) DEFAULT NULL');

@@ -5,10 +5,10 @@ namespace App\Repository;
 use App\Common\AppDateHelper;
 use App\Common\CacheHelper;
 use App\Entity\ResourceMobilization;
+use App\Enum\Response as ResponseEnum;
 use App\Model\ResourceMobilization as ResourceMobilizationModel;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\DBAL\Exception;
-use Doctrine\ORM\ORMException;
 use Doctrine\Persistence\ManagerRegistry;
 use Psr\Cache\CacheException;
 use Psr\Cache\InvalidArgumentException;
@@ -46,12 +46,52 @@ class ResourceMobilizationRepository extends ServiceEntityRepository
             'cacheTag' => self::CACHE_TAG
         ];
 
-        return $this->helper->createCachedResponse($params, function() {
+        return $this->helper->createCachedResponse($params, function () {
             return $this->createQueryBuilder('rm')
                 ->where('rm.deletedAt IS NULL')
                 ->orderBy('rm.resourceMobilizationId', 'DESC')
                 ->getQuery()
                 ->getResult();
+        });
+    }
+
+    /**
+     * @param int $page
+     * @param int $pageSize
+     * @return array<string, mixed>
+     * @throws InvalidArgumentException
+     * @throws CacheException
+     */
+    public function paginated(int $page = 1, int $pageSize = 10): array
+    {
+        $params = [
+            'cacheKey' => 'res_mob_' . $page . '_' . $pageSize,
+            'expiration' => $this->cacheHelper->getExpirationDateTime(),
+            'cacheTag' => self::CACHE_TAG,
+            'pageSize' => $pageSize,
+            'page' => $page
+        ];
+
+        return $this->helper->createPaginatedResponseCustomQuery($params, function () use ($pageSize, $page) {
+            $startOffset = $pageSize * ($page-1);
+            $result = [];
+
+            $conn = $this->getEntityManager()->getConnection();
+            $sql = "SELECT rm.*, fo.name field_office, r.region_id, r.name region
+                    FROM resource_mobilization as rm
+                    LEFT JOIN field_offices fo on rm.field_office_id = fo.field_office_id
+                    LEFT JOIN regions r on fo.region_id = r.region_id
+                    WHERE rm.deleted_at IS NULL ";
+
+            $result['totalItems'] = $this->helper->getCustomQueryPaginatedTotalItems($conn, $sql);
+
+            $sql .="LIMIT $pageSize OFFSET $startOffset";
+
+            $stmt = $conn->prepare($sql);
+            $query = $stmt->executeQuery();
+            $result['data'] = $query->fetchAllAssociative();
+
+            return $result;
         });
     }
 
@@ -64,36 +104,50 @@ class ResourceMobilizationRepository extends ServiceEntityRepository
     {
         $this->cache->invalidateTags([self::CACHE_TAG]);
 
-        $newResourceMobilization = new ResourceMobilization();
-        $newResourceMobilization->setCategory($data->getCategory());
-        $newResourceMobilization->setActivityName($data->getActivityName());
-        $newResourceMobilization->setDate($this->appDateHelper->convertStringToImmutableDate($data->getDate()));
-        $newResourceMobilization->setVenue($data->getVenue());
-        $newResourceMobilization->setAmount($data->getAmount());
-        $newResourceMobilization->setCashSourceName($data->getCashSourceName());
-        $newResourceMobilization->setCashSourceType($data->getCashSourceType());
-        $newResourceMobilization->setMaterialsId($data->getMaterialsId());
-        $newResourceMobilization->setMaterialsQty($data->getMaterialsQty());
-        $newResourceMobilization->setMaterialsAmount($data->getMaterialsAmount());
-        $newResourceMobilization->setMaterialSourceName($data->getMaterialSourceName());
-        $newResourceMobilization->setMaterialSourceType($data->getMaterialSourceType());
-        $newResourceMobilization->setTechnicalAssistanceParticulars($data->getTechnicalAssistanceParticulars());
-        $newResourceMobilization->setTechnicalAssistanceAmount($data->getTechnicalAssistanceAmount());
-        $newResourceMobilization->setTechnicalAssistanceName($data->getTechnicalAssistanceName());
-        $newResourceMobilization->setTechnicalAssistanceType($data->getTechnicalAssistanceType());
-        $newResourceMobilization->setResourcesSecuredBy($data->getResourcesSecuredBy());
-        $newResourceMobilization->setFieldOfficeId($data->getFieldOfficeId());
-        $newResourceMobilization->setCreatedAt($this->appDateHelper->getCurrentImmutableDate());
+        $entity = new ResourceMobilization();
+        $entity->setCategory($data->getCategory());
+        $entity->setActivityName($data->getActivityName());
+        $entity->setDate($this->appDateHelper->convertStringToImmutableDate($data->getDate()));
+        $entity->setVenue($data->getVenue());
+        $entity->setFieldOfficeId($data->getFieldOfficeId());
+        $entity->setCreatedAt($this->appDateHelper->getCurrentImmutableDate());
 
-        $this->getEntityManager()->persist($newResourceMobilization);
+        $this->getEntityManager()->persist($entity);
         $this->getEntityManager()->flush();
 
-        return $newResourceMobilization->getResourceMobilizationId();
+        return $entity->getResourceMobilizationId();
     }
 
     /**
      * @throws InvalidArgumentException
-     * @throws ORMException
+     * @throws Exception
+     * @throws \Exception
+     */
+    public function update(int $id, ResourceMobilizationModel $data): string
+    {
+        $this->cache->invalidateTags([self::CACHE_TAG]);
+
+        $entity = $this->isExistingById($id);
+
+        if (! $entity) {
+            return ResponseEnum::NO_RECORD;
+        }
+
+        $entity->setCategory($data->getCategory());
+        $entity->setActivityName($data->getActivityName());
+        $entity->setDate($this->appDateHelper->convertStringToImmutableDate($data->getDate()));
+        $entity->setVenue($data->getVenue());
+        $entity->setFieldOfficeId($data->getFieldOfficeId());
+        $entity->setUpdatedAt($this->appDateHelper->getCurrentImmutableDate());
+
+        $this->getEntityManager()->persist($entity);
+        $this->getEntityManager()->flush();
+
+        return ResponseEnum::OK;
+    }
+
+    /**
+     * @throws InvalidArgumentException
      */
     public function delete(int $id): bool
     {
@@ -125,7 +179,6 @@ class ResourceMobilizationRepository extends ServiceEntityRepository
      * @param int $fieldOfficeId
      * @return array<int, array<string, mixed>>
      * @throws Exception
-     * @throws \Doctrine\DBAL\Driver\Exception
      */
     public function findByDateRange(array $minMaxDate, int $fieldOfficeId): array
     {
@@ -133,9 +186,7 @@ class ResourceMobilizationRepository extends ServiceEntityRepository
         $min = $minMaxDate['min'];
         $max = $minMaxDate['max'];
 
-        $sql = "SELECT rm.*, pmd.particulars as materials_particulars FROM resource_mobilization as rm
-                LEFT JOIN program_materials_development as pmd ON rm.materials_id = pmd.program_materials_development_id
-                WHERE rm.field_office_id = $fieldOfficeId
+        $sql = "SELECT rm.* FROM resource_mobilization as rm WHERE rm.field_office_id = $fieldOfficeId
                 AND rm.date BETWEEN CAST('$min' AS DATE) AND CAST('$max' AS DATE)
                 ORDER BY rm.category DESC";
         $stmt = $conn->prepare($sql);
@@ -144,21 +195,15 @@ class ResourceMobilizationRepository extends ServiceEntityRepository
         return $query->fetchAllAssociative();
     }
 
-//    public function getVolunteerIdsByDateRange(array $minMaxDate, int $fieldOfficeId): ?array
-//    {
-//        $conn = $this->getEntityManager()->getConnection();
-//        $min = $minMaxDate['min'];
-//        $max = $minMaxDate['max'];
-//
-//        $sql = "SELECT DISTINCT rm.resources_secured_by FROM resource_mobilization as rm
-//                WHERE rm.field_office_id = $fieldOfficeId
-//                AND rm.type = 'VPA'
-//                AND is2.date BETWEEN CAST('$min' AS DATE) AND CAST('$max' AS DATE)
-//                AND is2.deleted_at IS NULL
-//                ";
-//        $stmt = $conn->prepare($sql);
-//        $query = $stmt->executeQuery();
-//
-//        return $query->fetchAllAssociative();
-//    }
+    public function getById(int $id): array | bool
+    {
+        return $this->getEntityManager()->getConnection()
+            ->executeQuery(
+                "SELECT rm.*, fo.name field_office, r.region_id, r.name region FROM resource_mobilization as rm
+                    LEFT JOIN field_offices fo on rm.field_office_id = fo.field_office_id
+                    LEFT JOIN regions r on fo.region_id = r.region_id
+                    WHERE rm.resource_mobilization_id = :id AND rm.deleted_at IS NULL",
+                ['id' => $id],
+            )->fetchAssociative();
+    }
 }
