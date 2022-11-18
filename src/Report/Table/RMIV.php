@@ -322,7 +322,6 @@ class RMIV implements Form
         }
 
         return $spreadsheet;
-
     }
 
     private function plotTotal(Spreadsheet $spreadsheet): Spreadsheet

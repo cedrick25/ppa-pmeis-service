@@ -19,9 +19,7 @@ final class Version20220928003658 extends AbstractMigration
 
     public function up(Schema $schema): void
     {
-        $this->addSql('TRUNCATE TABLE social_marketing_activities');
         $this->addSql('ALTER TABLE quarters CHANGE name name VARCHAR(255) NOT NULL');
-        $this->addSql('ALTER TABLE social_marketing_activities CHANGE name name VARCHAR(255) NOT NULL');
         $this->addSql('ALTER TABLE client_sessions CHANGE role role VARCHAR(255) NOT NULL');
         $this->addSql('ALTER TABLE clients CHANGE offense_category offense_category VARCHAR(3) NOT NULL');
         $this->addSql('ALTER TABLE id_support CHANGE type type VARCHAR(255) NOT NULL');
@@ -40,7 +38,6 @@ final class Version20220928003658 extends AbstractMigration
 
     public function down(Schema $schema): void
     {
-        $this->addSql('ALTER TABLE social_marketing_activities CHANGE name name TEXT NOT NULL');
         $this->addSql('ALTER TABLE client_sessions CHANGE role role VARCHAR(255) DEFAULT NULL');
         $this->addSql('ALTER TABLE clients CHANGE offense_category offense_category VARCHAR(255) DEFAULT NULL');
         $this->addSql('ALTER TABLE id_support CHANGE type type VARCHAR(255) DEFAULT NULL');

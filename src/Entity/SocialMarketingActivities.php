@@ -15,17 +15,17 @@ class SocialMarketingActivities
      * @ORM\GeneratedValue
      * @ORM\Column(type="integer")
      */
-    private $id;
+    private int $id;
+
+    /**
+     * @ORM\Column(type="text")
+     */
+    private string $name;
 
     /**
      * @ORM\Column(type="string", length=255)
      */
-    private $name;
-
-    /**
-     * @ORM\Column(type="string", length=255)
-     */
-    private $type;
+    private string $type;
 
     public function getId(): ?int
     {
