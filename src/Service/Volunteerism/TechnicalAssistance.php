@@ -6,6 +6,7 @@ use App\Common\AppFormatter;
 use App\Enum\AuditTrailActions;
 use App\Enum\Response as ResponseEnum;
 use App\Repository\QuartersRepository;
+use App\Repository\TechnicalAssistanceParticipantsRepository;
 use App\Repository\TechnicalAssistancePersonsInvolvedRepository;
 use App\Repository\TechnicalAssistanceRepository;
 use App\Model\TechnicalAssistance as TechnicalAssistanceModel;
@@ -27,6 +28,7 @@ class TechnicalAssistance implements TechnicalAssistanceInterface
         private QuartersRepository              $quartersRepository,
         private AuditTrail                      $auditTrail,
         private TechnicalAssistancePersonsInvolvedRepository $technicalAssistancePersonsInvolvedRepository,
+        private TechnicalAssistanceParticipantsRepository $participantsRepository,
     ) {
         $class = new \ReflectionClass($this);
         $this->shortName = $class->getShortName();
@@ -57,6 +59,7 @@ class TechnicalAssistance implements TechnicalAssistanceInterface
 
             $this->technicalAssistancePersonsInvolvedRepository
                 ->batchCreate($id, $technicalAssistanceData->getPersonsInvolved());
+            $this->participantsRepository->batchCreate($id, $technicalAssistanceData->getParticipants());
 
             $this->auditTrail->log(
                 AuditTrailActions::CREATE,
@@ -107,12 +110,14 @@ class TechnicalAssistance implements TechnicalAssistanceInterface
                 fn($item) => (int) $item['id'],
                 $results['items']
             );
-            $participants = $this->technicalAssistancePersonsInvolvedRepository
+            $personInvolved = $this->technicalAssistancePersonsInvolvedRepository
                 ->findPersonsInvolvedByTechnicalAssistanceId($technicalAssistanceIds);
+            $participants = $this->participantsRepository->findByTechnicalAssistanceId($technicalAssistanceIds);
 
             foreach ($results['items'] as $i => $item) {
                 $technicalAssistanceId = $item['id'];
                 $results['items'][$i]['participants'] = $participants[$technicalAssistanceId];
+                $results['items'][$i]['personInvolved'] = $personInvolved[$technicalAssistanceId];
             }
 
             return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_SUCCESS, $results);
@@ -133,7 +138,9 @@ class TechnicalAssistance implements TechnicalAssistanceInterface
             return $this->appFormatter->formatResponse(ResponseEnum::NO_DATA, null);
         }
 
-        $technicalAssistance['participants'] = $this->technicalAssistancePersonsInvolvedRepository
+        $technicalAssistance['participants'] = $this->participantsRepository
+            ->findByTechnicalAssistanceId([$id])[$id];
+        $technicalAssistance['personsInvolved'] = $this->technicalAssistancePersonsInvolvedRepository
             ->findPersonsInvolvedByTechnicalAssistanceId([$id])[$id];
 
         return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_SUCCESS, $technicalAssistance);
@@ -153,6 +160,7 @@ class TechnicalAssistance implements TechnicalAssistanceInterface
             }
 
             $this->technicalAssistancePersonsInvolvedRepository->deleteByTechnicalAssistanceId($id);
+            $this->participantsRepository->deleteByTechnicalAssistanceId($id);
             $this->auditTrail->log(AuditTrailActions::DELETE, [], $this->shortName, $id);
 
             return $this->appFormatter->formatResponse(ResponseEnum::DELETING_SUCCESS, null);
@@ -181,12 +189,14 @@ class TechnicalAssistance implements TechnicalAssistanceInterface
                 fn($item) => (int) $item['id'],
                 $technicalAssistance
             );
-            $participants = $this->technicalAssistancePersonsInvolvedRepository
+            $personsInvolved = $this->technicalAssistancePersonsInvolvedRepository
                 ->findPersonsInvolvedByTechnicalAssistanceId($technicalAssistanceIds);
+            $participants = $this->participantsRepository->findByTechnicalAssistanceId($technicalAssistanceIds);
 
             foreach ($technicalAssistance as $i => $item) {
                 $technicalAssistanceId = $item['id'];
                 $technicalAssistance[$i]['participants'] = $participants[$technicalAssistanceId];
+                $technicalAssistance[$i]['personsInvolved'] = $personsInvolved[$technicalAssistanceId];
             }
 
             return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_SUCCESS, $technicalAssistance);
@@ -216,8 +226,10 @@ class TechnicalAssistance implements TechnicalAssistanceInterface
             );
 
             $this->technicalAssistancePersonsInvolvedRepository->deleteByTechnicalAssistanceId($id);
+            $this->participantsRepository->deleteByTechnicalAssistanceId($id);
             $this->technicalAssistancePersonsInvolvedRepository
                 ->batchCreate($id, $technicalAssistanceData->getPersonsInvolved());
+            $this->participantsRepository->batchCreate($id, $technicalAssistanceData->getParticipants());
 
             return $this->appFormatter->formatResponse(ResponseEnum::UPDATING_SUCCESS, null);
         } catch (\Exception | InvalidArgumentException $exception) {

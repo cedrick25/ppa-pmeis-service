@@ -9,8 +9,6 @@ use App\Enum\Response as ResponseEnum;
 use App\Model\TechnicalAssistance as TechnicalAssistanceModel;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\DBAL\Exception;
-use Doctrine\ORM\OptimisticLockException;
-use Doctrine\ORM\ORMException;
 use Doctrine\Persistence\ManagerRegistry;
 use Psr\Cache\CacheException;
 use Psr\Cache\InvalidArgumentException;
@@ -32,8 +30,6 @@ class TechnicalAssistanceRepository extends ServiceEntityRepository
         private CacheHelper $cacheHelper,
         private Helper $helper,
         private AppDateHelper $appDateHelper,
-        private VolunteerRepository $volunteerRepository,
-        private UserDetailsRepository $userDetailsRepository,
     ) {
         parent::__construct($registry, TechnicalAssistance::class);
     }
@@ -113,7 +109,6 @@ class TechnicalAssistanceRepository extends ServiceEntityRepository
         $entity->setDate($this->appDateHelper->convertStringToImmutableDate($data->getDate()));
         $entity->setVenue($data->getVenue());
         $entity->setFieldOfficeId($data->getFieldOfficeId());
-        $entity->setParticipantsNo($data->getParticipantsNo());
         $entity->setRemarks($data->getRemarks());
         $entity->setCreatedAt($this->appDateHelper->getCurrentImmutableDate());
 
@@ -206,7 +201,6 @@ class TechnicalAssistanceRepository extends ServiceEntityRepository
         $entity->setDate($this->appDateHelper->convertStringToImmutableDate($data->getDate()));
         $entity->setVenue($data->getVenue());
         $entity->setFieldOfficeId($data->getFieldOfficeId());
-        $entity->setParticipantsNo($data->getParticipantsNo());
         $entity->setRemarks($data->getRemarks());
         $entity->setUpdatedAt($this->appDateHelper->getCurrentImmutableDate());
 

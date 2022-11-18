@@ -70,39 +70,50 @@ class SMIIIA3 implements Form
                 $row['date'] . ' ' . $row['venue']
             );
 
-            foreach ($row['participants'] as $i => $participant) {
-                if ($i > 0) {
-                    $this->lastFilledOutCellY++;
-                }
+            $participantsCellY = $this->lastFilledOutCellY;
 
-                if (strlen($participant['othersName']) > 0) {
-                    $spreadsheet->getActiveSheet()->setCellValue('E' . $this->lastFilledOutCellY, 'Others');
+            foreach ($row['participants'] as $participant) {
+                $spreadsheet->getActiveSheet()->setCellValue(
+                    'D' . $participantsCellY,
+                    $participant['no']['value']
+                );
+                $spreadsheet->getActiveSheet()->setCellValue(
+                    'E' . $participantsCellY,
+                    $participant['type']['value']
+                );
+
+                $participantsCellY++;
+            }
+
+            $personInvolvedCellY = $this->lastFilledOutCellY;
+
+            foreach ($row['personsInvolved'] as $personInvolved) {
+                if (strlen($personInvolved['othersName']) > 0) {
                     $spreadsheet->getActiveSheet()->setCellValue(
-                        'F' . $this->lastFilledOutCellY,
-                        $participant['othersName']
+                        'F' . $personInvolvedCellY,
+                        $personInvolved['othersName']
                     );
-                    $spreadsheet->getActiveSheet()->setCellValue('G' . $this->lastFilledOutCellY, 'Others');
+                    $spreadsheet->getActiveSheet()->setCellValue('G' . $personInvolvedCellY, 'Others');
 
                     continue;
                 }
 
                 $spreadsheet->getActiveSheet()->setCellValue(
-                    'E' . $this->lastFilledOutCellY,
-                    $participant['type']['value']
+                    'F' . $personInvolvedCellY,
+                    $personInvolved['id']['label']
                 );
                 $spreadsheet->getActiveSheet()->setCellValue(
-                    'F' . $this->lastFilledOutCellY,
-                    $participant['id']['label']
+                    'G' . $personInvolvedCellY,
+                    $personInvolved['type']['value']
                 );
-                $spreadsheet->getActiveSheet()->setCellValue(
-                    'G' . $this->lastFilledOutCellY,
-                    $participant['type']['value']
-                );
-            }
-            $spreadsheet->getActiveSheet()->setCellValue('D' . $this->lastFilledOutCellY, count($row['participants']));
 
+                $personInvolvedCellY++;
+            }
             $spreadsheet->getActiveSheet()->setCellValue('H' . $this->lastFilledOutCellY, $row['remarks']);
+
+            $this->lastFilledOutCellY = max($participantsCellY, $personInvolvedCellY);
         }
+
         $spreadsheet->getActiveSheet()
             ->getStyle('A6:H' . $this->lastFilledOutCellY)
             ->getBorders()
@@ -174,7 +185,8 @@ class SMIIIA3 implements Form
             $spreadsheet->getActiveSheet()->getColumnDimension($coordinate)->setWidth($width);
         }
         foreach ($outlineBorderThinCoordinates as $coordinate) {
-            $spreadsheet->getActiveSheet()->getStyle($coordinate)->getBorders()->getOutline()->setBorderStyle(Border::BORDER_THIN);
+            $spreadsheet->getActiveSheet()->getStyle($coordinate)
+                ->getBorders()->getOutline()->setBorderStyle(Border::BORDER_THIN);
         }
 
         return $spreadsheet;

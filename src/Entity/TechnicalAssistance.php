@@ -45,11 +45,6 @@ class TechnicalAssistance
     private int $fieldOfficeId;
 
     /**
-     * @ORM\Column(type="string", length=255)
-     */
-    private string $participantsNo;
-
-    /**
      * @ORM\Column(type="string", length=255, nullable=true)
      */
     private ?string $remarks;
@@ -137,24 +132,6 @@ class TechnicalAssistance
     public function setFieldOfficeId(int $fieldOfficeId): TechnicalAssistance
     {
         $this->fieldOfficeId = $fieldOfficeId;
-        return $this;
-    }
-
-    /**
-     * @return string
-     */
-    public function getParticipantsNo(): string
-    {
-        return $this->participantsNo;
-    }
-
-    /**
-     * @param string $participantsNo
-     * @return TechnicalAssistance
-     */
-    public function setParticipantsNo(string $participantsNo): TechnicalAssistance
-    {
-        $this->participantsNo = $participantsNo;
         return $this;
     }
 

@@ -281,7 +281,7 @@ class VolunteerismController extends AbstractController
     }
 
     /**
-     * @Route("/technical-assistance/delete/{id}", methods={"GET"})
+     * @Route("/technical-assistance/delete/by/id/{id}", methods={"GET"})
      */
     public function deleteTechnicalAssistanceById(Request $request): Response
     {
