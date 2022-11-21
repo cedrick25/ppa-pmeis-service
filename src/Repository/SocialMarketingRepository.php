@@ -5,6 +5,7 @@ namespace App\Repository;
 use App\Common\AppDateHelper;
 use App\Common\CacheHelper;
 use App\Entity\SocialMarketing;
+use App\Enum\Response as ResponseEnum;
 use App\Model\SocialMarketing as SocialMarketingModel;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\DBAL\Driver\Exception;
@@ -48,12 +49,52 @@ class SocialMarketingRepository extends ServiceEntityRepository
             'cacheTag' => self::CACHE_TAG
         ];
 
-        return $this->helper->createCachedResponse($params, function() {
+        return $this->helper->createCachedResponse($params, function () {
             return $this->createQueryBuilder('sm')
                 ->where('sm.deletedAt IS NULL')
                 ->orderBy('sm.socialMarketingId', 'DESC')
                 ->getQuery()
                 ->getResult();
+        });
+    }
+
+    /**
+     * @param string $type
+     * @param int $page
+     * @param int $pageSize
+     * @return array<string, mixed>
+     * @throws CacheException
+     * @throws InvalidArgumentException
+     */
+    public function paginated(string $type, int $page = 1, int $pageSize = 10): array
+    {
+        $params = [
+            'cacheKey' => 'social_marketing_' . $type . '_' . $page . '_' . $pageSize,
+            'expiration' => $this->cacheHelper->getExpirationDateTime(),
+            'cacheTag' => self::CACHE_TAG,
+            'pageSize' => $pageSize,
+            'page' => $page
+        ];
+
+        return $this->helper->createPaginatedResponseCustomQuery($params, function () use ($type, $pageSize, $page) {
+            $startOffset = $pageSize * ($page-1);
+            $result = [];
+
+            $conn = $this->getEntityManager()->getConnection();
+            $sql = "SELECT sm.*, fo.name field_office, r.region_id, r.name region FROM social_marketing as sm
+                    LEFT JOIN field_offices fo on sm.field_office_id = fo.field_office_id
+                    LEFT JOIN regions r on fo.region_id = r.region_id
+                    WHERE sm.type = '$type' AND sm.deleted_at IS NULL ";
+
+            $result['totalItems'] = $this->helper->getCustomQueryPaginatedTotalItems($conn, $sql);
+
+            $sql .="LIMIT $pageSize OFFSET $startOffset";
+
+            $stmt = $conn->prepare($sql);
+            $query = $stmt->executeQuery();
+            $result['data'] = $query->fetchAllAssociative();
+
+            return $result;
         });
     }
 
@@ -65,31 +106,53 @@ class SocialMarketingRepository extends ServiceEntityRepository
     {
         $this->cache->invalidateTags([self::CACHE_TAG]);
 
-        $newSocialMarketing = new SocialMarketing();
-        $newSocialMarketing->setSocialMarketingActivityId($data->getSocialMarketingActivityId());
-        $newSocialMarketing->setActivityName($data->getActivityName());
-        $newSocialMarketing->setDate($this->appDateHelper->convertStringToImmutableDate($data->getDate()));
-        $newSocialMarketing->setVenue($data->getVenue());
-        $newSocialMarketing->setParticipants($data->getParticipants());
-        $newSocialMarketing->setParticipantType($data->getParticipantType());
-        $newSocialMarketing->setType($data->getType());
-        $newSocialMarketing->setPersonnelId($data->getPersonnelId());
-        $newSocialMarketing->setPersonnelRole($data->getPersonnelRole());
-        $newSocialMarketing->setVpaId($data->getVpaId());
-        $newSocialMarketing->setVpaRole($data->getVpaRole());
-        $newSocialMarketing->setRemarks($data->getRemarks());
-        $newSocialMarketing->setFieldOfficeId($data->getFieldOfficeId());
-        $newSocialMarketing->setCreatedAt($this->appDateHelper->getCurrentImmutableDate());
+        $entity = new SocialMarketing();
+        $entity->setSocialMarketingActivityId($data->getSocialMarketingActivityId());
+        $entity->setActivityName($data->getActivityName());
+        $entity->setDate($this->appDateHelper->convertStringToImmutableDate($data->getDate()));
+        $entity->setVenue($data->getVenue());
+        $entity->setType($data->getType());
+        $entity->setRemarks($data->getRemarks());
+        $entity->setFieldOfficeId($data->getFieldOfficeId());
+        $entity->setCreatedAt($this->appDateHelper->getCurrentImmutableDate());
 
-        $this->getEntityManager()->persist($newSocialMarketing);
+        $this->getEntityManager()->persist($entity);
         $this->getEntityManager()->flush();
 
-        return $newSocialMarketing->getSocialMarketingId();
+        return $entity->getSocialMarketingId();
     }
 
     /**
      * @throws InvalidArgumentException
-     * @throws ORMException
+     * @throws \Exception
+     */
+    public function update(int $id, SocialMarketingModel $data): string
+    {
+        $this->cache->invalidateTags([self::CACHE_TAG]);
+
+        $entity = $this->isExistingById($id);
+
+        if (null == $entity) {
+            return ResponseEnum::NO_RECORD;
+        }
+
+        $entity->setSocialMarketingActivityId($data->getSocialMarketingActivityId());
+        $entity->setActivityName($data->getActivityName());
+        $entity->setDate($this->appDateHelper->convertStringToImmutableDate($data->getDate()));
+        $entity->setVenue($data->getVenue());
+        $entity->setType($data->getType());
+        $entity->setRemarks($data->getRemarks());
+        $entity->setFieldOfficeId($data->getFieldOfficeId());
+        $entity->setUpdatedAt($this->appDateHelper->getCurrentImmutableDate());
+
+        $this->getEntityManager()->persist($entity);
+        $this->getEntityManager()->flush();
+
+        return ResponseEnum::OK;
+    }
+
+    /**
+     * @throws InvalidArgumentException
      */
     public function delete(int $id): bool
     {
@@ -121,43 +184,24 @@ class SocialMarketingRepository extends ServiceEntityRepository
      * @param int $fieldOfficeId
      * @param string $type
      * @return array<int|string, array<int, array<string, mixed>>>
-     * @throws Exception
      * @throws \Doctrine\DBAL\Exception
      */
     public function findByDateRange(array $minMaxDate, int $fieldOfficeId, string $type): array
     {
-        $conn = $this->getEntityManager()->getConnection();
-        $min = $minMaxDate['min'];
-        $max = $minMaxDate['max'];
-
-        $sql = "SELECT sm.*, fo.name as field_office, sma.name as social_marketing_activity FROM social_marketing as sm
+        return $this->getEntityManager()->getConnection()
+            ->executeQuery(
+                "SELECT sm.*, fo.name as field_office, sma.name as social_marketing_activity FROM social_marketing as sm
                 LEFT JOIN field_offices as fo ON sm.field_office_id = fo.field_office_id
                 LEFT JOIN social_marketing_activities as sma ON sm.social_marketing_activity_id = sma.id
-                WHERE sm.field_office_id = $fieldOfficeId AND sm.type = '$type' 
-                  AND sm.date BETWEEN CAST('$min' AS DATE) AND CAST('$max' AS DATE)";
-        $stmt = $conn->prepare($sql);
-        $query = $stmt->executeQuery();
-        $rows = $query->fetchAllAssociative();
-        $result = [];
-
-        foreach ($rows as $row) {
-            $vpa = $this->volunteerRepository->find(intval($row['vpa_id']));
-            $userDetail = $this->userDetailsRepository->findOneBy(['userAccountId' => $row['personnel_id']]);
-            if ($userDetail !== null) {
-                $row['personnel_name'] = $userDetail->getFirstName() . ' ' . $userDetail->getMiddleName() . ' ' . $userDetail->getLastName();
-            } else {
-                $row['personnel_name'] = '';
-            }
-            if ($vpa !== null) {
-                $row['vpa_name'] = $vpa->getFirstName() . ' ' . $vpa->getMiddleName() . ' ' . $vpa->getLastName();
-            } else {
-                $row['vpa_name'] = '';
-            }
-
-            $result[$row['social_marketing_activity_id']][] = $row;
-        }
-
-        return $result;
+                WHERE sm.field_office_id = :field_office_id AND sm.type = :type
+                  AND sm.date BETWEEN CAST(:min AS DATE) AND CAST(:max AS DATE)",
+                [
+                    'min' => $minMaxDate['min'],
+                    'max' => $minMaxDate['max'],
+                    'type' => $type,
+                    'field_office_id' => $fieldOfficeId,
+                ],
+            )->fetchAllAssociative();
     }
 
     /**
@@ -169,17 +213,33 @@ class SocialMarketingRepository extends ServiceEntityRepository
      */
     public function getVolunteerIdsByDateRange(array $minMaxDate, int $fieldOfficeId, string $type): array
     {
-        $conn = $this->getEntityManager()->getConnection();
-        $min = $minMaxDate['min'];
-        $max = $minMaxDate['max'];
+        return $this->getEntityManager()->getConnection()
+            ->executeQuery(
+                "SELECT DISTINCT smpi.person_involved_id FROM social_marketing as sm
+                    LEFT JOIN social_marketing_person_involved smpi on sm.social_marketing_id = smpi.social_marketing_id
+                    WHERE sm.field_office_id = :field_office_id AND sm.type = :type
+                      AND smpi.type = :person_involved_type
+                      AND sm.date BETWEEN CAST(:min AS DATE) AND CAST(:max AS DATE)",
+                [
+                    'min' => $minMaxDate['min'],
+                    'max' => $minMaxDate['max'],
+                    'type' => $type,
+                    'field_office_id' => $fieldOfficeId,
+                    'person_involved_type' => 'VPA',
+                ]
+            )->fetchAssociative();
+    }
 
-        $sql = "SELECT DISTINCT v.volunteer_id FROM social_marketing as sm
-                LEFT JOIN volunteer as v ON v.volunteer_id = sm.vpa_id
-                WHERE sm.field_office_id = $fieldOfficeId AND sm.type = '$type'
-                  AND sm.date BETWEEN CAST('$min' AS DATE) AND CAST('$max' AS DATE)";
-        $stmt = $conn->prepare($sql);
-        $query = $stmt->executeQuery();
-
-        return $query->fetchAllAssociative();
+    public function getById(int $id): array | bool
+    {
+        return $this->getEntityManager()->getConnection()
+            ->executeQuery(
+                "SELECT sm.*, fo.name field_office, r.region_id, r.name region
+                    FROM social_marketing as sm
+                    LEFT JOIN field_offices fo on sm.field_office_id = fo.field_office_id
+                    LEFT JOIN regions r on fo.region_id = r.region_id
+                    WHERE sm.social_marketing_id = :id AND sm.deleted_at IS NULL ",
+                ['id' => $id]
+            )->fetchAssociative();
     }
 }

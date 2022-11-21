@@ -236,7 +236,7 @@ class TechnicalAssistance implements TechnicalAssistanceInterface
             return $this->appFormatter->formatResponse(
                 ResponseEnum::UPDATING_FAILED,
                 null,
-                ['error' => $exception->getMessage()]
+                ['app' => $exception->getMessage()]
             );
         }
     }

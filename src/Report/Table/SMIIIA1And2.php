@@ -60,36 +60,59 @@ class SMIIIA1And2 implements Form
         $spreadsheet = $this->header();
 
         foreach ($this->data['rows'] as $socialMarketing) {
-            foreach ($socialMarketing as $index=>$row) {
-                $this->lastFilledOutCellY++;
-                if ($index <= 0) {
-                    $spreadsheet->getActiveSheet()->setCellValue("a" . $this->lastFilledOutCellY, trim(preg_replace('/\s\s+/', ' ', $row['social_marketing_activity'])));
-                    $this->lastFilledOutCellY++;
-                }
-                $spreadsheet->getActiveSheet()->setCellValue("a" . $this->lastFilledOutCellY, $row['activity_name']);
-                $spreadsheet->getActiveSheet()->setCellValue("b" . $this->lastFilledOutCellY, $row['date'] . ' ' . $row['venue']);
-                $spreadsheet->getActiveSheet()->setCellValue("c" . $this->lastFilledOutCellY, $row['participants']);
-                $spreadsheet->getActiveSheet()->setCellValue("d" . $this->lastFilledOutCellY, $row['participant_type']);
-                $spreadsheet->getActiveSheet()->setCellValue("e" . $this->lastFilledOutCellY, $row['personnel_name'] . '/' . $row['personnel_role']);
-                $spreadsheet->getActiveSheet()->setCellValue("f" . $this->lastFilledOutCellY, $row['vpa_name'] . '/' . $row['vpa_role']);
-                $spreadsheet->getActiveSheet()->setCellValue("g" . $this->lastFilledOutCellY, $row['remarks']);
+            $this->lastFilledOutCellY++;
+            $spreadsheet->getActiveSheet()->setCellValue(
+                'A' . $this->lastFilledOutCellY,
+                trim(preg_replace('/\s\s+/', ' ', $socialMarketing['social_marketing_activity']))
+            );
+            $spreadsheet->getActiveSheet()->setCellValue(
+                'B' . $this->lastFilledOutCellY,
+                $socialMarketing['date'] . ' ' . $socialMarketing['venue']
+            );
+            $spreadsheet->getActiveSheet()->setCellValue('G' . $this->lastFilledOutCellY, $socialMarketing['remarks']);
+
+            $participantCellY = $this->lastFilledOutCellY;
+            foreach ($socialMarketing['participants'] as $participant) {
+                $spreadsheet->getActiveSheet()->setCellValue('C' . $participantCellY, $participant['no']);
+                $spreadsheet->getActiveSheet()->setCellValue('D' . $participantCellY, $participant['type']);
+
+                $participantCellY++;
             }
+
+            $personInvolvedCellY = $this->lastFilledOutCellY;
+            foreach ($socialMarketing['personInvolved'] as $personInvolved) {
+                $cellX = ('VPA' == $personInvolved['type']['value']) ? 'F' : 'E';
+                $name = (strlen($personInvolved['othersName']) > 0)
+                    ? $personInvolved['othersName']
+                    : $personInvolved['id']['label'];
+
+                $spreadsheet->getActiveSheet()->setCellValue(
+                    $cellX . $personInvolvedCellY,
+                    $name . '/' . $personInvolved['role']['value']
+                );
+
+                $personInvolvedCellY++;
+            }
+
+            $this->lastFilledOutCellY = max($participantCellY, $personInvolvedCellY);
         }
 
         $this->lastFilledOutCellY++;
 
-        $spreadsheet->getActiveSheet()->getStyle('A4:G' . $this->lastFilledOutCellY)->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
-        $spreadsheet->getActiveSheet()->getStyle('A4:G' . $this->lastFilledOutCellY)->getAlignment()->setHorizontal('center');
-        $spreadsheet->getActiveSheet()->getStyle('A4:G' . $this->lastFilledOutCellY)->getAlignment()->setVertical('center');
-        $spreadsheet->getActiveSheet()->getStyle('A4:G' . $this->lastFilledOutCellY)->getAlignment()->setWrapText(true);
+        $spreadsheet->getActiveSheet()->getStyle('A4:G' . $this->lastFilledOutCellY)
+            ->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
+        $spreadsheet->getActiveSheet()->getStyle('A4:G' . $this->lastFilledOutCellY)
+            ->getAlignment()->setHorizontal('center');
+        $spreadsheet->getActiveSheet()->getStyle('A4:G' . $this->lastFilledOutCellY)
+            ->getAlignment()->setVertical('center');
+        $spreadsheet->getActiveSheet()->getStyle('A4:G' . $this->lastFilledOutCellY)
+            ->getAlignment()->setWrapText(true);
         return $spreadsheet;
     }
 
     public function header(): Spreadsheet
     {
-        $spreadsheet = $this->prepare();
-
-        return $spreadsheet;
+        return $this->prepare();
     }
 
     /**
@@ -106,11 +129,11 @@ class SMIIIA1And2 implements Form
             'b2' => 'Date.Venue',
             'b3' => '(2)',
             'c2' => 'Participants (3)',
-            'c3' => 'No.', 
+            'c3' => 'No.',
             'd3' => 'Type',
-            'e2' => 'Name of Person/ s Involved  (4)', 
+            'e2' => 'Name of Person/ s Involved  (4)',
             'e3' => 'Personnel',
-            'f3' => 'Role', 
+            'f3' => 'Role',
             'g2' => 'Remarks',
             'g3' => '(5)',
 
@@ -128,7 +151,7 @@ class SMIIIA1And2 implements Form
             'A2:A3', 'B2:B3', 'C2:D2', 'E2:F2', 'G2:G3', 
         ];
 
-        foreach ($textAndCoordinates as $coordinate=>$text) {
+        foreach ($textAndCoordinates as $coordinate => $text) {
             $spreadsheet->getActiveSheet()->setCellValue($coordinate, $text);
         }
         foreach ($mergesCoordinates as $coordinate) {
@@ -147,7 +170,8 @@ class SMIIIA1And2 implements Form
             $spreadsheet->getActiveSheet()->getColumnDimension($coordinate)->setWidth($width);
         }
         foreach ($outlineBorderThinCoordinates as $coordinate) {
-            $spreadsheet->getActiveSheet()->getStyle($coordinate)->getBorders()->getOutline()->setBorderStyle(Border::BORDER_THIN);
+            $spreadsheet->getActiveSheet()->getStyle($coordinate)
+                ->getBorders()->getOutline()->setBorderStyle(Border::BORDER_THIN);
         }
 
         return $spreadsheet;

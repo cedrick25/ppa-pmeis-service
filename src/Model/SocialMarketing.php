@@ -13,14 +13,10 @@ class SocialMarketing implements \JsonSerializable
         private string $activityName,
         private string $date,
         private string $venue,
-        private string $participants,
-        private string $participantType,
         private string $type,
+        private array $personsInvolved,
+        private array $participants,
         private string $remarks,
-        private ?int $personnelId = null,
-        private ?string $personnelRole = null,
-        private ?string $vpaId = null,
-        private ?string $vpaRole = null,
         private ?string $fieldOfficeId = null,
         private ?DateTimeInterface $createdAt = null,
         private ?DateTimeInterface $updatedAt = null,
@@ -68,59 +64,25 @@ class SocialMarketing implements \JsonSerializable
      * @Assert\NotBlank
      * @return string
      */
-    public function getParticipants(): string
-    {
-        return $this->participants;
-    }
-
-    /**
-     * @Assert\NotBlank
-     * @return string
-     */
-    public function getParticipantType(): string
-    {
-        return $this->participantType;
-    }
-
-    /**
-     * @Assert\NotBlank
-     * @return string
-     */
     public function getType(): string
     {
         return $this->type;
     }
 
     /**
-     * @return int|null
+     * @return array
      */
-    public function getPersonnelId(): ?int
+    public function getPersonsInvolved(): array
     {
-        return $this->personnelId;
+        return $this->personsInvolved;
     }
 
     /**
-     * @return string|null
+     * @return array
      */
-    public function getPersonnelRole(): ?string
+    public function getParticipants(): array
     {
-        return $this->personnelRole;
-    }
-
-    /**
-     * @return string|null
-     */
-    public function getVpaId(): ?string
-    {
-        return $this->vpaId;
-    }
-
-    /**
-     * @return string|null
-     */
-    public function getVpaRole(): ?string
-    {
-        return $this->vpaRole;
+        return $this->participants;
     }
 
     /**

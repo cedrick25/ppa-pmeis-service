@@ -40,37 +40,7 @@ class SocialMarketing
     /**
      * @ORM\Column(type="string", length=255)
      */
-    private string $participants;
-
-    /**
-     * @ORM\Column(type="string", length=255)
-     */
-    private string $participantType;
-
-    /**
-     * @ORM\Column(type="string", length=255)
-     */
     private string $type;
-
-    /**
-     * @ORM\Column(type="integer", nullable=true)
-     */
-    private ?int $personnelId;
-
-    /**
-     * @ORM\Column(type="string", length=255, nullable=true)
-     */
-    private ?string $personnelRole;
-
-    /**
-     * @ORM\Column(type="integer", nullable=true)
-     */
-    private ?int $vpaId;
-
-    /**
-     * @ORM\Column(type="string", length=255, nullable=true)
-     */
-    private ?string $vpaRole;
 
     /**
      * @ORM\Column(type="string", length=255)
@@ -150,118 +120,20 @@ class SocialMarketing
         return $this;
     }
 
-    public function getParticipants(): ?string
-    {
-        return $this->participants;
-    }
-
-    public function setParticipants(string $participants): self
-    {
-        $this->participants = $participants;
-
-        return $this;
-    }
-
     /**
      * @return string
      */
-    public function getParticipantType(): string
-    {
-        return $this->participantType;
-    }
-
-    /**
-     * @param string $participantType
-     * @return SocialMarketing
-     */
-    public function setParticipantType(string $participantType): SocialMarketing
-    {
-        $this->participantType = $participantType;
-        return $this;
-    }
-
-    public function getType(): ?string
+    public function getType(): string
     {
         return $this->type;
     }
 
-    public function setType(string $type): self
+    /**
+     * @param string $type
+     */
+    public function setType(string $type): void
     {
         $this->type = $type;
-
-        return $this;
-    }
-
-    /**
-     * @return int|null
-     */
-    public function getPersonnelId(): ?int
-    {
-        return $this->personnelId;
-    }
-
-    /**
-     * @param int|null $personnelId
-     * @return SocialMarketing
-     */
-    public function setPersonnelId(?int $personnelId): SocialMarketing
-    {
-        $this->personnelId = $personnelId;
-        return $this;
-    }
-
-    /**
-     * @return string|null
-     */
-    public function getPersonnelRole(): ?string
-    {
-        return $this->personnelRole;
-    }
-
-    /**
-     * @param string|null $personnelRole
-     * @return SocialMarketing
-     */
-    public function setPersonnelRole(?string $personnelRole): SocialMarketing
-    {
-        $this->personnelRole = $personnelRole;
-        return $this;
-    }
-
-    /**
-     * @return int|null
-     */
-    public function getVpaId(): ?int
-    {
-        return $this->vpaId;
-    }
-
-    /**
-     * @param int|null $vpaId
-     * @return SocialMarketing
-     */
-    public function setVpaId(?int $vpaId): SocialMarketing
-    {
-        $this->vpaId = $vpaId;
-        return $this;
-    }
-
-    /**
-     * @return string|null
-     */
-    public function getVpaRole(): ?string
-    {
-        return $this->vpaRole;
-    }
-
-    /**
-     * @param string|null $vpaRole
-     * @return SocialMarketing
-     */
-    public function setVpaRole(?string $vpaRole): SocialMarketing
-    {
-        $this->vpaRole = $vpaRole;
-        return $this;
     }
 
     public function getRemarks(): ?string

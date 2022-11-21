@@ -344,7 +344,35 @@ class VolunteerismController extends AbstractController
 
             return $this->json($this->socialMarketingService->create($socialMarketing));
         } catch (\ReflectionException $exception) {
-            return $this->json($this->appFormatter->formatResponse('Creating Social Marketing failed', null, ['reflection' => $exception->getMessage()]));
+            return $this->json($this->appFormatter->formatResponse(
+                'Creating Social Marketing failed',
+                null,
+                ['reflection' => $exception->getMessage()]
+            ));
+        }
+    }
+
+    /**
+     * @Route("/social-marketing/update/{id}", methods={"POST"})
+     */
+    public function updateSocialMarketing(Request $request): Response
+    {
+        try {
+            $data = json_decode($request->getContent(), true);
+
+            /** @var SocialMarketingModel $socialMarketing */
+            $socialMarketing = $this->appHydrator->convertArrayToObject($data, SocialMarketingModel::class);
+
+            return $this->json($this->socialMarketingService->update(
+                (int) $request->get('id'),
+                $socialMarketing
+            ));
+        } catch (\ReflectionException $exception) {
+            return $this->json($this->appFormatter->formatResponse(
+                'Updating Social Marketing failed',
+                null,
+                ['reflection' => $exception->getMessage()]
+            ));
         }
     }
 
@@ -357,6 +385,18 @@ class VolunteerismController extends AbstractController
     }
 
     /**
+     * @Route("/social-marketing/{page}/{pageSize}", methods={"GET"})
+     */
+    public function getPaginatedSocialMarketing(Request $request): Response
+    {
+        return $this->json($this->socialMarketingService->getPaginated(
+            $request->query->get('type'),
+            (int) $request->get("page"),
+            (int) $request->get("pageSize")
+        ));
+    }
+
+    /**
      * @Route("/social-marketing/by/id/{id}", methods={"GET"})
      */
     public function getSocialMarketingById(Request $request): Response
@@ -365,7 +405,7 @@ class VolunteerismController extends AbstractController
     }
 
     /**
-     * @Route("/social-marketing/delete/{id}", methods={"GET"})
+     * @Route("/social-marketing/delete/by/id/{id}", methods={"GET"})
      */
     public function deleteSocialMarketingById(Request $request): Response
     {
