@@ -178,9 +178,11 @@ class ResourceMobilization implements ResourceMobilizationInterface
             return $this->appFormatter->formatResponse(ResponseEnum::NO_DATA, null);
         }
 
-        $result['cash'] = $this->cashRepository->findByResMobsId([$id])[$id];
-        $result['materials'] = $this->materialsRepository->findByResMobsId([$id])[$id];
-        $result['technicalAssistance'] = $this->technicalAssistanceRepository->findByResMobsId([$id])[$id];
+        $result['cash'] = $this->convertToCamelCase($this->cashRepository->findByResMobsId([$id])[$id]);
+        $result['materials'] = $this->convertToCamelCase($this->materialsRepository->findByResMobsId([$id])[$id]);
+        $result['technicalAssistance'] = $this->convertToCamelCase(
+            $this->technicalAssistanceRepository->findByResMobsId([$id])[$id]
+        );
         $result['securedBy'] = $this->securedByRepository->findByResMobId([$id])[$id];
 
         return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_SUCCESS, $result);
@@ -260,5 +262,26 @@ class ResourceMobilization implements ResourceMobilizationInterface
                 ['app' => $e->getMessage()]
             );
         }
+    }
+
+    private function convertToCamelCase(array $results): array
+    {
+        $convertedResults = [];
+
+        foreach ($results as $i => $result) {
+            foreach ($result as $key => $item) {
+                $key = preg_replace_callback(
+                    '/_([^_])/',
+                    function (array $m) {
+                        return ucfirst($m[1]);
+                    },
+                    $key
+                );
+
+                $convertedResults[$i][$key] = $item;
+            }
+        }
+
+        return $convertedResults;
     }
 }
