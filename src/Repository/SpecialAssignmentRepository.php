@@ -5,6 +5,7 @@ namespace App\Repository;
 use App\Common\AppDateHelper;
 use App\Common\CacheHelper;
 use App\Entity\SpecialAssignment;
+use App\Enum\Response as ResponseEnum;
 use App\Model\SpecialAssignment as SpecialAssignmentModel;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\DBAL\Exception;
@@ -35,6 +36,63 @@ class SpecialAssignmentRepository extends ServiceEntityRepository
     }
 
     /**
+     * @throws InvalidArgumentException
+     * @throws \Exception
+     */
+    public function create(SpecialAssignmentModel $data): int | null
+    {
+        $this->cache->invalidateTags([self::CACHE_TAG]);
+
+        $entity = new SpecialAssignment();
+        $entity->setStartDate($this->appDateHelper->convertStringToImmutableDate($data->getStartDate()));
+        $entity->setEndDate($this->appDateHelper->convertStringToImmutableDate($data->getEndDate()));
+        $entity->setCategoryType($data->getCategoryType());
+        $entity->setSubType($data->getSubType());
+        $entity->setDecsription($data->getDecsription());
+        $entity->setActivity($data->getActivity());
+        $entity->setVenue($data->getVenue());
+        $entity->setRemarks($data->getRemarks());
+        $entity->setFieldOfficeId($data->getFieldOfficeId());
+        $entity->setCreatedAt($this->appDateHelper->getCurrentImmutableDate());
+
+        $this->getEntityManager()->persist($entity);
+        $this->getEntityManager()->flush();
+
+        return $entity->getSpecialAssignmentId();
+    }
+
+    /**
+     * @throws InvalidArgumentException
+     * @throws \Exception
+     */
+    public function update(int $id, SpecialAssignmentModel $data): string
+    {
+        $this->cache->invalidateTags([self::CACHE_TAG]);
+
+        $entity = $this->isExistingById($id);
+
+        if (null == $entity) {
+            return ResponseEnum::NO_RECORD;
+        }
+
+        $entity->setStartDate($this->appDateHelper->convertStringToImmutableDate($data->getStartDate()));
+        $entity->setEndDate($this->appDateHelper->convertStringToImmutableDate($data->getEndDate()));
+        $entity->setCategoryType($data->getCategoryType());
+        $entity->setSubType($data->getSubType());
+        $entity->setDecsription($data->getDecsription());
+        $entity->setActivity($data->getActivity());
+        $entity->setVenue($data->getVenue());
+        $entity->setRemarks($data->getRemarks());
+        $entity->setFieldOfficeId($data->getFieldOfficeId());
+        $entity->setUpdatedAt($this->appDateHelper->getCurrentImmutableDate());
+
+        $this->getEntityManager()->persist($entity);
+        $this->getEntityManager()->flush();
+
+        return ResponseEnum::OK;
+    }
+
+    /**
      * @throws CacheException
      * @throws InvalidArgumentException
      */
@@ -46,7 +104,7 @@ class SpecialAssignmentRepository extends ServiceEntityRepository
             'cacheTag' => self::CACHE_TAG
         ];
 
-        return $this->helper->createCachedResponse($params, function() {
+        return $this->helper->createCachedResponse($params, function () {
             return $this->createQueryBuilder('sa')
                 ->where('sa.deletedAt IS NULL')
                 ->orderBy('sa.specialAssignmentId', 'DESC')
@@ -56,39 +114,51 @@ class SpecialAssignmentRepository extends ServiceEntityRepository
     }
 
     /**
+     * @param int $page
+     * @param int $pageSize
+     * @return array<string, mixed>
      * @throws InvalidArgumentException
-     * @throws Exception
-     * @throws \Exception
+     * @throws CacheException
      */
-    public function create(SpecialAssignmentModel $data): int | null
+    public function paginated(int $page = 1, int $pageSize = 10): array
     {
-        $this->cache->invalidateTags([self::CACHE_TAG]);
+        $params = [
+            'cacheKey' => 'special_assignment_' . $page . '_' . $pageSize,
+            'expiration' => $this->cacheHelper->getExpirationDateTime(),
+            'cacheTag' => self::CACHE_TAG,
+            'pageSize' => $pageSize,
+            'page' => $page
+        ];
 
-        $newSpecialAssignment = new SpecialAssignment();
-        $newSpecialAssignment->setDate($this->appDateHelper->convertStringToImmutableDate($data->getDate()));
-        $newSpecialAssignment->setCategoryType($data->getCategoryType());
-        $newSpecialAssignment->setSubType($data->getSubType());
-        $newSpecialAssignment->setDecsription($data->getDecsription());
-        $newSpecialAssignment->setActivity($data->getActivity());
-        $newSpecialAssignment->setVenue($data->getVenue());
-        $newSpecialAssignment->setPersonInvolved($data->getPersonInvolved());
-        $newSpecialAssignment->setRemarks($data->getRemarks());
-        $newSpecialAssignment->setFieldOfficeId($data->getFieldOfficeId());
-        $newSpecialAssignment->setCreatedAt($this->appDateHelper->getCurrentImmutableDate());
+        return $this->helper->createPaginatedResponseCustomQuery($params, function () use ($pageSize, $page) {
+            $startOffset = $pageSize * ($page-1);
+            $result = [];
 
-        $this->getEntityManager()->persist($newSpecialAssignment);
-        $this->getEntityManager()->flush();
+            $conn = $this->getEntityManager()->getConnection();
+            $sql = "SELECT sa.*, fo.name field_office, r.region_id, r.name region FROM special_assignment sa
+                    LEFT JOIN field_offices fo on sa.field_office_id = fo.field_office_id
+                    LEFT JOIN regions r on fo.region_id = r.region_id
+                    WHERE sa.deleted_at IS NULL ";
 
-        return $newSpecialAssignment->getSpecialAssignmentId();
+            $result['totalItems'] = $this->helper->getCustomQueryPaginatedTotalItems($conn, $sql);
+
+            $sql .="LIMIT $pageSize OFFSET $startOffset";
+
+            $stmt = $conn->prepare($sql);
+            $query = $stmt->executeQuery();
+            $result['data'] = $query->fetchAllAssociative();
+
+            return $result;
+        });
     }
 
     /**
      * @throws InvalidArgumentException
-     * @throws ORMException
      */
     public function delete(int $id): bool
     {
         $specialAssignment= $this->isExistingById($id);
+
         if (! $specialAssignment) {
             return false;
         }
@@ -116,20 +186,30 @@ class SpecialAssignmentRepository extends ServiceEntityRepository
      * @param int $fieldOfficeId
      * @return array<int, array<string, mixed>>
      * @throws Exception
-     * @throws \Doctrine\DBAL\Driver\Exception
      */
     public function findByDateRange(array $minMaxDate, int $fieldOfficeId): array
     {
-        $conn = $this->getEntityManager()->getConnection();
-        $min = $minMaxDate['min'];
-        $max = $minMaxDate['max'];
+        return $this->getEntityManager()->getConnection()
+            ->executeQuery(
+                "SELECT sa.* FROM special_assignment as sa WHERE sa.field_office_id = :field_office_id
+                AND sa.end_date BETWEEN CAST(:min AS DATE) AND CAST(:max AS DATE) ORDER BY sa.end_date DESC",
+                [
+                    'min' => $minMaxDate['min'],
+                    'max' => $minMaxDate['max'],
+                    'field_office_id' => $fieldOfficeId,
+                ]
+            )->fetchAllAssociative();
+    }
 
-        $sql = "SELECT sa.* FROM special_assignment as sa
-                WHERE sa.field_office_id = $fieldOfficeId AND sa.date BETWEEN CAST('$min' AS DATE) AND CAST('$max' AS DATE)
-                ORDER BY sa.date DESC";
-        $stmt = $conn->prepare($sql);
-        $query = $stmt->executeQuery();
-
-        return $query->fetchAllAssociative();
+    public function getById(int $id): array | bool
+    {
+        return $this->getEntityManager()->getConnection()
+            ->executeQuery(
+                "SELECT sa.*, fo.name field_office, r.region_id, r.name region FROM special_assignment sa
+                    LEFT JOIN field_offices fo on sa.field_office_id = fo.field_office_id
+                    LEFT JOIN regions r on fo.region_id = r.region_id
+                    WHERE sa.special_assignment_id = :id AND sa.deleted_at IS NULL",
+                ['id' => $id],
+            )->fetchAssociative();
     }
 }

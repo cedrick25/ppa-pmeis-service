@@ -8,27 +8,37 @@ use Symfony\Component\Validator\Constraints as Assert;
 class SpecialAssignment implements \JsonSerializable
 {
     public function __construct(
-        private string $date,
+        private string $startDate,
+        private string $endDate,
         private string $categoryType,
-        private string $subType,
         private string $decsription,
         private string $activity,
         private string $venue,
-        private string $personInvolved,
+        private array $personnelInvolved,
         private ?string $remarks,
         private int $fieldOfficeId,
+        private ?string $subType = null,
         private ?DateTimeInterface $createdAt = null,
         private ?DateTimeInterface $updatedAt = null,
         private ?DateTimeInterface $deletedAt = null
-    ){}
+    ) {}
 
     /**
      * @Assert\NotBlank
      * @return string
      */
-    public function getDate(): string
+    public function getStartDate(): string
     {
-        return $this->date;
+        return $this->startDate;
+    }
+
+    /**
+     * @Assert\NotBlank
+     * @return string
+     */
+    public function getEndDate(): string
+    {
+        return $this->endDate;
     }
 
     /**
@@ -38,15 +48,6 @@ class SpecialAssignment implements \JsonSerializable
     public function getCategoryType(): string
     {
         return $this->categoryType;
-    }
-
-    /**
-     * @Assert\NotBlank
-     * @return string
-     */
-    public function getSubType(): string
-    {
-        return $this->subType;
     }
 
     /**
@@ -77,12 +78,11 @@ class SpecialAssignment implements \JsonSerializable
     }
 
     /**
-     * @Assert\NotBlank
-     * @return string
+     * @return array
      */
-    public function getPersonInvolved(): string
+    public function getPersonnelInvolved(): array
     {
-        return $this->personInvolved;
+        return $this->personnelInvolved;
     }
 
     /**
@@ -101,6 +101,14 @@ class SpecialAssignment implements \JsonSerializable
     public function getFieldOfficeId(): int
     {
         return $this->fieldOfficeId;
+    }
+
+    /**
+     * @return string|null
+     */
+    public function getSubType(): ?string
+    {
+        return $this->subType;
     }
 
     /**

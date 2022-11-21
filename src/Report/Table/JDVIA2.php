@@ -172,13 +172,30 @@ class JDVIA2 implements Form
         ];
         foreach ($rows as $row) {
             $this->lastFilledOutCellY++;
-            $spreadsheet->getActiveSheet()->setCellValue("a" . $this->lastFilledOutCellY, $row['decsription']);
-            $spreadsheet->getActiveSheet()->setCellValue("b" . $this->lastFilledOutCellY, $row['activity']);
-            $spreadsheet->getActiveSheet()->setCellValue("c" . $this->lastFilledOutCellY, $row['date'] . ' ' . $row['venue']);
-            $spreadsheet->getActiveSheet()->setCellValue("d" . $this->lastFilledOutCellY, $row['person_involved']);
-            $spreadsheet->getActiveSheet()->setCellValue("e" . $this->lastFilledOutCellY, $row['remarks']);
+
+            $spreadsheet->getActiveSheet()->setCellValue('A' . $this->lastFilledOutCellY, $row['decsription']);
+            $spreadsheet->getActiveSheet()->setCellValue('B' . $this->lastFilledOutCellY, $row['activity']);
+            $spreadsheet->getActiveSheet()->setCellValue('E' . $this->lastFilledOutCellY, $row['remarks']);
+            $spreadsheet->getActiveSheet()->setCellValue(
+                'C' . $this->lastFilledOutCellY,
+                $row['start_date'] . '-' . $row['end_date'] . ' ' . $row['venue']
+            );
+
+            foreach ($row['personnelInvolved'] as $personnelInvolved) {
+                $name = (strlen($personnelInvolved['othersName']) > 0)
+                    ? $personnelInvolved['othersName']
+                    : $personnelInvolved['id']['label'];
+
+                $spreadsheet->getActiveSheet()->setCellValue(
+                    'D' . $this->lastFilledOutCellY,
+                    $name
+                );
+
+                $total['person_involved']++;
+                $this->lastFilledOutCellY++;
+            }
+
             $total['activity']++;
-            $total['person_involved']++;
         }
         $this->lastFilledOutCellY++;
         $spreadsheet->getActiveSheet()->setCellValue('A' . $this->lastFilledOutCellY, '                                                     Total');

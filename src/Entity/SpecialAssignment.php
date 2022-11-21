@@ -20,7 +20,12 @@ class SpecialAssignment
     /**
      * @ORM\Column(type="date")
      */
-    private \DateTimeInterface $date;
+    private \DateTimeInterface $startDate;
+
+    /**
+     * @ORM\Column(type="date")
+     */
+    private \DateTimeInterface $endDate;
 
     /**
      * @ORM\Column(type="string", length=255)
@@ -28,9 +33,9 @@ class SpecialAssignment
     private string $categoryType;
 
     /**
-     * @ORM\Column(type="string", length=255)
+     * @ORM\Column(type="string", length=255, nullable=true)
      */
-    private string $subType;
+    private $subType;
 
     /**
      * @ORM\Column(type="string", length=255)
@@ -46,11 +51,6 @@ class SpecialAssignment
      * @ORM\Column(type="string", length=255)
      */
     private string $venue;
-
-    /**
-     * @ORM\Column(type="string", length=255)
-     */
-    private string $personInvolved;
 
     /**
      * @ORM\Column(type="string", length=255, nullable=true)
@@ -82,16 +82,36 @@ class SpecialAssignment
         return $this->specialAssignmentId;
     }
 
-    public function getDate(): ?\DateTimeInterface
+    /**
+     * @return \DateTimeInterface
+     */
+    public function getStartDate(): \DateTimeInterface
     {
-        return $this->date;
+        return $this->startDate;
     }
 
-    public function setDate(\DateTimeInterface $date): self
+    /**
+     * @param \DateTimeInterface $startDate
+     */
+    public function setStartDate(\DateTimeInterface $startDate): void
     {
-        $this->date = $date;
+        $this->startDate = $startDate;
+    }
 
-        return $this;
+    /**
+     * @return \DateTimeInterface
+     */
+    public function getEndDate(): \DateTimeInterface
+    {
+        return $this->endDate;
+    }
+
+    /**
+     * @param \DateTimeInterface $endDate
+     */
+    public function setEndDate(\DateTimeInterface $endDate): void
+    {
+        $this->endDate = $endDate;
     }
 
     public function getCategoryType(): ?string
@@ -106,16 +126,20 @@ class SpecialAssignment
         return $this;
     }
 
-    public function getSubType(): ?string
+    /**
+     * @return mixed
+     */
+    public function getSubType()
     {
         return $this->subType;
     }
 
-    public function setSubType(string $subType): self
+    /**
+     * @param mixed $subType
+     */
+    public function setSubType($subType): void
     {
         $this->subType = $subType;
-
-        return $this;
     }
 
     public function getDecsription(): ?string
@@ -150,18 +174,6 @@ class SpecialAssignment
     public function setVenue(string $venue): self
     {
         $this->venue = $venue;
-
-        return $this;
-    }
-
-    public function getPersonInvolved(): ?string
-    {
-        return $this->personInvolved;
-    }
-
-    public function setPersonInvolved(string $personInvolved): self
-    {
-        $this->personInvolved = $personInvolved;
 
         return $this;
     }

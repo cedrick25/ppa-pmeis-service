@@ -7,6 +7,7 @@ use App\Enum\AuditTrailActions;
 use App\Enum\Response as ResponseEnum;
 use App\Model\SpecialAssignment as SpecialAssignmentModel;
 use App\Repository\QuartersRepository;
+use App\Repository\SpecialAssignmentPersonnelInvolvedRepository;
 use App\Repository\SpecialAssignmentRepository;
 use App\Service\System\AuditTrail;
 use Doctrine\DBAL\Driver\Exception;
@@ -25,6 +26,7 @@ class SpecialAssignment implements SpecialAssignmentInterface
         private SpecialAssignmentRepository     $repository,
         private QuartersRepository              $quartersRepository,
         private AuditTrail                      $auditTrail,
+        private SpecialAssignmentPersonnelInvolvedRepository $personnelInvolvedRepository,
     ) {
         $class = new \ReflectionClass($this);
         $this->shortName = $class->getShortName();
@@ -35,23 +37,63 @@ class SpecialAssignment implements SpecialAssignmentInterface
         try {
             $errors = $this->validator->validate($data);
 
-            if (count($errors) > 0) {
-                return $this->appFormatter->formatResponse(ResponseEnum::VALIDATING_FAILED, null, $this->appFormatter->formatErrors($errors));
+            if ($errors->count() > 0) {
+                return $this->appFormatter->formatResponse(
+                    ResponseEnum::VALIDATING_FAILED,
+                    null,
+                    $this->appFormatter->formatErrors($errors)
+                );
             }
 
             $id = $this->repository->create($data);
 
             if ($id == null) {
-                return $this->appFormatter->formatResponse(ResponseEnum::CREATING_FAILED, null, ['app' => 'Special Assignment already exist']);
+                return $this->appFormatter->formatResponse(
+                    ResponseEnum::CREATING_FAILED,
+                    null,
+                    ['app' => 'Special Assignment already exist']
+                );
             }
 
+            $this->personnelInvolvedRepository->batchCreate($id, $data->getPersonnelInvolved());
             $this->auditTrail->log(AuditTrailActions::CREATE, $data->jsonSerialize(), $this->shortName, $id);
 
             return $this->appFormatter->formatResponse(ResponseEnum::CREATING_SUCCESS, ['id' => $id]);
-        } catch (InvalidArgumentException $exception) {
-            return $this->appFormatter->formatResponse(ResponseEnum::CREATING_FAILED, null, ['cache' => $exception->getMessage()]);
-        } catch (\Exception $e) {
-            return $this->appFormatter->formatResponse(ResponseEnum::CREATING_FAILED, null, ['app' => $e->getMessage()]);
+        } catch (\Exception|InvalidArgumentException $exception) {
+            return $this->appFormatter->formatResponse(
+                ResponseEnum::CREATING_FAILED,
+                null,
+                ['app' => $exception->getMessage()]
+            );
+        }
+    }
+
+    public function update(int $id, SpecialAssignmentModel $data): array
+    {
+        try {
+            $isUpdated = $this->repository->update($id, $data);
+
+            if ($isUpdated !== ResponseEnum::OK) {
+                return $this->appFormatter->formatResponse(ResponseEnum::UPDATING_FAILED, null, ['app' => $isUpdated]);
+            }
+
+            $this->auditTrail->log(
+                AuditTrailActions::UPDATE,
+                $data->jsonSerialize(),
+                $this->shortName,
+                $id
+            );
+
+            $this->personnelInvolvedRepository->deleteBySpecialAssignmentId($id);
+            $this->personnelInvolvedRepository->batchCreate($id, $data->getPersonnelInvolved());
+
+            return $this->appFormatter->formatResponse(ResponseEnum::UPDATING_SUCCESS, null);
+        } catch (\Exception | InvalidArgumentException $exception) {
+            return $this->appFormatter->formatResponse(
+                ResponseEnum::UPDATING_FAILED,
+                null,
+                ['app' => $exception->getMessage()]
+            );
         }
     }
 
@@ -66,19 +108,55 @@ class SpecialAssignment implements SpecialAssignmentInterface
 
             return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_SUCCESS, $specialAssignments);
         } catch (CacheException|InvalidArgumentException $exception) {
-            return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_FAILED, null, ['cache' => $exception->getMessage()]);
+            return $this->appFormatter->formatResponse(
+                ResponseEnum::FETCHING_FAILED,
+                null,
+                ['cache' => $exception->getMessage()]
+            );
+        }
+    }
+
+    public function getPaginated(int $page, int $pageSize): array
+    {
+        try {
+            $results = $this->repository->paginated($page, $pageSize);
+
+            if (empty($results)) {
+                return $this->appFormatter->formatResponse(ResponseEnum::NO_DATA, null);
+            }
+
+            $saIds = array_map(
+                fn($item) => (int) $item['special_assignment_id'],
+                $results['items']
+            );
+            $personsResponsible = $this->personnelInvolvedRepository->findBySpecialAssignmentId($saIds);
+
+            foreach ($results['items'] as $i => $item) {
+                $saId = $item['special_assignment_id'];
+                $results['items'][$i]['personnelInvolved'] = $personsResponsible[$saId];
+            }
+
+            return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_SUCCESS, $results);
+        } catch (CacheException|InvalidArgumentException $exception) {
+            return $this->appFormatter->formatResponse(
+                ResponseEnum::FETCHING_FAILED,
+                null,
+                ['app' => $exception->getMessage()]
+            );
         }
     }
 
     public function getById(int $id): array
     {
-        $specialAssignment = $this->repository->isExistingById($id);
+        $result = $this->repository->getById($id);
 
-        if (!$specialAssignment) {
+        if (! $result) {
             return $this->appFormatter->formatResponse(ResponseEnum::NO_DATA, null);
         }
 
-        return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_SUCCESS, $specialAssignment);
+        $result['personnelInvolved'] = $this->personnelInvolvedRepository->findBySpecialAssignmentId([$id])[$id];
+
+        return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_SUCCESS, $result);
     }
 
     public function deleteById(int $id): array
@@ -87,16 +165,23 @@ class SpecialAssignment implements SpecialAssignmentInterface
             $isDeleted = $this->repository->delete($id);
 
             if (! $isDeleted) {
-                return $this->appFormatter->formatResponse(ResponseEnum::DELETING_FAILED, null, ['app' => ResponseEnum::NO_DATA]);
+                return $this->appFormatter->formatResponse(
+                    ResponseEnum::DELETING_FAILED,
+                    null,
+                    ['app' => ResponseEnum::NO_DATA]
+                );
             }
 
+            $this->personnelInvolvedRepository->deleteBySpecialAssignmentId($id);
             $this->auditTrail->log(AuditTrailActions::DELETE, [], $this->shortName, $id);
 
             return $this->appFormatter->formatResponse(ResponseEnum::DELETING_SUCCESS, null);
-        } catch (InvalidArgumentException $exception) {
-            return $this->appFormatter->formatResponse(ResponseEnum::DELETING_FAILED, null, ['cache' => $exception->getMessage()]);
-        } catch (\Doctrine\ORM\ORMException | ORMException $exception) {
-            return $this->appFormatter->formatResponse(ResponseEnum::DELETING_FAILED, null, ['orm' => $exception->getMessage()]);
+        } catch (\Doctrine\ORM\ORMException | ORMException | InvalidArgumentException $exception) {
+            return $this->appFormatter->formatResponse(
+                ResponseEnum::DELETING_FAILED,
+                null,
+                ['app' => $exception->getMessage()]
+            );
         }
     }
 
@@ -113,8 +198,19 @@ class SpecialAssignment implements SpecialAssignmentInterface
                 'MISCELLANEOUS_ACTIVITIES' => []
             ];
             $minMaxDate = $this->quartersRepository->getQuarterMinMaxDate($quarter);
+
             $specialAssignments = $this->repository->findByDateRange($minMaxDate, $fieldOfficeId);
+
+            $saIds = array_map(
+                fn($item) => (int) $item['special_assignment_id'],
+                $specialAssignments
+            );
+            $personsResponsible = $this->personnelInvolvedRepository->findBySpecialAssignmentId($saIds);
+
             foreach ($specialAssignments as $specialAssignment) {
+                $saId = $specialAssignment['special_assignment_id'];
+                $specialAssignment['personnelInvolved'] = $personsResponsible[$saId];
+
                 if ('SPECIAL_ASSIGNMENT' === $specialAssignment['category_type']) {
                     $result['SPECIAL_ASSIGNMENT'][$specialAssignment['sub_type']][] = $specialAssignment;
                     continue;
@@ -125,9 +221,11 @@ class SpecialAssignment implements SpecialAssignmentInterface
 
             return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_SUCCESS, $result);
         } catch (\Exception $e) {
-            return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_SUCCESS, null, ['app' => $e->getMessage()]);
-        } catch (Exception $e) {
-            return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_SUCCESS, null, ['orm' => $e->getMessage()]);
+            return $this->appFormatter->formatResponse(
+                ResponseEnum::FETCHING_SUCCESS,
+                null,
+                ['app' => $e->getMessage()]
+            );
         }
     }
 }

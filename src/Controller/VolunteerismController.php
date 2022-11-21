@@ -716,7 +716,35 @@ class VolunteerismController extends AbstractController
 
             return $this->json($this->specialAssignmentService->create($specialAssignment));
         } catch (\ReflectionException $exception) {
-            return $this->json($this->appFormatter->formatResponse('Creating Special Assignment failed', null, ['reflection' => $exception->getMessage()]));
+            return $this->json($this->appFormatter->formatResponse(
+                'Creating Special Assignment failed',
+                null,
+                ['reflection' => $exception->getMessage()]
+            ));
+        }
+    }
+
+    /**
+     * @Route("/special-assignment/update/{id}", methods={"POST"})
+     */
+    public function updateSpecialAssignment(Request $request): Response
+    {
+        try {
+            $data = json_decode($request->getContent(), true);
+
+            /** @var SpecialAssignmentModel $specialAssignment */
+            $specialAssignment = $this->appHydrator->convertArrayToObject($data, SpecialAssignmentModel::class);
+
+            return $this->json($this->specialAssignmentService->update(
+                (int) $request->get("id"),
+                $specialAssignment
+            ));
+        } catch (\ReflectionException $exception) {
+            return $this->json($this->appFormatter->formatResponse(
+                'Creating Special Assignment failed',
+                null,
+                ['reflection' => $exception->getMessage()]
+            ));
         }
     }
 
@@ -729,6 +757,17 @@ class VolunteerismController extends AbstractController
     }
 
     /**
+     * @Route("/special-assignment/{page}/{pageSize}", methods={"GET"})
+     */
+    public function getPaginatedSpecialAssignment(Request $request): Response
+    {
+        return $this->json($this->specialAssignmentService->getPaginated(
+            (int) $request->get("page"),
+            (int) $request->get("pageSize")
+        ));
+    }
+
+    /**
      * @Route("/special-assignment/by/id/{id}", methods={"GET"})
      */
     public function getSpecialAssignmentById(Request $request): Response
@@ -737,7 +776,7 @@ class VolunteerismController extends AbstractController
     }
 
     /**
-     * @Route("/special-assignment/delete/{id}", methods={"GET"})
+     * @Route("/special-assignment/delete/by/id/{id}", methods={"GET"})
      */
     public function deleteSpecialAssignmentById(Request $request): Response
     {
