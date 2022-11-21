@@ -625,7 +625,35 @@ class VolunteerismController extends AbstractController
 
             return $this->json($this->jailDecongestionService->create($jailDecongestion));
         } catch (\ReflectionException $exception) {
-            return $this->json($this->appFormatter->formatResponse('Creating Jail Decongestion failed', null, ['reflection' => $exception->getMessage()]));
+            return $this->json($this->appFormatter->formatResponse(
+                'Creating Jail Decongestion failed',
+                null,
+                ['reflection' => $exception->getMessage()]
+            ));
+        }
+    }
+
+    /**
+     * @Route("/jail-decogenstion/update/{id}", methods={"POST"})
+     */
+    public function updateJailDecongestion(Request $request): Response
+    {
+        try {
+            $data = json_decode($request->getContent(), true);
+
+            /** @var JailDecongestionModel $jailDecongestion */
+            $jailDecongestion = $this->appHydrator->convertArrayToObject($data, JailDecongestionModel::class);
+
+            return $this->json($this->jailDecongestionService->update(
+                (int) $request->get("id"),
+                $jailDecongestion
+            ));
+        } catch (\ReflectionException $exception) {
+            return $this->json($this->appFormatter->formatResponse(
+                'Updating Jail Decongestion failed',
+                null,
+                ['reflection' => $exception->getMessage()]
+            ));
         }
     }
 
@@ -638,6 +666,17 @@ class VolunteerismController extends AbstractController
     }
 
     /**
+     * @Route("/jail-decogenstion/{page}/{pageSize}", methods={"GET"})
+     */
+    public function getPaginatedJailDecongestion(Request $request): Response
+    {
+        return $this->json($this->jailDecongestionService->getPaginated(
+            (int) $request->get("page"),
+            (int) $request->get("pageSize")
+        ));
+    }
+
+    /**
      * @Route("/jail-decogenstion/by/id/{id}", methods={"GET"})
      */
     public function getJailDecongestionById(Request $request): Response
@@ -646,7 +685,7 @@ class VolunteerismController extends AbstractController
     }
 
     /**
-     * @Route("/jail-decogenstion/delete/{id}", methods={"GET"})
+     * @Route("/jail-decogenstion/delete/by/id/{id}", methods={"GET"})
      */
     public function deleteJailDecongestionById(Request $request): Response
     {

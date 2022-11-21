@@ -188,7 +188,7 @@ class ProgramMaterialsDevelopmentRepository extends ServiceEntityRepository
             )->fetchAllAssociative();
     }
 
-    public function getById(int $id): array
+    public function getById(int $id): array | bool
     {
         return $this->getEntityManager()->getConnection()
             ->executeQuery(

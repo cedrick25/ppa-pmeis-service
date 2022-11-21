@@ -20,7 +20,7 @@ class JailDecongestion implements \JsonSerializable
         private ?int $referralOthers,
         private ?int $gcta,
         private ?int $recognizance,
-        private string $personResponsible,
+        private array $personResponsible,
         private string $remarks,
         private int $fieldOfficeId,
         private ?DateTimeInterface $createdAt = null,
@@ -119,10 +119,9 @@ class JailDecongestion implements \JsonSerializable
     }
 
     /**
-     * @Assert\NotBlank
-     * @return string
+     * @return array
      */
-    public function getPersonResponsible(): string
+    public function getPersonResponsible(): array
     {
         return $this->personResponsible;
     }

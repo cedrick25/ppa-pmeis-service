@@ -6,6 +6,7 @@ use App\Common\AppFormatter;
 use App\Enum\AuditTrailActions;
 use App\Enum\Response as ResponseEnum;
 use App\Model\JailDecongestion as JailDecongestionModel;
+use App\Repository\JailDecongestionPersonResponsibleRepository;
 use App\Repository\JailDecongestionRepository;
 use App\Repository\QuartersRepository;
 use App\Service\System\AuditTrail;
@@ -25,6 +26,7 @@ class JailDecongestion implements JailDecongestionInterface
         private JailDecongestionRepository      $repository,
         private QuartersRepository              $quartersRepository,
         private AuditTrail                      $auditTrail,
+        private JailDecongestionPersonResponsibleRepository $personResponsibleRepository,
     ) {
         $class = new \ReflectionClass($this);
         $this->shortName = $class->getShortName();
@@ -35,50 +37,127 @@ class JailDecongestion implements JailDecongestionInterface
         try {
             $errors = $this->validator->validate($data);
 
-            if (count($errors) > 0) {
-                return $this->appFormatter->formatResponse(ResponseEnum::VALIDATING_FAILED, null, $this->appFormatter->formatErrors($errors));
+            if ($errors->count() > 0) {
+                return $this->appFormatter->formatResponse(
+                    ResponseEnum::VALIDATING_FAILED,
+                    null,
+                    $this->appFormatter->formatErrors($errors)
+                );
             }
 
             $id = $this->repository->create($data);
 
             if ($id == null) {
-                return $this->appFormatter->formatResponse(ResponseEnum::CREATING_FAILED, null, ['app' => 'Jail Decongestion already exist']);
+                return $this->appFormatter->formatResponse(
+                    ResponseEnum::CREATING_FAILED,
+                    null,
+                    ['app' => 'Jail Decongestion already exist']
+                );
             }
 
+            $this->personResponsibleRepository->batchCreate($id, $data->getPersonResponsible());
             $this->auditTrail->log(AuditTrailActions::CREATE, $data->jsonSerialize(), $this->shortName, $id);
 
             return $this->appFormatter->formatResponse(ResponseEnum::CREATING_SUCCESS, ['id' => $id]);
-        } catch (InvalidArgumentException $exception) {
-            return $this->appFormatter->formatResponse(ResponseEnum::CREATING_FAILED, null, ['cache' => $exception->getMessage()]);
-        } catch (\Exception $e) {
-            return $this->appFormatter->formatResponse(ResponseEnum::CREATING_FAILED, null, ['app' => $e->getMessage()]);
+        } catch (InvalidArgumentException | \Exception $e) {
+            return $this->appFormatter->formatResponse(
+                ResponseEnum::CREATING_FAILED,
+                null,
+                ['app' => $e->getMessage()]
+            );
+        }
+    }
+
+    public function update(int $id, JailDecongestionModel $data): array
+    {
+        try {
+            $isUpdated = $this->repository->update($id, $data);
+
+            if ($isUpdated !== ResponseEnum::OK) {
+                return $this->appFormatter->formatResponse(ResponseEnum::UPDATING_FAILED, null, ['app' => $isUpdated]);
+            }
+
+            $this->auditTrail->log(
+                AuditTrailActions::UPDATE,
+                $data->jsonSerialize(),
+                $this->shortName,
+                $id
+            );
+
+            $this->personResponsibleRepository->deleteByJailDecongestionId($id);
+            $this->personResponsibleRepository
+                ->batchCreate($id, $data->getPersonResponsible());
+
+            return $this->appFormatter->formatResponse(ResponseEnum::UPDATING_SUCCESS, null);
+        } catch (\Exception | InvalidArgumentException $exception) {
+            return $this->appFormatter->formatResponse(
+                ResponseEnum::UPDATING_FAILED,
+                null,
+                ['app' => $exception->getMessage()]
+            );
         }
     }
 
     public function getAll(): array
     {
         try {
-            $jailDecongestions = $this->repository->list();
+            $results = $this->repository->list();
 
-            if ($jailDecongestions == null) {
+            if ($results == null) {
                 return $this->appFormatter->formatResponse(ResponseEnum::NO_DATA, null);
             }
 
-            return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_SUCCESS, $jailDecongestions);
+            return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_SUCCESS, $results);
         } catch (CacheException|InvalidArgumentException $exception) {
-            return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_FAILED, null, ['cache' => $exception->getMessage()]);
+            return $this->appFormatter->formatResponse(
+                ResponseEnum::FETCHING_FAILED,
+                null,
+                ['cache' => $exception->getMessage()]
+            );
+        }
+    }
+
+    public function getPaginated(int $page, int $pageSize): array
+    {
+        try {
+            $results = $this->repository->paginated($page, $pageSize);
+
+            if (empty($results)) {
+                return $this->appFormatter->formatResponse(ResponseEnum::NO_DATA, null);
+            }
+
+            $jdIds = array_map(
+                fn($item) => (int) $item['jail_decongestion_id'],
+                $results['items']
+            );
+            $personsResponsible = $this->personResponsibleRepository->findByJailDecongestionId($jdIds);
+
+            foreach ($results['items'] as $i => $item) {
+                $jdId = $item['jail_decongestion_id'];
+                $results['items'][$i]['personsResponsible'] = $personsResponsible[$jdId];
+            }
+
+            return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_SUCCESS, $results);
+        } catch (CacheException|InvalidArgumentException $exception) {
+            return $this->appFormatter->formatResponse(
+                ResponseEnum::FETCHING_FAILED,
+                null,
+                ['app' => $exception->getMessage()]
+            );
         }
     }
 
     public function getById(int $id): array
     {
-        $jailDecongestion = $this->repository->isExistingById($id);
+        $result = $this->repository->getById($id);
 
-        if (! $jailDecongestion) {
+        if (! $result) {
             return $this->appFormatter->formatResponse(ResponseEnum::NO_DATA, null);
         }
 
-        return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_SUCCESS, $jailDecongestion);
+        $result['personResponsible'] = $this->personResponsibleRepository->findByJailDecongestionId([$id])[$id];
+
+        return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_SUCCESS, $result);
     }
 
     public function deleteById(int $id): array
@@ -87,16 +166,23 @@ class JailDecongestion implements JailDecongestionInterface
             $isDeleted = $this->repository->delete($id);
 
             if (! $isDeleted) {
-                return $this->appFormatter->formatResponse(ResponseEnum::DELETING_FAILED, null, ['app' => ResponseEnum::NO_DATA]);
+                return $this->appFormatter->formatResponse(
+                    ResponseEnum::DELETING_FAILED,
+                    null,
+                    ['app' => ResponseEnum::NO_DATA]
+                );
             }
 
+            $this->personResponsibleRepository->deleteByJailDecongestionId($id);
             $this->auditTrail->log(AuditTrailActions::CREATE, [], $this->shortName, $id);
 
             return $this->appFormatter->formatResponse(ResponseEnum::DELETING_SUCCESS, null);
-        } catch (InvalidArgumentException $exception) {
-            return $this->appFormatter->formatResponse(ResponseEnum::DELETING_FAILED, null, ['cache' => $exception->getMessage()]);
-        } catch (\Doctrine\ORM\ORMException | ORMException $exception) {
-            return $this->appFormatter->formatResponse(ResponseEnum::DELETING_FAILED, null, ['orm' => $exception->getMessage()]);
+        } catch (\Doctrine\ORM\ORMException | ORMException | InvalidArgumentException $exception) {
+            return $this->appFormatter->formatResponse(
+                ResponseEnum::DELETING_FAILED,
+                null,
+                ['app' => $exception->getMessage()]
+            );
         }
     }
 
@@ -109,13 +195,26 @@ class JailDecongestion implements JailDecongestionInterface
             }
 
             $minMaxDate = $this->quartersRepository->getQuarterMinMaxDate($quarter);
-            $jailDecongestions = $this->repository->findByDateRange($minMaxDate, $fieldOfficeId);
+            $results = $this->repository->findByDateRange($minMaxDate, $fieldOfficeId);
 
-            return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_SUCCESS, $jailDecongestions);
+            $jdIds = array_map(
+                fn($item) => (int) $item['jail_decongestion_id'],
+                $results
+            );
+            $personsResponsible = $this->personResponsibleRepository->findByJailDecongestionId($jdIds);
+
+            foreach ($results as $i => $item) {
+                $jdId = $item['jail_decongestion_id'];
+                $results[$i]['personsResponsible'] = $personsResponsible[$jdId];
+            }
+
+            return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_SUCCESS, $results);
         } catch (\Exception $e) {
-            return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_SUCCESS, null, ['app' => $e->getMessage()]);
-        } catch (Exception $e) {
-            return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_SUCCESS, null, ['orm' => $e->getMessage()]);
+            return $this->appFormatter->formatResponse(
+                ResponseEnum::FETCHING_SUCCESS,
+                null,
+                ['app' => $e->getMessage()]
+            );
         }
     }
 }

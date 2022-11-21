@@ -88,8 +88,17 @@ class JDVIA1 implements Form
             $spreadsheet->getActiveSheet()->setCellValue("i" . $this->lastFilledOutCellY, $row['referral_others']);
             $spreadsheet->getActiveSheet()->setCellValue("j" . $this->lastFilledOutCellY, $row['gcta']);
             $spreadsheet->getActiveSheet()->setCellValue("k" . $this->lastFilledOutCellY, $row['recognizance']);
-            $spreadsheet->getActiveSheet()->setCellValue("l" . $this->lastFilledOutCellY, $row['person_responsible']);
             $spreadsheet->getActiveSheet()->setCellValue("m" . $this->lastFilledOutCellY, $row['remarks']);
+
+            foreach ($row['personsResponsible'] as $personsResponsible) {
+                $name = (strlen($personsResponsible['othersName']) > 0)
+                    ? $personsResponsible['othersName']
+                    : $personsResponsible['id']['label'];
+
+                $spreadsheet->getActiveSheet()->setCellValue('L' . $this->lastFilledOutCellY, $name);
+
+                $this->lastFilledOutCellY++;
+            }
 
             $total['probation'] += intval($row['probation']);
             $total['clemency'] += intval($row['clemency']);
@@ -99,6 +108,7 @@ class JDVIA1 implements Form
             $total['gcta'] += intval($row['gcta']);
             $total['recognizance'] += intval($row['recognizance']);
         }
+
         $this->lastFilledOutCellY++;
         $spreadsheet->getActiveSheet()->setCellValue('B' . $this->lastFilledOutCellY, 'TOTAL');
         $spreadsheet->getActiveSheet()->setCellValue('E' . $this->lastFilledOutCellY, $total['probation']);
@@ -109,9 +119,12 @@ class JDVIA1 implements Form
         $spreadsheet->getActiveSheet()->setCellValue('J' . $this->lastFilledOutCellY, $total['gcta']);
         $spreadsheet->getActiveSheet()->setCellValue('K' . $this->lastFilledOutCellY, $total['recognizance']);
 
-        $spreadsheet->getActiveSheet()->getStyle('A9:M' . $this->lastFilledOutCellY)->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
-        $spreadsheet->getActiveSheet()->getStyle('A9:M' . $this->lastFilledOutCellY)->getAlignment()->setHorizontal('center');
-        $spreadsheet->getActiveSheet()->getStyle('A9:M' . $this->lastFilledOutCellY)->getAlignment()->setVertical('center');
+        $spreadsheet->getActiveSheet()->getStyle('A9:M' . $this->lastFilledOutCellY)
+            ->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
+        $spreadsheet->getActiveSheet()->getStyle('A9:M' . $this->lastFilledOutCellY)
+            ->getAlignment()->setHorizontal('center');
+        $spreadsheet->getActiveSheet()->getStyle('A9:M' . $this->lastFilledOutCellY)
+            ->getAlignment()->setVertical('center');
 
 
         return $spreadsheet;
@@ -133,24 +146,19 @@ class JDVIA1 implements Form
         $textAndCoordinates = [
             'a1' => 'VI.  SUPPORT FUNCTION', 'm1' => $this->data[SystemSettingNames::GENERATED_REPORTS_CODE],
             'a3' => 'Table VI.A.1  JAIL DECONGESTION SERVICES/ ACTIVITIES ',
-            'a5' => 'Date', 
+            'a5' => 'Date',
             'a6' => '(1)',
-
             'b4' => 'Name and Address of Jail/Office Assisted',
             'b7' => '(2)',
-            
             'c4' => 'Venue (3)',
             'c6' => 'Jail',
-
             'd6' => 'Office',
-
             'e4' => 'Activities/Number of Inmates or Detainees Assisted (4)',
             'e5' => 'No. of Intake Interview',
             'e6' => 'Probation',
             'f6' => 'Pre-Parole',
             'f7' => 'Executive',
             'f8' => 'Clemency',
-
             'g5' => 'No. of Referrals',
             'g6' => 'PAO',
             'h6' => 'Prosecution',
@@ -166,17 +174,21 @@ class JDVIA1 implements Form
 
         ];
         $mergesCoordinates = [
-            'C4:D5', 'D7:D8', 'E4:K4', 'E5:F5', 'G5:I5', 'L4:L8', 'J5:J8', 'K5:K8', 'B4:B6', 'C6:C8', 'D6:D8', 'E6:E8', 'G6:G8', 'H6:H8', 'I6:I8', 'J5:J8',
+            'C4:D5', 'D7:D8', 'E4:K4', 'E5:F5', 'G5:I5', 'L4:L8', 'J5:J8', 'K5:K8', 'B4:B6', 'C6:C8',
+            'D6:D8', 'E6:E8', 'G6:G8', 'H6:H8', 'I6:I8', 'J5:J8',
 
         ];
         $boldCoordinates = ['a1','a3','m1',];
         $verticalAlignedCoordinates = ['B3:T30' => 'center', 'A3:A8' => 'center'];
         $horizontalAlignedCoordinates = ['B3:T30' => 'center', 'A3:A8' => 'center'];
         $adjustedColumnWidthCoordinates = [
-            'A' => 20, 'B' => 40, 'C' => 20, 'D' => 20, 'E' => 15, 'F' => 15, 'G' => 15, 'H' => 15, 'I' => 15, 'J' => 15, 'K' => 27, 'L' => 20, 'M' => 30, 'N' => 30, 'O' => 20, 'P' => 20, 'Q' => 5, 'R' => 5, 'S' => 5, 'T' => 20,
+            'A' => 20, 'B' => 40, 'C' => 20, 'D' => 20, 'E' => 15, 'F' => 15, 'G' => 15, 'H' => 15, 'I' => 15,
+            'J' => 15, 'K' => 27, 'L' => 20, 'M' => 30, 'N' => 30, 'O' => 20, 'P' => 20, 'Q' => 5, 'R' => 5,
+            'S' => 5, 'T' => 20,
         ];
         $outlineBorderThinCoordinates = [
-            'A4:A8', 'B4:B8', 'C6:C8', 'D6:D8', 'D7:D8', 'E6:E8', 'F6:F8', 'G6:G8', 'H6:H8', 'I6:I8', 'J5:J8', 'K5:K8', 'M4:M8', 'E4:K4', 'E5:F5', 'G5:I5', 'c4:d5', 'L4:L8'
+            'A4:A8', 'B4:B8', 'C6:C8', 'D6:D8', 'D7:D8', 'E6:E8', 'F6:F8', 'G6:G8', 'H6:H8', 'I6:I8', 'J5:J8',
+            'K5:K8', 'M4:M8', 'E4:K4', 'E5:F5', 'G5:I5', 'c4:d5', 'L4:L8'
         ];
 
         foreach ($textAndCoordinates as $coordinate=>$text) {
@@ -198,7 +210,8 @@ class JDVIA1 implements Form
             $spreadsheet->getActiveSheet()->getColumnDimension($coordinate)->setWidth($width);
         }
         foreach ($outlineBorderThinCoordinates as $coordinate) {
-            $spreadsheet->getActiveSheet()->getStyle($coordinate)->getBorders()->getOutline()->setBorderStyle(Border::BORDER_THIN);
+            $spreadsheet->getActiveSheet()->getStyle($coordinate)
+                ->getBorders()->getOutline()->setBorderStyle(Border::BORDER_THIN);
         }
 
         return $spreadsheet;

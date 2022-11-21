@@ -76,11 +76,6 @@ class JailDecongestion
     /**
      * @ORM\Column(type="string", length=255)
      */
-    private string $personResponsible;
-
-    /**
-     * @ORM\Column(type="string", length=255)
-     */
     private string $remarks;
 
     /**
@@ -303,24 +298,6 @@ class JailDecongestion
     public function setRecognizance(?int $recognizance): JailDecongestion
     {
         $this->recognizance = $recognizance;
-        return $this;
-    }
-
-    /**
-     * @return string
-     */
-    public function getPersonResponsible(): string
-    {
-        return $this->personResponsible;
-    }
-
-    /**
-     * @param string $personResponsible
-     * @return JailDecongestion
-     */
-    public function setPersonResponsible(string $personResponsible): JailDecongestion
-    {
-        $this->personResponsible = $personResponsible;
         return $this;
     }
 

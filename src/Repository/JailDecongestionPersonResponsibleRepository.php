@@ -2,7 +2,7 @@
 
 namespace App\Repository;
 
-use App\Entity\PmdPersonResponsible;
+use App\Entity\JailDecongestionPersonResponsible;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\DBAL\Connection;
 use Doctrine\ORM\OptimisticLockException;
@@ -10,21 +10,21 @@ use Doctrine\ORM\ORMException;
 use Doctrine\Persistence\ManagerRegistry;
 
 /**
- * @extends ServiceEntityRepository<PmdPersonResponsible>
+ * @extends ServiceEntityRepository<JailDecongestionPersonResponsible>
  *
- * @method PmdPersonResponsible|null find($id, $lockMode = null, $lockVersion = null)
- * @method PmdPersonResponsible|null findOneBy(array $criteria, array $orderBy = null)
- * @method PmdPersonResponsible[]    findAll()
- * @method PmdPersonResponsible[]    findBy(array $criteria, array $orderBy = null, $limit = null, $offset = null)
+ * @method JailDecongestionPersonResponsible|null find($id, $lockMode = null, $lockVersion = null)
+ * @method JailDecongestionPersonResponsible|null findOneBy(array $criteria, array $orderBy = null)
+ * @method JailDecongestionPersonResponsible[]    findAll()
+ * @method JailDecongestionPersonResponsible[]    findBy(array $criteria, array $orderBy = null, $limit = null, $offset = null)
  */
-class PmdPersonResponsibleRepository extends ServiceEntityRepository
+class JailDecongestionPersonResponsibleRepository extends ServiceEntityRepository
 {
     public function __construct(
         ManagerRegistry $registry,
         private VolunteerRepository    $volunteerRepository,
         private UserDetailsRepository  $userDetailsRepository,
     ) {
-        parent::__construct($registry, PmdPersonResponsible::class);
+        parent::__construct($registry, JailDecongestionPersonResponsible::class);
     }
 
     public function batchCreate(int $id, array $personsResponsible): void
@@ -33,8 +33,8 @@ class PmdPersonResponsibleRepository extends ServiceEntityRepository
             $type = $personResponsible['type']['value'];
             $personResponsibleId = 'others' === $type ? 0 : (int) $personResponsible['id']['value'];
 
-            $entity = new PmdPersonResponsible();
-            $entity->setPmdId($id);
+            $entity = new JailDecongestionPersonResponsible();
+            $entity->setJailDecongestionId($id);
             $entity->setPersonResponsibleId($personResponsibleId);
             $entity->setType($type);
 
@@ -46,24 +46,24 @@ class PmdPersonResponsibleRepository extends ServiceEntityRepository
         }
 
         $this->getEntityManager()->flush();
-        $this->getEntityManager()->clear(PmdPersonResponsible::class);
+        $this->getEntityManager()->clear(JailDecongestionPersonResponsible::class);
     }
 
-    public function deleteByPmdId(int $pmdId): void
+    public function deleteByJailDecongestionId(int $id): void
     {
         $this->getEntityManager()->getConnection()
             ->executeQuery(
-                "DELETE FROM pmd_person_responsible WHERE pmd_id = :pmd_id",
-                ['pmd_id' => $pmdId],
+                "DELETE FROM jail_decongestion_person_responsible WHERE jail_decongestion_id = :jail_decongestion_id",
+                ['jail_decongestion_id' => $id],
             );
     }
 
-    public function findPersonsResponsibleByPmdId(array $ids): array
+    public function findByJailDecongestionId(array $ids): array
     {
         $results = $this->getEntityManager()->getConnection()
             ->executeQuery(
-                "SELECT ppr.* FROM pmd_person_responsible ppr
-                    WHERE ppr.pmd_id IN (:ids)",
+                "SELECT jdpr.* FROM jail_decongestion_person_responsible jdpr
+                    WHERE jdpr.jail_decongestion_id IN (:ids)",
                 ['ids' => $ids],
                 ['ids' => Connection::PARAM_INT_ARRAY]
             )->fetchAllAssociative();
@@ -87,7 +87,7 @@ class PmdPersonResponsibleRepository extends ServiceEntityRepository
                 $result['others_name']
             );
 
-            $return[$result['pmd_id']][] = [
+            $return[$result['jail_decongestion_id']][] = [
                 'type' => $type,
                 'id' => 'others' !== $result['type'] ?
                     [
