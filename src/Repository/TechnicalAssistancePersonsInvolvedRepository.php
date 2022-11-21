@@ -31,12 +31,14 @@ class TechnicalAssistancePersonsInvolvedRepository extends ServiceEntityReposito
     {
         foreach ($personsInvolved as $personInvolved) {
             $type = $personInvolved['type']['value'];
+            $role = $personInvolved['role']['value'];
             $id = 'others' === $type ? 0 : (int) $personInvolved['id']['value'];
 
             $entity = new TechnicalAssistancePersonsInvolved();
             $entity->setTechnicalAssistanceId($technicalAssistanceId);
             $entity->setPersonsInvolvedId($id);
             $entity->setType($type);
+            $entity->setRole($role);
 
             if ('others' === $type) {
                 $entity->setOthersName($personInvolved['othersName']);
@@ -80,8 +82,9 @@ class TechnicalAssistancePersonsInvolvedRepository extends ServiceEntityReposito
         foreach ($results as $result) {
             $personsInvolvedId = $result['persons_involved_id'];
 
-            ['type' => $type, 'name' => $name] = $this->convertData(
+            ['type' => $type, 'name' => $name, 'role' => $role] = $this->convertData(
                 $result['type'],
+                $result['role'],
                 $personsInvolvedId,
                 $users,
                 $volunteers,
@@ -90,6 +93,7 @@ class TechnicalAssistancePersonsInvolvedRepository extends ServiceEntityReposito
 
             $return[$result['technical_assistance_id']][] = [
                 'type' => $type,
+                'role' => $role,
                 'id' => 'others' !== $result['type'] ?
                     [
                         'label' => $name,
@@ -142,6 +146,7 @@ class TechnicalAssistancePersonsInvolvedRepository extends ServiceEntityReposito
 
     private function convertData(
         string $type,
+        string $role,
         int $personsInvolvedId,
         array $users,
         array $volunteers,
@@ -173,6 +178,10 @@ class TechnicalAssistancePersonsInvolvedRepository extends ServiceEntityReposito
 
         return [
             'type' => $type,
+            'role' => [
+                'label' => $role,
+                'value' => $role,
+            ],
             'name' => $name
         ];
     }

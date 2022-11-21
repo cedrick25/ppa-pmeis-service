@@ -88,23 +88,14 @@ class SMIIIA3 implements Form
             $personInvolvedCellY = $this->lastFilledOutCellY;
 
             foreach ($row['personsInvolved'] as $personInvolved) {
-                if (strlen($personInvolved['othersName']) > 0) {
-                    $spreadsheet->getActiveSheet()->setCellValue(
-                        'F' . $personInvolvedCellY,
-                        $personInvolved['othersName']
-                    );
-                    $spreadsheet->getActiveSheet()->setCellValue('G' . $personInvolvedCellY, 'Others');
+                $name = (strlen($personInvolved['othersName']) > 0)
+                    ? $personInvolved['othersName']
+                    : $personInvolved['id']['label'];
 
-                    continue;
-                }
-
-                $spreadsheet->getActiveSheet()->setCellValue(
-                    'F' . $personInvolvedCellY,
-                    $personInvolved['id']['label']
-                );
+                $spreadsheet->getActiveSheet()->setCellValue('F' . $personInvolvedCellY, $name);
                 $spreadsheet->getActiveSheet()->setCellValue(
                     'G' . $personInvolvedCellY,
-                    $personInvolved['type']['value']
+                    $personInvolved['role']['value']
                 );
 
                 $personInvolvedCellY++;

@@ -33,6 +33,11 @@ class TechnicalAssistancePersonsInvolved
     private $type;
 
     /**
+     * @ORM\Column(type="string", length=255)
+     */
+    private $role;
+
+    /**
      * @ORM\Column(type="string", length=255, nullable=true)
      */
     private $othersName;
@@ -74,6 +79,18 @@ class TechnicalAssistancePersonsInvolved
     public function setType(string $type): self
     {
         $this->type = $type;
+
+        return $this;
+    }
+
+    public function getRole(): ?string
+    {
+        return $this->role;
+    }
+
+    public function setRole(string $role): self
+    {
+        $this->role = $role;
 
         return $this;
     }
