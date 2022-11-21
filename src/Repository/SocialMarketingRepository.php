@@ -113,6 +113,7 @@ class SocialMarketingRepository extends ServiceEntityRepository
         $entity->setVenue($data->getVenue());
         $entity->setType($data->getType());
         $entity->setRemarks($data->getRemarks());
+        $entity->setPrimers($data->getPrimers());
         $entity->setFieldOfficeId($data->getFieldOfficeId());
         $entity->setCreatedAt($this->appDateHelper->getCurrentImmutableDate());
 
@@ -142,6 +143,7 @@ class SocialMarketingRepository extends ServiceEntityRepository
         $entity->setVenue($data->getVenue());
         $entity->setType($data->getType());
         $entity->setRemarks($data->getRemarks());
+        $entity->setPrimers($data->getPrimers());
         $entity->setFieldOfficeId($data->getFieldOfficeId());
         $entity->setUpdatedAt($this->appDateHelper->getCurrentImmutableDate());
 

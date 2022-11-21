@@ -63,13 +63,17 @@ class SMIIIA1And2 implements Form
             $this->lastFilledOutCellY++;
             $spreadsheet->getActiveSheet()->setCellValue(
                 'A' . $this->lastFilledOutCellY,
-                trim(preg_replace('/\s\s+/', ' ', $socialMarketing['social_marketing_activity']))
+                trim(preg_replace('/\s\s+/', ' ', $socialMarketing['social_marketing_activity'] ?? ''))
             );
             $spreadsheet->getActiveSheet()->setCellValue(
                 'B' . $this->lastFilledOutCellY,
                 $socialMarketing['date'] . ' ' . $socialMarketing['venue']
             );
-            $spreadsheet->getActiveSheet()->setCellValue('G' . $this->lastFilledOutCellY, $socialMarketing['remarks']);
+            $spreadsheet->getActiveSheet()->setCellValue(
+                'G' . $this->lastFilledOutCellY,
+                'primers: ' . $socialMarketing['primers'] .
+                ' - ' . $socialMarketing['remarks']
+            );
 
             $participantCellY = $this->lastFilledOutCellY;
             foreach ($socialMarketing['participants'] as $participant) {

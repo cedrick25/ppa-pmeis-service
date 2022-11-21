@@ -17,6 +17,7 @@ class SocialMarketing implements \JsonSerializable
         private array $personsInvolved,
         private array $participants,
         private string $remarks,
+        private ?int $primers = 0,
         private ?string $fieldOfficeId = null,
         private ?DateTimeInterface $createdAt = null,
         private ?DateTimeInterface $updatedAt = null,
@@ -100,6 +101,14 @@ class SocialMarketing implements \JsonSerializable
     public function getRemarks(): string
     {
         return $this->remarks;
+    }
+
+    /**
+     * @return int|null
+     */
+    public function getPrimers(): ?int
+    {
+        return $this->primers;
     }
 
     /**

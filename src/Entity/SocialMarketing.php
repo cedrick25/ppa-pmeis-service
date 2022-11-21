@@ -48,6 +48,11 @@ class SocialMarketing
     private string $remarks;
 
     /**
+     * @ORM\Column(type="integer")
+     */
+    private int $primers;
+
+    /**
      * @ORM\Column(type="integer", nullable=true)
      */
     private ?int $fieldOfficeId;
@@ -146,6 +151,22 @@ class SocialMarketing
         $this->remarks = $remarks;
 
         return $this;
+    }
+
+    /**
+     * @return int
+     */
+    public function getPrimers(): int
+    {
+        return $this->primers;
+    }
+
+    /**
+     * @param int $primers
+     */
+    public function setPrimers(int $primers): void
+    {
+        $this->primers = $primers;
     }
 
     /**
