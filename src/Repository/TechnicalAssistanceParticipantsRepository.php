@@ -29,8 +29,8 @@ class TechnicalAssistanceParticipantsRepository extends ServiceEntityRepository
         foreach ($participants as $participant) {
             $entity = new TechnicalAssistanceParticipants();
             $entity->setTechnicalAssistanceId($technicalAssistanceId);
-            $entity->setType($participant['type']['value']);
-            $entity->setNo($participant['no']['value']);
+            $entity->setNo($participant['no']);
+            $entity->setType($participant['type']);
 
             $this->_em->persist($entity);
         }
@@ -67,14 +67,8 @@ class TechnicalAssistanceParticipantsRepository extends ServiceEntityRepository
 
         foreach ($results as $result) {
             $response[$result['technical_assistance_id']][] = [
-                'no' => [
-                    'label' => 'No',
-                    'value' => $result['no']
-                ],
-                'type' => [
-                    'label' => 'Type',
-                    'value' => $result['type']
-                ],
+                'no' => $result['no'],
+                'type' => $result['type'],
             ];
         }
 

@@ -75,11 +75,11 @@ class SMIIIA3 implements Form
             foreach ($row['participants'] as $participant) {
                 $spreadsheet->getActiveSheet()->setCellValue(
                     'D' . $participantsCellY,
-                    $participant['no']['value']
+                    $participant['no']
                 );
                 $spreadsheet->getActiveSheet()->setCellValue(
                     'E' . $participantsCellY,
-                    $participant['type']['value']
+                    $participant['type']
                 );
 
                 $participantsCellY++;
