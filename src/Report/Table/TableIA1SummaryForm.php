@@ -56,17 +56,14 @@ class TableIA1SummaryForm implements Form
         return new BinaryFileResponse($filePath);
     }
 
+    /**
+     * @throws \PhpOffice\PhpSpreadsheet\Exception
+     */
     public function header(): Spreadsheet
     {
         $spreadsheet = $this->prepare();
-
-        $thinBorders = [
-            "A7:G12"
-        ];
-
-        foreach ($thinBorders as $coordinate) {
-            $spreadsheet->getActiveSheet()->getStyle($coordinate)->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
-        }
+        $spreadsheet->getActiveSheet()->getStyle('A7:G12')
+            ->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
 
         return $spreadsheet;
     }
@@ -83,11 +80,12 @@ class TableIA1SummaryForm implements Form
             ]
         ];
 
-        foreach ($this->data['treatment_categories'] as $category=>$treatmentCategory) {
-            foreach ($treatmentCategory as $subCategory=>$score) {
+        foreach ($this->data['treatment_categories'] as $category => $treatmentCategory) {
+            foreach ($treatmentCategory as $subCategory => $score) {
                 $spreadsheet->getActiveSheet()->setCellValue($treatmentCategoryCells[$category][$subCategory], $score);
             }
         }
+
         $spreadsheet->getActiveSheet()->setCellValue('E14', $this->data['client_frequency_active_supervision']);
         $spreadsheet->getActiveSheet()->setCellValue('E17', $this->data['client_frequency_others']);
         $spreadsheet->getActiveSheet()->setCellValue('E20', $this->data['fsg_frequency']);
@@ -214,12 +212,18 @@ class TableIA1SummaryForm implements Form
         $quarterData = $this->quartersRepository->find($data['quarter_id']);
         $minMaxDate = $this->quartersRepository->getQuarterMinMaxDate($quarterData);
         // has side effect of populating $this->sessionIds
-        $treatmentCategoryTotal = $this->getTreatmentCategoriesData($minMaxDate['min'], $minMaxDate['max'], (int) $data['field_office_id']);
+        $treatmentCategoryTotal = $this->getTreatmentCategoriesData(
+            $minMaxDate['min'],
+            $minMaxDate['max'],
+            (int) $data['field_office_id']
+        );
         $clientSessionsData = $this->getClientSessionsData($minMaxDate, (int) $data['field_office_id']);
 
         return [
             'treatment_categories' => $treatmentCategoryTotal,
-            'client_frequency_active_supervision' => \count($clientSessionsData['client_frequency']['active_supervision']),
+            'client_frequency_active_supervision' => \count(
+                $clientSessionsData['client_frequency']['active_supervision']
+            ),
             'client_frequency_others' => \count($clientSessionsData['client_frequency']['others']),
             'fsg_frequency' => $clientSessionsData['fsg_frequency'],
         ];
@@ -228,7 +232,11 @@ class TableIA1SummaryForm implements Form
     private function getTreatmentCategoriesData(string $minDate, string $maxDate, int $fieldOfficeId): array
     {
         $treatmentCategoryTotal = ['MTCS' => ['Total' => 0], 'RA' => ['Total' => 0]];
-        $sessions = $this->sessionsRepository->getTableIA1SummaryFormTreatmentCategoryData($minDate, $maxDate, $fieldOfficeId);
+        $sessions = $this->sessionsRepository->getTableIA1SummaryFormTreatmentCategoryData(
+            $minDate,
+            $maxDate,
+            $fieldOfficeId
+        );
 
         foreach ($sessions as $session) {
             $treatmentCategories = explode('-', $session['treatment_category']);
@@ -257,7 +265,8 @@ class TableIA1SummaryForm implements Form
             ];
         }
         $clientSessions = $this->clientSessionsRepository->findBySessionIds($this->sessionIds);
-        $clientsIdUnderSupervision = $this->clientsRepository->findClientsIdUnderSupervisionPeriod($minMaxDate, $fieldOfficeId);
+        $clientsIdUnderSupervision = $this->clientsRepository
+            ->findClientsIdUnderSupervisionPeriod($minMaxDate, $fieldOfficeId);
 
         foreach ($clientSessions as $clientSession) {
             $clientId = (int) $clientSession['client_id'];

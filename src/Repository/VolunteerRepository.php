@@ -335,7 +335,7 @@ class VolunteerRepository extends ServiceEntityRepository
                 LEFT JOIN religion as r ON v.religion = r.religion_id
                 LEFT JOIN occupation as o ON v.occupation = o.occupation_id
                 LEFT JOIN education_background as eb ON v.education_attainment = eb.education_background_id
-                WHERE v.deleted_at IS NULL AND v.date_appointed <= DATE_ADD(v.date_appointed, INTERVAL 21 MONTH)
+                WHERE v.deleted_at IS NULL AND v.date_appointed >= DATE_ADD(v.date_appointed, INTERVAL 21 MONTH)
                 ORDER BY v.volunteer_id DESC ";
 
             $result['totalItems'] = $this->helper->getCustomQueryPaginatedTotalItems($conn, $sql);
