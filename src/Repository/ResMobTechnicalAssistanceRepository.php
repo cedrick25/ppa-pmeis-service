@@ -33,7 +33,7 @@ class ResMobTechnicalAssistanceRepository extends ServiceEntityRepository
             $entity->setParticularQuantity($technicalAssistance['particularQuantity']);
             $entity->setParticularType($technicalAssistance['particularType']);
             $entity->setSourceName($technicalAssistance['sourceName']);
-            $entity->setSourceType($technicalAssistance['sourceType']);
+            $entity->setSourceType($technicalAssistance['sourceType']['value']);
 
             $this->_em->persist($entity);
         }
@@ -55,6 +55,10 @@ class ResMobTechnicalAssistanceRepository extends ServiceEntityRepository
 
         foreach ($results as $result) {
             $resMobId = (int) $result['res_mob_id'];
+            $result['source_type'] = [
+                'label' =>  $result['source_type'],
+                'value' =>  $result['source_type'],
+            ];
 
             if (! isset($return[$resMobId])) {
                 $return[$resMobId][] = $result;

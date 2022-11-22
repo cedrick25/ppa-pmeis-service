@@ -31,7 +31,7 @@ class ResMobCashRepository extends ServiceEntityRepository
             $entity->setResMobId($id);
             $entity->setAmount($cash['amount']);
             $entity->setSourceName($cash['sourceName']);
-            $entity->setSourceType($cash['sourceType']);
+            $entity->setSourceType($cash['sourceType']['value']);
 
             $this->_em->persist($entity);
         }
@@ -53,6 +53,10 @@ class ResMobCashRepository extends ServiceEntityRepository
 
         foreach ($results as $result) {
             $resMobId = (int) $result['res_mob_id'];
+            $result['source_type'] = [
+                'label' =>  $result['source_type'],
+                'value' =>  $result['source_type'],
+            ];
 
             if (! isset($return[$resMobId])) {
                 $return[$resMobId][] = $result;
