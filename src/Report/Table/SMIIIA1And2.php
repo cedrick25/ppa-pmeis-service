@@ -92,7 +92,7 @@ class SMIIIA1And2 implements Form
 
                 $spreadsheet->getActiveSheet()->setCellValue(
                     $cellX . $personInvolvedCellY,
-                    $name . '/' . $personInvolved['role']['value']
+                    $name . '/' . $personInvolved['role']
                 );
 
                 $personInvolvedCellY++;

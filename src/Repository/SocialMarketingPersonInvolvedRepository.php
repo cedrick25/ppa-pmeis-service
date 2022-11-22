@@ -31,14 +31,13 @@ class SocialMarketingPersonInvolvedRepository extends ServiceEntityRepository
     {
         foreach ($personsInvolved as $personInvolved) {
             $type = $personInvolved['type']['value'];
-            $role = $personInvolved['role']['value'];
             $id = 'others' === $type ? 0 : (int) $personInvolved['id']['value'];
 
             $entity = new SocialMarketingPersonInvolved();
             $entity->setSocialMarketingId($socialMarketingId);
             $entity->setPersonInvolvedId($id);
             $entity->setType($type);
-            $entity->setRole($role);
+            $entity->setRole($personInvolved['role']);
 
             if ('others' === $type) {
                 $entity->setOthersName($personInvolved['othersName']);
@@ -177,10 +176,7 @@ class SocialMarketingPersonInvolvedRepository extends ServiceEntityRepository
 
         return [
             'type' => $type,
-            'role' => [
-                'label' => $role,
-                'value' => $role,
-            ],
+            'role' => $role,
             'name' => $name
         ];
     }
