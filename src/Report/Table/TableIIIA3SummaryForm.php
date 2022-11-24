@@ -76,9 +76,6 @@ class TableIIIA3SummaryForm implements Form
 
         $result = $this->data;
 
-        $pao = 0;
-        $others = 0;
-
         echo var_dump($result['rows']);
 
         $activityRoles = [
