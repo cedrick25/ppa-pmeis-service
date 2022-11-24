@@ -46,7 +46,8 @@ class TableIAB1SummaryForm implements Form
         $this->fieldOffice = $this->fieldOfficesRepository->find($fieldOfficeId);
         $this->quarters = $this->quartersRepository->find($quarterId);
         $this->data['activities'] = $this->getActivities($quarterId, $fieldOfficeId);
-        $this->data['process_conducted'] = $this->conductProcessesService->getRJIB1($quarterId, $fieldOfficeId)['data'];
+        $rjb1 = $this->conductProcessesService->getRJIB1($quarterId, $fieldOfficeId);
+        $this->data['process_conducted'] = $rjb1['data'] ?? [];
         $this->data[SystemSettingNames::GENERATED_REPORTS_CODE] = $data[SystemSettingNames::GENERATED_REPORTS_CODE];
 
         $spreadsheet = $this->footer();
@@ -61,10 +62,14 @@ class TableIAB1SummaryForm implements Form
     public function header(): Spreadsheet
     {
         $spreadsheet = $this->prepare();
-        $spreadsheet->getActiveSheet()->getStyle('A7:Y10')->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
-        $spreadsheet->getActiveSheet()->getStyle('A13:Y16')->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
-        $spreadsheet->getActiveSheet()->getStyle('A18:D24')->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
-        $spreadsheet->getActiveSheet()->getStyle('A35:C42')->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
+        $spreadsheet->getActiveSheet()->getStyle('A7:Y10')->getBorders()
+            ->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
+        $spreadsheet->getActiveSheet()->getStyle('A13:Y16')->getBorders()
+            ->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
+        $spreadsheet->getActiveSheet()->getStyle('A18:D24')->getBorders()
+            ->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
+        $spreadsheet->getActiveSheet()->getStyle('A35:C42')->getBorders()
+            ->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
 
         return $spreadsheet;
     }
@@ -155,7 +160,8 @@ class TableIAB1SummaryForm implements Form
             'A4' => 'I.B.1   RESTORATIVE JUSTICE',
             'A5' => "Table I.B.1   Number of RJ Processes Conducted/ Clients' Involvement",
             'A6' => "TOTAL NUMBER (". self::ACTIVE_SUPERVISION .")",
-            'A7' => self::PRE_ENCOUNTER_ACT, 'F7' => 'Mediation', 'K7' => 'Conferencing', 'P7' => 'COS', 'U7' => 'Others',
+            'A7' => self::PRE_ENCOUNTER_ACT, 'F7' => 'Mediation', 'K7' => 'Conferencing', 'P7' => 'COS',
+            'U7' => 'Others',
             'A8' => '# of Acts', 'B8' => 'SEX', 'D8' => 'PWD', 'E8' => 'SC',
             'F8' => 'Sessions', 'G8' => 'Sex', 'I8' => 'PWD', 'J8' => 'SC',
             'K8' => 'Sessions', 'L8' => 'Sex', 'N8' => 'PWD', 'O8' => 'SC',
@@ -167,7 +173,8 @@ class TableIAB1SummaryForm implements Form
             'P9' => 'Conducted', 'Q9' => 'F', 'R9' => 'M',
             'U9' => 'Conducted', 'V9' => 'F', 'W9' => 'M',
             'A12' => "TOTAL NUMBER (PETITIONERS)",
-            'A13' => self::PRE_ENCOUNTER_ACT, 'F13' => 'Mediation', 'K13' => 'Conferencing', 'P13' => 'COS', 'U13' => 'Others',
+            'A13' => self::PRE_ENCOUNTER_ACT, 'F13' => 'Mediation', 'K13' => 'Conferencing', 'P13' => 'COS',
+            'U13' => 'Others',
             'A14' => '# of Acts', 'B14' => 'SEX', 'D14' => 'PWD', 'E14' => 'SC',
             'F14' => 'Sessions', 'G14' => 'Sex', 'I14' => 'PWD', 'J14' => 'SC',
             'K14' => 'Sessions', 'L14' => 'Sex', 'N14' => 'PWD', 'O14' => 'SC',
@@ -179,8 +186,10 @@ class TableIAB1SummaryForm implements Form
             'P15' => 'Conducted', 'Q15' => 'F', 'R15' => 'M',
             'U15' => 'Conducted', 'V15' => 'F', 'W15' => 'M',
             'A18' => 'Table I.B.1(Columns 1 & 10)',
-            'A19' => 'PARTICULARS (RJ STATUS)', 'B19' => 'Number', 'D19' => 'Total', 'B20' => self::ACTIVE_SUPERVISION, 'C20' => 'Petitioner',
-            'A21' => 'Resolved', 'A22' => '(Completed, Agreement reached)', 'A23' => 'Unresolved', 'A24' => '(Shelved/Deffered, On-going)',
+            'A19' => 'PARTICULARS (RJ STATUS)', 'B19' => 'Number', 'D19' => 'Total', 'B20' => self::ACTIVE_SUPERVISION,
+            'C20' => 'Petitioner',
+            'A21' => 'Resolved', 'A22' => '(Completed, Agreement reached)', 'A23' => 'Unresolved',
+            'A24' => '(Shelved/Deffered, On-going)',
             'A26' => 'Table I.B.1 (Columns 1 & 11)',
             'A27' => 'PARTICULARS (RJ OUTCOME)',
             'B27' => 'Number',
@@ -252,6 +261,10 @@ class TableIAB1SummaryForm implements Form
     {
         $response = ['ACTIVE_SUPERVISION' => [], 'PETITIONER' => []];
         $RJIB2Data = $this->service->getRJIB2Data($quarterId, $fieldOfficeId);
+
+        if (! isset($RJIB2Data['data'])) {
+            return $response;
+        }
 
         foreach ($RJIB2Data['data'] as $item) {
             $rjGroup = $item['rj_group'];

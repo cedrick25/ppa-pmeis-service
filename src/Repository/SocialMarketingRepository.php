@@ -8,8 +8,6 @@ use App\Entity\SocialMarketing;
 use App\Enum\Response as ResponseEnum;
 use App\Model\SocialMarketing as SocialMarketingModel;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
-use Doctrine\DBAL\Driver\Exception;
-use Doctrine\ORM\ORMException;
 use Doctrine\Persistence\ManagerRegistry;
 use Psr\Cache\CacheException;
 use Psr\Cache\InvalidArgumentException;
@@ -31,8 +29,6 @@ class SocialMarketingRepository extends ServiceEntityRepository
         private CacheHelper            $cacheHelper,
         private Helper                 $helper,
         private AppDateHelper          $appDateHelper,
-        private VolunteerRepository    $volunteerRepository,
-        private UserDetailsRepository  $userDetailsRepository,
     ) {
         parent::__construct($registry, SocialMarketing::class);
     }
@@ -210,10 +206,10 @@ class SocialMarketingRepository extends ServiceEntityRepository
      * @param string[] $minMaxDate
      * @param int $fieldOfficeId
      * @param string $type
-     * @return array<int|string, array<int, array<string, mixed>>>
+     * @return array<int|string, array<int, array<string, mixed>>> | bool
      * @throws \Doctrine\DBAL\Exception
      */
-    public function getVolunteerIdsByDateRange(array $minMaxDate, int $fieldOfficeId, string $type): array
+    public function getVolunteerIdsByDateRange(array $minMaxDate, int $fieldOfficeId, string $type): array | bool
     {
         return $this->getEntityManager()->getConnection()
             ->executeQuery(

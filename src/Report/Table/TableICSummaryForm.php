@@ -27,7 +27,7 @@ class TableICSummaryForm implements Form
         private ?FieldOffices           $fieldOffice = null,
         private ?Quarters              $quarters = null,
         private array                  $data = [],
-    ){}
+    ) {}
 
     public function supports(string $tableName): bool
     {
@@ -35,7 +35,11 @@ class TableICSummaryForm implements Form
     }
 
     /**
+     * @param array $data
+     * @return BinaryFileResponse
      * @throws Exception
+     * @throws \Doctrine\DBAL\Driver\Exception
+     * @throws \Doctrine\DBAL\Exception
      */
     public function generate(array $data): BinaryFileResponse
     {
@@ -58,9 +62,7 @@ class TableICSummaryForm implements Form
 
     public function footer(): Spreadsheet
     {
-        $spreadsheet = $this->body();
-
-        return $spreadsheet;
+        return $this->body();
     }
 
     public function body(): Spreadsheet
@@ -68,21 +70,22 @@ class TableICSummaryForm implements Form
         $spreadsheet = $this->header();
 
         $spreadsheet->getActiveSheet()->setCellValue('A8', $this->data['start_of_quarter_vpa']);
-        $spreadsheet->getActiveSheet()->setCellValue('B8', $this->data['new_appointed'] + $this->data['reappointed']);
+        $spreadsheet->getActiveSheet()->setCellValue('B8', $this->data['new_appointed']);
         $spreadsheet->getActiveSheet()->setCellValue('C8', $this->data['dropped']);
         $spreadsheet->getActiveSheet()->setCellValue('D8', $this->data['total_number_of_vpa_during_quarter']);
         $spreadsheet->getActiveSheet()->setCellValue('E8', $this->data['inactive']);
         $spreadsheet->getActiveSheet()->setCellValue('F8', $this->data['total_active_vpa']);
-        $spreadsheet->getActiveSheet()->setCellValue('G8', $this->data['percentage_of_vpa_mobilized'] . '%');
-        $spreadsheet->getActiveSheet()->setCellValue('H8', $this->data['no_of_vpa_supervising_clients']);
-        $spreadsheet->getActiveSheet()->setCellValue('I8', $this->data['no_of_vpa_supervising_clients_percentage'] . '%');
-        $spreadsheet->getActiveSheet()->setCellValue('J8', $this->data['no_of_vpa_acting_as_resource_individuals']);
-        $spreadsheet->getActiveSheet()->setCellValue('K8', $this->data['no_of_vpa_acting_as_resource_individuals_percentage'] . '%');
-        $spreadsheet->getActiveSheet()->setCellValue('L8', $this->data['vpa_acting_both_supervising_and_resource_individual']);
-        $spreadsheet->getActiveSheet()->setCellValue('M8', $this->data['percentage_of_vpa_acting_both_supervising_and_resource_individual'] . '%');
-        $spreadsheet->getActiveSheet()->setCellValue('N8', $this->data['total_number_of_clients_supervised']);
-        $spreadsheet->getActiveSheet()->setCellValue('O8', $this->data['no_of_services_rendered_by_vpa']);
-        $spreadsheet->getActiveSheet()->setCellValue('P8', $this->data['no_of_services_rendered_by_vpa_percentage'] . '%');
+        $spreadsheet->getActiveSheet()->setCellValue('G8', $this->data['no_of_vpa_supervising_clients']);
+        $spreadsheet->getActiveSheet()->setCellValue('H8', $this->data['total_number_of_clients_supervised']);
+        $spreadsheet->getActiveSheet()->setCellValue('I8', $this->data['no_of_vpa_acting_as_resource_individuals']);
+        $spreadsheet->getActiveSheet()->setCellValue(
+            'J8',
+            $this->data['vpa_acting_both_supervising_and_resource_individual']
+        );
+        $spreadsheet->getActiveSheet()->setCellValue('K8', $this->data['total_number_of_vpa_mobilize']);
+        $spreadsheet->getActiveSheet()->setCellValue('L8', $this->data['percent_of_vpa_mobilized'] . '%');
+        $spreadsheet->getActiveSheet()->setCellValue('M8', $this->data['no_of_services_rendered_during_quarter']);
+        $spreadsheet->getActiveSheet()->setCellValue('N8', $this->data['no_of_services_rendered_by_vpa']);
 
         return $spreadsheet;
     }
@@ -90,13 +93,13 @@ class TableICSummaryForm implements Form
     public function header(): Spreadsheet
     {
         $spreadsheet = $this->prepare();
-        $spreadsheet->getActiveSheet()->getStyle('A5:P8')->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
+        $spreadsheet->getActiveSheet()->getStyle('A5:P8')
+            ->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
 
         return $spreadsheet;
     }
 
     /**
-     * @throws \PhpOffice\PhpSpreadsheet\Exception
      */
     private function prepare(): Spreadsheet
     {
@@ -107,25 +110,24 @@ class TableICSummaryForm implements Form
             'A2' => 'IQPR SUMMARY FORM',
             'A3' => $this->quarters->getName() . ' QTR, ' . $this->quarters->getYear(),
             'A4' => 'I.C.  VOLUNTEERISM',
-            'A5' => 'No. of VPA (start of the qtr.)  Note:  Total number of VPAs from the previous qtr.(Col. 4)',
-            'B5' => 'New and Re-Appointed (Table I.C.2, Cols. 1 & 2)',
-            'C5' => 'Dropped (expired appointment or any other cause) (Table I.C.2, Col. 4)',
-            'D5' => 'TOTAL # of VPAs during the Qtr.',
-            'E5' => 'No. of Inactive VPAs during the Qtr. (Table I.C.2, Col. 3)',
-            'F5' => 'Total  Active VPAs during the Qtr.',
-            'G5' => '% of VPAs Mobilized',
-            'H5' => 'No. of VPAs Supervising Clients during the Qtr. (Head count) (Table I.C.3 , Col. 1)',
-            'I5' => '% of VPAs Supervising Clients',
-            'J5' => 'No. of VPAs acting as Resource Individual during the Qtr. (Head Count) (Table I.C.3)',
-            'K5' => '% of VPAs Acting as Resource Individual',
-            'L5' => 'Acting as both Supervising VPAs and Resource Individual (Head Count) (Table I.C.3)',
-            'M5' => '% of VPAs Acting as Both',
-            'N5' => 'Total number of clients supervised (Table I.C.3, Col.3)',
-            'O5' => 'No. of services rendered by VPAs during the quarter (service count or frequency)',
-            'P5' => 'Percent of services rendered by VPAs',
-            'D6' => '(1+2)-3', 'F6' => '4-5', 'G6' => '6÷4', 'I6' => '8÷6', 'K6' => '10÷6', 'M6' => '12÷6',
-            'A7' => '(1)', 'B7' => '(2)', 'C7' => '(3)', 'D7' => '(4)', 'E7' => '(5)', 'F7' => '(6)', 'G7' => '(7)', 'H7' => '(8)',
-            'I7' => '(9)', 'J7' => '(10)', 'K7' => '(11)', 'L7' => '(12)', 'M7' => '(13)', 'N7' => '(14)', 'O7' => '(15)', 'P7' => '(16)',
+            'A5' => 'No. of VPAs (start of the quarter)',
+            'B5' => 'Appointed',
+            'C5' => 'Dropped (expired appointment or any other cause)',
+            'D5' => 'TOTAL NUMBER OF VPAs  DURING THE QUARTER',
+            'E5' => 'No. of INACTIVE VPAs during the QTR',
+            'F5' => 'TOTAL  ACTIVE VPAs DURING THE QUARTER',
+            'G5' => 'No. of VPAs supervising clients during the quarter (Head count)',
+            'H5' => 'Total Number of clients Supervised',
+            'I5' => 'No. of VPAs acting as resource individuals during the quarter (Head count)',
+            'J5' => 'Acting as Both (Supervising VPAs and Resource Individual/ Head count)',
+            'K5' => 'Total Number of VPA mobilized (per head count)',
+            'L5' => 'Percent of VPA mobilized (per head count)',
+            'M5' => 'No. of services rendered by VPAs during the quarter',
+            'N5' => 'No. of services rendered By a VPA ',
+            'A6' => '(1)', 'B6' => '(2)', 'C6' => '(3)', 'D6' =>'(4)', 'E6' =>'(5)', 'F6' =>'(6)', 'G6' =>'(7)',
+            'H6' => '(8)', 'I6' => '(9)', 'J6' => '(10)', 'K6' => '(11)', 'L6' => '(12)', 'M6' => '(13)',
+            'N6' => '(14)', 'E7' => '(1+2)-3', 'G7' => '4-5', 'H7' => '6÷4', 'L7' => '7+9+10=11', 'M7' => '11/6=12',
+            'N7' => '13/6=14'
         ];
 
         $wrapTextCoordinates = ["A5:P5"];

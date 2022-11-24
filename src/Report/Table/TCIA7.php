@@ -111,10 +111,14 @@ class TCIA7 implements Form
         }
 
 
-        $spreadsheet->getActiveSheet()->getStyle('A5:F45')->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
-        $spreadsheet->getActiveSheet()->getStyle('A5:F5')->getFont()->setBold(true);
-        $spreadsheet->getActiveSheet()->getStyle('B5:F45' . $this->lastFilledOutCellY)->getAlignment()->setHorizontal('center');
-        $spreadsheet->getActiveSheet()->getStyle('B5:F45' . $this->lastFilledOutCellY)->getAlignment()->setVertical('center');
+        $spreadsheet->getActiveSheet()->getStyle('A5:F45')
+            ->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
+        $spreadsheet->getActiveSheet()->getStyle('A5:F5')
+            ->getFont()->setBold(true);
+        $spreadsheet->getActiveSheet()->getStyle('B5:F45' . $this->lastFilledOutCellY)
+            ->getAlignment()->setHorizontal('center');
+        $spreadsheet->getActiveSheet()->getStyle('B5:F45' . $this->lastFilledOutCellY)
+            ->getAlignment()->setVertical('center');
 
         return $spreadsheet;
     }

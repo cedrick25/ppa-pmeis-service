@@ -178,6 +178,10 @@ class TableIB23SummaryForm implements Form
         ];
         $restitutions = $this->service->getRJIB3Data($quarterId, $fieldOfficeId);
 
+        if (! isset($restitutions['data'])) {
+            return $data;
+        }
+
         foreach ($restitutions['data'] as $restitution) {
             $rjGroup = $restitution['rj_group'];
 
@@ -188,7 +192,10 @@ class TableIB23SummaryForm implements Form
             $data[$rjGroup][self::TOTAL_CL_ORIGINAL] += intval($restitution['original_amount']);
             $data[$rjGroup][self::CL_START_OF_QUARTER] += intval($restitution['start_of_quarter']);
 
-            if (! in_array($restitution['client_id'], $data[$rjGroup][self::CLIENTS_WHO_PAID]) && intval($restitution['amount_paid']) > 0) {
+            if (
+                ! in_array($restitution['client_id'], $data[$rjGroup][self::CLIENTS_WHO_PAID]) &&
+                intval($restitution['amount_paid']) > 0
+            ) {
                 $data[$rjGroup][self::CLIENTS_WHO_PAID][] = $restitution['client_id'];
             }
 
