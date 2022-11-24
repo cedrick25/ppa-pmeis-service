@@ -77,25 +77,37 @@ class TableIIIA2SummaryForm implements Form
         $result = $this->data;
 
         $pao = 0;
+        $paoParticipants = 0;
         $others = 0;
+        $othersParticipants = 0;
 
         if ($result['rows']) {
-            foreach ($result['rows'][0] as $v) {
+            foreach ($result['rows'] as $v) {
                 switch($v['social_marketing_activity_id']) {
-                    case 3:
+                    case 5:
                         $pao++;
+
+                        foreach ($v['participants'] as $participant) {
+                            $paoParticipants += $participant['no'];
+                        }
+
                         break;
-                    case 4:
+                    case 6:
                         $others++;
+
+                        foreach ($v['participants'] as $participant) {
+                            $othersParticipants += $participant['no'];
+                        }
+
                         break;
                 }
             }
         }
 
         $spreadsheet->getActiveSheet()->setCellValue('B9', $pao);
-        $spreadsheet->getActiveSheet()->setCellValue('C9', $pao);
-        $spreadsheet->getActiveSheet()->setCellValue('B10', $pao);
-        $spreadsheet->getActiveSheet()->setCellValue('C10', $pao);
+        $spreadsheet->getActiveSheet()->setCellValue('C9', $paoParticipants);
+        $spreadsheet->getActiveSheet()->setCellValue('B10', $others);
+        $spreadsheet->getActiveSheet()->setCellValue('C10', $othersParticipants);
 
         return $spreadsheet;
     }
@@ -148,6 +160,7 @@ class TableIIIA2SummaryForm implements Form
             'A3:C3' => 'center',
             'A7:A8' => 'center',
             'B7:C7' => 'center',
+            'B8:C8' => 'center',
         ];
 
         $horizontalAlignedCoordinates = [
@@ -156,10 +169,13 @@ class TableIIIA2SummaryForm implements Form
             'A3:C3' => 'center',
             'A7:A8' => 'center',
             'B7:C7' => 'center',
+            'B8:C8' => 'center',
         ];
 
         $adjustedColumnWidthCoordinates = [
-            'A' => 35, 'G' => 15
+            'A' => 35, 
+            'B' => 25, 
+            'C' => 25, 
         ];
 
         $wrappedTextCoordinates = [

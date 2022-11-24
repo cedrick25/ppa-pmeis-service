@@ -2,7 +2,7 @@
 
 namespace App\Report\Table;
 
-use App\Service\Volunteerism\SocialMarketing;
+use App\Service\Volunteerism\TechnicalAssistance;
 use App\Entity\FieldOffices;
 use App\Entity\Quarters;
 use App\Repository\ClientSessionsRepository;
@@ -22,7 +22,7 @@ class TableIIIA3SummaryForm implements Form
 
 
     public function __construct(
-        private SocialMarketing $service,
+        private TechnicalAssistance $service,
         private FieldOfficesRepository      $fieldOfficesRepository,
         private QuartersRepository          $quartersRepository,
         private SessionsRepository          $sessionsRepository,
@@ -79,37 +79,58 @@ class TableIIIA3SummaryForm implements Form
         $pao = 0;
         $others = 0;
 
+        echo var_dump($result['rows']);
+
+        $activityRoles = [
+            'TECHNICAL ASSISTANCE' => [
+                'agencies_assisted'   => 0,
+                'assistance_rendered' => 0,
+                'participants'        => 0,
+            ],
+            'OUTREACH ACTIVITIES TO OTHER AGENCIES' => [
+                'agencies_assisted'   => 0,
+                'assistance_rendered' => 0,
+                'participants'        => 0,
+            ],
+            'OTHER RELATED COMMUNITY PARTICIPATION' => [
+                'agencies_assisted'   => 0,
+                'assistance_rendered' => 0,
+                'participants'        => 0,
+            ],
+            'PUBLIC ASSISTANCE' => [
+                'agencies_assisted'   => 0,
+                'assistance_rendered' => 0,
+                'participants'        => 0,
+            ],
+        ];
+        
         if ($result['rows']) {
-            foreach ($result['rows'][0] as $v) {
-                switch($v['social_marketing_activity_id']) {
-                    case 3:
-                        $pao++;
-                        break;
-                    case 4:
-                        $others++;
-                        break;
+            foreach ($result['rows'] as $v) {
+                foreach ($v['participants'] as $participant) {
+                    $paoParticipants += $participant['no'];
                 }
             }
         }
 
-        $spreadsheet->getActiveSheet()->setCellValue('B9', $others);
-        $spreadsheet->getActiveSheet()->setCellValue('C9', $others);
-        $spreadsheet->getActiveSheet()->setCellValue('D9', $others);
+        $spreadsheet->getActiveSheet()->setCellValue('B9', $activityRoles['TECHNICAL ASSISTANCE']['agencies_assisted']);
+        $spreadsheet->getActiveSheet()->setCellValue('C9', $activityRoles['TECHNICAL ASSISTANCE']['assistance_rendered']);
+        $spreadsheet->getActiveSheet()->setCellValue('D9', $activityRoles['TECHNICAL ASSISTANCE']['participants']);
 
-        $spreadsheet->getActiveSheet()->setCellValue('B10', $others);
-        $spreadsheet->getActiveSheet()->setCellValue('C10', $others);
-        $spreadsheet->getActiveSheet()->setCellValue('D10', $others);
+        $spreadsheet->getActiveSheet()->setCellValue('B10', $activityRoles['OUTREACH ACTIVITIES TO OTHER AGENCIES']['agencies_assisted']);
+        $spreadsheet->getActiveSheet()->setCellValue('C10', $activityRoles['OUTREACH ACTIVITIES TO OTHER AGENCIES']['assistance_rendered']);
+        $spreadsheet->getActiveSheet()->setCellValue('D10', $activityRoles['OUTREACH ACTIVITIES TO OTHER AGENCIES']['participants']);
 
-        $spreadsheet->getActiveSheet()->setCellValue('B11', $others);
-        $spreadsheet->getActiveSheet()->setCellValue('C11', $others);
-        $spreadsheet->getActiveSheet()->setCellValue('D11', $others);
+        $spreadsheet->getActiveSheet()->setCellValue('B11', $activityRoles['OTHER RELATED COMMUNITY PARTICIPATION']['agencies_assisted']);
+        $spreadsheet->getActiveSheet()->setCellValue('C11', $activityRoles['OTHER RELATED COMMUNITY PARTICIPATION']['assistance_rendered']);
+        $spreadsheet->getActiveSheet()->setCellValue('D11', $activityRoles['OTHER RELATED COMMUNITY PARTICIPATION']['participants']);
         
-        $spreadsheet->getActiveSheet()->setCellValue('B12', $others);
-        $spreadsheet->getActiveSheet()->setCellValue('C12', $others);
-        $spreadsheet->getActiveSheet()->setCellValue('D12', $others);
-        $spreadsheet->getActiveSheet()->setCellValue('B13', $others);
-        $spreadsheet->getActiveSheet()->setCellValue('C13', $others);
-        $spreadsheet->getActiveSheet()->setCellValue('D13', $others);
+        $spreadsheet->getActiveSheet()->setCellValue('B12', $activityRoles['PUBLIC ASSISTANCE']['agencies_assisted']);
+        $spreadsheet->getActiveSheet()->setCellValue('C12', $activityRoles['PUBLIC ASSISTANCE']['assistance_rendered']);
+        $spreadsheet->getActiveSheet()->setCellValue('D12', $activityRoles['PUBLIC ASSISTANCE']['participants']);
+
+        $spreadsheet->getActiveSheet()->setCellValue('B13', $activityRoles['TECHNICAL ASSISTANCE']['agencies_assisted'] + $activityRoles['OUTREACH ACTIVITIES TO OTHER AGENCIES']['agencies_assisted'] + $activityRoles['OTHER RELATED COMMUNITY PARTICIPATION']['agencies_assisted'] + $activityRoles['PUBLIC ASSISTANCE']['agencies_assisted']);
+        $spreadsheet->getActiveSheet()->setCellValue('C13', $activityRoles['TECHNICAL ASSISTANCE']['assistance_rendered'] + $activityRoles['OUTREACH ACTIVITIES TO OTHER AGENCIES']['assistance_rendered'] + $activityRoles['OTHER RELATED COMMUNITY PARTICIPATION']['assistance_rendered'] + $activityRoles['PUBLIC ASSISTANCE']['assistance_rendered']);
+        $spreadsheet->getActiveSheet()->setCellValue('D13', $activityRoles['TECHNICAL ASSISTANCE']['participants'] + $activityRoles['OUTREACH ACTIVITIES TO OTHER AGENCIES']['participants'] + $activityRoles['OTHER RELATED COMMUNITY PARTICIPATION']['participants'] + $activityRoles['PUBLIC ASSISTANCE']['participants']);
 
         return $spreadsheet;
     }
@@ -176,7 +197,8 @@ class TableIIIA3SummaryForm implements Form
         ];
 
         $adjustedColumnWidthCoordinates = [
-            'A' => 35, 'G' => 15
+            'A' => 35, 
+            'G' => 15
         ];
 
         $wrappedTextCoordinates = [
@@ -222,7 +244,6 @@ class TableIIIA3SummaryForm implements Form
         $result = $this->service->getReport(
             $data['quarter_id'],
             $data['field_office_id'],
-            'MEETINGS_PARTICIPATIONS',
         );
 
         return ['rows' => array_values($result['data'] ?? [])];

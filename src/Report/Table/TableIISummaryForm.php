@@ -74,91 +74,236 @@ class TableIISummaryForm implements Form
     {
         $spreadsheet = $this->header();
 
-        $count = 0;
-        // $count = $this->data ? count($this->data['rows']) : 0;
-        // foreach ($this->data['rows'] as $v) {
-        // }
+        $result = $this->data;
 
-        $spreadsheet->getActiveSheet()->setCellValue('B9', 'No Data');
-        $spreadsheet->getActiveSheet()->setCellValue('B10', 'No Data');
-        $spreadsheet->getActiveSheet()->setCellValue('B11', 'No Data');
-        $spreadsheet->getActiveSheet()->setCellValue('B12', 'No Data');
-        $spreadsheet->getActiveSheet()->setCellValue('B13', 'No Data');
-        $spreadsheet->getActiveSheet()->setCellValue('B14', 'No Data');
-        $spreadsheet->getActiveSheet()->setCellValue('B15', 'No Data');
-        $spreadsheet->getActiveSheet()->setCellValue('B16', 'No Data');
+        $capabilityBuilding = [
+            'Personnel' => [
+                'Training on Therapeutic Community' => [
+                    'participants' => 0,
+                    'managerial' => 0,
+                    'technical' => 0,
+                    'foundation' => 0,
+                    'training_hours' => 0
+                ],
+                'Training on Restorative Justice' => [
+                    'participants' => 0,
+                    'managerial' => 0,
+                    'technical' => 0,
+                    'foundation' => 0,
+                    'training_hours' => 0
+                ],
+                'Training on Volunteerism' => [
+                    'participants' => 0,
+                    'managerial' => 0,
+                    'technical' => 0,
+                    'foundation' => 0,
+                    'training_hours' => 0
+                ],
+                'Training on GAD' => [
+                    'participants' => 0,
+                    'managerial' => 0,
+                    'technical' => 0,
+                    'foundation' => 0,
+                    'training_hours' => 0
+                ],
+                'Other Training Courses or Seminars or Fora or Symposia' => [
+                    'participants' => 0,
+                    'managerial' => 0,
+                    'technical' => 0,
+                    'foundation' => 0,
+                    'training_hours' => 0
+                ],
+                'Conferences or Conventions' => [
+                    'participants' => 0,
+                    'managerial' => 0,
+                    'technical' => 0,
+                    'foundation' => 0,
+                    'training_hours' => 0
+                ],
+                'Staff or Committee Meetings with Professional Dev\'t' => [
+                    'participants' => 0,
+                    'managerial' => 0,
+                    'technical' => 0,
+                    'foundation' => 0,
+                    'training_hours' => 0
+                ],
+                'Total' => [
+                    'participants' => 0,
+                    'managerial' => 0,
+                    'technical' => 0,
+                    'foundation' => 0,
+                    'training_hours' => 0
+                ]
+            ],
+            'VPA' => [
+                'Training on Therapeutic Community' => [
+                    'participants' => 0,
+                    'in_house' => 0,
+                    'out_house' => 0,
+                    'training_hours' => 0
+                ],
+                'Training on Restorative Justice' => [
+                    'participants' => 0,
+                    'in_house' => 0,
+                    'out_house' => 0,
+                    'training_hours' => 0
+                ],
+                'Training on Volunteerism' => [
+                    'participants' => 0,
+                    'in_house' => 0,
+                    'out_house' => 0,
+                    'training_hours' => 0
+                ],
+                'Training on GAD' => [
+                    'participants' => 0,
+                    'in_house' => 0,
+                    'out_house' => 0,
+                    'training_hours' => 0
+                ],
+                'Other Training Courses or Seminars or Fora or Symposia' => [
+                    'participants' => 0,
+                    'in_house' => 0,
+                    'out_house' => 0,
+                    'training_hours' => 0
+                ],
+                'Conferences or Conventions' => [
+                    'participants' => 0,
+                    'in_house' => 0,
+                    'out_house' => 0,
+                    'training_hours' => 0
+                ],
+                'VPA Meetings or Assemblies' => [
+                    'participants' => 0,
+                    'in_house' => 0,
+                    'out_house' => 0,
+                    'training_hours' => 0
+                ],
+                'Total' => [
+                    'participants' => 0,
+                    'in_house' => 0,
+                    'out_house' => 0,
+                    'training_hours' => 0   
+                ]
+            ]
+        ];
 
-        $spreadsheet->getActiveSheet()->setCellValue('C9', 'No Data');
-        $spreadsheet->getActiveSheet()->setCellValue('C10', 'No Data');
-        $spreadsheet->getActiveSheet()->setCellValue('C11', 'No Data');
-        $spreadsheet->getActiveSheet()->setCellValue('C12', 'No Data');
-        $spreadsheet->getActiveSheet()->setCellValue('C13', 'No Data');
-        $spreadsheet->getActiveSheet()->setCellValue('C14', 'No Data');
-        $spreadsheet->getActiveSheet()->setCellValue('C15', 'No Data');
-        $spreadsheet->getActiveSheet()->setCellValue('C16', 'No Data');
 
-        $spreadsheet->getActiveSheet()->setCellValue('D9', 'No Data');
-        $spreadsheet->getActiveSheet()->setCellValue('D10', 'No Data');
-        $spreadsheet->getActiveSheet()->setCellValue('D11', 'No Data');
-        $spreadsheet->getActiveSheet()->setCellValue('D12', 'No Data');
-        $spreadsheet->getActiveSheet()->setCellValue('D13', 'No Data');
-        $spreadsheet->getActiveSheet()->setCellValue('D14', 'No Data');
-        $spreadsheet->getActiveSheet()->setCellValue('D15', 'No Data');
-        $spreadsheet->getActiveSheet()->setCellValue('D16', 'No Data');
+        if ($result['rows']) {
+            foreach ($result['rows'] as $k1 => $v1) {
+                foreach ($v1 as $k2 => $v2) {
+                    foreach ($v2 as $k3 => $v3) {
+                        $capabilityBuilding[$k1][$k2]['participants'] += count($v3['participants']);
+                        $capabilityBuilding[$k1]['Total']['participants'] += count($v3['participants']);
 
-        $spreadsheet->getActiveSheet()->setCellValue('E9', 'No Data');
-        $spreadsheet->getActiveSheet()->setCellValue('E10', 'No Data');
-        $spreadsheet->getActiveSheet()->setCellValue('E11', 'No Data');
-        $spreadsheet->getActiveSheet()->setCellValue('E12', 'No Data');
-        $spreadsheet->getActiveSheet()->setCellValue('E13', 'No Data');
-        $spreadsheet->getActiveSheet()->setCellValue('E14', 'No Data');
-        $spreadsheet->getActiveSheet()->setCellValue('E15', 'No Data');
-        $spreadsheet->getActiveSheet()->setCellValue('E16', 'No Data');
+                        // Personnel
+                        if ($k2 == 'Personnel') {
+                            $capabilityBuilding[$k1][$k2]['managerial'] += ($v3['not_managerial_supervisory'] == 1);
+                            $capabilityBuilding[$k1]['Total']['managerial'] += ($v3['not_managerial_supervisory'] == 1);
+    
+                            $capabilityBuilding[$k1][$k2]['technical'] += ($v3['not_technical'] == 1);
+                            $capabilityBuilding[$k1]['Total']['technical'] += ($v3['not_technical'] == 1);
+    
+                            $capabilityBuilding[$k1][$k2]['foundation'] += ($v3['not_foundation'] == 1);
+                            $capabilityBuilding[$k1]['Total']['foundation'] += ($v3['not_foundation'] == 1);
+                        }
 
-        $spreadsheet->getActiveSheet()->setCellValue('F9', 'No Data');
-        $spreadsheet->getActiveSheet()->setCellValue('F10', 'No Data');
-        $spreadsheet->getActiveSheet()->setCellValue('F11', 'No Data');
-        $spreadsheet->getActiveSheet()->setCellValue('F12', 'No Data');
-        $spreadsheet->getActiveSheet()->setCellValue('F13', 'No Data');
-        $spreadsheet->getActiveSheet()->setCellValue('F14', 'No Data');
-        $spreadsheet->getActiveSheet()->setCellValue('F15', 'No Data');
-        $spreadsheet->getActiveSheet()->setCellValue('F16', 'No Data');
 
-        $spreadsheet->getActiveSheet()->setCellValue('G9', 'No Data');
-        $spreadsheet->getActiveSheet()->setCellValue('G10', 'No Data');
-        $spreadsheet->getActiveSheet()->setCellValue('G11', 'No Data');
-        $spreadsheet->getActiveSheet()->setCellValue('G12', 'No Data');
-        $spreadsheet->getActiveSheet()->setCellValue('G13', 'No Data');
-        $spreadsheet->getActiveSheet()->setCellValue('G14', 'No Data');
-        $spreadsheet->getActiveSheet()->setCellValue('G15', 'No Data');
-        $spreadsheet->getActiveSheet()->setCellValue('G16', 'No Data');
+                        // VPA
+                        if ($k2 == 'VPA') {
+                            $capabilityBuilding[$k1][$k2]['in_house'] += ($v3['tc_in_house'] == 1);
+                            $capabilityBuilding[$k1]['Total']['in_house'] += ($v3['tc_in_house'] == 1);
 
-        $spreadsheet->getActiveSheet()->setCellValue('H9', 'No Data');
-        $spreadsheet->getActiveSheet()->setCellValue('H10', 'No Data');
-        $spreadsheet->getActiveSheet()->setCellValue('H11', 'No Data');
-        $spreadsheet->getActiveSheet()->setCellValue('H12', 'No Data');
-        $spreadsheet->getActiveSheet()->setCellValue('H13', 'No Data');
-        $spreadsheet->getActiveSheet()->setCellValue('H14', 'No Data');
-        $spreadsheet->getActiveSheet()->setCellValue('H15', 'No Data');
-        $spreadsheet->getActiveSheet()->setCellValue('H16', 'No Data');
+                            $capabilityBuilding[$k1][$k2]['out_house'] += ($v3['tc_out_house'] == 1);
+                            $capabilityBuilding[$k1]['Total']['out_house'] += ($v3['tc_out_house'] == 1);
+                        }
 
-        $spreadsheet->getActiveSheet()->setCellValue('I9', 'No Data');
-        $spreadsheet->getActiveSheet()->setCellValue('I10', 'No Data');
-        $spreadsheet->getActiveSheet()->setCellValue('I11', 'No Data');
-        $spreadsheet->getActiveSheet()->setCellValue('I12', 'No Data');
-        $spreadsheet->getActiveSheet()->setCellValue('I13', 'No Data');
-        $spreadsheet->getActiveSheet()->setCellValue('I14', 'No Data');
-        $spreadsheet->getActiveSheet()->setCellValue('I15', 'No Data');
-        $spreadsheet->getActiveSheet()->setCellValue('I16', 'No Data');
+                        $capabilityBuilding[$k1][$k2]['training_hours'] += $v3['no_of_training_hours'];
+                        $capabilityBuilding[$k1]['Total']['training_hours'] += $v3['no_of_training_hours'];
+                    }
+                }
+            }
+        }
 
-        $spreadsheet->getActiveSheet()->setCellValue('J9', 'No Data');
-        $spreadsheet->getActiveSheet()->setCellValue('J10', 'No Data');
-        $spreadsheet->getActiveSheet()->setCellValue('J11', 'No Data');
-        $spreadsheet->getActiveSheet()->setCellValue('J12', 'No Data');
-        $spreadsheet->getActiveSheet()->setCellValue('J13', 'No Data');
-        $spreadsheet->getActiveSheet()->setCellValue('J14', 'No Data');
-        $spreadsheet->getActiveSheet()->setCellValue('J15', 'No Data');
-        $spreadsheet->getActiveSheet()->setCellValue('J16', 'No Data');
+        $spreadsheet->getActiveSheet()->setCellValue('B9', $capabilityBuilding['Personnel']['Training on Therapeutic Community']['participants']);
+        $spreadsheet->getActiveSheet()->setCellValue('B10', $capabilityBuilding['Personnel']['Training on Restorative Justice']['participants']);
+        $spreadsheet->getActiveSheet()->setCellValue('B11', $capabilityBuilding['Personnel']['Training on Volunteerism']['participants']);
+        $spreadsheet->getActiveSheet()->setCellValue('B12', $capabilityBuilding['Personnel']['Training on GAD']['participants']);
+        $spreadsheet->getActiveSheet()->setCellValue('B13', $capabilityBuilding['Personnel']['Other Training Courses or Seminars or Fora or Symposia']['participants']);
+        $spreadsheet->getActiveSheet()->setCellValue('B14', $capabilityBuilding['Personnel']['Conferences or Conventions']['participants']);
+        $spreadsheet->getActiveSheet()->setCellValue('B15', $capabilityBuilding['Personnel']['Staff or Committee Meetings with Professional Dev\'t']['participants']);
+        $spreadsheet->getActiveSheet()->setCellValue('B16', $capabilityBuilding['Personnel']['Total']['participants']);
+
+        $spreadsheet->getActiveSheet()->setCellValue('C9', $capabilityBuilding['Personnel']['Training on Therapeutic Community']['managerial']);
+        $spreadsheet->getActiveSheet()->setCellValue('C10', $capabilityBuilding['Personnel']['Training on Restorative Justice']['managerial']);
+        $spreadsheet->getActiveSheet()->setCellValue('C11', $capabilityBuilding['Personnel']['Training on Volunteerism']['managerial']);
+        $spreadsheet->getActiveSheet()->setCellValue('C12', $capabilityBuilding['Personnel']['Training on GAD']['managerial']);
+        $spreadsheet->getActiveSheet()->setCellValue('C13', $capabilityBuilding['Personnel']['Other Training Courses or Seminars or Fora or Symposia']['managerial']);
+        $spreadsheet->getActiveSheet()->setCellValue('C14', $capabilityBuilding['Personnel']['Conferences or Conventions']['managerial']);
+        $spreadsheet->getActiveSheet()->setCellValue('C15', $capabilityBuilding['Personnel']['Staff or Committee Meetings with Professional Dev\'t']['managerial']);
+        $spreadsheet->getActiveSheet()->setCellValue('C16', $capabilityBuilding['Personnel']['Total']['managerial']);
+
+        $spreadsheet->getActiveSheet()->setCellValue('D9', $capabilityBuilding['Personnel']['Training on Therapeutic Community']['technical']);
+        $spreadsheet->getActiveSheet()->setCellValue('D10', $capabilityBuilding['Personnel']['Training on Restorative Justice']['technical']);
+        $spreadsheet->getActiveSheet()->setCellValue('D11', $capabilityBuilding['Personnel']['Training on Volunteerism']['technical']);
+        $spreadsheet->getActiveSheet()->setCellValue('D12', $capabilityBuilding['Personnel']['Training on GAD']['technical']);
+        $spreadsheet->getActiveSheet()->setCellValue('D13', $capabilityBuilding['Personnel']['Other Training Courses or Seminars or Fora or Symposia']['technical']);
+        $spreadsheet->getActiveSheet()->setCellValue('D14', $capabilityBuilding['Personnel']['Conferences or Conventions']['technical']);
+        $spreadsheet->getActiveSheet()->setCellValue('D15', $capabilityBuilding['Personnel']['Staff or Committee Meetings with Professional Dev\'t']['technical']);
+        $spreadsheet->getActiveSheet()->setCellValue('D16', $capabilityBuilding['Personnel']['Total']['technical']);
+
+        $spreadsheet->getActiveSheet()->setCellValue('E9', $capabilityBuilding['Personnel']['Training on Therapeutic Community']['foundation']);
+        $spreadsheet->getActiveSheet()->setCellValue('E10', $capabilityBuilding['Personnel']['Training on Restorative Justice']['foundation']);
+        $spreadsheet->getActiveSheet()->setCellValue('E11', $capabilityBuilding['Personnel']['Training on Volunteerism']['foundation']);
+        $spreadsheet->getActiveSheet()->setCellValue('E12', $capabilityBuilding['Personnel']['Training on GAD']['foundation']);
+        $spreadsheet->getActiveSheet()->setCellValue('E13', $capabilityBuilding['Personnel']['Other Training Courses or Seminars or Fora or Symposia']['foundation']);
+        $spreadsheet->getActiveSheet()->setCellValue('E14', $capabilityBuilding['Personnel']['Conferences or Conventions']['foundation']);
+        $spreadsheet->getActiveSheet()->setCellValue('E15', $capabilityBuilding['Personnel']['Staff or Committee Meetings with Professional Dev\'t']['foundation']);
+        $spreadsheet->getActiveSheet()->setCellValue('E16', $capabilityBuilding['Personnel']['Total']['foundation']);
+
+        $spreadsheet->getActiveSheet()->setCellValue('F9', $capabilityBuilding['Personnel']['Training on Therapeutic Community']['training_hours']);
+        $spreadsheet->getActiveSheet()->setCellValue('F10', $capabilityBuilding['Personnel']['Training on Restorative Justice']['training_hours']);
+        $spreadsheet->getActiveSheet()->setCellValue('F11', $capabilityBuilding['Personnel']['Training on Volunteerism']['training_hours']);
+        $spreadsheet->getActiveSheet()->setCellValue('F12', $capabilityBuilding['Personnel']['Training on GAD']['training_hours']);
+        $spreadsheet->getActiveSheet()->setCellValue('F13', $capabilityBuilding['Personnel']['Other Training Courses or Seminars or Fora or Symposia']['training_hours']);
+        $spreadsheet->getActiveSheet()->setCellValue('F14', $capabilityBuilding['Personnel']['Conferences or Conventions']['training_hours']);
+        $spreadsheet->getActiveSheet()->setCellValue('F15', $capabilityBuilding['Personnel']['Staff or Committee Meetings with Professional Dev\'t']['training_hours']);
+        $spreadsheet->getActiveSheet()->setCellValue('F16', $capabilityBuilding['Personnel']['Total']['training_hours']);
+
+        $spreadsheet->getActiveSheet()->setCellValue('G9', $capabilityBuilding['VPA']['Training on Therapeutic Community']['participants']);
+        $spreadsheet->getActiveSheet()->setCellValue('G10', $capabilityBuilding['VPA']['Training on Restorative Justice']['participants']);
+        $spreadsheet->getActiveSheet()->setCellValue('G11', $capabilityBuilding['VPA']['Training on Volunteerism']['participants']);
+        $spreadsheet->getActiveSheet()->setCellValue('G12', $capabilityBuilding['VPA']['Training on GAD']['participants']);
+        $spreadsheet->getActiveSheet()->setCellValue('G13', $capabilityBuilding['VPA']['Other Training Courses or Seminars or Fora or Symposia']['participants']);
+        $spreadsheet->getActiveSheet()->setCellValue('G14', $capabilityBuilding['VPA']['Conferences or Conventions']['participants']);
+        $spreadsheet->getActiveSheet()->setCellValue('G15', $capabilityBuilding['VPA']['VPA Meetings or Assemblies']['participants']);
+        $spreadsheet->getActiveSheet()->setCellValue('G16', $capabilityBuilding['VPA']['Total']['participants']);
+
+        $spreadsheet->getActiveSheet()->setCellValue('H9', $capabilityBuilding['VPA']['Training on Therapeutic Community']['in_house']);
+        $spreadsheet->getActiveSheet()->setCellValue('H10', $capabilityBuilding['VPA']['Training on Restorative Justice']['in_house']);
+        $spreadsheet->getActiveSheet()->setCellValue('H11', $capabilityBuilding['VPA']['Training on Volunteerism']['in_house']);
+        $spreadsheet->getActiveSheet()->setCellValue('H12', $capabilityBuilding['VPA']['Training on GAD']['in_house']);
+        $spreadsheet->getActiveSheet()->setCellValue('H13', $capabilityBuilding['VPA']['Other Training Courses or Seminars or Fora or Symposia']['in_house']);
+        $spreadsheet->getActiveSheet()->setCellValue('H14', $capabilityBuilding['VPA']['Conferences or Conventions']['in_house']);
+        $spreadsheet->getActiveSheet()->setCellValue('H15', $capabilityBuilding['VPA']['VPA Meetings or Assemblies']['in_house']);
+        $spreadsheet->getActiveSheet()->setCellValue('H16', $capabilityBuilding['VPA']['Total']['in_house']);
+
+        $spreadsheet->getActiveSheet()->setCellValue('I9', $capabilityBuilding['VPA']['Training on Therapeutic Community']['out_house']);
+        $spreadsheet->getActiveSheet()->setCellValue('I10', $capabilityBuilding['VPA']['Training on Restorative Justice']['out_house']);
+        $spreadsheet->getActiveSheet()->setCellValue('I11', $capabilityBuilding['VPA']['Training on Volunteerism']['out_house']);
+        $spreadsheet->getActiveSheet()->setCellValue('I12', $capabilityBuilding['VPA']['Training on GAD']['out_house']);
+        $spreadsheet->getActiveSheet()->setCellValue('I13', $capabilityBuilding['VPA']['Other Training Courses or Seminars or Fora or Symposia']['out_house']);
+        $spreadsheet->getActiveSheet()->setCellValue('I14', $capabilityBuilding['VPA']['Conferences or Conventions']['out_house']);
+        $spreadsheet->getActiveSheet()->setCellValue('I15', $capabilityBuilding['VPA']['VPA Meetings or Assemblies']['out_house']);
+        $spreadsheet->getActiveSheet()->setCellValue('I16', $capabilityBuilding['VPA']['Total']['out_house']);
+
+        $spreadsheet->getActiveSheet()->setCellValue('J9', $capabilityBuilding['VPA']['Training on Therapeutic Community']['training_hours']);
+        $spreadsheet->getActiveSheet()->setCellValue('J10', $capabilityBuilding['VPA']['Training on Restorative Justice']['training_hours']);
+        $spreadsheet->getActiveSheet()->setCellValue('J11', $capabilityBuilding['VPA']['Training on Volunteerism']['training_hours']);
+        $spreadsheet->getActiveSheet()->setCellValue('J12', $capabilityBuilding['VPA']['Training on GAD']['training_hours']);
+        $spreadsheet->getActiveSheet()->setCellValue('J13', $capabilityBuilding['VPA']['Other Training Courses or Seminars or Fora or Symposia']['training_hours']);
+        $spreadsheet->getActiveSheet()->setCellValue('J14', $capabilityBuilding['VPA']['Conferences or Conventions']['training_hours']);
+        $spreadsheet->getActiveSheet()->setCellValue('J15', $capabilityBuilding['VPA']['VPA Meetings or Assemblies']['training_hours']);
+        $spreadsheet->getActiveSheet()->setCellValue('J16', $capabilityBuilding['VPA']['Total']['training_hours']);
 
         return $spreadsheet;
     }
@@ -251,7 +396,14 @@ class TableIISummaryForm implements Form
         ];
 
         $adjustedColumnWidthCoordinates = [
-            'A' => 35, 'G' => 15
+            'A' => 35, 
+            'B' => 15,
+            'C' => 15,
+            'D' => 15,
+            'E' => 15,
+            'F' => 15,
+            'G' => 15,
+            'J' => 15
         ];
 
         $wrappedTextCoordinates = [
@@ -300,14 +452,23 @@ class TableIISummaryForm implements Form
         $this->fieldOffice = $this->fieldOfficesRepository->find($data['field_office_id']);
         $this->quarters = $this->quartersRepository->find($data['quarter_id']);
 
-        // $results = $this->capabilityBuilding->getReport(
-        //     $data['quarter_id'],
-        //     $data['field_office_id'],
-        //     'Personnel'
-        // );
+        $personnel = $this->capabilityBuilding->getReport(
+            $data['quarter_id'],
+            $data['field_office_id'],
+            'Personnel'
+        );
+        $vpa = $this->capabilityBuilding->getReport(
+            $data['quarter_id'],
+            $data['field_office_id'],
+            'VPA'
+        );
 
-        // return ['rows' => array_values($results['data']) ?? []];
-        return [];
+        $result = [
+            'Personnel' => $personnel['data'] ?? [], 
+            'VPA' => $vpa['data'] ?? []
+        ];
+
+        return ['rows' => $result];
     }
 
 }

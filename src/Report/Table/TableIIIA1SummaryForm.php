@@ -76,35 +76,69 @@ class TableIIIA1SummaryForm implements Form
 
         $result = $this->data;
 
-        $fora = 0;
-        $tv = 0;
+        $smCategories = [
+            'fora' => [
+                'activities'   => 0,
+                'participants' => 0,
+                'primers'      => 0,
+            ],
+            'press' => [
+                'activities'   => 0,
+                'primers'      => 0,
+            ],
+            'radio' => [
+                'activities'   => 0,
+                'primers'      => 0,
+            ],
+            'tv' => [
+                'activities'   => 0,
+                'primers'      => 0,
+            ],
+        ];
+
+        // print_r($this->data);
 
         if ($result['rows']) {
-            foreach ($result['rows'][0] as $v) {
+            foreach ($result['rows'] as $v) {
                 switch($v['social_marketing_activity_id']) {
                     case 1:
-                        $fora++;
+                        $smCategories['fora']['activities']++;
+
+                        foreach ($v['participants'] as $participant) {
+                            $smCategories['fora']['participants']+= $participant['no'];
+                        }
+
+                        $smCategories['fora']['primers']+= $v['primers'];
                         break;
                     case 2:
-                        $tv++;
+                        $smCategories['press']['activities']++;
+                        $smCategories['press']['primers']+= $v['primers'];
+                        break;
+                    case 3:
+                        $smCategories['radio']['activities']++;
+                        $smCategories['radio']['primers']+= $v['primers'];
+                        break;
+                    case 4:
+                        $smCategories['tv']['activities']++;
+                        $smCategories['tv']['primers']+= $v['primers'];
                         break;
                 }
             }
         }
 
-        $spreadsheet->getActiveSheet()->setCellValue('B9', $fora);
-        $spreadsheet->getActiveSheet()->setCellValue('C9', $fora);
-        $spreadsheet->getActiveSheet()->setCellValue('D9', $fora);
+        $spreadsheet->getActiveSheet()->setCellValue('B9', $smCategories['fora']['activities']);
+        $spreadsheet->getActiveSheet()->setCellValue('C9', $smCategories['fora']['participants']);
+        $spreadsheet->getActiveSheet()->setCellValue('D9', $smCategories['fora']['primers']);
         
-        $spreadsheet->getActiveSheet()->setCellValue('B12', $tv);
-        $spreadsheet->getActiveSheet()->setCellValue('B13', $tv);
-        $spreadsheet->getActiveSheet()->setCellValue('B14', $tv);
-        $spreadsheet->getActiveSheet()->setCellValue('B15', $fora + $tv);
+        $spreadsheet->getActiveSheet()->setCellValue('B12', $smCategories['press']['activities']);
+        $spreadsheet->getActiveSheet()->setCellValue('B13', $smCategories['radio']['activities']);
+        $spreadsheet->getActiveSheet()->setCellValue('B14', $smCategories['tv']['activities']);
+        $spreadsheet->getActiveSheet()->setCellValue('B15', $smCategories['fora']['activities'] + $smCategories['press']['activities'] + $smCategories['radio']['activities'] + $smCategories['tv']['activities']);
 
-        $spreadsheet->getActiveSheet()->setCellValue('D12', $tv);
-        $spreadsheet->getActiveSheet()->setCellValue('D13', $tv);
-        $spreadsheet->getActiveSheet()->setCellValue('D14', $tv);
-        $spreadsheet->getActiveSheet()->setCellValue('D15', $fora + $tv);
+        $spreadsheet->getActiveSheet()->setCellValue('D12', $smCategories['press']['primers']);
+        $spreadsheet->getActiveSheet()->setCellValue('D13', $smCategories['radio']['primers']);
+        $spreadsheet->getActiveSheet()->setCellValue('D14', $smCategories['tv']['primers']);
+        $spreadsheet->getActiveSheet()->setCellValue('D15', $smCategories['fora']['primers'] + $smCategories['press']['primers'] + $smCategories['radio']['primers'] + $smCategories['tv']['primers']);
 
         return $spreadsheet;
     }
@@ -186,17 +220,23 @@ class TableIIIA1SummaryForm implements Form
             'A5:D5' => 'center',
             'A7:A8' => 'center',
             'B7:D7' => 'center',
+            'B8:D8' => 'center',
             'B10:D10' => 'center',
             'B11:C11' => 'center',
             'A15' => 'center',
         ];
 
         $adjustedColumnWidthCoordinates = [
-            'A' => 35, 'G' => 15
+            'A' => 35, 
+            'B' => 15,
+            'C' => 15,
+            'D' => 20,
+            // 'G' => 15
         ];
 
         $wrappedTextCoordinates = [
-            'A1:D15'
+            // 'A1:D15'
+            'B8'
         ];
 
         foreach ($textAndCoordinates as $coordinate => $text) {
