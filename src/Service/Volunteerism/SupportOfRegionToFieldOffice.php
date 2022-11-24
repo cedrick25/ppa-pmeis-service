@@ -169,6 +169,7 @@ class SupportOfRegionToFieldOffice implements SupportOfRegionToFieldOfficeInterf
     {
         try {
             $quarter = $this->quartersRepository->find($quarterId);
+
             if ($quarter === null) {
                 return $this->appFormatter->formatResponse(ResponseEnum::NO_DATA, null);
             }

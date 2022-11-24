@@ -9,6 +9,7 @@ use App\Entity\Quarters;
 use App\Enum\SystemSettingNames;
 use App\Repository\FieldOfficesRepository;
 use App\Repository\QuartersRepository;
+use App\Service\Volunteerism\IdSupportInterface;
 use App\Service\Volunteerism\SupportOfRegionToFieldOfficeInterface;
 use App\Service\Volunteerism\Volunteer;
 use PhpOffice\PhpSpreadsheet\IOFactory;
@@ -22,7 +23,7 @@ class TableIDSummaryForm implements Form
     private const TABLE_NAME = "TableIDSummaryForm";
 
     public function __construct(
-        private SupportOfRegionToFieldOfficeInterface   $service,
+        private IdSupportInterface                      $service,
         private FieldOfficesRepository                  $fieldOfficesRepository,
         private QuartersRepository                     $quartersRepository,
         private ?FieldOffices                           $fieldOffice = null,
@@ -45,7 +46,7 @@ class TableIDSummaryForm implements Form
 
         $this->fieldOffice = $this->fieldOfficesRepository->find($fieldOfficeId);
         $this->quarters = $this->quartersRepository->find($quarterId);
-        $this->data['results'] = $this->service->getAllCategoryReport($quarterId, $fieldOfficeId)['data'];
+        $this->data['results'] = $this->service->getIdSupportReport($quarterId, $fieldOfficeId)['data'] ?? [];
         $this->data[SystemSettingNames::GENERATED_REPORTS_CODE] = $data[SystemSettingNames::GENERATED_REPORTS_CODE];
 
         $spreadsheet = $this->footer();
@@ -59,43 +60,76 @@ class TableIDSummaryForm implements Form
 
     public function footer(): Spreadsheet
     {
-        $spreadsheet = $this->body();
-
-        return $spreadsheet;
+        return $this->body();
     }
 
     public function body(): Spreadsheet
     {
-        $supportedFieldOffices = [];
+        $supportedFieldOffices = ['Personnel' => [], 'VPA' => []];
+        $programs = [];
+        $cellsY = [
+            'TCLP'=> 7,
+            'RJ'=> 8,
+            'VPAs'=> 9,
+            'GAD'=> 10,
+            'OTHERS'=> 11,
+        ];
+        $cellsX = ['Personnel' => 'B', 'VPA' => 'C'];
+        $typesTotal = ['Personnel' => 0, 'VPA' => 0];
+
         $spreadsheet = $this->header();
 
         foreach ($this->data['results'] as $support) {
-            if (! in_array($support['field_office'], $supportedFieldOffices)) {
-                $supportedFieldOffices[] = $support['field_office'];
+            $program = $support['program'];
+            $type = $support['type'];
+
+            if (! isset($programs[$program][$type])) {
+                $programs[$program][$type] = 0;
+            }
+
+            $programs[$program][$type]++;
+            $typesTotal[$type]++;
+
+            if (! in_array($support['field_office'], $supportedFieldOffices[$type])) {
+                $supportedFieldOffices[$type][] = $support['field_office'];
             }
         }
 
-        $spreadsheet->getActiveSheet()->setCellValue('B14', count($supportedFieldOffices));
+        foreach ($programs as $program => $item) {
+            foreach ($item as $type => $score) {
+                $cellY = $cellsY[$program];
+                $cellX = $cellsX[$type];
+
+                $spreadsheet->getActiveSheet()->setCellValue($cellX . $cellY, $score);
+            }
+        }
+
+        $spreadsheet->getActiveSheet()->setCellValue('B12', $typesTotal['Personnel']);
+        $spreadsheet->getActiveSheet()->setCellValue('C12', $typesTotal['VPA']);
+
+        $spreadsheet->getActiveSheet()->setCellValue('B14', \count($supportedFieldOffices['Personnel']));
+        $spreadsheet->getActiveSheet()->setCellValue('C14', \count($supportedFieldOffices['VPA']));
+
         return $spreadsheet;
     }
 
     public function header(): Spreadsheet
     {
         $spreadsheet = $this->prepare();
-        $spreadsheet->getActiveSheet()->getStyle('A5:C12')->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
-        $spreadsheet->getActiveSheet()->getStyle('A14:C14')->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
+        $spreadsheet->getActiveSheet()->getStyle('A5:C12')->getBorders()
+            ->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
+        $spreadsheet->getActiveSheet()->getStyle('A14:C14')->getBorders()
+            ->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
 
         return $spreadsheet;
     }
 
-    /**
-     * @throws \PhpOffice\PhpSpreadsheet\Exception
-     */
+
     private function prepare(): Spreadsheet
     {
         $spreadsheet = new Spreadsheet();
         $textAndCoordinates = [
-            'G1' => 'Field Office IQPR FORM' . $this->data[SystemSettingNames::GENERATED_REPORTS_CODE],
+            'C1' => 'Field Office IQPR FORM' . $this->data[SystemSettingNames::GENERATED_REPORTS_CODE],
             'A1' => 'FIELD OFFICE ' . $this->fieldOffice->getName(),
             'A2' => 'IQPR SUMMARY FORM',
             'A3' => $this->quarters->getName() . ' QTR, ' . $this->quarters->getYear(),

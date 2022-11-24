@@ -97,16 +97,22 @@ class IdSupport implements IdSupportInterface
             $isDeleted = $this->repository->delete($id);
 
             if (! $isDeleted) {
-                return $this->appFormatter->formatResponse(ResponseEnum::DELETING_FAILED, null, ['app' => ResponseEnum::NO_DATA]);
+                return $this->appFormatter->formatResponse(
+                    ResponseEnum::DELETING_FAILED,
+                    null,
+                    ['app' => ResponseEnum::NO_DATA]
+                );
             }
 
             $this->auditTrail->log(AuditTrailActions::DELETE, [], $this->shortName, $id);
 
             return $this->appFormatter->formatResponse(ResponseEnum::DELETING_SUCCESS, null);
-        } catch (InvalidArgumentException $exception) {
-            return $this->appFormatter->formatResponse(ResponseEnum::DELETING_FAILED, null, ['cache' => $exception->getMessage()]);
-        } catch (\Doctrine\ORM\ORMException | ORMException $exception) {
-            return $this->appFormatter->formatResponse(ResponseEnum::DELETING_FAILED, null, ['orm' => $exception->getMessage()]);
+        } catch (\Doctrine\ORM\ORMException | ORMException |InvalidArgumentException $exception) {
+            return $this->appFormatter->formatResponse(
+                ResponseEnum::DELETING_FAILED,
+                null,
+                ['cache' => $exception->getMessage()]
+            );
         }
     }
 
@@ -122,10 +128,12 @@ class IdSupport implements IdSupportInterface
             $idSupports = $this->repository->findByDateRange($minMaxDate, $fieldOfficeId);
 
             return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_SUCCESS, $idSupports);
-        } catch (\Exception $e) {
-            return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_SUCCESS, null, ['app' => $e->getMessage()]);
-        } catch (Exception $e) {
-            return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_SUCCESS, null, ['orm' => $e->getMessage()]);
+        } catch (Exception | \Exception $e) {
+            return $this->appFormatter->formatResponse(
+                ResponseEnum::FETCHING_SUCCESS,
+                null,
+                ['app' => $e->getMessage()]
+            );
         }
     }
 
