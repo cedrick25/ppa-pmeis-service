@@ -10,10 +10,8 @@ use App\Entity\ClientSessions;
 use App\Enum\Response as ResponseEnum;
 use App\Model\ClientSessions as ClientSessionModel;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
-use Doctrine\ORM\NonUniqueResultException;
-use Doctrine\ORM\ORMException;
+use Doctrine\DBAL\Connection;
 use Doctrine\Persistence\ManagerRegistry;
-use Doctrine\Persistence\Mapping\MappingException;
 use Exception;
 use Psr\Cache\CacheException;
 use Psr\Cache\InvalidArgumentException;
@@ -36,13 +34,11 @@ class ClientSessionsRepository extends ServiceEntityRepository
         private Helper $helper,
         private AppDateHelper $appDateHelper,
         private ClientsRepository $clientsRepository,
-    ){
+    ) {
         parent::__construct($registry, ClientSessions::class);
     }
 
     /**
-     * @throws NonUniqueResultException
-     * @throws ORMException
      * @throws InvalidArgumentException
      * @throws \Doctrine\DBAL\Exception\InvalidArgumentException
      */
@@ -68,10 +64,10 @@ class ClientSessionsRepository extends ServiceEntityRepository
     /**
      * @param int $sessionId
      * @param array<string, mixed> $attendees
-     * @throws \Doctrine\DBAL\Exception\InvalidArgumentException
-     * @throws ORMException
-     * @throws MappingException
      * @throws InvalidArgumentException
+     * @throws \Doctrine\DBAL\Driver\Exception
+     * @throws \Doctrine\DBAL\Exception
+     * @throws \Doctrine\DBAL\Exception\InvalidArgumentException
      */
     public function batchCreate(int $sessionId, array $attendees): void
     {
@@ -98,10 +94,11 @@ class ClientSessionsRepository extends ServiceEntityRepository
     /**
      * @param int $sessionId
      * @param array<string, mixed> $absentees
-     * @throws \Doctrine\DBAL\Exception\InvalidArgumentException
-     * @throws ORMException
-     * @throws MappingException
      * @throws InvalidArgumentException
+     * @throws \Doctrine\DBAL\Driver\Exception
+     * @throws \Doctrine\DBAL\Exception
+     * @throws \Doctrine\DBAL\Exception\InvalidArgumentException
+     * @throws Exception
      */
     public function batchCreateAbsentees(int $sessionId, array $absentees): void
     {
@@ -112,7 +109,9 @@ class ClientSessionsRepository extends ServiceEntityRepository
             $clientSession->setClientId($absentee['id']['value']);
             $clientSession->setRole($this->convertClientRole($absentee['type']['label']));
             $clientSession->setClientRemarksId($absentee['remarks']['value']);
-            $clientSession->setRemarksDate($this->appDateHelper->convertStringToImmutableDate($absentee['remarksDate']));
+            $clientSession->setRemarksDate(
+                $this->appDateHelper->convertStringToImmutableDate($absentee['remarksDate'])
+            );
             $clientSession->setOtherRemarks($absentee['otherRemarks']);
             $clientIds[] = intval($absentee['id']['value']);
 
@@ -128,7 +127,6 @@ class ClientSessionsRepository extends ServiceEntityRepository
     }
 
     /**
-     * @throws \Doctrine\DBAL\Driver\Exception
      * @throws \Doctrine\DBAL\Exception
      */
     public function deleteBySessionId(int $sessionId): void
@@ -152,7 +150,7 @@ class ClientSessionsRepository extends ServiceEntityRepository
             'cacheTag' => self::CACHE_TAG
         ];
 
-        return $this->helper->createCachedResponse($params, function() {
+        return $this->helper->createCachedResponse($params, function () {
             return $this->createQueryBuilder('cs')
                 ->orderBy('cs.clientSessionId', 'DESC')
                 ->getQuery()
@@ -173,7 +171,7 @@ class ClientSessionsRepository extends ServiceEntityRepository
             'cacheTag' => self::CACHE_TAG
         ];
 
-        return $this->helper->createCachedResponse($params, function() use ($id) {
+        return $this->helper->createCachedResponse($params, function () use ($id) {
             return $this->createQueryBuilder('cs')
                 ->where('cs.sessionId = :id')
                 ->setParameter('id', $id)
@@ -185,7 +183,6 @@ class ClientSessionsRepository extends ServiceEntityRepository
 
     /**
      * @throws InvalidArgumentException
-     * @throws ORMException
      */
     public function delete(int $id): bool
     {
@@ -254,7 +251,7 @@ class ClientSessionsRepository extends ServiceEntityRepository
             'page' => $page
         ];
 
-        return $this->helper->createPaginatedResponse($params, function() {
+        return $this->helper->createPaginatedResponse($params, function () {
             return $this->createQueryBuilder('cs')->orderBy('cs.clientSessionId');
         });
     }
@@ -274,7 +271,7 @@ class ClientSessionsRepository extends ServiceEntityRepository
             'page' => $page
         ];
 
-        return $this->helper->createPaginatedResponse($params, function() use ($query) {
+        return $this->helper->createPaginatedResponse($params, function () use ($query) {
             return $this->createQueryBuilder('cs')
                 ->where(" LIKE %:query%")
                 ->setParameter('query', $query)
@@ -285,44 +282,36 @@ class ClientSessionsRepository extends ServiceEntityRepository
     /**
      * @param int[] $sessionIds
      * @return array<int, array<string, mixed>>
-     * @throws \Doctrine\DBAL\Driver\Exception
      * @throws \Doctrine\DBAL\Exception
      */
     public function findBySessionIds(array $sessionIds): array
     {
-        $conn = $this->getEntityManager()->getConnection();
-        $sessionIds = implode(',', $sessionIds);
-
-        $sql = "SELECT cs.*, cr.name as client_remarks, s.trees_planted, c.offense_category, c.gender, c.is_pwd, c.is_senior_citizen,
-            p.name as phase, ct.description as client_type
-            FROM client_sessions cs 
-            LEFT JOIN clients c on cs.client_id = c.client_id
-            LEFT JOIN client_remarks cr on c.client_remarks_id = cr.client_remarks_id
-            LEFT JOIN pmeis.sessions s on cs.session_id = s.session_id
-            LEFT JOIN phases p on s.phase_id = p.phase_id
-            LEFT JOIN client_types ct on c.client_type_id = ct.client_type_id
-            WHERE cs.session_id IN ($sessionIds)";
-
-        $stmt = $conn->prepare($sql);
-        $query = $stmt->executeQuery();
-
-        return $query->fetchAllAssociative();
+        return $this->getEntityManager()->getConnection()
+            ->executeQuery(
+                "SELECT cs.*, cr.name as client_remarks, s.trees_planted, c.offense_category, c.gender, c.is_pwd,
+                        c.is_senior_citizen, p.name as phase, ct.description as client_type FROM client_sessions cs
+                    LEFT JOIN clients c on cs.client_id = c.client_id
+                    LEFT JOIN client_remarks cr on c.client_remarks_id = cr.client_remarks_id
+                    LEFT JOIN pmeis.sessions s on cs.session_id = s.session_id
+                    LEFT JOIN phases p on s.phase_id = p.phase_id
+                    LEFT JOIN client_types ct on c.client_type_id = ct.client_type_id
+                    WHERE cs.session_id IN (:sessionIds)",
+                ['sessionIds' => $sessionIds],
+                ['sessionIds' => Connection::PARAM_INT_ARRAY],
+            )->fetchAllAssociative();
     }
 
     /**
      * @param int[] $sessionIds
-     * @throws \Doctrine\DBAL\Driver\Exception
      * @throws \Doctrine\DBAL\Exception
      */
     public function findAbsenteesBySessionIds(array $sessionIds): array
     {
-        $conn = $this->getEntityManager()->getConnection();
-        $sessionIds = implode(',', $sessionIds);
-
-        $sql = "SELECT * FROM client_sessions cs WHERE cs.session_id IN ($sessionIds) AND cs.client_remarks_id IS NOT NULL";
-
-        $stmt = $conn->prepare($sql);
-        $query = $stmt->executeQuery();
+        $query = $this->getEntityManager()->getConnection()->executeQuery(
+            "SELECT * FROM client_sessions cs WHERE cs.session_id IN (:sessionIds)
+                    AND cs.client_remarks_id IS NOT NULL",
+            ['sessionIds' => $sessionIds]
+        );
         $result = [];
 
         foreach ($query->fetchAllAssociative() as $row) {
@@ -339,41 +328,43 @@ class ClientSessionsRepository extends ServiceEntityRepository
         return $result;
     }
 
+    /**
+     * @throws \Doctrine\DBAL\Exception
+     */
     public function findAbsenteesRemarksIdAndFieldOfficeIdBySessionId(array $sessionIds): array
     {
-        $conn = $this->getEntityManager()->getConnection();
-        $sessionIds = implode(',', $sessionIds);
-
-        $sql = "SELECT cs.client_remarks_id, s.field_office_id FROM client_sessions cs 
+        return $this->getEntityManager()->getConnection()
+            ->executeQuery(
+                "SELECT cs.client_remarks_id, s.field_office_id FROM client_sessions cs
                 LEFT JOIN sessions s on cs.session_id = s.session_id
-                WHERE cs.session_id IN ($sessionIds) AND cs.client_remarks_id IS NOT NULL";
-
-        $stmt = $conn->prepare($sql);
-        $query = $stmt->executeQuery();
-
-        return $query->fetchAllAssociative();
+                WHERE cs.session_id IN (:sessionIds) AND cs.client_remarks_id IS NOT NULL",
+                ['sessionIds' => $sessionIds],
+                ['sessionIds' => Connection::PARAM_INT_ARRAY],
+            )->fetchAllAssociative();
     }
 
+    /**
+     * @throws \Doctrine\DBAL\Exception
+     */
     public function getVPA3Report(int $volunteerId): array
     {
-        $conn = $this->getEntityManager()->getConnection();
-        $sql = "SELECT c.first_name, c.middle_name, c.last_name, c.gender, sr.name as service_rendered, vs.community_resources_tapped,
-                vs.assistance_received, vs.remarks
-            FROM volunteer_supervisions vs
-            LEFT JOIN clients c ON vs.client_id = c.client_id
-            LEFT JOIN services_rendered sr ON vs.services_rendered_id = sr.services_rendered_id
-            WHERE vs.volunteer_id = $volunteerId";
-
-        $stmt = $conn->prepare($sql);
-        $query = $stmt->executeQuery();
-
-        return $query->fetchAllAssociative();
+        return $this->getEntityManager()->getConnection()
+            ->executeQuery(
+                "SELECT c.first_name, c.middle_name, c.last_name, c.gender, sr.name as service_rendered,
+                        vs.community_resources_tapped, vs.assistance_received, vs.remarks
+                    FROM volunteer_supervisions vs
+                    LEFT JOIN volunteer_supervision_clients vsc
+                        ON vs.volunteer_supervisions_id = vsc.volunteer_supervision_id
+                    LEFT JOIN clients c ON vsc.client_id = c.client_id
+                    LEFT JOIN services_rendered sr ON vs.services_rendered_id = sr.services_rendered_id
+                    WHERE vs.volunteer_id = :volunteerId",
+                ['volunteerId' => $volunteerId]
+            )->fetchAllAssociative();
     }
 
     /**
      * @param int[] $ids
      * @return array<int, array<string, mixed>>
-     * @throws \Doctrine\DBAL\Driver\Exception
      * @throws \Doctrine\DBAL\Exception
      */
     public function findClientsBySessionIds(array $ids): array
@@ -381,9 +372,7 @@ class ClientSessionsRepository extends ServiceEntityRepository
         $ids = implode(',', $ids);
         $conn = $this->getEntityManager()->getConnection();
         $sql = "
-            SELECT 
-                c.*, ct.code client_type_code
-            FROM client_sessions 
+            SELECT c.*, ct.code client_type_code FROM client_sessions
             LEFT JOIN clients c on client_sessions.client_id = c.client_id
             LEFT JOIN client_types ct on c.client_type_id = ct.client_type_id
             WHERE client_sessions.session_id IN ($ids)
@@ -402,12 +391,12 @@ class ClientSessionsRepository extends ServiceEntityRepository
      */
     public function findClientAttendeesBySessionIds(array $ids): array
     {
-        $ids = implode(',', $ids);
-        $conn = $this->getEntityManager()->getConnection();
-        $sql = "SELECT * FROM client_sessions WHERE client_sessions.session_id IN ($ids) AND client_sessions.client_remarks_id IS NULL";
-
-        $stmt = $conn->prepare($sql);
-        $query = $stmt->executeQuery();
+        $query = $this->getEntityManager()->getConnection()->executeQuery(
+            "SELECT * FROM client_sessions WHERE client_sessions.session_id IN (:ids)
+                    AND client_sessions.client_remarks_id IS NULL",
+            ['ids' => $ids],
+            ['ids' => Connection::PARAM_INT_ARRAY],
+        );
         $result = [];
 
         foreach ($query->fetchAllAssociative() as $row) {
@@ -426,12 +415,11 @@ class ClientSessionsRepository extends ServiceEntityRepository
 
     /**
      * @throws \Doctrine\DBAL\Exception
-     * @throws \Doctrine\DBAL\Driver\Exception
      */
     public function duplicate(int $sessionId, int $newSessionId): void
     {
         $conn = $this->getEntityManager()->getConnection();
-        $sql = "INSERT INTO client_sessions 
+        $sql = "INSERT INTO client_sessions
                     (client_id, session_id, role, client_remarks_id, other_remarks, fsi, remarks_date)
                 SELECT  client_id, $newSessionId, role, client_remarks_id, other_remarks, fsi, remarks_date
                 FROM client_sessions WHERE session_id = $sessionId";

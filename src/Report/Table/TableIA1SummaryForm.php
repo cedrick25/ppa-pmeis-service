@@ -89,13 +89,14 @@ class TableIA1SummaryForm implements Form
         $spreadsheet->getActiveSheet()->setCellValue('E14', $this->data['client_frequency_active_supervision']);
         $spreadsheet->getActiveSheet()->setCellValue('E17', $this->data['client_frequency_others']);
         $spreadsheet->getActiveSheet()->setCellValue('E20', $this->data['fsg_frequency']);
-        $spreadsheet->getActiveSheet()->setCellValue('E23', 'No Data');
-        $spreadsheet->getActiveSheet()->setCellValue('E26', 'No Data');
-        $spreadsheet->getActiveSheet()->setCellValue('E30', 'No Data');
-        $spreadsheet->getActiveSheet()->setCellValue('E34', 'No Data');
-        $spreadsheet->getActiveSheet()->setCellValue('E37', 'No Data');
-        $spreadsheet->getActiveSheet()->setCellValue('E40', 'No Data');
-        $spreadsheet->getActiveSheet()->setCellValue('E44', 'No Data');
+        $spreadsheet->getActiveSheet()->setCellValue('E23', $this->data['vpa_head_count']);
+        $spreadsheet->getActiveSheet()->setCellValue('E26', $this->data['vpa_frequency']);
+        $spreadsheet->getActiveSheet()->setCellValue('E27', $this->data['tress_planting_and_others']);
+        $spreadsheet->getActiveSheet()->setCellValue('E30', $this->data['tress_planting']);
+        $spreadsheet->getActiveSheet()->setCellValue('E34', $this->data['tress_planted']);
+        $spreadsheet->getActiveSheet()->setCellValue('E37', $this->data['communityService']);
+        $spreadsheet->getActiveSheet()->setCellValue('E40', $this->data['selfHelp']);
+        $spreadsheet->getActiveSheet()->setCellValue('E44', $this->data['selfHelpActivity']);
 
         return $spreadsheet;
     }
@@ -206,26 +207,39 @@ class TableIA1SummaryForm implements Form
 
     private function getData(array $data): array
     {
-        $this->fieldOffice = $this->fieldOfficesRepository->find($data['field_office_id']);
-        $this->quarters = $this->quartersRepository->find($data['quarter_id']);
+        $fieldOfficeId = (int) $data['field_office_id'];
+        $quarterId = (int) $data['quarter_id'];
 
-        $quarterData = $this->quartersRepository->find($data['quarter_id']);
+        $this->fieldOffice = $this->fieldOfficesRepository->find($fieldOfficeId);
+        $this->quarters = $this->quartersRepository->find($quarterId);
+
+        $quarterData = $this->quartersRepository->find($quarterId);
         $minMaxDate = $this->quartersRepository->getQuarterMinMaxDate($quarterData);
         // has side effect of populating $this->sessionIds
         $treatmentCategoryTotal = $this->getTreatmentCategoriesData(
             $minMaxDate['min'],
             $minMaxDate['max'],
-            (int) $data['field_office_id']
+            $fieldOfficeId
         );
-        $clientSessionsData = $this->getClientSessionsData($minMaxDate, (int) $data['field_office_id']);
+        $clientSessionsData = $this->getClientSessionsData($minMaxDate, $fieldOfficeId);
+        $tca1Part2 = $this->sessionsRepository->fetchTCA1Part2($fieldOfficeId, $quarterData);
+        $vpa = $this->extractVpa($tca1Part2);
+        $sessions = $this->sessionsRepository->findWithActivitiesByIds($this->sessionIds);
+        $activities = $this->getActivities($sessions);
 
         return [
             'treatment_categories' => $treatmentCategoryTotal,
-            'client_frequency_active_supervision' => \count(
-                $clientSessionsData['client_frequency']['active_supervision']
-            ),
-            'client_frequency_others' => \count($clientSessionsData['client_frequency']['others']),
+            'client_frequency_active_supervision' => $clientSessionsData['client_frequency']['active_supervision'],
+            'client_frequency_others' => $clientSessionsData['client_frequency']['others'],
             'fsg_frequency' => $clientSessionsData['fsg_frequency'],
+            'vpa_head_count' => $vpa['headCount'],
+            'vpa_frequency' => $vpa['frequency'],
+            'tress_planting_and_others' => $activities['treesPlantedActivitiesAndOthers'],
+            'tress_planting' => $activities['treesPlantedActivities'],
+            'tress_planted' => $activities['treesPlanted'],
+            'communityService' => $activities['communityService'],
+            'selfHelp' => $activities['selfHelp'],
+            'selfHelpActivity' => $activities['selfHelpActivity'],
         ];
     }
 
@@ -254,6 +268,10 @@ class TableIA1SummaryForm implements Form
         return $treatmentCategoryTotal;
     }
 
+    /**
+     * @throws \Doctrine\DBAL\Driver\Exception
+     * @throws \Doctrine\DBAL\Exception
+     */
     private function getClientSessionsData(array $minMaxDate, int $fieldOfficeId): array
     {
         $fsgClients = [];
@@ -288,6 +306,59 @@ class TableIA1SummaryForm implements Form
         return [
             'client_frequency' => $clientsId,
             'fsg_frequency' => count(array_unique($fsgClients)),
+        ];
+    }
+
+    private function extractVpa(array $part2): array
+    {
+        $vpaHeadCount = [];
+        $vpaFrequency = 0;
+
+        foreach ($part2 as $item) {
+            foreach ($item['vpa_resource_person'] as $vpa) {
+                $vpaFrequency++;
+                $vpaHeadCount[] = $vpa['volunteer_id'];
+            }
+        }
+
+        return [
+            'headCount' => \count(\array_unique($vpaHeadCount)),
+            'frequency' => $vpaFrequency,
+        ];
+    }
+
+    private function getActivities(array $sessions): array
+    {
+        $tressPlanted = 0;
+        $treesPlantedActivities = 0;
+        $otherActivities = 0;
+        $communityService = 0;
+        $selfHelp = 0;
+        $selfHelpActivity = 0;
+
+        foreach ($sessions as $session) {
+            $isTreePlanted = boolval($session['is_tree_planting']);
+            $isCommunityService = boolval($session['is_community_service']);
+            $isCooperativeSelfHelp = boolval($session['is_cooperative_self_help']);
+            $isCooperativeSelfHelpActivity = boolval($session['is_cooperative_self_help_activities']);
+
+            if ($isTreePlanted) {
+                $tressPlanted += (int) $session['trees_planted'];
+                $treesPlantedActivities++;
+            }
+
+            $communityService += $isCommunityService ? 1 : 0;
+            $selfHelp += $isCooperativeSelfHelp ? 1 : 0;
+            $selfHelpActivity += $isCooperativeSelfHelpActivity ? 1 : 0;
+        }
+
+        return [
+            'treesPlantedActivitiesAndOthers' => $treesPlantedActivities + $otherActivities,
+            'treesPlantedActivities' => $treesPlantedActivities,
+            'treesPlanted' => $tressPlanted,
+            'communityService' => $communityService,
+            'selfHelp' => $selfHelp,
+            'selfHelpActivity' => $selfHelpActivity,
         ];
     }
 }

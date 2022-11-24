@@ -11,6 +11,7 @@ use App\Entity\Sessions;
 use App\Enum\Response as ResponseEnum;
 use App\Model\Sessions as SessionsModel;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
+use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\Exception\InvalidArgumentException;
 use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\ORM\OptimisticLockException;
@@ -115,7 +116,8 @@ class SessionsRepository extends ServiceEntityRepository
 
         $this->clientSessionsRepository->batchCreate($session->getSessionId(), $sessionData->getAttendees());
         $this->clientSessionsRepository->batchCreateAbsentees($session->getSessionId(), $sessionData->getAbsentees());
-        $this->resourceFacilitatorSessionRepository->batchCreate($session->getSessionId(), $sessionData->getFacilitators());
+        $this->resourceFacilitatorSessionRepository
+            ->batchCreate($session->getSessionId(), $sessionData->getFacilitators());
 
         return $session->getSessionId();
     }
@@ -203,8 +205,6 @@ class SessionsRepository extends ServiceEntityRepository
     /**
      * @param int $id
      * @return bool
-     * @throws ORMException
-     * @throws OptimisticLockException
      * @throws \Doctrine\DBAL\Driver\Exception
      * @throws \Doctrine\DBAL\Exception
      * @throws \Psr\Cache\InvalidArgumentException
@@ -228,8 +228,6 @@ class SessionsRepository extends ServiceEntityRepository
     }
 
     /**
-     * @throws OptimisticLockException
-     * @throws ORMException
      * @throws \Psr\Cache\InvalidArgumentException
      */
     public function softDelete(int $id): bool
@@ -252,7 +250,6 @@ class SessionsRepository extends ServiceEntityRepository
     }
 
     /**
-     * @throws NonUniqueResultException
      * @throws InvalidArgumentException
      * @throws Exception
      * @throws \Psr\Cache\InvalidArgumentException
@@ -330,7 +327,8 @@ class SessionsRepository extends ServiceEntityRepository
         $this->clientSessionsRepository->batchCreateAbsentees($session->getSessionId(), $sessionData->getAbsentees());
 
         $this->resourceFacilitatorSessionRepository->deleteBySessionId($session->getSessionId());
-        $this->resourceFacilitatorSessionRepository->batchCreate($session->getSessionId(), $sessionData->getFacilitators());
+        $this->resourceFacilitatorSessionRepository
+            ->batchCreate($session->getSessionId(), $sessionData->getFacilitators());
 
         return ResponseEnum::OK;
     }
@@ -507,7 +505,7 @@ class SessionsRepository extends ServiceEntityRepository
                     LEFT JOIN phases as p ON s.phase_id = p.phase_id
                     LEFT JOIN venues as v ON s.venue_id = v.venue_id
                     WHERE q.quarter_id = $quarterId
-                    AND s.field_office_id = $fieldOfficeId 
+                    AND s.field_office_id = $fieldOfficeId
                     AND s.deleted_at IS NULL
                     ORDER BY p.phase_id
                 ";
@@ -528,7 +526,7 @@ class SessionsRepository extends ServiceEntityRepository
             'cacheTag' => self::CACHE_TAG
         ];
 
-        return $this->helper->createCachedResponseCustomQuery($params, function() use ($quarterData, $fieldOfficeId) {
+        return $this->helper->createCachedResponseCustomQuery($params, function () use ($quarterData, $fieldOfficeId) {
             $data = [];
             $erpFacilitators = [];
             $resourcePeopleId = [];
@@ -564,20 +562,25 @@ class SessionsRepository extends ServiceEntityRepository
                     isset($resourcePeopleId['VPA']) &&
                     isset($resourcePeopleId['VPA'][$session['session_id']])
                 ) {
-                    $session['vpa_resource_person'] = $this->getVpaResourcePeople($resourcePeopleId['VPA'][$session['session_id']]);
+                    $session['vpa_resource_person'] = $this
+                        ->getVpaResourcePeople($resourcePeopleId['VPA'][$session['session_id']]);
                 }
 
                 if (
                     isset($resourcePeopleId['PPO']) &&
                     isset($resourcePeopleId['PPO'][$session['session_id']])
                 ) {
-                    $session['ppo_resource_person'] = $this->getPpoResourcePeople($resourcePeopleId['PPO'][$session['session_id']]);
+                    $session['ppo_resource_person'] = $this
+                        ->getPpoResourcePeople($resourcePeopleId['PPO'][$session['session_id']]);
                 }
 
                 if (! empty($erpFacilitators) && isset($erpFacilitators[$session['session_id']])) {
                     $session['erp_resource_person'] = $erpFacilitators[$session['session_id']];
                 }
-                $session['count'] = $this->getClientSessionCount($quarterData->getQuarterId(), intval($session['session_id']));
+                $session['count'] = $this->getClientSessionCount(
+                    $quarterData->getQuarterId(),
+                    intval($session['session_id'])
+                );
                 $data[$session['session_id']] = $session;
             }
 
@@ -586,7 +589,6 @@ class SessionsRepository extends ServiceEntityRepository
     }
 
     /**
-     * @throws \Doctrine\DBAL\Driver\Exception
      * @throws \Doctrine\DBAL\Exception
      */
     public function fetchTCIA2(int $quarterId, int $fieldOfficeId, string $role): ?array
@@ -794,6 +796,19 @@ class SessionsRepository extends ServiceEntityRepository
         $query = $stmt->executeQuery();
 
         return $query->fetchAllAssociative();
+    }
+
+    public function findWithActivitiesByIds(array $ids): array
+    {
+        return $this->getEntityManager()->getConnection()
+            ->executeQuery(
+                "SELECT s.*, sa.name, sa.phase_id, sa.is_tree_planting, sa.is_cooperative_self_help_activities,
+                        sa.is_cooperative_self_help, sa.is_community_service FROM sessions s
+                    LEFT JOIN session_activities sa on s.session_activity_id = sa.session_activity_id
+                    WHERE s.session_id IN (:sessionIds)",
+                ['sessionIds' => $ids],
+                ['sessionIds' => Connection::PARAM_INT_ARRAY]
+            )->fetchAllAssociative();
     }
 
     /**

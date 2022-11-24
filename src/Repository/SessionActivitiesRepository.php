@@ -63,8 +63,7 @@ class SessionActivitiesRepository extends ServiceEntityRepository
     }
 
     /**
-     * @throws NonUniqueResultException|InvalidArgumentException
-     * @throws ORMException
+     * @throws InvalidArgumentException
      */
     public function create(
         string $name,
@@ -98,9 +97,7 @@ class SessionActivitiesRepository extends ServiceEntityRepository
     }
 
     /**
-     * @throws NonUniqueResultException
      * @throws InvalidArgumentException
-     * @throws ORMException
      */
     public function delete(int $id): bool
     {
@@ -121,8 +118,6 @@ class SessionActivitiesRepository extends ServiceEntityRepository
     }
 
     /**
-     * @throws OptimisticLockException
-     * @throws ORMException
      * @throws InvalidArgumentException
      */
     public function softDelete(int $id): bool
