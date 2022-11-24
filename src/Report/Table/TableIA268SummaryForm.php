@@ -53,75 +53,92 @@ class TableIA268SummaryForm implements Form
     {
         $spreadsheet = $this->prepare();
 
-        $thinBorders = [
-            "A7:O19"
-        ];
+        $spreadsheet->getActiveSheet()->getStyle('A7:O19')
+            ->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
 
-        foreach ($thinBorders as $coordinate) {
-            $spreadsheet->getActiveSheet()->getStyle($coordinate)->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
-        }
         return $spreadsheet;
     }
 
     public function body(): Spreadsheet
     {
         $spreadsheet = $this->header();
-        $cells = [
-            'PS' => [
-                'gender' => ['F' => 'C11', 'M' => 'D11'],
-                'is_pwd' => 'E11',
-                'is_senior_citizen' => 'F11',
-                'offense_category' => ['DO' => 'G11', 'NDO' => 'H11']
-            ],
-            'PR' => [
-                'gender' => ['F' => 'C12', 'M' => 'D12'],
-                'is_pwd' => 'E12',
-                'is_senior_citizen' => 'F12',
-                'offense_category' => ['DO' => 'G12', 'NDO' => 'H12']
-            ],
-            'PD' => [
-                'gender' => ['F' => 'C13', 'M' => 'D13'],
-                'is_pwd' => 'E13',
-                'is_senior_citizen' => 'F13',
-                'offense_category' => ['DO' => 'G13', 'NDO' => 'H13']
-            ],
-            'JICL' => [
-                'gender' => ['F' => 'C14', 'M' => 'D14'],
-                'is_pwd' => 'E14',
-                'is_senior_citizen' => 'F14',
-                'offense_category' => ['DO' => 'G14', 'NDO' => 'H14']
-            ],
-            'FTMDO' => [
-                'gender' => ['F' => 'C15', 'M' => 'D15'],
-                'is_pwd' => 'E15',
-                'is_senior_citizen' => 'F15',
-                'offense_category' => ['DO' => 'G15', 'NDO' => 'H15']
-            ],
-            'Pet' => [
-                'gender' => ['F' => 'C17', 'M' => 'D17'],
-                'is_pwd' => 'E17',
-                'is_senior_citizen' => 'F17',
-                'offense_category' => ['DO' => 'G17', 'NDO' => 'H17']
-            ],
-            'Term' => [
-                'gender' => ['F' => 'C18', 'M' => 'D18'],
-                'is_pwd' => 'E18',
-                'is_senior_citizen' => 'F18',
-                'offense_category' => ['DO' => 'G18', 'NDO' => 'H18']
-            ],
+        $cellsY = [
+            'gender' => ['F' => 'C', 'M' => 'D'],
+            'is_pwd' => 'E',
+            'is_senior_citizen' => 'F',
+            'offense_category' => ['DO' => 'G', 'NDO' => 'H'],
+            'Prep' => 'I',
+            'I' => 'J',
+            'II' => 'K',
+            'III' => 'L',
+            'IV-Ongoing' => 'M',
+            'IV-Completed' => 'N',
+        ];
+        $cellsX = [
+            'PS' => 11, 'PR' => 12, 'PD' => 13, 'JICL' => 14, 'FTMDO' => 15, 'Pet' => 17, 'Term' => 18,
+        ];
+        $verticalTotalExemptions = ['Prep', 'I', 'II', 'III', 'IV-Ongoing', 'IV-Completed'];
+        $totalColumnCoordinates = [
+            'F' => 'C', 'M' => 'D', 'is_pwd' => 'E', 'is_senior_citizen' => 'F', 'DO' => 'G', 'NDO' => 'H',
+        ];
+        $total = [
+            'F' => 0, 'M' => 0, 'is_pwd' => 0, 'is_senior_citizen' => 0, 'DO' => 0, 'NDO' => 0,
+        ];
+        $totalPhasesPerClient = [
+            'PS' => 0, 'PR' => 0, 'PD' => 0, 'JICL' => 0, 'FTMDO' => 0, 'Pet' => 0, 'Term' => 0,
+        ];
+        $totalPhasesPerClientCoordinates = [
+            'PS' => 'O' . 11, 'PR' => 'O' . 12, 'PD' => 'O' . 13, 'JICL' => 'O' . 14, 'FTMDO' => 'O' . 15,
+            'Pet' => 'O' . 17, 'Term' => 'O' . 18,
         ];
 
-        foreach ($this->data['results'] as $clientType=>$client) {
-            foreach ($client as $columns=>$data) {
+        $totalPetTerm = $total;
+
+        foreach ($this->data['results'] as $clientType => $client) {
+            $cellX = $cellsX[$clientType];
+            $to = ('Pet' == $clientType || 'Term' == $clientType) ? $totalPetTerm : $total;
+
+            foreach ($verticalTotalExemptions as $exemption) {
+                $totalPhasesPerClient[$clientType] += $client[$exemption];
+            }
+
+            foreach ($client as $columns => $data) {
                 if (gettype($data) === 'array') {
                     foreach ($data as $subtype => $score) {
-                        $spreadsheet->getActiveSheet()->setCellValue($cells[$clientType][$columns][$subtype], $score);
+                        $cellY = $cellsY[$columns][$subtype];
+                        $spreadsheet->getActiveSheet()->setCellValue($cellY . $cellX, $score);
+                        $to[$subtype] += $score;
                     }
 
                     continue;
                 }
-                $spreadsheet->getActiveSheet()->setCellValue($cells[$clientType][$columns], $data);
+
+                $cellY = $cellsY[$columns];
+
+                if (! in_array($columns, $verticalTotalExemptions)) {
+                    $to[$columns] += $data;
+                }
+
+                $spreadsheet->getActiveSheet()->setCellValue($cellY . $cellX, $data);
             }
+
+            if ('Pet' == $clientType || 'Term' == $clientType) {
+                $totalPetTerm = $to;
+            } else {
+                $total = $to;
+            }
+        }
+
+        foreach ($total as $type => $item) {
+            $spreadsheet->getActiveSheet()->setCellValue($totalColumnCoordinates[$type] . '16', $item);
+        }
+
+        foreach ($totalPetTerm as $type => $item) {
+            $spreadsheet->getActiveSheet()->setCellValue($totalColumnCoordinates[$type] . '19', $item);
+        }
+
+        foreach ($totalPhasesPerClient as $type => $score) {
+            $spreadsheet->getActiveSheet()->setCellValue($totalPhasesPerClientCoordinates[$type], $score);
         }
 
         return $spreadsheet;
@@ -186,7 +203,8 @@ class TableIA268SummaryForm implements Form
         ];
 
         $mergesCoordinates = [
-            'A1:O1','A2:O2','A3:O3', 'A7:H7','I7:O7','A8:A10','B8:B10','C9:C10','D9:D10','E8:E10','F8:F10','G8:H8','G9:H9','G10:H10','I8:I10','J8:J10','K8:K10','L8:L10','M8:N8','O8:O10'
+            'A1:O1','A2:O2','A3:O3','A7:H7','I7:O7','A8:A10','B8:B10','C9:C10','D9:D10','E8:E10','F8:F10','G8:H8',
+            'G9:H9','G10:H10','I8:I10','J8:J10','K8:K10','L8:L10','M8:N8','O8:O10'
         ];
 
         $boldCoordinates = [
@@ -234,29 +252,47 @@ class TableIA268SummaryForm implements Form
 
     private function getData(array $data): array
     {
-        $this->fieldOffice = $this->fieldOfficesRepository->find($data['field_office_id']);
-        $this->quarters = $this->quartersRepository->find($data['quarter_id']);
+        $fieldOfficeId = (int) $data['field_office_id'];
+        $quarterId = (int) $data['quarter_id'];
 
-        $quarterData = $this->quartersRepository->find($data['quarter_id']);
-        $minMaxDate = $this->quartersRepository->getQuarterMinMaxDate($quarterData);
-        $sessions = $this->sessionsRepository->getTableIA1SummaryFormTreatmentCategoryData($minMaxDate['min'], $minMaxDate['max'], (int) $data['field_office_id']);
+        $this->fieldOffice = $this->fieldOfficesRepository->find($fieldOfficeId);
+        $this->quarters = $this->quartersRepository->find($quarterId);
+
+        $minMaxDate = $this->quartersRepository->getQuarterMinMaxDate($this->quarters);
+        $sessions = $this->sessionsRepository->getTableIA1SummaryFormTreatmentCategoryData(
+            $minMaxDate['min'],
+            $minMaxDate['max'],
+            $fieldOfficeId,
+        );
+        $sessionsPhase = [];
 
         foreach ($sessions as $session) {
-            $this->sessionIds[] = intval($session['session_id']);
+            $sessionId = intval($session['session_id']);
+
+            $this->sessionIds[] = $sessionId;
+
+            if (! isset($sessionsPhase[$sessionId])) {
+                $sessionsPhase[$sessionId][] = $session['phase'];
+
+                continue;
+            }
+
+            $sessionsPhase[$sessionId][] = $session['phase'];
         }
 
         $dataInitialValues = [
-            'gender' => [
-                'F' => 0,
-                'M' => 0,
-            ],
+            'gender' => ['F' => 0, 'M' => 0,],
             'is_pwd' => 0,
             'is_senior_citizen' => 0,
-            'offense_category' => [
-                'DO' => 0,
-                'NDO' => 0,
-            ],
+            'offense_category' => ['DO' => 0, 'NDO' => 0,],
+            'Prep' => 0,
+            'I' => 0,
+            'II' => 0,
+            'III' => 0,
+            'IV-Ongoing' => 0,
+            'IV-Completed' => 0,
         ];
+
         $data = [
             'PS' => $dataInitialValues,
             'PR' => $dataInitialValues,
@@ -266,8 +302,12 @@ class TableIA268SummaryForm implements Form
             'Pet' => $dataInitialValues,
             'Term' => $dataInitialValues,
         ];
+
         $clients = $this->clientSessionsRepository->findClientsBySessionIds($this->sessionIds);
+
         foreach ($clients as $client) {
+            $sessionId = (int) $client['session_id'];
+
             if (intval($client['is_pwd'])) {
                 $data[$client['client_type_code']]['is_pwd']++;
             }
@@ -276,6 +316,10 @@ class TableIA268SummaryForm implements Form
             }
             $data[$client['client_type_code']]['offense_category'][$client['offense_category']]++;
             $data[$client['client_type_code']]['gender'][$client['gender']]++;
+
+            foreach ($sessionsPhase[$sessionId] as $phase) {
+                $data[$client['client_type_code']][$phase]++;
+            }
         }
 
         return $data;

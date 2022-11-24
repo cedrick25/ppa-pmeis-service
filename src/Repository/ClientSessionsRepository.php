@@ -369,19 +369,15 @@ class ClientSessionsRepository extends ServiceEntityRepository
      */
     public function findClientsBySessionIds(array $ids): array
     {
-        $ids = implode(',', $ids);
-        $conn = $this->getEntityManager()->getConnection();
-        $sql = "
-            SELECT c.*, ct.code client_type_code FROM client_sessions
-            LEFT JOIN clients c on client_sessions.client_id = c.client_id
-            LEFT JOIN client_types ct on c.client_type_id = ct.client_type_id
-            WHERE client_sessions.session_id IN ($ids)
-        ";
-
-        $stmt = $conn->prepare($sql);
-        $query = $stmt->executeQuery();
-
-        return $query->fetchAllAssociative();
+        return $this->getEntityManager()->getConnection()
+            ->executeQuery(
+                "SELECT c.*, ct.code client_type_code, cs.session_id FROM client_sessions cs
+                    LEFT JOIN clients c on cs.client_id = c.client_id
+                    LEFT JOIN client_types ct on c.client_type_id = ct.client_type_id
+                    WHERE cs.session_id IN (:ids)",
+                ['ids' => $ids],
+                ['ids' => Connection::PARAM_INT_ARRAY],
+            )->fetchAllAssociative();
     }
 
     /**

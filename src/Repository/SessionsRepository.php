@@ -761,7 +761,7 @@ class SessionsRepository extends ServiceEntityRepository
     public function fetchTC1FieldOfficeSummary(string $minDate, string $maxDate, int $fieldOfficeId): ?array
     {
         $conn = $this->getEntityManager()->getConnection();
-        $sql = "SELECT tc.name as treatment_category FROM sessions as s 
+        $sql = "SELECT tc.name as treatment_category FROM sessions as s
                     LEFT JOIN treatment_categories as tc ON s.treatment_category_id = tc.treatment_category_id
                     WHERE s.date BETWEEN CAST('$minDate' AS DATE) AND CAST('$maxDate' AS DATE)
                     AND s.field_office_id = $fieldOfficeId";
@@ -771,18 +771,24 @@ class SessionsRepository extends ServiceEntityRepository
         return $query->fetchAllAssociative();
     }
 
-    public function getTableIA1SummaryFormTreatmentCategoryData(string $minDate, string $maxDate, int $fieldOfficeId): array
-    {
-        $conn = $this->getEntityManager()->getConnection();
-        $sql = "SELECT s.session_id, tc.name as treatment_category, p.name as phase FROM sessions as s 
+    public function getTableIA1SummaryFormTreatmentCategoryData(
+        string $minDate,
+        string $maxDate,
+        int $fieldOfficeId
+    ): array {
+        return $this->getEntityManager()->getConnection()
+            ->executeQuery(
+                "SELECT s.session_id, tc.name as treatment_category, p.name as phase FROM sessions as s
                     LEFT JOIN treatment_categories as tc ON s.treatment_category_id = tc.treatment_category_id
                     LEFT JOIN phases p on s.phase_id = p.phase_id
-                    WHERE s.date BETWEEN CAST('$minDate' AS DATE) AND CAST('$maxDate' AS DATE)
-                    AND s.field_office_id = $fieldOfficeId";
-        $stmt = $conn->prepare($sql);
-        $query = $stmt->executeQuery();
-
-        return $query->fetchAllAssociative();
+                    WHERE s.date BETWEEN CAST(:minDate AS DATE) AND CAST(:maxDate AS DATE)
+                    AND s.field_office_id = :fieldOfficeId",
+                [
+                    'minDate' => $minDate,
+                    'maxDate' => $maxDate,
+                    'fieldOfficeId' => $fieldOfficeId,
+                ]
+            )->fetchAllAssociative();
     }
 
     public function getTableIA1SummaryFormTreatmentCategoryDataRegional(string $minDate, string $maxDate, string $fieldOfficeIds): array
