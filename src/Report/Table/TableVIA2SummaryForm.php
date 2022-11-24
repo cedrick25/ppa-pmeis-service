@@ -22,7 +22,7 @@ class TableVIA2SummaryForm implements Form
 
 
     public function __construct(
-        private SpecialAssignment   $specialAssignmentService,
+        private SpecialAssignment           $specialAssignmentService,
         private FieldOfficesRepository      $fieldOfficesRepository,
         private QuartersRepository          $quartersRepository,
         private SessionsRepository          $sessionsRepository,
@@ -76,19 +76,52 @@ class TableVIA2SummaryForm implements Form
 
         $result = $this->data;
 
-        $spreadsheet->getActiveSheet()->setCellValue('B10', count($this->data['rows']['SPECIAL_ASSIGNMENT']['national']) + count($this->data['rows']['SPECIAL_ASSIGNMENT']['regional']) + count($this->data['rows']['SPECIAL_ASSIGNMENT']['field_office']));
-        $spreadsheet->getActiveSheet()->setCellValue('B11', count($this->data['rows']['SPECIAL_ASSIGNMENT']['national']));
-        $spreadsheet->getActiveSheet()->setCellValue('B12', count($this->data['rows']['SPECIAL_ASSIGNMENT']['regional']));
-        $spreadsheet->getActiveSheet()->setCellValue('B13', count($this->data['rows']['SPECIAL_ASSIGNMENT']['field_office']));
-        $spreadsheet->getActiveSheet()->setCellValue('B15', count($this->data['rows']['MISCELLANEOUS_ACTIVITIES']));
-        $spreadsheet->getActiveSheet()->setCellValue('B16', count($this->data['rows']['SPECIAL_ASSIGNMENT']['national']) + count($this->data['rows']['SPECIAL_ASSIGNMENT']['regional']) + count($this->data['rows']['SPECIAL_ASSIGNMENT']['field_office']) + count($this->data['rows']['MISCELLANEOUS_ACTIVITIES']));
+        // print_r($result['rows']);
 
-        $spreadsheet->getActiveSheet()->setCellValue('C10', count($this->data['rows']['SPECIAL_ASSIGNMENT']['national']) + count($this->data['rows']['SPECIAL_ASSIGNMENT']['regional']) + count($this->data['rows']['SPECIAL_ASSIGNMENT']['field_office']));
-        $spreadsheet->getActiveSheet()->setCellValue('C11', count($this->data['rows']['SPECIAL_ASSIGNMENT']['national']));
-        $spreadsheet->getActiveSheet()->setCellValue('C12', count($this->data['rows']['SPECIAL_ASSIGNMENT']['regional']));
-        $spreadsheet->getActiveSheet()->setCellValue('C13', count($this->data['rows']['SPECIAL_ASSIGNMENT']['field_office']));
-        $spreadsheet->getActiveSheet()->setCellValue('C15', count($this->data['rows']['MISCELLANEOUS_ACTIVITIES']));
-        $spreadsheet->getActiveSheet()->setCellValue('C16', count($this->data['rows']['SPECIAL_ASSIGNMENT']['national']) + count($this->data['rows']['SPECIAL_ASSIGNMENT']['regional']) + count($this->data['rows']['SPECIAL_ASSIGNMENT']['field_office']) + count($this->data['rows']['MISCELLANEOUS_ACTIVITIES']));
+        $activities = [
+            'SPECIAL_ASSIGNMENT' => [
+                'national' => [
+                    'meetings' => count($this->data['rows']['SPECIAL_ASSIGNMENT']['national']),
+                    'personnelInvolved' => 0,
+                ],
+                'regional' => [
+                    'meetings' => count($this->data['rows']['SPECIAL_ASSIGNMENT']['regional']),
+                    'personnelInvolved' => 0,
+                ],
+                'field_office' => [
+                    'meetings' => count($this->data['rows']['SPECIAL_ASSIGNMENT']['field_office']),
+                    'personnelInvolved' => 0,
+                ],
+            ],
+            'MISCELLANEOUS_ACTIVITIES' => [
+                'meetings' => count($this->data['rows']['MISCELLANEOUS_ACTIVITIES']),
+                'personnelInvolved' => 0,
+            ],
+        ];
+
+        foreach ($this->data['rows']['SPECIAL_ASSIGNMENT'] as $category => $v) {
+            foreach($v as $activity) {
+                $activities['SPECIAL_ASSIGNMENT'][$category]['personnelInvolved'] += count($activity['personnelInvolved']);
+            }
+        }
+
+        foreach ($this->data['rows']['MISCELLANEOUS_ACTIVITIES'] as $activity) {
+            $activities['MISCELLANEOUS_ACTIVITIES']['personnelInvolved'] += count($activity['personnelInvolved']);
+        }
+
+        $spreadsheet->getActiveSheet()->setCellValue('B10', $activities['SPECIAL_ASSIGNMENT']['national']['meetings'] + $activities['SPECIAL_ASSIGNMENT']['regional']['meetings'] + $activities['SPECIAL_ASSIGNMENT']['field_office']['meetings']);
+        $spreadsheet->getActiveSheet()->setCellValue('B11', $activities['SPECIAL_ASSIGNMENT']['national']['meetings']);
+        $spreadsheet->getActiveSheet()->setCellValue('B12', $activities['SPECIAL_ASSIGNMENT']['regional']['meetings']);
+        $spreadsheet->getActiveSheet()->setCellValue('B13', $activities['SPECIAL_ASSIGNMENT']['field_office']['meetings']);
+        $spreadsheet->getActiveSheet()->setCellValue('B15', $activities['MISCELLANEOUS_ACTIVITIES']['meetings']);
+        $spreadsheet->getActiveSheet()->setCellValue('B16', $activities['SPECIAL_ASSIGNMENT']['national']['meetings'] + $activities['SPECIAL_ASSIGNMENT']['regional']['meetings'] + $activities['SPECIAL_ASSIGNMENT']['field_office']['meetings'] + $activities['MISCELLANEOUS_ACTIVITIES']['meetings']);
+
+        $spreadsheet->getActiveSheet()->setCellValue('C10', $activities['SPECIAL_ASSIGNMENT']['national']['personnelInvolved'] + $activities['SPECIAL_ASSIGNMENT']['regional']['personnelInvolved'] + $activities['SPECIAL_ASSIGNMENT']['field_office']['personnelInvolved']);
+        $spreadsheet->getActiveSheet()->setCellValue('C11', $activities['SPECIAL_ASSIGNMENT']['national']['personnelInvolved']);
+        $spreadsheet->getActiveSheet()->setCellValue('C12', $activities['SPECIAL_ASSIGNMENT']['regional']['personnelInvolved']);
+        $spreadsheet->getActiveSheet()->setCellValue('C13', $activities['SPECIAL_ASSIGNMENT']['field_office']['personnelInvolved']);
+        $spreadsheet->getActiveSheet()->setCellValue('C15', $activities['MISCELLANEOUS_ACTIVITIES']['personnelInvolved']);
+        $spreadsheet->getActiveSheet()->setCellValue('C16', $activities['SPECIAL_ASSIGNMENT']['national']['personnelInvolved'] + $activities['SPECIAL_ASSIGNMENT']['regional']['personnelInvolved'] + $activities['SPECIAL_ASSIGNMENT']['field_office']['personnelInvolved'] + $activities['MISCELLANEOUS_ACTIVITIES']['personnelInvolved']);
 
         return $spreadsheet;
     }
@@ -143,7 +176,7 @@ class TableVIA2SummaryForm implements Form
             'A2:C2' => 'center',
             'A3:C3' => 'center',
             'A7:A8' => 'center',
-            'B7:C7' => 'center',
+            'B7:C16' => 'center',
         ];
 
         $horizontalAlignedCoordinates = [
@@ -151,11 +184,13 @@ class TableVIA2SummaryForm implements Form
             'A2:C2' => 'center',
             'A3:C3' => 'center',
             'A7:A8' => 'center',
-            'B7:C7' => 'center',
+            'B7:C16' => 'center',
         ];
 
         $adjustedColumnWidthCoordinates = [
-            'A' => 35, 'G' => 15
+            'A' => 30, 
+            'B' => 20,
+            'C' => 25,
         ];
 
         $wrappedTextCoordinates = [
