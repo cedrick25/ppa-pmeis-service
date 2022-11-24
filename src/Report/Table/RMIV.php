@@ -124,7 +124,7 @@ class RMIV implements Form
         $this->lastFilledOutCellY++;
         $spreadsheet->getActiveSheet()->setCellValue("A" . $this->lastFilledOutCellY, '     SENIOR CITIZENS');
         // TODO: To be discussed
-        $spreadsheet = $this->plot([], $spreadsheet);
+        $spreadsheet = $this->plot($this->data['rows']['PWDSC'], $spreadsheet);
         $this->lastFilledOutCellY++;
 
         $this->lastFilledOutCellY++;
@@ -277,12 +277,12 @@ class RMIV implements Form
                 $spreadsheet->getActiveSheet()->setCellValue('C' . $cashCellY, $cash['amount']);
                 $spreadsheet->getActiveSheet()->setCellValue('D' . $cashCellY, $cash['source_name']);
                 $spreadsheet->getActiveSheet()->setCellValue(
-                    $sourceTypeCoordinate['cash'][$cash['source_type']] . $cashCellY,
-                    $cash['source_type']
+                    $sourceTypeCoordinate['cash'][$cash['source_type']['value']] . $cashCellY,
+                    $cash['source_type']['value']
                 );
 
                 $this->data['total']['amount'] += intval($cash['amount']);
-                $this->data['total']['cash_source_type'][$cash['source_type']]++;
+                $this->data['total']['cash_source_type'][$cash['source_type']['value']]++;
 
                 $cashCellY++;
             }
@@ -297,16 +297,35 @@ class RMIV implements Form
                 $spreadsheet->getActiveSheet()->setCellValue('I' . $materialCellY, $material['estimated_amount']);
                 $spreadsheet->getActiveSheet()->setCellValue('J' . $materialCellY, $material['source_name']);
                 $spreadsheet->getActiveSheet()->setCellValue(
-                    $sourceTypeCoordinate['materials'][$material['source_type']] . $materialCellY,
-                    $material['source_type']
+                    $sourceTypeCoordinate['materials'][$material['source_type']['value']] . $materialCellY,
+                    $material['source_type']['value']
                 );
 
                 $this->data['total']['materials_amount'] += intval($material['estimated_amount']);
-                $this->data['total']['material_source_type'][$material['source_type']]++;
+                $this->data['total']['material_source_type'][$material['source_type']['value']]++;
 
                 $materialCellY++;
             }
 
+            $techAssistanceCellY = $this->lastFilledOutCellY;
+            
+            foreach ($row['technicalAssistance'] as $techAssistance) {
+                $spreadsheet->getActiveSheet()->setCellValue(
+                    'N' . $techAssistanceCellY,
+                    $techAssistance['particular_type'] . ' ' . $techAssistance['particular_quantity']
+                );
+                $spreadsheet->getActiveSheet()->setCellValue('O' . $techAssistanceCellY, $techAssistance['estimated_amount']);
+                $spreadsheet->getActiveSheet()->setCellValue('P' . $techAssistanceCellY, $techAssistance['source_name']);
+                $spreadsheet->getActiveSheet()->setCellValue(
+                    $sourceTypeCoordinate['technical'][$techAssistance['source_type']['value']] . $techAssistanceCellY,
+                    $techAssistance['source_type']['value']
+                );
+
+                $this->data['total']['technical_assistance_amount'] += intval($techAssistance['estimated_amount']);
+                $this->data['total']['technical_assistance_type'][$techAssistance['source_type']['value']]++;
+
+                $techAssistanceCellY++;
+            }
 
             $securedByNames = [];
 

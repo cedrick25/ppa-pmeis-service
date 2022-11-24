@@ -2,6 +2,7 @@
 
 namespace App\Report\Table;
 
+use App\Service\Volunteerism\JailDecongestion;
 use App\Entity\FieldOffices;
 use App\Entity\Quarters;
 use App\Repository\ClientSessionsRepository;
@@ -21,6 +22,7 @@ class TableVIA1SummaryForm implements Form
 
 
     public function __construct(
+        private JailDecongestion            $service,
         private FieldOfficesRepository      $fieldOfficesRepository,
         private QuartersRepository          $quartersRepository,
         private SessionsRepository          $sessionsRepository,
@@ -59,7 +61,7 @@ class TableVIA1SummaryForm implements Form
         $spreadsheet = $this->prepare();
 
         $thinBorders = [
-            "A7:I16"
+            "A7:I12"
         ];
 
         foreach ($thinBorders as $coordinate) {
@@ -71,30 +73,51 @@ class TableVIA1SummaryForm implements Form
     public function body(): Spreadsheet
     {
         $spreadsheet = $this->header();
-        // $treatmentCategoryCells = [
-        //     'MTCS' => [
-        //         'RBM' => 'B10', 'AEP' => 'C10', 'S' => 'D10', 'CI' => 'E10', 'PVS' => 'F10', 'Total' => 'G10',
-        //     ],
-        //     'RA' => [
-        //         'RBM' => 'B11', 'AEP' => 'C11', 'S' => 'D11', 'CI' => 'E11', 'PVS' => 'F11', 'Total' => 'G11',
-        //     ]
-        // ];
 
-        // foreach ($this->data['treatment_categories'] as $category=>$treatmentCategory) {
-        //     foreach ($treatmentCategory as $subCategory=>$score) {
-        //         $spreadsheet->getActiveSheet()->setCellValue($treatmentCategoryCells[$category][$subCategory], $score);
-        //     }
-        // }
-        // $spreadsheet->getActiveSheet()->setCellValue('E14', $this->data['client_frequency_active_supervision']);
-        // $spreadsheet->getActiveSheet()->setCellValue('E17', $this->data['client_frequency_others']);
-        // $spreadsheet->getActiveSheet()->setCellValue('E20', $this->data['fsg_frequency']);
-        // $spreadsheet->getActiveSheet()->setCellValue('E23', 'No Data');
-        // $spreadsheet->getActiveSheet()->setCellValue('E26', 'No Data');
-        // $spreadsheet->getActiveSheet()->setCellValue('E30', 'No Data');
-        // $spreadsheet->getActiveSheet()->setCellValue('E34', 'No Data');
-        // $spreadsheet->getActiveSheet()->setCellValue('E37', 'No Data');
-        // $spreadsheet->getActiveSheet()->setCellValue('E40', 'No Data');
-        // $spreadsheet->getActiveSheet()->setCellValue('E44', 'No Data');
+        $result = $this->data;
+
+        $jailDecongestion = [
+            'jail'        => 0,
+            'office'      => 0,
+            'probation'   => 0,
+            'clemency'    => 0,
+            'pao'         => 0,
+            'prosecution' => 0,
+            'others'      => 0,
+            'msec'        => 0,
+            'release'     => 0,
+        ];
+
+        if ($result['rows']) {
+            foreach ($result['rows'] as $v) {
+
+                if ($v['jail_venue']) {
+                    $jailDecongestion['jail'] += 1;
+                }  
+
+                if ($v['jail_office']) {
+                    $jailDecongestion['office'] += 1;
+                } 
+
+                $jailDecongestion['probation']   += $v['probation'];
+                $jailDecongestion['clemency']    += $v['clemency'];
+                $jailDecongestion['pao']         += $v['referral_pao'];
+                $jailDecongestion['prosecution'] += $v['referral_prosecution'];
+                $jailDecongestion['others']      += $v['referral_others'];
+                $jailDecongestion['msec']        += $v['gcta'];
+                $jailDecongestion['release']     += $v['recognizance'];
+            }
+        }
+
+        $spreadsheet->getActiveSheet()->setCellValue('A10', $jailDecongestion['jail']);
+        $spreadsheet->getActiveSheet()->setCellValue('B10', $jailDecongestion['office']);
+        $spreadsheet->getActiveSheet()->setCellValue('C10', $jailDecongestion['probation']);
+        $spreadsheet->getActiveSheet()->setCellValue('D10', $jailDecongestion['clemency']);
+        $spreadsheet->getActiveSheet()->setCellValue('E10', $jailDecongestion['pao']);
+        $spreadsheet->getActiveSheet()->setCellValue('F10', $jailDecongestion['prosecution']);
+        $spreadsheet->getActiveSheet()->setCellValue('G10', $jailDecongestion['others']);
+        $spreadsheet->getActiveSheet()->setCellValue('H10', $jailDecongestion['msec']);
+        $spreadsheet->getActiveSheet()->setCellValue('I10', $jailDecongestion['release']);
 
         return $spreadsheet;
     }
@@ -124,7 +147,7 @@ class TableVIA1SummaryForm implements Form
             'C7' => 'No. of Inmates Assisted for',
             'C8' => 'Intake Interview',
             'C9' => 'Probation',
-            'D9' => 'Pre-Parole MSEC / Executive GCTA Clemency',
+            'D9' => 'Pre-Parole Executive Clemency',
 
             'E8' => 'Referrals',
             'E9' => 'PAO',
@@ -163,7 +186,15 @@ class TableVIA1SummaryForm implements Form
         ];
 
         $adjustedColumnWidthCoordinates = [
-            'A' => 35, 'G' => 15
+            'A' => 10, 
+            'B' => 12, 
+            'C' => 12, 
+            'D' => 12, 
+            'E' => 15, 
+            'F' => 15, 
+            'G' => 15, 
+            'H' => 10, 
+            'I' => 15, 
         ];
 
         $wrappedTextCoordinates = [
@@ -206,68 +237,9 @@ class TableVIA1SummaryForm implements Form
         $this->fieldOffice = $this->fieldOfficesRepository->find($data['field_office_id']);
         $this->quarters = $this->quartersRepository->find($data['quarter_id']);
 
-        $quarterData = $this->quartersRepository->find($data['quarter_id']);
-        $minMaxDate = $this->quartersRepository->getQuarterMinMaxDate($quarterData);
-        // has side effect of populating $this->sessionIds
-        $treatmentCategoryTotal = $this->getTreatmentCategoriesData($minMaxDate['min'], $minMaxDate['max'], (int) $data['field_office_id']);
-        $clientSessionsData = $this->getClientSessionsData($minMaxDate, (int) $data['field_office_id']);
-
-        return [
-            'treatment_categories' => $treatmentCategoryTotal,
-            'client_frequency_active_supervision' => $clientSessionsData['client_frequency']['active_supervision'],
-            'client_frequency_others' => $clientSessionsData['client_frequency']['others'],
-            'fsg_frequency' => $clientSessionsData['fsg_frequency'],
-        ];
-    }
-
-    private function getTreatmentCategoriesData(string $minDate, string $maxDate, int $fieldOfficeId): array
-    {
-        $treatmentCategoryTotal = ['MTCS' => ['Total' => 0], 'RA' => ['Total' => 0]];
-        $sessions = $this->sessionsRepository->getTableIA1SummaryFormTreatmentCategoryData($minDate, $maxDate, $fieldOfficeId);
-
-        foreach ($sessions as $session) {
-            $treatmentCategories = explode('-', $session['treatment_category']);
-            // This is bad, it is classified as side effect.
-            $this->sessionIds[] = intval($session['session_id']);
-
-            if (! isset($treatmentCategoryTotal[$treatmentCategories[0]][$treatmentCategories[1]])) {
-                $treatmentCategoryTotal[$treatmentCategories[0]][$treatmentCategories[1]] = 0;
-            }
-
-            $treatmentCategoryTotal[$treatmentCategories[0]]['Total']++;
-            $treatmentCategoryTotal[$treatmentCategories[0]][$treatmentCategories[1]]++;
-        }
-
-        return $treatmentCategoryTotal;
-    }
-
-    private function getClientSessionsData(array $minMaxDate, int $fieldOfficeId): array
-    {
-        $fsgClients = [];
-        $clientsId = ['active_supervision' => [], 'others' => []];
-        $clientSessions = $this->clientSessionsRepository->findBySessionIds($this->sessionIds);
-        $clientsIdUnderSupervision = $this->clientsRepository->findClientsIdUnderSupervisionPeriod($minMaxDate, $fieldOfficeId);
-
-        foreach ($clientSessions as $clientSession) {
-            $clientId = (int) $clientSession['client_id'];
-
-            if (in_array($clientId, $clientsIdUnderSupervision)) {
-                $clientsId['active_supervision'][] = $clientId;
-            } else {
-                $clientsId['others'][] = $clientId;
-            }
-
-            if (intval($clientSession['fsi'])) {
-                $fsgClients[] = $clientId;
-            }
-        }
-
-        $clientsId['active_supervision'] = count(array_unique($clientsId['active_supervision']));
-        $clientsId['others'] = count(array_unique($clientsId['others']));
-
-        return [
-            'client_frequency' => $clientsId,
-            'fsg_frequency' => count(array_unique($fsgClients)),
-        ];
+        $results = $this->service
+            ->getReport($data['quarter_id'], $data['field_office_id']);
+    
+        return ['rows' => array_values($results['data'] ?? [])];
     }
 }

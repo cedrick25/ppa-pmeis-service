@@ -54,7 +54,7 @@ class TableVSummaryForm implements Form
         $spreadsheet = $this->prepare();
 
         $thinBorders = [
-            "A7:C10"
+            "A7:C15"
         ];
 
         foreach ($thinBorders as $coordinate) {
@@ -79,7 +79,7 @@ class TableVSummaryForm implements Form
         $result = $this->data;
 
         if ($result['rows']) {
-            foreach ($result['rows'][0] as $v) {
+            foreach ($result['rows'] as $v) {
                 $count[$v['program']] ++;
             }
         }
@@ -91,12 +91,12 @@ class TableVSummaryForm implements Form
         $spreadsheet->getActiveSheet()->setCellValue('B13', $count['OTHERS']);
         $spreadsheet->getActiveSheet()->setCellValue('B15', array_sum($count));
 
-        $spreadsheet->getActiveSheet()->setCellValue('C9', $count['TC']);
-        $spreadsheet->getActiveSheet()->setCellValue('C10', $count['RJ']);
-        $spreadsheet->getActiveSheet()->setCellValue('C11', $count['VPA']);
-        $spreadsheet->getActiveSheet()->setCellValue('C12', $count['GAD']);
-        $spreadsheet->getActiveSheet()->setCellValue('C13', $count['OTHERS']);
-        $spreadsheet->getActiveSheet()->setCellValue('C15', array_sum($count));
+        $spreadsheet->getActiveSheet()->setCellValue('C9', 0);
+        $spreadsheet->getActiveSheet()->setCellValue('C10', 0);
+        $spreadsheet->getActiveSheet()->setCellValue('C11', 0);
+        $spreadsheet->getActiveSheet()->setCellValue('C12', 0);
+        $spreadsheet->getActiveSheet()->setCellValue('C13', 0);
+        $spreadsheet->getActiveSheet()->setCellValue('C15', 0);
 
         return $spreadsheet;
     }
@@ -143,6 +143,7 @@ class TableVSummaryForm implements Form
             'A3:C3' => 'center',
             'A7:A8' => 'center',
             'B7:C7' => 'center',
+            'B8:C15' => 'center',
         ];
 
         $horizontalAlignedCoordinates = [
@@ -151,10 +152,13 @@ class TableVSummaryForm implements Form
             'A3:C3' => 'center',
             'A7:A8' => 'center',
             'B7:C7' => 'center',
+            'B8:C15' => 'center',
         ];
 
         $adjustedColumnWidthCoordinates = [
-            'A' => 35, 'G' => 15
+            'A' => 35, 
+            'B' => 25,
+            'C' => 25,
         ];
 
         $wrappedTextCoordinates = [

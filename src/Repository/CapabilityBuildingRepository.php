@@ -150,10 +150,14 @@ class CapabilityBuildingRepository extends ServiceEntityRepository
         $min = $minMaxDate['min'];
         $max = $minMaxDate['max'];
 
-        $sql = "SELECT cb.* FROM capability_building as cb
+        $sql = "SELECT cb.* 
+                FROM capability_building as cb
                 WHERE cb.field_office_id = $fieldOfficeId
-                  AND cb.type = '$type'
-                  AND cb.start_date >= CAST('$min' AS DATE) AND cb.end_date <= CAST('$max' AS DATE)";
+                    AND cb.type = '$type'
+                    AND cb.start_date >= CAST('$min' AS DATE) 
+                    AND cb.end_date <= CAST('$max' AS DATE)
+                    AND cb.deleted_at IS NULL
+            ";
         $stmt = $conn->prepare($sql);
         $query = $stmt->executeQuery();
 
