@@ -333,8 +333,12 @@ class Sessions implements SessionsInterface
             }
 
             return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_SUCCESS, $rows);
-        } catch (\Doctrine\DBAL\Exception|\Doctrine\DBAL\Driver\Exception $e) {
-            return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_FAILED, null, ['orm' => $e->getMessage()]);
+        } catch (\Doctrine\DBAL\Exception $e) {
+            return $this->appFormatter->formatResponse(
+                ResponseEnum::FETCHING_FAILED,
+                null,
+                ['orm' => $e->getMessage()]
+            );
         }
     }
 
@@ -371,12 +375,12 @@ class Sessions implements SessionsInterface
                     'percentageOfClientsAttendingTC' => $initialValues
                 ]
             );
-        } catch (Exception $e) {
-            return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_FAILED, null, [
-                'app' => $e->getMessage(), $e->getFile(), $e->getLine(), $e->getTrace()]);
-
-        } catch (\Doctrine\DBAL\Driver\Exception $e) {
-            return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_FAILED, null, ['orm' => $e->getMessage()]);
+        } catch (\Doctrine\DBAL\Driver\Exception| Exception $e) {
+            return $this->appFormatter->formatResponse(
+                ResponseEnum::FETCHING_FAILED,
+                null,
+                ['app' => $e->getMessage()]
+            );
         }
     }
 
@@ -463,86 +467,81 @@ class Sessions implements SessionsInterface
     }
     public function getNationalTC7(int $quarterId): array
     {
-        try {
-            $currentQuarter = $this->quartersRepository->find($quarterId);
+        $currentQuarter = $this->quartersRepository->find($quarterId);
 
-            if ($currentQuarter == null) {
-                return $this->appFormatter->formatResponse(ResponseEnum::NO_DATA, null);
-            }
-
-            $results = [];
-            $tempResults = [];
-            $initialValues = $this->getRegionalTC7ClientRemarksInitialValues();
-            $sessionIds = $this->repository->findSessionsIdsByQuarter($currentQuarter);
-
-            if (\count($sessionIds) == 0) {
-                return $this->appFormatter->formatResponse(ResponseEnum::NO_DATA, null);
-            }
-
-            $fieldOfficesId = $this->repository->findFieldOfficeIdsInSessionByQuarter($currentQuarter);
-            $regionIdsWithFieldOffice = $this->getRegionIdsByFieldOfficeIds($fieldOfficesId);
-            $regionIds = array_keys($regionIdsWithFieldOffice);
-            $regionNamesWithId = $this->getRegionNames($regionIds);
-
-            foreach ($fieldOfficesId as $fieldOfficeId) {
-                $tempResults[$fieldOfficeId] = $initialValues;
-            }
-
-            $sessionClients = $this->clientSessionsRepository->findAbsenteesRemarksIdAndFieldOfficeIdBySessionId($sessionIds);
-
-            // TODO: group by region
-            foreach ($sessionClients as $sessionClient) {
-                $fieldOfficeId = $sessionClient['field_office_id'];
-                $clientRemarksId = (string) $sessionClient['client_remarks_id'];
-
-                if (! isset($tempResults[$fieldOfficeId][$clientRemarksId])) {
-                    // Note: Log the error saying no matching field office id and client remarks id -- but this shouldn't happen
-                    continue;
-                }
-
-                $tempResults[$fieldOfficeId][$clientRemarksId]++;
-            }
-
-            foreach ($tempResults as $fieldOfficeId=>$tempResult) {
-                $regionName = $this->extractRegionName($regionNamesWithId, $regionIdsWithFieldOffice, $fieldOfficeId);
-                $subtotal = 0;
-                $result = $this->generateRegionalTC7RowInitialValue();
-                if (! isset($results[$regionName])) {
-                    $results[$regionName] = null;
-                }
-
-                foreach ($tempResult as $clientRemarksId=>$value) {
-                    $clientRemarksId = (int) $clientRemarksId;
-                    $equivalentColumnNumber = $this->getRegionalTC7ClientRemarksIdColumnNumberEquivalent($clientRemarksId);
-
-                    if (3 === $clientRemarksId || 4 === $clientRemarksId || 5 === $clientRemarksId) {
-                        $result[11] += $value;
-                    }
-
-                    $subtotal += $value;
-                    $result[$equivalentColumnNumber] += $value;
-                }
-
-                $result[14] = $subtotal;
-
-                if (null != $results[$regionName]) {
-                    $result = $this->mergeResultWithOldResult($result, $results[$regionName]);
-                }
-
-                $results[$regionName] = $result;
-            }
-
-            return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_SUCCESS, $results);
-        } catch (\Doctrine\DBAL\Driver\Exception $e) {
-            return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_FAILED, null, ['orm' => $e->getMessage()]);
+        if ($currentQuarter == null) {
+            return $this->appFormatter->formatResponse(ResponseEnum::NO_DATA, null);
         }
+
+        $results = [];
+        $tempResults = [];
+        $initialValues = $this->getRegionalTC7ClientRemarksInitialValues();
+        $sessionIds = $this->repository->findSessionsIdsByQuarter($currentQuarter);
+
+        if (\count($sessionIds) == 0) {
+            return $this->appFormatter->formatResponse(ResponseEnum::NO_DATA, null);
+        }
+
+        $fieldOfficesId = $this->repository->findFieldOfficeIdsInSessionByQuarter($currentQuarter);
+        $regionIdsWithFieldOffice = $this->getRegionIdsByFieldOfficeIds($fieldOfficesId);
+        $regionIds = array_keys($regionIdsWithFieldOffice);
+        $regionNamesWithId = $this->getRegionNames($regionIds);
+
+        foreach ($fieldOfficesId as $fieldOfficeId) {
+            $tempResults[$fieldOfficeId] = $initialValues;
+        }
+
+        $sessionClients = $this->clientSessionsRepository->findAbsenteesRemarksIdAndFieldOfficeIdBySessionId($sessionIds);
+
+        // TODO: group by region
+        foreach ($sessionClients as $sessionClient) {
+            $fieldOfficeId = $sessionClient['field_office_id'];
+            $clientRemarksId = (string) $sessionClient['client_remarks_id'];
+
+            if (! isset($tempResults[$fieldOfficeId][$clientRemarksId])) {
+                // Note: Log the error saying no matching field office id and client remarks id -- but this shouldn't happen
+                continue;
+            }
+
+            $tempResults[$fieldOfficeId][$clientRemarksId]++;
+        }
+
+        foreach ($tempResults as $fieldOfficeId=>$tempResult) {
+            $regionName = $this->extractRegionName($regionNamesWithId, $regionIdsWithFieldOffice, $fieldOfficeId);
+            $subtotal = 0;
+            $result = $this->generateRegionalTC7RowInitialValue();
+            if (! isset($results[$regionName])) {
+                $results[$regionName] = null;
+            }
+
+            foreach ($tempResult as $clientRemarksId=>$value) {
+                $clientRemarksId = (int) $clientRemarksId;
+                $equivalentColumnNumber = $this->getRegionalTC7ClientRemarksIdColumnNumberEquivalent($clientRemarksId);
+
+                if (3 === $clientRemarksId || 4 === $clientRemarksId || 5 === $clientRemarksId) {
+                    $result[11] += $value;
+                }
+
+                $subtotal += $value;
+                $result[$equivalentColumnNumber] += $value;
+            }
+
+            $result[14] = $subtotal;
+
+            if (null != $results[$regionName]) {
+                $result = $this->mergeResultWithOldResult($result, $results[$regionName]);
+            }
+
+            $results[$regionName] = $result;
+        }
+
+        return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_SUCCESS, $results);
     }
 
     /**
      * @param \App\Entity\Quarters $quarter
      * @param int $fieldOfficeId
      * @return array<int, int[]>
-     * @throws \Doctrine\DBAL\Driver\Exception
      * @throws \Doctrine\DBAL\Exception
      */
     private function getLess(\App\Entity\Quarters $quarter, int $fieldOfficeId): array
@@ -591,7 +590,7 @@ class Sessions implements SessionsInterface
         $total = ['form5' => 0, 'form21' => 0, 'form44' => 0, 'form45' => 0];
 
         foreach ($less as $forms) {
-            foreach ($forms as $formName=>$value) {
+            foreach ($forms as $formName => $value) {
                 $total[$formName] += $value;
             }
         }
@@ -603,7 +602,6 @@ class Sessions implements SessionsInterface
      * @param \App\Entity\Quarters $quarter
      * @param int $fieldOfficeId
      * @return int[]
-     * @throws \Doctrine\DBAL\Driver\Exception
      * @throws \Doctrine\DBAL\Exception
      */
     private function getClientsAttendingTC(\App\Entity\Quarters $quarter, int $fieldOfficeId): array

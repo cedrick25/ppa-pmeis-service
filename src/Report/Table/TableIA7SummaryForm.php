@@ -49,7 +49,8 @@ class TableIA7SummaryForm implements Form
     public function header(): Spreadsheet
     {
         $spreadsheet = $this->prepare();
-        $spreadsheet->getActiveSheet()->getStyle('A7:B11')->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
+        $spreadsheet->getActiveSheet()->getStyle('A7:B11')
+            ->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
 
         return $spreadsheet;
     }
@@ -79,7 +80,7 @@ class TableIA7SummaryForm implements Form
     {
         $spreadsheet = new Spreadsheet();
         $textAndCoordinates = [
-            'G1' => 'Field Office IQPR FORM' . $this->data[SystemSettingNames::GENERATED_REPORTS_CODE],
+            'C1' => 'Field Office IQPR FORM' . $this->data[SystemSettingNames::GENERATED_REPORTS_CODE],
             'A1' => 'FIELD OFFICE ' . $this->fieldOffice->getName(),
             'A2' => 'IQPR SUMMARY FORM',
             'A3' => $this->quarters->getName() . ' QTR, ' . $this->quarters->getYear(),
@@ -143,14 +144,17 @@ class TableIA7SummaryForm implements Form
 
     private function getData(array $data): array
     {
-        $this->fieldOffice = $this->fieldOfficesRepository->find($data['field_office_id']);
-        $this->quarters = $this->quartersRepository->find($data['quarter_id']);
+        $fieldOfficeId = (int) $data['field_office_id'];
+        $quarterId = (int) $data['quarter_id'];
+
+        $this->fieldOffice = $this->fieldOfficesRepository->find($fieldOfficeId);
+        $this->quarters = $this->quartersRepository->find($quarterId);
 
         $clientsAttendingTC = 0;
         $totalSupervisionCasesHandled = 0;
         $percentageOfClientsAttendingTCScore = 0;
         $totalAdjustedSupervisionCaseLoad = 0;
-        $tc7 = $this->sessionService->getTC7(intval($data['quarter_id']), intval($data['field_office_id']));
+        $tc7 = $this->sessionService->getTC7($quarterId, $fieldOfficeId);
 
         foreach ($tc7['data']['totalSupervisionCasesHandled'] as $score) {
             $totalSupervisionCasesHandled += $score;

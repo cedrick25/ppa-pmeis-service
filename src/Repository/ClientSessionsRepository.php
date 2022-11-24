@@ -310,7 +310,8 @@ class ClientSessionsRepository extends ServiceEntityRepository
         $query = $this->getEntityManager()->getConnection()->executeQuery(
             "SELECT * FROM client_sessions cs WHERE cs.session_id IN (:sessionIds)
                     AND cs.client_remarks_id IS NOT NULL",
-            ['sessionIds' => $sessionIds]
+            ['sessionIds' => $sessionIds],
+            ['sessionIds' => Connection::PARAM_INT_ARRAY],
         );
         $result = [];
 
