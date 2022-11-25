@@ -73,7 +73,7 @@ class TableIAB1ASummaryFormRegionalAS implements Form
 
             if (isset($conductedProcess['data'])) {
                 foreach ($conductedProcess['data'] as $conductedProcessData) {
-                    if ('ACTIVE_SUPERVISION' === $conductedProcessData['rj_group']) {
+                    if ('PETITIONER' === $conductedProcessData['rj_group']) {
                         continue;
                     }
 
