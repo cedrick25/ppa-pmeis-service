@@ -153,7 +153,7 @@ class ResourceMobilization implements ResourceMobilizationInterface
             $securedBy = $this->securedByRepository->findByResMobId($resMobsId);
 
             foreach ($results['items'] as $i => $item) {
-                $resMobId = $item['resource_mobilization_id'];
+                $resMobId = (int) $item['resource_mobilization_id'];
                 $results['items'][$i]['cash'] = $cash[$resMobId];
                 $results['items'][$i]['materials'] = $materials[$resMobId];
                 $results['items'][$i]['technicalAssistance'] = $technicalAssistance[$resMobId];
