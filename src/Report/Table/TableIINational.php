@@ -25,6 +25,7 @@ class TableIINational implements Form
     public function __construct(
         private CapabilityBuilding          $capabilityBuilding,
         private RegionsRepository           $regionsRepository,
+        private FieldOfficesRepository      $fieldOfficesRepository,
         private QuartersRepository          $quartersRepository,
         private SessionsRepository          $sessionsRepository,
         private ClientSessionsRepository    $clientSessionsRepository,
@@ -76,98 +77,280 @@ class TableIINational implements Form
         $spreadsheet = $this->header();
 
         $count = 0;
-        // $count = $this->data ? count($this->data['rows']) : 0;
-        // foreach ($this->data['rows'] as $v) {
-        // }
+
+        $result = $this->data;
+
 
         if ($this->regions) {
             $ctr = 9;
-            
+
+            $total = [
+                'Personnel' => [
+                    'Training on Therapeutic Community' => [
+                        'trainings'    => 0,
+                        'participants' => 0,
+                    ],
+                    'Training on Restorative Justice' => [
+                        'trainings'    => 0,
+                        'participants' => 0,
+                    ],
+                    'Training on Volunteerism' => [
+                        'trainings'    => 0,
+                        'participants' => 0,
+                    ],
+                    'Training on GAD' => [
+                        'trainings'    => 0,
+                        'participants' => 0,
+                    ],
+                    'Other Training Courses or Seminars or Fora or Symposia' => [
+                        'trainings'    => 0,
+                        'participants' => 0,
+                    ],
+                    'Conferences or Conventions' => [
+                        'trainings'    => 0,
+                        'participants' => 0,
+                    ],
+                    'Staff or Committee Meetings with Professional Dev\'t' => [
+                        'trainings'    => 0,
+                        'participants' => 0,
+                    ],
+                    'managerial'       => 0,
+                    'technical'        => 0,
+                    'foundation'       => 0,
+                    'training_hours'   => 0
+                ],
+                'VPA' => [
+                    'Training on Therapeutic Community' => [
+                        'trainings'    => 0,
+                        'participants' => 0,
+                    ],
+                    'Training on Restorative Justice' => [
+                        'trainings'    => 0,
+                        'participants' => 0,
+                    ],
+                    'Training on Volunteerism' => [
+                        'trainings'    => 0,
+                        'participants' => 0,
+                    ],
+                    'Training on GAD' => [
+                        'trainings'    => 0,
+                        'participants' => 0,
+                    ],
+                    'Other Training Courses or Seminars or Fora or Symposia' => [
+                        'trainings'    => 0,
+                        'participants' => 0,
+                    ],
+                    'Conferences or Conventions' => [
+                        'trainings'    => 0,
+                        'participants' => 0,
+                    ],
+                    'VPA Meetings or Assemblies' => [
+                        'trainings'    => 0,
+                        'participants' => 0,
+                    ],
+                    'in_house'         => 0,
+                    'out_house'        => 0,
+                    'training_hours'   => 0   
+                ]
+            ];
+
             foreach ($this->regions as $k => $v) {
                 $personnelIndex = ($ctr + $k);
                 $volunteerIndex = $personnelIndex + count($this->regions) + 6;
 
+                $capabilityBuilding = [
+                    'Personnel' => [
+                        'Training on Therapeutic Community' => [
+                            'trainings'    => 0,
+                            'participants' => 0,
+                        ],
+                        'Training on Restorative Justice' => [
+                            'trainings'    => 0,
+                            'participants' => 0,
+                        ],
+                        'Training on Volunteerism' => [
+                            'trainings'    => 0,
+                            'participants' => 0,
+                        ],
+                        'Training on GAD' => [
+                            'trainings'    => 0,
+                            'participants' => 0,
+                        ],
+                        'Other Training Courses or Seminars or Fora or Symposia' => [
+                            'trainings'    => 0,
+                            'participants' => 0,
+                        ],
+                        'Conferences or Conventions' => [
+                            'trainings'    => 0,
+                            'participants' => 0,
+                        ],
+                        'Staff or Committee Meetings with Professional Dev\'t' => [
+                            'trainings'    => 0,
+                            'participants' => 0,
+                        ],
+                        'managerial'       => 0,
+                        'technical'        => 0,
+                        'foundation'       => 0,
+                        'training_hours'   => 0
+                    ],
+                    'VPA' => [
+                        'Training on Therapeutic Community' => [
+                            'trainings'    => 0,
+                            'participants' => 0,
+                        ],
+                        'Training on Restorative Justice' => [
+                            'trainings'    => 0,
+                            'participants' => 0,
+                        ],
+                        'Training on Volunteerism' => [
+                            'trainings'    => 0,
+                            'participants' => 0,
+                        ],
+                        'Training on GAD' => [
+                            'trainings'    => 0,
+                            'participants' => 0,
+                        ],
+                        'Other Training Courses or Seminars or Fora or Symposia' => [
+                            'trainings'    => 0,
+                            'participants' => 0,
+                        ],
+                        'Conferences or Conventions' => [
+                            'trainings'    => 0,
+                            'participants' => 0,
+                        ],
+                        'VPA Meetings or Assemblies' => [
+                            'trainings'    => 0,
+                            'participants' => 0,
+                        ],
+                        'in_house'         => 0,
+                        'out_house'        => 0,
+                        'training_hours'   => 0   
+                    ]
+                ];
+
+                if ($result['rows']) {
+                    if ($result['rows'][$v->getRegionId()]) {
+                        foreach ($result['rows'][$v->getRegionId()] as $fieldOffice) {
+                            foreach ($fieldOffice as $k1 => $v1) {
+                                foreach ($v1 as $k2 => $v2) {
+                                    foreach ($v2 as $k3 => $v3) {
+                                        $capabilityBuilding[$k1][$k2]['trainings'] += 1;
+                                        $total[$k1][$k2]['trainings'] += 1;
+                                        $capabilityBuilding[$k1][$k2]['participants'] += count($v3['participants']);
+                                        $total[$k1][$k2]['participants'] += count($v3['participants']);
+        
+                                        // Personnel
+                                        if ($k1 == 'Personnel') {
+                                            $capabilityBuilding[$k1]['managerial'] += ($v3['not_managerial_supervisory'] == 1);
+                                            $total[$k1]['managerial'] += ($v3['not_managerial_supervisory'] == 1);
+                    
+                                            $capabilityBuilding[$k1]['technical'] += ($v3['not_technical'] == 1);
+                                            $total[$k1]['technical'] += ($v3['not_technical'] == 1);
+                    
+                                            $capabilityBuilding[$k1]['foundation'] += ($v3['not_foundation'] == 1);
+                                            $total[$k1]['foundation'] += ($v3['not_foundation'] == 1);
+                                        }
+        
+        
+                                        // VPA
+                                        if ($k1 == 'VPA') {
+                                            $capabilityBuilding[$k1]['in_house'] += ($v3['tc_in_house']) ? 1 : 0;
+                                            $total[$k1]['in_house'] += ($v3['tc_in_house']) ? 1 : 0;
+        
+                                            $capabilityBuilding[$k1]['out_house'] += ($v3['tc_out_house']) ? 1 : 0;
+                                            $total[$k1]['out_house'] += ($v3['tc_out_house']) ? 1 : 0;
+                                        }
+        
+                                        $capabilityBuilding[$k1]['training_hours'] += $v3['no_of_training_hours'];
+                                        $total[$k1]['training_hours'] += $v3['no_of_training_hours'];
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+
                 $spreadsheet->getActiveSheet()->setCellValue('A' . $personnelIndex, $v->getName());
-                $spreadsheet->getActiveSheet()->setCellValue('B' . $personnelIndex, '0');
-                $spreadsheet->getActiveSheet()->setCellValue('C' . $personnelIndex, '0');
-                $spreadsheet->getActiveSheet()->setCellValue('D' . $personnelIndex, '0');
-                $spreadsheet->getActiveSheet()->setCellValue('E' . $personnelIndex, '0');
-                $spreadsheet->getActiveSheet()->setCellValue('F' . $personnelIndex, '0');
-                $spreadsheet->getActiveSheet()->setCellValue('G' . $personnelIndex, '0');
-                $spreadsheet->getActiveSheet()->setCellValue('H' . $personnelIndex, '0');
-                $spreadsheet->getActiveSheet()->setCellValue('I' . $personnelIndex, '0');
-                $spreadsheet->getActiveSheet()->setCellValue('J' . $personnelIndex, '0');
-                $spreadsheet->getActiveSheet()->setCellValue('K' . $personnelIndex, '0');
-                $spreadsheet->getActiveSheet()->setCellValue('L' . $personnelIndex, '0');
-                $spreadsheet->getActiveSheet()->setCellValue('M' . $personnelIndex, '0');
-                $spreadsheet->getActiveSheet()->setCellValue('N' . $personnelIndex, '0');
-                $spreadsheet->getActiveSheet()->setCellValue('O' . $personnelIndex, '0');
-                $spreadsheet->getActiveSheet()->setCellValue('P' . $personnelIndex, '0');
-                $spreadsheet->getActiveSheet()->setCellValue('Q' . $personnelIndex, '0');
-                $spreadsheet->getActiveSheet()->setCellValue('R' . $personnelIndex, '0');
-                $spreadsheet->getActiveSheet()->setCellValue('S' . $personnelIndex, '0');
+                $spreadsheet->getActiveSheet()->setCellValue('B' . $personnelIndex, $capabilityBuilding['Personnel']['Training on Therapeutic Community']['trainings']);
+                $spreadsheet->getActiveSheet()->setCellValue('C' . $personnelIndex, $capabilityBuilding['Personnel']['Training on Therapeutic Community']['participants']);
+                $spreadsheet->getActiveSheet()->setCellValue('D' . $personnelIndex, $capabilityBuilding['Personnel']['Training on Restorative Justice']['trainings']);
+                $spreadsheet->getActiveSheet()->setCellValue('E' . $personnelIndex, $capabilityBuilding['Personnel']['Training on Restorative Justice']['participants']);
+                $spreadsheet->getActiveSheet()->setCellValue('F' . $personnelIndex, $capabilityBuilding['Personnel']['Training on Volunteerism']['trainings']);
+                $spreadsheet->getActiveSheet()->setCellValue('G' . $personnelIndex, $capabilityBuilding['Personnel']['Training on Volunteerism']['participants']);
+                $spreadsheet->getActiveSheet()->setCellValue('H' . $personnelIndex, $capabilityBuilding['Personnel']['Training on GAD']['trainings']);
+                $spreadsheet->getActiveSheet()->setCellValue('I' . $personnelIndex, $capabilityBuilding['Personnel']['Training on GAD']['participants']);
+                $spreadsheet->getActiveSheet()->setCellValue('J' . $personnelIndex, $capabilityBuilding['Personnel']['Other Training Courses or Seminars or Fora or Symposia']['trainings']);
+                $spreadsheet->getActiveSheet()->setCellValue('K' . $personnelIndex, $capabilityBuilding['Personnel']['Other Training Courses or Seminars or Fora or Symposia']['participants']);
+                $spreadsheet->getActiveSheet()->setCellValue('L' . $personnelIndex, $capabilityBuilding['Personnel']['Conferences or Conventions']['trainings']);
+                $spreadsheet->getActiveSheet()->setCellValue('M' . $personnelIndex, $capabilityBuilding['Personnel']['Conferences or Conventions']['participants']);
+                $spreadsheet->getActiveSheet()->setCellValue('N' . $personnelIndex, $capabilityBuilding['Personnel']['Staff or Committee Meetings with Professional Dev\'t']['trainings']);
+                $spreadsheet->getActiveSheet()->setCellValue('O' . $personnelIndex, $capabilityBuilding['Personnel']['Staff or Committee Meetings with Professional Dev\'t']['participants']);
+                $spreadsheet->getActiveSheet()->setCellValue('P' . $personnelIndex, $capabilityBuilding['Personnel']['managerial']);
+                $spreadsheet->getActiveSheet()->setCellValue('Q' . $personnelIndex, $capabilityBuilding['Personnel']['technical']);
+                $spreadsheet->getActiveSheet()->setCellValue('R' . $personnelIndex, $capabilityBuilding['Personnel']['foundation']);
+                $spreadsheet->getActiveSheet()->setCellValue('S' . $personnelIndex, $capabilityBuilding['Personnel']['training_hours']);
 
                 $spreadsheet->getActiveSheet()->setCellValue('A' . $volunteerIndex, $v->getName());
-                $spreadsheet->getActiveSheet()->setCellValue('B' . $volunteerIndex, '0');
-                $spreadsheet->getActiveSheet()->setCellValue('C' . $volunteerIndex, '0');
-                $spreadsheet->getActiveSheet()->setCellValue('D' . $volunteerIndex, '0');
-                $spreadsheet->getActiveSheet()->setCellValue('E' . $volunteerIndex, '0');
-                $spreadsheet->getActiveSheet()->setCellValue('F' . $volunteerIndex, '0');
-                $spreadsheet->getActiveSheet()->setCellValue('G' . $volunteerIndex, '0');
-                $spreadsheet->getActiveSheet()->setCellValue('H' . $volunteerIndex, '0');
-                $spreadsheet->getActiveSheet()->setCellValue('I' . $volunteerIndex, '0');
-                $spreadsheet->getActiveSheet()->setCellValue('J' . $volunteerIndex, '0');
-                $spreadsheet->getActiveSheet()->setCellValue('K' . $volunteerIndex, '0');
-                $spreadsheet->getActiveSheet()->setCellValue('L' . $volunteerIndex, '0');
-                $spreadsheet->getActiveSheet()->setCellValue('M' . $volunteerIndex, '0');
-                $spreadsheet->getActiveSheet()->setCellValue('N' . $volunteerIndex, '0');
-                $spreadsheet->getActiveSheet()->setCellValue('O' . $volunteerIndex, '0');
-                $spreadsheet->getActiveSheet()->setCellValue('P' . $volunteerIndex, '0');
-                $spreadsheet->getActiveSheet()->setCellValue('R' . $volunteerIndex, '0');
-                $spreadsheet->getActiveSheet()->setCellValue('S' . $volunteerIndex, '0');
+                $spreadsheet->getActiveSheet()->setCellValue('B' . $volunteerIndex, $capabilityBuilding['VPA']['Training on Therapeutic Community']['trainings']);
+                $spreadsheet->getActiveSheet()->setCellValue('C' . $volunteerIndex, $capabilityBuilding['VPA']['Training on Therapeutic Community']['participants']);
+                $spreadsheet->getActiveSheet()->setCellValue('D' . $volunteerIndex, $capabilityBuilding['VPA']['Training on Restorative Justice']['trainings']);
+                $spreadsheet->getActiveSheet()->setCellValue('E' . $volunteerIndex, $capabilityBuilding['VPA']['Training on Restorative Justice']['participants']);
+                $spreadsheet->getActiveSheet()->setCellValue('F' . $volunteerIndex, $capabilityBuilding['VPA']['Training on Volunteerism']['trainings']);
+                $spreadsheet->getActiveSheet()->setCellValue('G' . $volunteerIndex, $capabilityBuilding['VPA']['Training on Volunteerism']['participants']);
+                $spreadsheet->getActiveSheet()->setCellValue('H' . $volunteerIndex, $capabilityBuilding['VPA']['Training on GAD']['trainings']);
+                $spreadsheet->getActiveSheet()->setCellValue('I' . $volunteerIndex, $capabilityBuilding['VPA']['Training on GAD']['participants']);
+                $spreadsheet->getActiveSheet()->setCellValue('J' . $volunteerIndex, $capabilityBuilding['VPA']['Other Training Courses or Seminars or Fora or Symposia']['trainings']);
+                $spreadsheet->getActiveSheet()->setCellValue('K' . $volunteerIndex, $capabilityBuilding['VPA']['Other Training Courses or Seminars or Fora or Symposia']['participants']);
+                $spreadsheet->getActiveSheet()->setCellValue('L' . $volunteerIndex, $capabilityBuilding['VPA']['Conferences or Conventions']['trainings']);
+                $spreadsheet->getActiveSheet()->setCellValue('M' . $volunteerIndex, $capabilityBuilding['VPA']['Conferences or Conventions']['participants']);
+                $spreadsheet->getActiveSheet()->setCellValue('N' . $volunteerIndex, $capabilityBuilding['VPA']['VPA Meetings or Assemblies']['trainings']);
+                $spreadsheet->getActiveSheet()->setCellValue('O' . $volunteerIndex, $capabilityBuilding['VPA']['VPA Meetings or Assemblies']['participants']);
+                $spreadsheet->getActiveSheet()->setCellValue('P' . $volunteerIndex, $capabilityBuilding['VPA']['in_house']);
+                $spreadsheet->getActiveSheet()->setCellValue('R' . $volunteerIndex, $capabilityBuilding['VPA']['out_house']);
+                $spreadsheet->getActiveSheet()->setCellValue('S' . $volunteerIndex, $capabilityBuilding['VPA']['training_hours']);
             }
 
             $totalPersonnelIndex = $ctr + count($this->regions);
             $totalVolunteerIndex = $ctr + (count($this->regions) * 2) + 6;
 
             $spreadsheet->getActiveSheet()->setCellValue('A' . $totalPersonnelIndex, 'TOTAL');
-            $spreadsheet->getActiveSheet()->setCellValue('B' . $totalPersonnelIndex, '0');
-            $spreadsheet->getActiveSheet()->setCellValue('C' . $totalPersonnelIndex, '0');
-            $spreadsheet->getActiveSheet()->setCellValue('D' . $totalPersonnelIndex, '0');
-            $spreadsheet->getActiveSheet()->setCellValue('E' . $totalPersonnelIndex, '0');
-            $spreadsheet->getActiveSheet()->setCellValue('F' . $totalPersonnelIndex, '0');
-            $spreadsheet->getActiveSheet()->setCellValue('G' . $totalPersonnelIndex, '0');
-            $spreadsheet->getActiveSheet()->setCellValue('H' . $totalPersonnelIndex, '0');
-            $spreadsheet->getActiveSheet()->setCellValue('I' . $totalPersonnelIndex, '0');
-            $spreadsheet->getActiveSheet()->setCellValue('J' . $totalPersonnelIndex, '0');
-            $spreadsheet->getActiveSheet()->setCellValue('K' . $totalPersonnelIndex, '0');
-            $spreadsheet->getActiveSheet()->setCellValue('L' . $totalPersonnelIndex, '0');
-            $spreadsheet->getActiveSheet()->setCellValue('M' . $totalPersonnelIndex, '0');
-            $spreadsheet->getActiveSheet()->setCellValue('N' . $totalPersonnelIndex, '0');
-            $spreadsheet->getActiveSheet()->setCellValue('O' . $totalPersonnelIndex, '0');
-            $spreadsheet->getActiveSheet()->setCellValue('P' . $totalPersonnelIndex, '0');
-            $spreadsheet->getActiveSheet()->setCellValue('Q' . $totalPersonnelIndex, '0');
-            $spreadsheet->getActiveSheet()->setCellValue('R' . $totalPersonnelIndex, '0');
-            $spreadsheet->getActiveSheet()->setCellValue('S' . $totalPersonnelIndex, '0');
+            $spreadsheet->getActiveSheet()->setCellValue('B' . $totalPersonnelIndex, $total['Personnel']['Training on Therapeutic Community']['trainings']);
+            $spreadsheet->getActiveSheet()->setCellValue('C' . $totalPersonnelIndex, $total['Personnel']['Training on Therapeutic Community']['participants']);
+            $spreadsheet->getActiveSheet()->setCellValue('D' . $totalPersonnelIndex, $total['Personnel']['Training on Restorative Justice']['trainings']);
+            $spreadsheet->getActiveSheet()->setCellValue('E' . $totalPersonnelIndex, $total['Personnel']['Training on Restorative Justice']['participants']);
+            $spreadsheet->getActiveSheet()->setCellValue('F' . $totalPersonnelIndex, $total['Personnel']['Training on Volunteerism']['trainings']);
+            $spreadsheet->getActiveSheet()->setCellValue('G' . $totalPersonnelIndex, $total['Personnel']['Training on Volunteerism']['participants']);
+            $spreadsheet->getActiveSheet()->setCellValue('H' . $totalPersonnelIndex, $total['Personnel']['Training on GAD']['trainings']);
+            $spreadsheet->getActiveSheet()->setCellValue('I' . $totalPersonnelIndex, $total['Personnel']['Training on GAD']['participants']);
+            $spreadsheet->getActiveSheet()->setCellValue('J' . $totalPersonnelIndex, $total['Personnel']['Other Training Courses or Seminars or Fora or Symposia']['trainings']);
+            $spreadsheet->getActiveSheet()->setCellValue('K' . $totalPersonnelIndex, $total['Personnel']['Other Training Courses or Seminars or Fora or Symposia']['participants']);
+            $spreadsheet->getActiveSheet()->setCellValue('L' . $totalPersonnelIndex, $total['Personnel']['Conferences or Conventions']['trainings']);
+            $spreadsheet->getActiveSheet()->setCellValue('M' . $totalPersonnelIndex, $total['Personnel']['Conferences or Conventions']['participants']);
+            $spreadsheet->getActiveSheet()->setCellValue('N' . $totalPersonnelIndex, $total['Personnel']['Staff or Committee Meetings with Professional Dev\'t']['trainings']);
+            $spreadsheet->getActiveSheet()->setCellValue('O' . $totalPersonnelIndex, $total['Personnel']['Staff or Committee Meetings with Professional Dev\'t']['participants']);
+            $spreadsheet->getActiveSheet()->setCellValue('P' . $totalPersonnelIndex, $total['Personnel']['managerial']);
+            $spreadsheet->getActiveSheet()->setCellValue('Q' . $totalPersonnelIndex, $total['Personnel']['technical']);
+            $spreadsheet->getActiveSheet()->setCellValue('R' . $totalPersonnelIndex, $total['Personnel']['foundation']);
+            $spreadsheet->getActiveSheet()->setCellValue('S' . $totalPersonnelIndex, $total['Personnel']['training_hours']);
 
             $spreadsheet->getActiveSheet()->setCellValue('A' . $totalVolunteerIndex, 'TOTAL');
-            $spreadsheet->getActiveSheet()->setCellValue('B' . $totalVolunteerIndex, '0');
-            $spreadsheet->getActiveSheet()->setCellValue('C' . $totalVolunteerIndex, '0');
-            $spreadsheet->getActiveSheet()->setCellValue('D' . $totalVolunteerIndex, '0');
-            $spreadsheet->getActiveSheet()->setCellValue('E' . $totalVolunteerIndex, '0');
-            $spreadsheet->getActiveSheet()->setCellValue('F' . $totalVolunteerIndex, '0');
-            $spreadsheet->getActiveSheet()->setCellValue('G' . $totalVolunteerIndex, '0');
-            $spreadsheet->getActiveSheet()->setCellValue('H' . $totalVolunteerIndex, '0');
-            $spreadsheet->getActiveSheet()->setCellValue('I' . $totalVolunteerIndex, '0');
-            $spreadsheet->getActiveSheet()->setCellValue('J' . $totalVolunteerIndex, '0');
-            $spreadsheet->getActiveSheet()->setCellValue('K' . $totalVolunteerIndex, '0');
-            $spreadsheet->getActiveSheet()->setCellValue('L' . $totalVolunteerIndex, '0');
-            $spreadsheet->getActiveSheet()->setCellValue('M' . $totalVolunteerIndex, '0');
-            $spreadsheet->getActiveSheet()->setCellValue('N' . $totalVolunteerIndex, '0');
-            $spreadsheet->getActiveSheet()->setCellValue('O' . $totalVolunteerIndex, '0');
-            $spreadsheet->getActiveSheet()->setCellValue('P' . $totalVolunteerIndex, '0');
-            $spreadsheet->getActiveSheet()->setCellValue('R' . $totalVolunteerIndex, '0');
-            $spreadsheet->getActiveSheet()->setCellValue('S' . $totalVolunteerIndex, '0');
+            $spreadsheet->getActiveSheet()->setCellValue('B' . $totalVolunteerIndex, $total['VPA']['Training on Therapeutic Community']['trainings']);
+            $spreadsheet->getActiveSheet()->setCellValue('C' . $totalVolunteerIndex, $total['VPA']['Training on Therapeutic Community']['participants']);
+            $spreadsheet->getActiveSheet()->setCellValue('D' . $totalVolunteerIndex, $total['VPA']['Training on Restorative Justice']['trainings']);
+            $spreadsheet->getActiveSheet()->setCellValue('E' . $totalVolunteerIndex, $total['VPA']['Training on Restorative Justice']['participants']);
+            $spreadsheet->getActiveSheet()->setCellValue('F' . $totalVolunteerIndex, $total['VPA']['Training on Volunteerism']['trainings']);
+            $spreadsheet->getActiveSheet()->setCellValue('G' . $totalVolunteerIndex, $total['VPA']['Training on Volunteerism']['participants']);
+            $spreadsheet->getActiveSheet()->setCellValue('H' . $totalVolunteerIndex, $total['VPA']['Training on GAD']['trainings']);
+            $spreadsheet->getActiveSheet()->setCellValue('I' . $totalVolunteerIndex, $total['VPA']['Training on GAD']['participants']);
+            $spreadsheet->getActiveSheet()->setCellValue('J' . $totalVolunteerIndex, $total['VPA']['Other Training Courses or Seminars or Fora or Symposia']['trainings']);
+            $spreadsheet->getActiveSheet()->setCellValue('K' . $totalVolunteerIndex, $total['VPA']['Other Training Courses or Seminars or Fora or Symposia']['participants']);
+            $spreadsheet->getActiveSheet()->setCellValue('L' . $totalVolunteerIndex, $total['VPA']['Conferences or Conventions']['trainings']);
+            $spreadsheet->getActiveSheet()->setCellValue('M' . $totalVolunteerIndex, $total['VPA']['Conferences or Conventions']['participants']);
+            $spreadsheet->getActiveSheet()->setCellValue('N' . $totalVolunteerIndex, $total['VPA']['VPA Meetings or Assemblies']['trainings']);
+            $spreadsheet->getActiveSheet()->setCellValue('O' . $totalVolunteerIndex, $total['VPA']['VPA Meetings or Assemblies']['participants']);
+            $spreadsheet->getActiveSheet()->setCellValue('P' . $totalVolunteerIndex, $total['VPA']['in_house']);
+            $spreadsheet->getActiveSheet()->setCellValue('R' . $totalVolunteerIndex, $total['VPA']['out_house']);
+            $spreadsheet->getActiveSheet()->setCellValue('S' . $totalVolunteerIndex, $total['VPA']['training_hours']);
         }
 
         return $spreadsheet;
@@ -386,14 +569,31 @@ class TableIINational implements Form
         $this->quarters = $this->quartersRepository->find($data['quarter_id']);
         $this->regions  = $this->regionsRepository->list();
 
-        // $results = $this->capabilityBuilding->getReport(
-        //     $data['quarter_id'],
-        //     $data['field_office_id'],
-        //     'Personnel'
-        // );
+        $result = [];
 
-        // return ['rows' => array_values($results['data']) ?? []];
-        return [];
+        foreach ($this->regions as $region) {
+            $result[$region->getRegionId()] = [];
+            $fieldOffices = $this->fieldOfficesRepository->findBy(['regionId' => $region->getRegionId()]);
+
+            foreach ($fieldOffices as $fieldOffice) {
+                $personnel = $this->capabilityBuilding->getReport(
+                    $data['quarter_id'],
+                    $fieldOffice->getFieldOfficeId(),
+                    'Personnel'
+                );
+    
+                $vpa = $this->capabilityBuilding->getReport(
+                    $data['quarter_id'],
+                    $fieldOffice->getFieldOfficeId(),
+                    'VPA'
+                );
+
+                $result[$region->getRegionId()][$fieldOffice->getFieldOfficeId()]['Personnel'] = $personnel['data'] ?? [];
+                $result[$region->getRegionId()][$fieldOffice->getFieldOfficeId()]['VPA'] = $vpa['data'] ?? [];
+            }
+        }
+
+        return ['rows' => $result];
     }
 
 }

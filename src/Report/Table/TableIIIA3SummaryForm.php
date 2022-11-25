@@ -76,7 +76,7 @@ class TableIIIA3SummaryForm implements Form
 
         $result = $this->data;
 
-        echo var_dump($result['rows']);
+        // echo var_dump($result['rows']);
 
         $activityRoles = [
             'TECHNICAL ASSISTANCE' => [
@@ -103,8 +103,11 @@ class TableIIIA3SummaryForm implements Form
         
         if ($result['rows']) {
             foreach ($result['rows'] as $v) {
+                $activityRoles[$v['assistance_type']]['agencies_assisted'] += 1;
+                $activityRoles[$v['assistance_type']]['assistance_rendered'] += 1;
+                
                 foreach ($v['participants'] as $participant) {
-                    $paoParticipants += $participant['no'];
+                    $activityRoles[$v['assistance_type']]['participants'] += $participant['no'];
                 }
             }
         }

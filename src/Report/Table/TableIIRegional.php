@@ -569,18 +569,7 @@ class TableIIRegional implements Form
 
         $this->fieldOffices = $this->fieldOfficesRepository->findBy(['regionId' => $data['region_id']]);
 
-        // $results = $this->capabilityBuilding->getReport(
-        //     $data['quarter_id'],
-        //     $data['field_office_id'],
-        //     'Personnel'
-        // );
-
-        // return ['rows' => array_values($results['data']) ?? []];
-
-        $result = [
-            'Personnel' => [], 
-            'VPA' => [],
-        ];
+        $result = [];
 
         foreach ($this->fieldOffices as $fieldOffice) {
             $personnel = $this->capabilityBuilding->getReport(
@@ -599,25 +588,7 @@ class TableIIRegional implements Form
             $result[$fieldOffice->getFieldOfficeId()]['VPA'] = $vpa['data'] ?? [];
         }
 
-        // $personnel = $this->capabilityBuilding->getReport(
-        //     $data['quarter_id'],
-        //     $data['field_office_id'],
-        //     'Personnel'
-        // );
-        // $vpa = $this->capabilityBuilding->getReport(
-        //     $data['quarter_id'],
-        //     $data['field_office_id'],
-        //     'VPA'
-        // );
-
-        // $result = [
-        //     'Personnel' => $personnel['data'] ?? [], 
-        //     'VPA' => $vpa['data'] ?? []
-        // ];
-
         return ['rows' => $result];
-
-        // return [];
     }
 
 }
