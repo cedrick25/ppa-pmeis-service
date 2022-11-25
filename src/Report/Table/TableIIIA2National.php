@@ -25,6 +25,7 @@ class TableIIIA2National implements Form
     public function __construct(
         private SocialMarketing             $service,
         private RegionsRepository           $regionsRepository,
+        private FieldOfficesRepository      $fieldOfficesRepository,
         private QuartersRepository          $quartersRepository,
         private SessionsRepository          $sessionsRepository,
         private ClientSessionsRepository    $clientSessionsRepository,
@@ -75,59 +76,70 @@ class TableIIIA2National implements Form
         $spreadsheet = $this->header();
 
         $count = 0;
-        // $count = $this->data ? count($this->data['rows']) : 0;
-        // foreach ($this->data['rows'] as $v) {
-        // }
+
+        $result = $this->data;
 
         if ($this->regions) {
             $ctr = 9;
-            $totals = [
-                'B' => 0,
-                'C' => 0,
-                'D' => 0,
-                'E' => 0,
-            ];
+
+            $totalPao = 0;
+            $totalPaoParticipants = 0;
+            $totalOthers = 0;
+            $totalOthersParticipants = 0;
 
             foreach ($this->regions as $k => $v) {
                 $index = ($ctr + $k);
 
-                $result = $this->data;
-
                 $pao = 0;
+                $paoParticipants = 0;
                 $others = 0;
+                $othersParticipants = 0;
         
-                if ($result['rows'][$k]) {
-                    foreach ($result['rows'][$k][0] as $v1) {
-                        switch($v1['social_marketing_activity_id']) {
-                            case 3:
-                                $pao++;
-                                break;
-                            case 4:
-                                $others++;
-                                break;
+                if ($result['rows']) {
+                    if ($result['rows'][$v->getRegionId()]) {
+                        foreach ($result['rows'][$v->getRegionId()] as $fieldOffice) {
+                            foreach ($fieldOffice as $v1) {
+                                switch($v1['social_marketing_activity_id']) {
+                                    case 5:
+                                        $pao++;
+                                        $totalPao++;
+                
+                                        foreach ($v1['participants'] as $participant) {
+                                            $paoParticipants += $participant['no'];
+                                            $totalPaoParticipants += $participant['no'];
+                                        }
+                
+                                        break;
+                                    case 6:
+                                        $others++;
+                                        $totalOthers++;
+                
+                                        foreach ($v1['participants'] as $participant) {
+                                            $othersParticipants += $participant['no'];
+                                            $totalOthersParticipants += $participant['no'];
+                                        }
+                
+                                        break;
+                                }
+                            }
                         }
                     }
                 }
 
                 $spreadsheet->getActiveSheet()->setCellValue('A' . $index, $v->getName());
                 $spreadsheet->getActiveSheet()->setCellValue('B' . $index, $pao);
-                $spreadsheet->getActiveSheet()->setCellValue('C' . $index, $pao);
-                $spreadsheet->getActiveSheet()->setCellValue('D' . $index, $pao);
-                $spreadsheet->getActiveSheet()->setCellValue('E' . $index, $pao);
-
-                $totals['B'] += $pao;
-                $totals['C'] += $pao;
-                $totals['D'] += $pao;
-                $totals['E'] += $pao;
+                $spreadsheet->getActiveSheet()->setCellValue('C' . $index, $paoParticipants);
+                $spreadsheet->getActiveSheet()->setCellValue('D' . $index, $others);
+                $spreadsheet->getActiveSheet()->setCellValue('E' . $index, $othersParticipants);
             }
 
             $totalIndex = $ctr + count($this->regions);
 
             $spreadsheet->getActiveSheet()->setCellValue('A' . $totalIndex, 'TOTAL');
-            $spreadsheet->getActiveSheet()->setCellValue('B' . $totalIndex, $totals['B']);
-            $spreadsheet->getActiveSheet()->setCellValue('C' . $totalIndex, $totals['C']);
-            $spreadsheet->getActiveSheet()->setCellValue('D' . $totalIndex, $totals['D']);
-            $spreadsheet->getActiveSheet()->setCellValue('E' . $totalIndex, $totals['E']);
+            $spreadsheet->getActiveSheet()->setCellValue('B' . $totalIndex, $totalPao);
+            $spreadsheet->getActiveSheet()->setCellValue('C' . $totalIndex, $totalPaoParticipants);
+            $spreadsheet->getActiveSheet()->setCellValue('D' . $totalIndex, $totalOthers);
+            $spreadsheet->getActiveSheet()->setCellValue('E' . $totalIndex, $totalOthersParticipants);
         }
 
         return $spreadsheet;
@@ -252,21 +264,25 @@ class TableIIIA2National implements Form
     private function getData(array $data): array
     {
         $this->quarters = $this->quartersRepository->find($data['quarter_id']);
-        $this->regions  = $this->regionsRepository->list();
+        $this->regions = $this->regionsRepository->list();
 
-        $rows = [];
-        foreach ($this->regions as $v) {
-            $result = $this->service->getReport(
-                $data['quarter_id'],
-                1,
-                'MEETINGS_PARTICIPATIONS',
-            );
+        $result = [];
 
-            $rows[] = array_values($result['data'] ?? []);
+        foreach ($this->regions as $region) {
+            $result[$region->getRegionId()] = [];
+            $fieldOffices = $this->fieldOfficesRepository->findBy(['regionId' => $region->getRegionId()]);
+
+            foreach ($fieldOffices as $fieldOffice) {
+                $res = $this->service->getReport(
+                    $data['quarter_id'],
+                    $fieldOffice->getFieldOfficeId(),
+                    'MEETINGS_PARTICIPATIONS',
+                );
+    
+                $result[$region->getRegionId()][$fieldOffice->getFieldOfficeId()] = $res['data'] ?? [];
+            }
         }
 
-
-        return ['rows' => $rows];
+        return ['rows' => $result];
     }
-
 }

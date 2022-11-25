@@ -10,7 +10,7 @@ use App\Repository\RegionsRepository;
 use App\Repository\FieldOfficesRepository;
 use App\Repository\QuartersRepository;
 use App\Repository\SessionsRepository;
-use App\Service\Volunteerism\SocialMarketing;
+use App\Service\Volunteerism\ProgramMaterialsDevelopment;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Style\Border;
@@ -23,7 +23,7 @@ class TableVRegional implements Form
 
 
     public function __construct(
-        private SocialMarketing             $service,
+        private ProgramMaterialsDevelopment $service,
         private RegionsRepository           $regionsRepository,
         private FieldOfficesRepository      $fieldOfficesRepository,
         private QuartersRepository          $quartersRepository,
@@ -77,59 +77,84 @@ class TableVRegional implements Form
         $spreadsheet = $this->header();
 
         $count = 0;
-        // $count = $this->data ? count($this->data['rows']) : 0;
-        // foreach ($this->data['rows'] as $v) {
-        // }
+
+        $result = $this->data;
 
         if ($this->fieldOffices) {
             $ctr = 9;
-            $totals = [
-                'B' => 0,
-                'C' => 0,
-                'D' => 0,
-                'E' => 0,
+
+            $total = [
+                'developed'   => [
+                    'TC'      => 0,
+                    'RJ'      => 0,
+                    'VPA'     => 0,
+                    'GAD'     => 0,
+                    'OTHERS'  => 0,
+                ],
+                'distributed' => [
+                    'TC'      => 0,
+                    'RJ'      => 0,
+                    'VPA'     => 0,
+                    'GAD'     => 0,
+                    'OTHERS'  => 0,
+                ],
             ];
 
             foreach ($this->fieldOffices as $k => $v) {
                 $index = ($ctr + $k);
 
-                $result = $this->data;
+                $pmd = [
+                    'developed'   => [
+                        'TC'      => 0,
+                        'RJ'      => 0,
+                        'VPA'     => 0,
+                        'GAD'     => 0,
+                        'OTHERS'  => 0,
+                    ],
+                    'distributed' => [
+                        'TC'      => 0,
+                        'RJ'      => 0,
+                        'VPA'     => 0,
+                        'GAD'     => 0,
+                        'OTHERS'  => 0,
+                    ],
+                ];
 
-                $pao = 0;
-                $others = 0;
-        
-                if ($result['rows'][$k]) {
-                    foreach ($result['rows'][$k][0] as $v1) {
-                        switch($v1['social_marketing_activity_id']) {
-                            case 3:
-                                $pao++;
-                                break;
-                            case 4:
-                                $others++;
-                                break;
+                if ($result['rows']) {
+                    if ($result['rows'][$v->getFieldOfficeId()]) {
+                        foreach ($result['rows'][$v->getFieldOfficeId()] as $v1) {
+                            $pmd['developed'][$v1['program']] ++;
+                            $total['developed'][$v1['program']] ++;
                         }
                     }
                 }
 
                 $spreadsheet->getActiveSheet()->setCellValue('A' . $index, $v->getName());
-                $spreadsheet->getActiveSheet()->setCellValue('B' . $index, $pao);
-                $spreadsheet->getActiveSheet()->setCellValue('C' . $index, $pao);
-                $spreadsheet->getActiveSheet()->setCellValue('D' . $index, $pao);
-                $spreadsheet->getActiveSheet()->setCellValue('E' . $index, $pao);
-
-                $totals['B'] += $pao;
-                $totals['C'] += $pao;
-                $totals['D'] += $pao;
-                $totals['E'] += $pao;
+                $spreadsheet->getActiveSheet()->setCellValue('B' . $index, $pmd['developed']['TC']);
+                $spreadsheet->getActiveSheet()->setCellValue('C' . $index, $pmd['developed']['RJ']);
+                $spreadsheet->getActiveSheet()->setCellValue('D' . $index, $pmd['developed']['VPA']);
+                $spreadsheet->getActiveSheet()->setCellValue('E' . $index, $pmd['developed']['GAD']);
+                $spreadsheet->getActiveSheet()->setCellValue('F' . $index, $pmd['developed']['OTHERS']);
+                $spreadsheet->getActiveSheet()->setCellValue('G' . $index, $pmd['distributed']['TC']);
+                $spreadsheet->getActiveSheet()->setCellValue('H' . $index, $pmd['distributed']['RJ']);
+                $spreadsheet->getActiveSheet()->setCellValue('I' . $index, $pmd['distributed']['VPA']);
+                $spreadsheet->getActiveSheet()->setCellValue('J' . $index, $pmd['distributed']['GAD']);
+                $spreadsheet->getActiveSheet()->setCellValue('K' . $index, $pmd['distributed']['OTHERS']);
             }
 
             $totalIndex = $ctr + count($this->fieldOffices);
 
             $spreadsheet->getActiveSheet()->setCellValue('A' . $totalIndex, 'TOTAL');
-            $spreadsheet->getActiveSheet()->setCellValue('B' . $totalIndex, $totals['B']);
-            $spreadsheet->getActiveSheet()->setCellValue('C' . $totalIndex, $totals['C']);
-            $spreadsheet->getActiveSheet()->setCellValue('D' . $totalIndex, $totals['D']);
-            $spreadsheet->getActiveSheet()->setCellValue('E' . $totalIndex, $totals['E']);
+            $spreadsheet->getActiveSheet()->setCellValue('B' . $totalIndex, $total['developed']['TC']);
+            $spreadsheet->getActiveSheet()->setCellValue('C' . $totalIndex, $total['developed']['RJ']);
+            $spreadsheet->getActiveSheet()->setCellValue('D' . $totalIndex, $total['developed']['VPA']);
+            $spreadsheet->getActiveSheet()->setCellValue('E' . $totalIndex, $total['developed']['GAD']);
+            $spreadsheet->getActiveSheet()->setCellValue('F' . $totalIndex, $total['developed']['OTHERS']);
+            $spreadsheet->getActiveSheet()->setCellValue('G' . $totalIndex, $total['distributed']['TC']);
+            $spreadsheet->getActiveSheet()->setCellValue('H' . $totalIndex, $total['distributed']['RJ']);
+            $spreadsheet->getActiveSheet()->setCellValue('I' . $totalIndex, $total['distributed']['VPA']);
+            $spreadsheet->getActiveSheet()->setCellValue('J' . $totalIndex, $total['distributed']['GAD']);
+            $spreadsheet->getActiveSheet()->setCellValue('K' . $totalIndex, $total['distributed']['OTHERS']);
         }
 
         return $spreadsheet;
@@ -258,20 +283,17 @@ class TableVRegional implements Form
 
         $this->fieldOffices = $this->fieldOfficesRepository->findBy(['regionId' => $data['region_id']]);
 
-        $rows = [];
-        foreach ($this->fieldOffices as $v) {
-            $result = $this->service->getReport(
+        $result = [];
+
+        foreach ($this->fieldOffices as $fieldOffice) {
+            $res = $this->service->getIdSupportReport(
                 $data['quarter_id'],
-                $v->getFieldOfficeId(),
-                // $data['type'],
-                'MEETINGS_PARTICIPATIONS',
+                $fieldOffice->getFieldOfficeId(),
             );
 
-            $rows[] = array_values($result['data'] ?? []);
+            $result[$fieldOffice->getFieldOfficeId()] = $res['data'] ?? [];
         }
 
-
-        return ['rows' => $rows];
+        return ['rows' => $result];
     }
-
 }

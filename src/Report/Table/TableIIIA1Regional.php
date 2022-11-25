@@ -77,71 +77,97 @@ class TableIIIA1Regional implements Form
         $spreadsheet = $this->header();
 
         $count = 0;
-        // $count = $this->data ? count($this->data['rows']) : 0;
-        // foreach ($this->data['rows'] as $v) {
-        // }
+
+        $result = $this->data;
 
         if ($this->fieldOffices) {
             $ctr = 9;
             $totals = [
-                'B' => 0,
-                'C' => 0,
-                'D' => 0,
-                'E' => 0,
-                'F' => 0,
-                'G' => 0,
-                'H' => 0,
+                'fora' => [
+                    'activities'   => 0,
+                    'participants' => 0,
+                    'primers'      => 0,
+                ],
+                'press'   => 0,
+                'radio'   => 0,
+                'tv'      => 0,
+                'primers' => 0,
             ];
 
             foreach ($this->fieldOffices as $k => $v) {
                 $index = ($ctr + $k);
 
-                $result = $this->data;
-
-                $fora = 0;
-                $tv = 0;
-
-                if ($result['rows'][$k]) {
-                    foreach ($result['rows'][$k][0] as $v1) {
-                        switch($v1['social_marketing_activity_id']) {
-                            case 1:
-                                $fora++;
-                                break;
-                            case 2:
-                                $tv++;
-                                break;
+                $smCategories = [
+                    'fora' => [
+                        'activities'   => 0,
+                        'participants' => 0,
+                        'primers'      => 0,
+                    ],
+                    'press'   => 0,
+                    'radio'   => 0,
+                    'tv'      => 0,
+                    'primers' => 0,
+                ];
+        
+                if ($result['rows']) {
+                    if ($result['rows'][$v->getFieldOfficeId()]) {
+                        foreach ($result['rows'][$v->getFieldOfficeId()] as $v1) {
+                            switch($v1['social_marketing_activity_id']) {
+                                case 1:
+                                    $smCategories['fora']['activities']++;
+                                    $totals['fora']['activities']++;
+            
+                                    foreach ($v1['participants'] as $participant) {
+                                        $smCategories['fora']['participants']+= $participant['no'];
+                                        $totals['fora']['participants']+= $participant['no'];
+                                    }
+            
+                                    $smCategories['fora']['primers']+= $v1['primers'];
+                                    $totals['fora']['primers']+= $v1['primers'];
+                                    break;
+                                case 2:
+                                    $smCategories['press']++;
+                                    $totals['press']++;
+                                    $smCategories['primers']+= $v1['primers'];
+                                    $totals['primers']+= $v1['primers'];
+                                    break;
+                                case 3:
+                                    $smCategories['radio']++;
+                                    $totals['radio']++;
+                                    $smCategories['primers']+= $v1['primers'];
+                                    $totals['primers']+= $v1['primers'];
+                                    break;
+                                case 4:
+                                    $smCategories['tv']++;
+                                    $totals['tv']++;
+                                    $smCategories['primers']+= $v1['primers'];
+                                    $totals['primers']+= $v1['primers'];
+                                    break;
+                            }
                         }
                     }
                 }
 
                 $spreadsheet->getActiveSheet()->setCellValue('A' . $index, $v->getName());
-                $spreadsheet->getActiveSheet()->setCellValue('B' . $index, $fora);
-                $spreadsheet->getActiveSheet()->setCellValue('C' . $index, $fora);
-                $spreadsheet->getActiveSheet()->setCellValue('D' . $index, $fora);
-                $spreadsheet->getActiveSheet()->setCellValue('E' . $index, $tv);
-                $spreadsheet->getActiveSheet()->setCellValue('F' . $index, $tv);
-                $spreadsheet->getActiveSheet()->setCellValue('G' . $index, $tv);
-                $spreadsheet->getActiveSheet()->setCellValue('H' . $index, $fora + $tv);
-
-                $totals['B'] += $fora;
-                $totals['C'] += $fora;
-                $totals['D'] += $fora;
-                $totals['E'] += $tv;
-                $totals['F'] += $tv;
-                $totals['G'] += $tv;
-                $totals['H'] += ($fora + $tv);
+                $spreadsheet->getActiveSheet()->setCellValue('B' . $index, $smCategories['fora']['activities']);
+                $spreadsheet->getActiveSheet()->setCellValue('C' . $index, $smCategories['fora']['participants']);
+                $spreadsheet->getActiveSheet()->setCellValue('D' . $index, $smCategories['fora']['primers']);
+                $spreadsheet->getActiveSheet()->setCellValue('E' . $index, $smCategories['press']);
+                $spreadsheet->getActiveSheet()->setCellValue('F' . $index, $smCategories['radio']);
+                $spreadsheet->getActiveSheet()->setCellValue('G' . $index, $smCategories['tv']);
+                $spreadsheet->getActiveSheet()->setCellValue('H' . $index, $smCategories['primers']);
             }
 
             $totalIndex = $ctr + count($this->fieldOffices);
 
             $spreadsheet->getActiveSheet()->setCellValue('A' . $totalIndex, 'TOTAL');
-            $spreadsheet->getActiveSheet()->setCellValue('B' . $totalIndex, $totals['B']);
-            $spreadsheet->getActiveSheet()->setCellValue('C' . $totalIndex, $totals['C']);
-            $spreadsheet->getActiveSheet()->setCellValue('D' . $totalIndex, $totals['D']);
-            $spreadsheet->getActiveSheet()->setCellValue('E' . $totalIndex, $totals['E']);
-            $spreadsheet->getActiveSheet()->setCellValue('F' . $totalIndex, $totals['F']);
-            $spreadsheet->getActiveSheet()->setCellValue('G' . $totalIndex, $totals['G']);
-            $spreadsheet->getActiveSheet()->setCellValue('H' . $totalIndex, $totals['H']);
+            $spreadsheet->getActiveSheet()->setCellValue('B' . $totalIndex, $totals['fora']['activities']);
+            $spreadsheet->getActiveSheet()->setCellValue('C' . $totalIndex, $totals['fora']['participants']);
+            $spreadsheet->getActiveSheet()->setCellValue('D' . $totalIndex, $totals['fora']['primers']);
+            $spreadsheet->getActiveSheet()->setCellValue('E' . $totalIndex, $totals['press']);
+            $spreadsheet->getActiveSheet()->setCellValue('F' . $totalIndex, $totals['radio']);
+            $spreadsheet->getActiveSheet()->setCellValue('G' . $totalIndex, $totals['tv']);
+            $spreadsheet->getActiveSheet()->setCellValue('H' . $totalIndex, $totals['primers']);
         }
 
         return $spreadsheet;
@@ -280,19 +306,18 @@ class TableIIIA1Regional implements Form
 
         $this->fieldOffices = $this->fieldOfficesRepository->findBy(['regionId' => $data['region_id']]);
 
-        $rows = [];
-        foreach ($this->fieldOffices as $v) {
-            $result = $this->service->getReport(
+        $result = [];
+
+        foreach ($this->fieldOffices as $fieldOffice) {
+            $res = $this->service->getReport(
                 $data['quarter_id'],
-                $v->getFieldOfficeId(),
+                $fieldOffice->getFieldOfficeId(),
                 'INFORMATION_DISSEMINATION',
             );
 
-            $rows[] = array_values($result['data'] ?? []);
+            $result[$fieldOffice->getFieldOfficeId()] = $res['data'] ?? [];
         }
 
-
-        return ['rows' => $rows];
+        return ['rows' => $result];
     }
-
 }

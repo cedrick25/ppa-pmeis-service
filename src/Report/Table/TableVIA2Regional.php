@@ -10,7 +10,7 @@ use App\Repository\RegionsRepository;
 use App\Repository\FieldOfficesRepository;
 use App\Repository\QuartersRepository;
 use App\Repository\SessionsRepository;
-use App\Service\Volunteerism\SocialMarketing;
+use App\Service\Volunteerism\SpecialAssignment;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Style\Border;
@@ -23,7 +23,7 @@ class TableVIA2Regional implements Form
 
 
     public function __construct(
-        private SocialMarketing             $service,
+        private SpecialAssignment           $service,
         private RegionsRepository           $regionsRepository,
         private FieldOfficesRepository      $fieldOfficesRepository,
         private QuartersRepository          $quartersRepository,
@@ -77,59 +77,70 @@ class TableVIA2Regional implements Form
         $spreadsheet = $this->header();
 
         $count = 0;
-        // $count = $this->data ? count($this->data['rows']) : 0;
-        // foreach ($this->data['rows'] as $v) {
-        // }
+
+        $result = $this->data;
 
         if ($this->fieldOffices) {
             $ctr = 9;
-            $totals = [
-                'B' => 0,
-                'C' => 0,
-                'D' => 0,
-                'E' => 0,
+
+            $total = [
+                'SPECIAL_ASSIGNMENT' => [
+                    'national'     => 0,
+                    'regional'     => 0,
+                    'field_office' => 0,
+                ],
+                'MISCELLANEOUS_ACTIVITIES' => 0,
+                'personnelInvolved' => 0,
             ];
 
             foreach ($this->fieldOffices as $k => $v) {
                 $index = ($ctr + $k);
 
-                $result = $this->data;
+                $activities = [
+                    'SPECIAL_ASSIGNMENT' => [
+                        'national'     => 0,
+                        'regional'     => 0,
+                        'field_office' => 0,
+                    ],
+                    'MISCELLANEOUS_ACTIVITIES' => 0,
+                    'personnelInvolved' => 0,
+                ];
 
-                $pao = 0;
-                $others = 0;
-        
-                if ($result['rows'][$k]) {
-                    foreach ($result['rows'][$k][0] as $v1) {
-                        switch($v1['social_marketing_activity_id']) {
-                            case 3:
-                                $pao++;
-                                break;
-                            case 4:
-                                $others++;
-                                break;
+                if ($result['rows']) {
+                    if ($result['rows'][$v->getFieldOfficeId()]) {
+                        foreach ($result['rows'][$v->getFieldOfficeId()]['SPECIAL_ASSIGNMENT'] as $category => $v1) {
+                            foreach($v1 as $activity) {
+                                $activities['SPECIAL_ASSIGNMENT'][$category] += count($activity['personnelInvolved']);
+                                $total['SPECIAL_ASSIGNMENT'][$category] += count($activity['personnelInvolved']);
+                                $activities['personnelInvolved'] += count($activity['personnelInvolved']);
+                                $total['personnelInvolved'] += count($activity['personnelInvolved']);
+                            }
+                        }
+                        foreach ($result['rows'][$v->getFieldOfficeId()]['MISCELLANEOUS_ACTIVITIES'] as $activity) {
+                            $activities['MISCELLANEOUS_ACTIVITIES'] += count($activity['personnelInvolved']);
+                            $total['MISCELLANEOUS_ACTIVITIES'] += count($activity['personnelInvolved']);
+                            $activities['personnelInvolved'] += count($activity['personnelInvolved']);
+                            $total['personnelInvolved'] += count($activity['personnelInvolved']);
                         }
                     }
                 }
 
                 $spreadsheet->getActiveSheet()->setCellValue('A' . $index, $v->getName());
-                $spreadsheet->getActiveSheet()->setCellValue('B' . $index, $pao);
-                $spreadsheet->getActiveSheet()->setCellValue('C' . $index, $pao);
-                $spreadsheet->getActiveSheet()->setCellValue('D' . $index, $pao);
-                $spreadsheet->getActiveSheet()->setCellValue('E' . $index, $pao);
-
-                $totals['B'] += $pao;
-                $totals['C'] += $pao;
-                $totals['D'] += $pao;
-                $totals['E'] += $pao;
+                $spreadsheet->getActiveSheet()->setCellValue('B' . $index, $activities['SPECIAL_ASSIGNMENT']['national']);
+                $spreadsheet->getActiveSheet()->setCellValue('C' . $index, $activities['SPECIAL_ASSIGNMENT']['regional']);
+                $spreadsheet->getActiveSheet()->setCellValue('D' . $index, $activities['SPECIAL_ASSIGNMENT']['field_office']);
+                $spreadsheet->getActiveSheet()->setCellValue('E' . $index, $activities['MISCELLANEOUS_ACTIVITIES']);
+                $spreadsheet->getActiveSheet()->setCellValue('F' . $index, $activities['personnelInvolved']);
             }
 
             $totalIndex = $ctr + count($this->fieldOffices);
 
             $spreadsheet->getActiveSheet()->setCellValue('A' . $totalIndex, 'TOTAL');
-            $spreadsheet->getActiveSheet()->setCellValue('B' . $totalIndex, $totals['B']);
-            $spreadsheet->getActiveSheet()->setCellValue('C' . $totalIndex, $totals['C']);
-            $spreadsheet->getActiveSheet()->setCellValue('D' . $totalIndex, $totals['D']);
-            $spreadsheet->getActiveSheet()->setCellValue('E' . $totalIndex, $totals['E']);
+            $spreadsheet->getActiveSheet()->setCellValue('B' . $totalIndex, $total['SPECIAL_ASSIGNMENT']['national']);
+            $spreadsheet->getActiveSheet()->setCellValue('C' . $totalIndex, $total['SPECIAL_ASSIGNMENT']['regional']);
+            $spreadsheet->getActiveSheet()->setCellValue('D' . $totalIndex, $total['SPECIAL_ASSIGNMENT']['field_office']);
+            $spreadsheet->getActiveSheet()->setCellValue('E' . $totalIndex, $total['MISCELLANEOUS_ACTIVITIES']);
+            $spreadsheet->getActiveSheet()->setCellValue('F' . $totalIndex, $total['personnelInvolved']);
         }
 
         return $spreadsheet;
@@ -251,20 +262,17 @@ class TableVIA2Regional implements Form
 
         $this->fieldOffices = $this->fieldOfficesRepository->findBy(['regionId' => $data['region_id']]);
 
-        $rows = [];
-        foreach ($this->fieldOffices as $v) {
-            $result = $this->service->getReport(
+        $result = [];
+
+        foreach ($this->fieldOffices as $fieldOffice) {
+            $res = $this->service->getReport(
                 $data['quarter_id'],
-                $v->getFieldOfficeId(),
-                // $data['type'],
-                'MEETINGS_PARTICIPATIONS',
+                $fieldOffice->getFieldOfficeId(),
             );
 
-            $rows[] = array_values($result['data'] ?? []);
+            $result[$fieldOffice->getFieldOfficeId()] = $res['data'] ?? [];
         }
 
-
-        return ['rows' => $rows];
+        return ['rows' => $result];
     }
-
 }

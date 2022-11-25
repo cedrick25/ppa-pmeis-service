@@ -76,6 +76,8 @@ class TableIISummaryForm implements Form
 
         $result = $this->data;
 
+        // var_dump($result);
+
         $capabilityBuilding = [
             'Personnel' => [
                 'Training on Therapeutic Community' => [
@@ -196,7 +198,7 @@ class TableIISummaryForm implements Form
                         $capabilityBuilding[$k1]['Total']['participants'] += count($v3['participants']);
 
                         // Personnel
-                        if ($k2 == 'Personnel') {
+                        if ($k1 == 'Personnel') {
                             $capabilityBuilding[$k1][$k2]['managerial'] += ($v3['not_managerial_supervisory'] == 1);
                             $capabilityBuilding[$k1]['Total']['managerial'] += ($v3['not_managerial_supervisory'] == 1);
     
@@ -209,12 +211,12 @@ class TableIISummaryForm implements Form
 
 
                         // VPA
-                        if ($k2 == 'VPA') {
+                        if ($k1 == 'VPA') {
                             $capabilityBuilding[$k1][$k2]['in_house'] += ($v3['tc_in_house'] == 1);
                             $capabilityBuilding[$k1]['Total']['in_house'] += ($v3['tc_in_house'] == 1);
 
-                            $capabilityBuilding[$k1][$k2]['out_house'] += ($v3['tc_out_house'] == 1);
-                            $capabilityBuilding[$k1]['Total']['out_house'] += ($v3['tc_out_house'] == 1);
+                            $capabilityBuilding[$k1][$k2]['out_house'] += ($v3['tc_out_house']) ? 1 : 0;
+                            $capabilityBuilding[$k1]['Total']['out_house'] += ($v3['tc_out_house']) ? 1 : 0;
                         }
 
                         $capabilityBuilding[$k1][$k2]['training_hours'] += $v3['no_of_training_hours'];
