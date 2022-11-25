@@ -137,7 +137,7 @@ class VPAMonitoring implements Form
             'K3' => 'Total Number of VPA mobilized (per head count)',
             'L3' => 'Percent of VPA mobilized (per head count)',
             'M3' => 'No. of services rendered by VPAs during the quarter',
-            'N3' => 'No. of services rendered By a VPA ',
+            'N3' => 'No. of services rendered By a VPA',
             'A5' => '(1)',
             'B5' => '(2)',
             'C5' => '(3)',
