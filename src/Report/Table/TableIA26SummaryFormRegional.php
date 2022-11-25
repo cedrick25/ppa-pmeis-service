@@ -2,15 +2,13 @@
 
 namespace App\Report\Table;
 
-use App\Entity\FieldOffices;
 use App\Entity\Quarters;
 use App\Entity\Regions;
 use App\Repository\ClientSessionsRepository;
 use App\Repository\FieldOfficesRepository;
 use App\Repository\QuartersRepository;
 use App\Repository\RegionsRepository;
-use App\Repository\SessionsRepository;
-use App\Service\TherapeuticCommunity\QuartersInterface;
+use App\Service\TherapeuticCommunity\SessionsInterface;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Style\Border;
@@ -26,9 +24,8 @@ class TableIA26SummaryFormRegional implements Form
         private RegionsRepository           $regionsRepository,
         private QuartersRepository          $quartersRepository,
         private ClientSessionsRepository    $clientSessionsRepository,
-        private QuartersInterface           $service,
+        private SessionsInterface           $service,
         private array                       $data = [],
-        private array                       $sessionIds = [],
         private ?Regions                    $region = null,
         private ?Quarters                   $quarter = null,
         private int                         $lastFilledOutCellY = 11,
@@ -48,7 +45,7 @@ class TableIA26SummaryFormRegional implements Form
         $this->region = $this->regionsRepository->find($regionId);
         $this->quarter = $this->quartersRepository->find($quarterId);
 
-        $this->data = $this->getData($quarterId, $regionId);
+        $this->data = $this->getData($regionId);
 
         $spreadsheet = $this->footer();
         $writer = IOFactory::createWriter($spreadsheet, "Xlsx");
@@ -63,7 +60,8 @@ class TableIA26SummaryFormRegional implements Form
     {
         $spreadsheet = $this->prepare();
 
-        $spreadsheet->getActiveSheet()->getStyle('A8:AW11')->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
+        $spreadsheet->getActiveSheet()->getStyle('A8:AW11')
+            ->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
 
         return $spreadsheet;
     }
@@ -72,16 +70,25 @@ class TableIA26SummaryFormRegional implements Form
     {
         $spreadsheet = $this->header();
 
-        foreach ($this->data as $fieldOffice=>$data) {
+        foreach ($this->data as $fieldOffice => $data) {
             $this->lastFilledOutCellY++;
 
             $spreadsheet->getActiveSheet()->setCellValue('A' . $this->lastFilledOutCellY, $fieldOffice);
             $spreadsheet->getActiveSheet()->setCellValue('B' . $this->lastFilledOutCellY, $data['gender']['F']);
             $spreadsheet->getActiveSheet()->setCellValue('C' . $this->lastFilledOutCellY, $data['gender']['M']);
             $spreadsheet->getActiveSheet()->setCellValue('D' . $this->lastFilledOutCellY, $data['gender']['total']);
-            $spreadsheet->getActiveSheet()->setCellValue('E' . $this->lastFilledOutCellY, $data['offense_category']['DO']);
-            $spreadsheet->getActiveSheet()->setCellValue('F' . $this->lastFilledOutCellY, $data['offense_category']['NDO']);
-            $spreadsheet->getActiveSheet()->setCellValue('G' . $this->lastFilledOutCellY, $data['offense_category']['total']);
+            $spreadsheet->getActiveSheet()->setCellValue(
+                'E' . $this->lastFilledOutCellY,
+                $data['offense_category']['DO']
+            );
+            $spreadsheet->getActiveSheet()->setCellValue(
+                'F' . $this->lastFilledOutCellY,
+                $data['offense_category']['NDO']
+            );
+            $spreadsheet->getActiveSheet()->setCellValue(
+                'G' . $this->lastFilledOutCellY,
+                $data['offense_category']['total']
+            );
             $spreadsheet->getActiveSheet()->setCellValue('H' . $this->lastFilledOutCellY, $data['is_pwd']);
             $spreadsheet->getActiveSheet()->setCellValue('I' . $this->lastFilledOutCellY, $data['is_senior_citizen']);
             $spreadsheet->getActiveSheet()->setCellValue('J' . $this->lastFilledOutCellY,0);
@@ -146,18 +153,27 @@ class TableIA26SummaryFormRegional implements Form
             'A8' => 'FIELD OFFICES',
             'B8' => 'T    O    T    A    L          N    U    M    B    E    R',
             'B9' => 'SEX', 'D9' => 'Total', 'E9' => 'OFFENSE CATEGORY', 'G9' => 'Total', 'H9' => 'PWD', 'I9' => 'SC',
-            'J9' => 'PREPARATORY PHASE', 'Q9' => 'PHASE I', 'X9' => 'PHASE II', 'AE9' => 'PHASE III', 'AL9' => 'PHASE IV', 'B10' => 'F', 'C10' => 'M',
-            'E10' => 'DO', 'F10' => 'NDO', 'J10' => 'PS', 'K10' => 'PR', 'L10' => 'PD', 'M10' => 'JICL', 'N10' => 'FTMDO', 'O10' => 'TOTAL', 'P10' => 'FSI',
-            'Q10' => 'PS', 'R10' => 'PR', 'S10' => 'PD', 'T10' => 'JICL', 'U10' => 'FTMDO', 'V10' => 'TOTAL', 'W10' => 'FSI', 'X10' => 'PS', 'Y10' => 'PR',
-            'Z10' => 'PD', 'AA10' => 'JICL', 'AB10' => 'FTMDO', 'AC10' => 'TOTAL', 'AD10' => 'FSI', 'AE10' => 'PS', 'AF10' => 'PR', 'AG10' => 'PD',
-            'AH10' => 'JICL', 'AI10' => 'FTMDO', 'AJ10' => 'TOTAL', 'AK10' => 'FSI', 'AL10' => 'PS', 'AN10' => 'PR', 'AP10' => 'PD', 'AR10' => 'JICL',
-            'AT10' => 'FTMDO', 'AV10' => 'TOTAL', 'AW10' => 'FSI', 'AL11' => 'On-going', 'AM11' => 'Completed', 'AN11' => 'On-going', 'AO11' => 'Completed',
-            'AP11' => 'On-going', 'AQ11' => 'Completed', 'AR11' => 'On-going', 'AS11' => 'Completed', 'AT11' => 'On-going', 'AU11' => 'Completed',
+            'J9' => 'PREPARATORY PHASE', 'Q9' => 'PHASE I', 'X9' => 'PHASE II', 'AE9' => 'PHASE III',
+            'AL9' => 'PHASE IV', 'B10' => 'F', 'C10' => 'M',
+            'E10' => 'DO', 'F10' => 'NDO', 'J10' => 'PS', 'K10' => 'PR', 'L10' => 'PD', 'M10' => 'JICL',
+            'N10' => 'FTMDO', 'O10' => 'TOTAL', 'P10' => 'FSI',
+            'Q10' => 'PS', 'R10' => 'PR', 'S10' => 'PD', 'T10' => 'JICL', 'U10' => 'FTMDO', 'V10' => 'TOTAL',
+            'W10' => 'FSI', 'X10' => 'PS', 'Y10' => 'PR',
+            'Z10' => 'PD', 'AA10' => 'JICL', 'AB10' => 'FTMDO', 'AC10' => 'TOTAL', 'AD10' => 'FSI', 'AE10' => 'PS',
+            'AF10' => 'PR', 'AG10' => 'PD',
+            'AH10' => 'JICL', 'AI10' => 'FTMDO', 'AJ10' => 'TOTAL', 'AK10' => 'FSI', 'AL10' => 'PS', 'AN10' => 'PR',
+            'AP10' => 'PD', 'AR10' => 'JICL',
+            'AT10' => 'FTMDO', 'AV10' => 'TOTAL', 'AW10' => 'FSI', 'AL11' => 'On-going', 'AM11' => 'Completed',
+            'AN11' => 'On-going', 'AO11' => 'Completed',
+            'AP11' => 'On-going', 'AQ11' => 'Completed', 'AR11' => 'On-going', 'AS11' => 'Completed',
+            'AT11' => 'On-going', 'AU11' => 'Completed',
         ];
 
         $mergesCoordinates = [
-            'B8:AW8', 'B10:B11', 'C10:C11', 'D9:D11', 'E10:E11', 'F10:F11', 'J10:J11', 'K10:K11', 'L10:L11', 'M10:M11', 'N10:N11', 'O10:O11', 'P10:P11',
-            'Q10:Q11', 'R10:R11', 'S10:S11', 'T10:T11', 'U10:U11', 'V10:V11', 'W10:W11', 'X10:X11', 'Y10:Y11', 'Z10:Z11', 'AA10:AA11', 'AB10:AB11',
+            'B8:AW8', 'B10:B11', 'C10:C11', 'D9:D11', 'E10:E11', 'F10:F11', 'J10:J11', 'K10:K11', 'L10:L11', 'M10:M11',
+            'N10:N11', 'O10:O11', 'P10:P11',
+            'Q10:Q11', 'R10:R11', 'S10:S11', 'T10:T11', 'U10:U11', 'V10:V11', 'W10:W11', 'X10:X11', 'Y10:Y11',
+            'Z10:Z11', 'AA10:AA11', 'AB10:AB11',
             'AD10:AD11', 'AE10:AE11', 'AF10:AF11', 'AG10:AG11', 'AH10:AH11', 'AI10:AI11', 'AJ10:AJ11', 'AK10:AK11',
             'AL10:AM10', 'AN10:AO10', 'AP10:AQ10', 'AR10:AS10', 'AT10:AU10', 'G9:G11', 'H9:H11', 'I9:I11', 'AC10:AC11',
             'J9:P9', 'Q9:W9', 'X9:AC9', 'AE9:AK9', 'AL9:AU9', 'AV10:AV11', 'AW10:AW11', 'E9:F9'
@@ -197,20 +213,22 @@ class TableIA26SummaryFormRegional implements Form
         return $spreadsheet;
     }
 
-    private function getData(int $quarterId, int $regionId): array
+    private function getData(int $regionId): array
     {
         $data = [];
         $fieldOffices = $this->fieldOfficesRepository->findBy(['regionId' => $regionId]);
 
         foreach ($fieldOffices as $fieldOffice) {
-            $part1s = $this->service->getTCA1Part1($quarterId, $fieldOffice->getFieldOfficeId());
-            $part2s = $this->service->getTCA1Part2($quarterId, $fieldOffice->getFieldOfficeId());
+            $part1s = $this->service->getTCA1Part1($this->quarter, $fieldOffice->getFieldOfficeId());
+            $part2s = $this->service->getTCA1Part2($this->quarter, $fieldOffice->getFieldOfficeId());
 
-            if (! isset($part2s['data'])) {
+            if (empty($part2s)) {
                 continue;
             }
 
-            $treatmentCategoryInitialValues = ['parolees'=> 0, 'probationers'=> 0, 'pardonees'=> 0, 'jicl'=> 0, 'ftmdo'=> 0, 'total'=> 0, 'fsi'=> 0];
+            $treatmentCategoryInitialValues = [
+                'parolees'=> 0, 'probationers'=> 0, 'pardonees'=> 0, 'jicl'=> 0, 'ftmdo'=> 0, 'total'=> 0, 'fsi'=> 0
+            ];
             $initialValues = [
                 'gender' => [
                     'F' => 0,
@@ -230,11 +248,10 @@ class TableIA26SummaryFormRegional implements Form
                 'IV' => $treatmentCategoryInitialValues,
             ];
 
-            $part2s = $part2s['data'];
             $sessionIds = [];
 
-            foreach ($part1s['data'] as $index=>$part1) {
-                $part2 = $part2s[$index + 1];
+            foreach ($part1s as $index => $part1) {
+                $part2 = $part2s[$index];
                 $sessionIds[] = $part1['session_id'];
 
                 $parolees = intval($part2['count']['parolees']);
@@ -250,7 +267,7 @@ class TableIA26SummaryFormRegional implements Form
                 $initialValues[$part1['phase_name']]['jicl'] += $jicl;
                 $initialValues[$part1['phase_name']]['ftmdo'] += $ftmdo;
                 $initialValues[$part1['phase_name']]['total'] += $total;
-                $initialValues[$part1['phase_name']]['fsi'] += intval($part1['fsg']);
+                $initialValues[$part1['phase_name']]['fsi'] += intval($part1['fsg_number']);
             }
 
 
