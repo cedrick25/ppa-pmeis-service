@@ -45,6 +45,11 @@ class TechnicalAssistance
     private int $fieldOfficeId;
 
     /**
+     * @ORM\Column(type="string", length=255)
+     */
+    private string $assistanceType;
+
+    /**
      * @ORM\Column(type="string", length=255, nullable=true)
      */
     private ?string $remarks;
@@ -133,6 +138,22 @@ class TechnicalAssistance
     {
         $this->fieldOfficeId = $fieldOfficeId;
         return $this;
+    }
+
+    /**
+     * @return string
+     */
+    public function getAssistanceType(): string
+    {
+        return $this->assistanceType;
+    }
+
+    /**
+     * @param string $assistanceType
+     */
+    public function setAssistanceType(string $assistanceType): void
+    {
+        $this->assistanceType = $assistanceType;
     }
 
     /**

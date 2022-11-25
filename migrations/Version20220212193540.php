@@ -21,6 +21,7 @@ final class Version20220212193540 extends AbstractMigration
                 date DATE NOT NULL,
                 venue VARCHAR(255) NOT NULL,
                 field_office_id INT NOT NULL,
+                assistance_type VARCHAR(255) NOT NULL,
                 remarks VARCHAR(255) DEFAULT NULL,
                 created_at DATETIME NOT NULL COMMENT \'(DC2Type:datetime_immutable)\',
                 updated_at DATETIME DEFAULT NULL COMMENT \'(DC2Type:datetime_immutable)\',

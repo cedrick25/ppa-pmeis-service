@@ -33,7 +33,7 @@ class TableIA1SummaryFormRegional implements Form
         private ?Regions                    $region = null,
         private ?Quarters                   $quarter = null,
         private int                         $lastFilledOutCellY = 12,
-    ){}
+    ) {}
 
     public function supports(string $tableName): bool
     {
@@ -61,7 +61,8 @@ class TableIA1SummaryFormRegional implements Form
     {
         $spreadsheet = $this->prepare();
 
-        $spreadsheet->getActiveSheet()->getStyle('A9:O12')->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
+        $spreadsheet->getActiveSheet()->getStyle('A9:O12')->getBorders()
+            ->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
 
         return $spreadsheet;
     }
@@ -80,8 +81,8 @@ class TableIA1SummaryFormRegional implements Form
 
             $spreadsheet->getActiveSheet()->setCellValue('A' . $this->lastFilledOutCellY, $fieldOffice);
 
-            foreach ($sessions['treatment_categories'] as $category=>$treatmentCategory) {
-                foreach ($treatmentCategory as $subCategory=>$score) {
+            foreach ($sessions['treatment_categories'] as $category => $treatmentCategory) {
+                foreach ($treatmentCategory as $subCategory => $score) {
                     $spreadsheet->getActiveSheet()->setCellValue(
                         $treatmentCategoryCells[$category][$subCategory] . $this->lastFilledOutCellY,
                         $score
@@ -89,8 +90,14 @@ class TableIA1SummaryFormRegional implements Form
                 }
             }
 
-            $spreadsheet->getActiveSheet()->setCellValue('N' . $this->lastFilledOutCellY, $sessions['client_frequency_active_supervision']);
-            $spreadsheet->getActiveSheet()->setCellValue('O' . $this->lastFilledOutCellY, $sessions['client_frequency_others']);
+            $spreadsheet->getActiveSheet()->setCellValue(
+                'N' . $this->lastFilledOutCellY,
+                $sessions['client_frequency_active_supervision']
+            );
+            $spreadsheet->getActiveSheet()->setCellValue(
+                'O' . $this->lastFilledOutCellY,
+                $sessions['client_frequency_others']
+            );
             $spreadsheet->getActiveSheet()
                 ->getStyle('A' . $this->lastFilledOutCellY . ':O' . $this->lastFilledOutCellY)
                 ->getBorders()
@@ -98,7 +105,7 @@ class TableIA1SummaryFormRegional implements Form
                 ->setBorderStyle(Border::BORDER_THIN);
         }
 
-        $this->lastFilledOutCellY++;
+        $this->lastFilledOutCellY += 2;
         $beforePlotCellY = $this->lastFilledOutCellY + 1;
 
         $spreadsheet = $this->plotContinuationHeader($spreadsheet);
@@ -212,7 +219,11 @@ class TableIA1SummaryFormRegional implements Form
         $fieldOffices = $this->fieldOfficesRepository->findBy(['regionId' => $regionId]);
 
         foreach ($fieldOffices as $fieldOffice) {
-            $treatmentCategoryTotal = $this->getTreatmentCategoriesData($minMaxDate['min'], $minMaxDate['max'], $fieldOffice->getFieldOfficeId());
+            $treatmentCategoryTotal = $this->getTreatmentCategoriesData(
+                $minMaxDate['min'],
+                $minMaxDate['max'],
+                $fieldOffice->getFieldOfficeId()
+            );
 
             if (count($treatmentCategoryTotal) < 1) {
                 continue;
@@ -234,7 +245,11 @@ class TableIA1SummaryFormRegional implements Form
     private function getTreatmentCategoriesData(string $minDate, string $maxDate, int $fieldOfficeId): array
     {
         $treatmentCategoryTotal = ['MTCS' => ['Total' => 0], 'RA' => ['Total' => 0]];
-        $sessions = $this->sessionsRepository->getTableIA1SummaryFormTreatmentCategoryData($minDate, $maxDate, $fieldOfficeId);
+        $sessions = $this->sessionsRepository->getTableIA1SummaryFormTreatmentCategoryData(
+            $minDate,
+            $maxDate,
+            $fieldOfficeId
+        );
 
         if (count($sessions) < 1) {
             return [];
@@ -261,7 +276,10 @@ class TableIA1SummaryFormRegional implements Form
         $fsgClients = [];
         $clientsId = ['active_supervision' => [], 'others' => []];
         $clientSessions = $this->clientSessionsRepository->findBySessionIds($this->sessionIds);
-        $clientsIdUnderSupervision = $this->clientsRepository->findClientsIdUnderSupervisionPeriod($minMaxDate, $fieldOfficeId);
+        $clientsIdUnderSupervision = $this->clientsRepository->findClientsIdUnderSupervisionPeriod(
+            $minMaxDate,
+            $fieldOfficeId
+        );
 
         foreach ($clientSessions as $clientSession) {
             $clientId = (int) $clientSession['client_id'];
@@ -319,7 +337,7 @@ class TableIA1SummaryFormRegional implements Form
 
         $verticalAlignedCoordinates = ['A' . $this->lastFilledOutCellY . ':K' . $twoRowLastFilledOutCellY => 'center'];
 
-        $horizontalAlignedCoordinates = ['A' . $this->lastFilledOutCellY . ':K' . $twoRowLastFilledOutCellY => 'center'];
+        $horizontalAlignedCoordinates = ['A'.$this->lastFilledOutCellY . ':K' . $twoRowLastFilledOutCellY => 'center'];
 
         $adjustedColumnWidthCoordinates = [
             'A' => 15, 'B' => 15, 'C' => 15, 'E' => 15, 'F' => 15,
