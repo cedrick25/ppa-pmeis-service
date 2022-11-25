@@ -71,7 +71,7 @@ class ResMobSecuredByRepository extends ServiceEntityRepository
 
             ['type' => $type, 'name' => $name] = $this->convertData(
                 $result['type'],
-                $resMobId,
+                $result['secured_by_id'],
                 $users,
                 $volunteers,
                 $result['others_name']
