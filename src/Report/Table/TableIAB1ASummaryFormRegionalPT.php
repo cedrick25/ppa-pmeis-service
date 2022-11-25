@@ -111,7 +111,8 @@ class TableIAB1ASummaryFormRegionalPT implements Form
     public function header(): Spreadsheet
     {
         $spreadsheet = $this->prepare();
-        $spreadsheet->getActiveSheet()->getStyle('A7:AE10')->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
+        $spreadsheet->getActiveSheet()->getStyle('A7:AE10')
+            ->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
 
         return $spreadsheet;
     }

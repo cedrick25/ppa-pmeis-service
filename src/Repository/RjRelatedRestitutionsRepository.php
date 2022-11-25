@@ -9,8 +9,7 @@ use App\Common\CacheHelper;
 use App\Entity\RjRelatedRestitutions;
 use App\Model\RjRelatedRestitutions as RjRelatedRestitutionsModel;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
-use Doctrine\ORM\OptimisticLockException;
-use Doctrine\ORM\ORMException;
+use Doctrine\DBAL\Connection;
 use Doctrine\Persistence\ManagerRegistry;
 use Psr\Cache\CacheException;
 use Psr\Cache\InvalidArgumentException;
@@ -32,7 +31,7 @@ class RjRelatedRestitutionsRepository extends ServiceEntityRepository
         private CacheHelper $cacheHelper,
         private Helper $helper,
         private AppDateHelper $appDateHelper,
-    ){
+    ) {
         parent::__construct($registry, RjRelatedRestitutions::class);
     }
 
@@ -49,7 +48,7 @@ class RjRelatedRestitutionsRepository extends ServiceEntityRepository
             'cacheTag' => self::CACHE_TAG
         ];
 
-        return $this->helper->createCachedResponse($params, function() {
+        return $this->helper->createCachedResponse($params, function () {
             return $this->createQueryBuilder('rjrr')
                 ->where('rjrr.deletedAt IS NULL')
                 ->orderBy('rjrr.rjRelatedRestitutionId', 'DESC')
@@ -62,8 +61,6 @@ class RjRelatedRestitutionsRepository extends ServiceEntityRepository
      * @param RjRelatedRestitutionsModel $data
      * @return int|null
      * @throws InvalidArgumentException
-     * @throws ORMException
-     * @throws OptimisticLockException
      * @throws \Doctrine\DBAL\Exception\InvalidArgumentException
      * @throws \Exception
      */
@@ -83,7 +80,9 @@ class RjRelatedRestitutionsRepository extends ServiceEntityRepository
         $newRjRelatedRestitution->setBalance($data->getBalance());
         $newRjRelatedRestitution->setPaymentFormId($data->getPaymentFormId());
         $newRjRelatedRestitution->setPaymentModeId($data->getPaymentModeId());
-        $newRjRelatedRestitution->setPaymentDate($this->appDateHelper->convertStringToImmutableDate($data->getPaymentDate()));
+        $newRjRelatedRestitution->setPaymentDate(
+            $this->appDateHelper->convertStringToImmutableDate($data->getPaymentDate())
+        );
         $newRjRelatedRestitution->setPaymentAmount($data->getPaymentAmount());
         $newRjRelatedRestitution->setPaymentRecipient($data->getPaymentRecipient());
         $newRjRelatedRestitution->setRemittedTo($data->getRemittedTo());
@@ -99,33 +98,31 @@ class RjRelatedRestitutionsRepository extends ServiceEntityRepository
 
     /**
      * @throws InvalidArgumentException
-     * @throws ORMException
      */
     public function delete(int $id): bool
     {
-        $RJRelatedRestitutions = $this->isExistingById($id);
-        if (! $RJRelatedRestitutions) {
+        $entity = $this->isExistingById($id);
+
+        if (! $entity) {
             return false;
         }
 
         $this->cache->invalidateTags([self::CACHE_TAG]);
 
-        $this->getEntityManager()->remove($RJRelatedRestitutions);
+        $this->getEntityManager()->remove($entity);
         $this->getEntityManager()->flush();
 
         return true;
     }
 
     /**
-     * @throws OptimisticLockException
-     * @throws ORMException
      * @throws InvalidArgumentException
      */
     public function softDelete(int $id): bool
     {
-        $RJRelatedRestitution =$this->isExistingById($id);
+        $entity =$this->isExistingById($id);
 
-        if ($RJRelatedRestitution == null) {
+        if ($entity == null) {
             return false;
         }
 
@@ -133,7 +130,7 @@ class RjRelatedRestitutionsRepository extends ServiceEntityRepository
 
         $this->cache->invalidateTags([self::CACHE_TAG]);
 
-        $RJRelatedRestitution->setDeletedAt($this->appDateHelper->getCurrentImmutableDate());
+        $entity->setDeletedAt($this->appDateHelper->getCurrentImmutableDate());
 
         $this->getEntityManager()->flush();
 
@@ -142,12 +139,12 @@ class RjRelatedRestitutionsRepository extends ServiceEntityRepository
 
     public function isExistingById(int $id): bool | RjRelatedRestitutions
     {
-        $RJRelatedRestitution = $this->findOneBy([
+        $entity = $this->findOneBy([
             'rjRelatedRestitutionId' => $id,
             'deletedAt' => null
         ]);
 
-        return ($RJRelatedRestitution == null) ? false : $RJRelatedRestitution;
+        return ($entity == null) ? false : $entity;
     }
 
     /**
@@ -161,10 +158,10 @@ class RjRelatedRestitutionsRepository extends ServiceEntityRepository
             'cacheTag' => self::CACHE_TAG
         ];
 
-        return $this->helper->createCachedResponseCustomQuery($params, function() use($quarterId, $fieldOfficeId) {
+        return $this->helper->createCachedResponseCustomQuery($params, function () use ($quarterId, $fieldOfficeId) {
             $conn = $this->getEntityManager()->getConnection();
-            $sql = "SELECT rjrr.*, c.first_name, c.middle_name, c.last_name, c.gender, o.name as offense, pf.name as payment_form, pm.name as payment_mode
-                    FROM rj_related_restitutions as rjrr " .
+            $sql = "SELECT rjrr.*, c.first_name, c.middle_name, c.last_name, c.gender, o.name as offense,
+                    pf.name as payment_form, pm.name as payment_mode FROM rj_related_restitutions as rjrr " .
                 "LEFT JOIN clients as c ON rjrr.client_id = c.client_id " .
                 "LEFT JOIN offenses as o ON rjrr.offense_id = o.offenses_id " .
                 "LEFT JOIN payment_forms as pf ON rjrr.payment_form_id = pf.payment_form_id " .
@@ -176,5 +173,32 @@ class RjRelatedRestitutionsRepository extends ServiceEntityRepository
 
             return $query->fetchAllAssociative();
         });
+    }
+
+    public function findByFieldOfficesId(int $quarterId, array $fieldOfficesId): array
+    {
+        $response = [];
+        $results = $this->getEntityManager()->getConnection()
+            ->executeQuery(
+                "SELECT * FROM rj_related_restitutions rrr WHERE rrr.field_office_id IN (:fieldOfficesId)
+                        AND rrr.quarter_id = :quarterId",
+                [
+                    'fieldOfficesId' => $fieldOfficesId,
+                    'quarterId' => $quarterId,
+                ],
+                ['fieldOfficesId' => Connection::PARAM_INT_ARRAY],
+            )->fetchAllAssociative();
+
+        foreach ($results as $result) {
+            $fieldOfficeId = $result['field_office_id'];
+
+            if (! isset($response[$fieldOfficeId])) {
+                $response[$fieldOfficeId] = [];
+            }
+
+            $response[$fieldOfficeId][] = $result;
+        }
+
+        return $response;
     }
 }

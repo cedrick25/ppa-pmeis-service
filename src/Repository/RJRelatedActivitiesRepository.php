@@ -10,6 +10,7 @@ use App\Entity\RJRelatedActivities;
 use App\Enum\Response as ResponseEnum;
 use App\Model\RJRelatedActivities as RJRelatedActivitiesModel;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
+use Doctrine\DBAL\Connection;
 use Doctrine\ORM\OptimisticLockException;
 use Doctrine\ORM\ORMException;
 use Doctrine\Persistence\ManagerRegistry;
@@ -35,7 +36,7 @@ class RJRelatedActivitiesRepository extends ServiceEntityRepository
         private Helper                  $helper,
         private AppDateHelper           $appDateHelper,
         private RjRelatedActivitiesPersonsInvolvedRepository  $relatedActivitiesPersonsInvolvedRepository,
-    ){
+    ) {
         parent::__construct($registry, RJRelatedActivities::class);
     }
 
@@ -51,9 +52,10 @@ class RJRelatedActivitiesRepository extends ServiceEntityRepository
             'cacheTag' => self::CACHE_TAG
         ];
 
-        return $this->helper->createCachedResponse($params, function() {
+        return $this->helper->createCachedResponse($params, function () {
             $conn = $this->getEntityManager()->getConnection();
-            $sql = "SELECT rjra.*, c.first_name, c.middle_name, c.last_name, o.name as offense FROM rjrelated_activities as rjra 
+            $sql = "SELECT rjra.*, c.first_name, c.middle_name, c.last_name, o.name as offense
+                        FROM rjrelated_activities as rjra
                     LEFT JOIN clients as c ON rjra.client_id = c.client_id
                     LEFT JOIN offenses o on rjra.offense_id = o.offenses_id";
 
@@ -69,8 +71,6 @@ class RJRelatedActivitiesRepository extends ServiceEntityRepository
      * @return int|null
      * @throws InvalidArgumentException
      * @throws \Doctrine\DBAL\Exception\InvalidArgumentException
-     * @throws ORMException
-     * @throws OptimisticLockException
      * @throws Exception
      */
     public function create(RJRelatedActivitiesModel $data): int | null
@@ -105,33 +105,30 @@ class RJRelatedActivitiesRepository extends ServiceEntityRepository
 
     /**
      * @throws InvalidArgumentException
-     * @throws ORMException
      */
     public function delete(int $id): bool
     {
-        $RJRelatedActivities = $this->isExistingById($id);
-        if (! $RJRelatedActivities) {
+        $entity = $this->isExistingById($id);
+        if (! $entity) {
             return false;
         }
 
         $this->cache->invalidateTags([self::CACHE_TAG]);
 
-        $this->getEntityManager()->remove($RJRelatedActivities);
+        $this->getEntityManager()->remove($entity);
         $this->getEntityManager()->flush();
 
         return true;
     }
 
     /**
-     * @throws OptimisticLockException
-     * @throws ORMException
      * @throws InvalidArgumentException
      */
     public function softDelete(int $id): bool
     {
-        $RJRelatedActivity =$this->isExistingById($id);
+        $entity = $this->isExistingById($id);
 
-        if ($RJRelatedActivity == null) {
+        if ($entity == null) {
             return false;
         }
 
@@ -139,7 +136,7 @@ class RJRelatedActivitiesRepository extends ServiceEntityRepository
 
         $this->cache->invalidateTags([self::CACHE_TAG]);
 
-        $RJRelatedActivity->setDeletedAt($this->appDateHelper->getCurrentImmutableDate());
+        $entity->setDeletedAt($this->appDateHelper->getCurrentImmutableDate());
 
         $this->getEntityManager()->flush();
 
@@ -148,12 +145,12 @@ class RJRelatedActivitiesRepository extends ServiceEntityRepository
 
     public function isExistingById(int $id): bool | RJRelatedActivities
     {
-        $RJRelatedActivities = $this->findOneBy([
+        $entity = $this->findOneBy([
             'rjRelatedActivityId' => $id,
             'deletedAt' => null
         ]);
 
-        return ($RJRelatedActivities == null) ? false : $RJRelatedActivities;
+        return ($entity == null) ? false : $entity;
     }
 
     /**
@@ -169,7 +166,8 @@ class RJRelatedActivitiesRepository extends ServiceEntityRepository
 
         return $this->helper->createCachedResponseCustomQuery($params, function() use($quarterId, $fieldOfficeId) {
             $conn = $this->getEntityManager()->getConnection();
-            $sql = "SELECT rjra.*, c.first_name, c.middle_name, c.last_name, c.gender, c.is_pwd, c.is_senior_citizen ,o.name as offense, rjp.name as rj_process, v.name as venue, rjo.name as outcome
+            $sql = "SELECT rjra.*, c.first_name, c.middle_name, c.last_name, c.gender, c.is_pwd, c.is_senior_citizen,
+                        o.name as offense, rjp.name as rj_process, v.name as venue, rjo.name as outcome
                     FROM rjrelated_activities as rjra
                 LEFT JOIN clients as c ON rjra.client_id = c.client_id
                 LEFT JOIN offenses as o ON rjra.offense_id = o.offenses_id
@@ -183,7 +181,8 @@ class RJRelatedActivitiesRepository extends ServiceEntityRepository
             $data = [];
             $results = $query->fetchAllAssociative();
             foreach ($results as $result) {
-                $result['persons_involved'] = $this->relatedActivitiesPersonsInvolvedRepository->getVolunteersByRelatedActivityId((int) $result['rj_related_activity_id']);
+                $result['persons_involved'] = $this->relatedActivitiesPersonsInvolvedRepository
+                    ->getVolunteersByRelatedActivityId((int) $result['rj_related_activity_id']);
                 $data[] = $result;
             }
 
@@ -233,15 +232,42 @@ class RJRelatedActivitiesRepository extends ServiceEntityRepository
         return ResponseEnum::OK;
     }
 
+    public function findByFieldOfficesId(int $quarterId, array $fieldOfficesId): array
+    {
+        $response = [];
+        $results = $this->getEntityManager()->getConnection()
+            ->executeQuery(
+                "SELECT * FROM rjrelated_activities ra WHERE ra.field_office_id IN (:fieldOfficesId)
+                        AND ra.quarter_id = :quarterId",
+                [
+                    'fieldOfficesId' => $fieldOfficesId,
+                    'quarterId' => $quarterId,
+                ],
+                ['fieldOfficesId' => Connection::PARAM_INT_ARRAY],
+            )->fetchAllAssociative();
+
+        foreach ($results as $result) {
+            $fieldOfficeId = $result['field_office_id'];
+
+            if (! isset($response[$fieldOfficeId])) {
+                $response[$fieldOfficeId] = [];
+            }
+
+            $response[$fieldOfficeId][] = $result;
+        }
+
+        return $response;
+    }
+
     private function isExisting(RJRelatedActivitiesModel $data): bool | RJRelatedActivities
     {
-        $RJRelatedActivities = $this->findOneBy([
+        $entity = $this->findOneBy([
             'clientId' => $data->getClientId(),
             'quarterId' => $data->getQuarterId(),
             'fieldOfficeId' => $data->getFieldOfficeId(),
             'deletedAt' => null
         ]);
 
-        return ($RJRelatedActivities == null) ? false : $RJRelatedActivities;
+        return ($entity == null) ? false : $entity;
     }
 }

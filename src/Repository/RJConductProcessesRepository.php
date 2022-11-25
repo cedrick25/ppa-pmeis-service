@@ -10,6 +10,7 @@ use App\Enum\Response as ResponseEnum;
 use App\Model\RJConductProcesses as RJConductProcessesModel;
 use App\Entity\RJConductProcesses;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
+use Doctrine\DBAL\Connection;
 use Doctrine\ORM\OptimisticLockException;
 use Doctrine\ORM\ORMException;
 use Doctrine\Persistence\ManagerRegistry;
@@ -34,7 +35,7 @@ class RJConductProcessesRepository extends ServiceEntityRepository
         private CacheHelper $cacheHelper,
         private Helper $helper,
         private AppDateHelper $appDateHelper,
-    ){
+    ) {
         parent::__construct($registry, RJConductProcesses::class);
     }
 
@@ -51,7 +52,7 @@ class RJConductProcessesRepository extends ServiceEntityRepository
             'cacheTag' => self::CACHE_TAG
         ];
 
-        return $this->helper->createCachedResponse($params, function() {
+        return $this->helper->createCachedResponse($params, function () {
             return $this->createQueryBuilder('p')
                 ->where('p.deletedAt IS NULL')
                 ->orderBy('p.rjConductProcessId', 'DESC')
@@ -62,7 +63,6 @@ class RJConductProcessesRepository extends ServiceEntityRepository
 
     /**
      * @throws InvalidArgumentException
-     * @throws ORMException
      * @throws \Doctrine\DBAL\Exception\InvalidArgumentException
      * @throws Exception
      */
@@ -96,33 +96,31 @@ class RJConductProcessesRepository extends ServiceEntityRepository
 
     /**
      * @throws InvalidArgumentException
-     * @throws ORMException
      */
     public function delete(int $id): bool
     {
-        $RJConductProcesses = $this->isExistingById($id);
-        if (! $RJConductProcesses) {
+        $entity = $this->isExistingById($id);
+
+        if (! $entity) {
             return false;
         }
 
         $this->cache->invalidateTags([self::CACHE_TAG]);
 
-        $this->getEntityManager()->remove($RJConductProcesses);
+        $this->getEntityManager()->remove($entity);
         $this->getEntityManager()->flush();
 
         return true;
     }
 
     /**
-     * @throws OptimisticLockException
-     * @throws ORMException
      * @throws InvalidArgumentException
      */
     public function softDelete(int $id): bool
     {
-        $RJConductProcesses =$this->isExistingById($id);
+        $entity =$this->isExistingById($id);
 
-        if ($RJConductProcesses == null) {
+        if ($entity == null) {
             return false;
         }
 
@@ -130,7 +128,7 @@ class RJConductProcessesRepository extends ServiceEntityRepository
 
         $this->cache->invalidateTags([self::CACHE_TAG]);
 
-        $RJConductProcesses->setDeletedAt($this->appDateHelper->getCurrentImmutableDate());
+        $entity->setDeletedAt($this->appDateHelper->getCurrentImmutableDate());
 
         $this->getEntityManager()->flush();
 
@@ -139,12 +137,12 @@ class RJConductProcessesRepository extends ServiceEntityRepository
 
     public function isExistingById(int $id): bool | RJConductProcesses
     {
-        $RJConductProcesses = $this->findOneBy([
+        $entity = $this->findOneBy([
             'rjConductProcessId' => $id,
             'deletedAt' => null
         ]);
 
-        return ($RJConductProcesses == null) ? false : $RJConductProcesses;
+        return ($entity == null) ? false : $entity;
     }
 
     /**
@@ -196,9 +194,13 @@ class RJConductProcessesRepository extends ServiceEntityRepository
         $entity->setFieldOfficeId($data->getFieldOfficeId());
         $entity->setOffenseId($data->getOffenseId());
         $entity->setPeVenueId($data->getPeVenueId());
-        $entity->setPeDate($this->appDateHelper->convertStringToImmutableDate($data->getPeDate()));
+        $entity->setPeDate(
+            $this->appDateHelper->convertStringToImmutableDate($data->getPeDate())
+        );
         $entity->setPeActivity($data->getPeActivity());
-        $entity->setRjpDate($this->appDateHelper->convertStringToImmutableDate($data->getRjpDate()));
+        $entity->setRjpDate(
+            $this->appDateHelper->convertStringToImmutableDate($data->getRjpDate())
+        );
         $entity->setRjpId($data->getRjpId());
         $entity->setRjpVenueId($data->getRjpVenueId());
         $entity->setRjpsId($data->getRjpsId());
@@ -227,5 +229,32 @@ class RJConductProcessesRepository extends ServiceEntityRepository
         );
 
         return $query->fetchAllAssociative();
+    }
+
+    public function findByFieldOfficesId(int $quarterId, array $fieldOfficesId): array
+    {
+        $response = [];
+        $results = $this->getEntityManager()->getConnection()
+            ->executeQuery(
+                "SELECT * FROM rjconduct_processes rp WHERE rp.field_office_id IN (:fieldOfficesId)
+                        AND rp.quarter_id = :quarterId ",
+                [
+                    'fieldOfficesId' => $fieldOfficesId,
+                    'quarterId' => $quarterId,
+                ],
+                ['fieldOfficesId' => Connection::PARAM_INT_ARRAY],
+            )->fetchAllAssociative();
+
+        foreach ($results as $result) {
+            $fieldOfficeId = $result['field_office_id'];
+
+            if (! isset($response[$fieldOfficeId])) {
+                $response[$fieldOfficeId] = [];
+            }
+
+            $response[$fieldOfficeId][] = $result;
+        }
+
+        return $response;
     }
 }
