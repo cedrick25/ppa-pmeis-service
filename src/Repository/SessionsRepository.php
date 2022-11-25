@@ -737,7 +737,6 @@ class SessionsRepository extends ServiceEntityRepository
 
     /**
      * @throws \Doctrine\DBAL\Exception
-     * @throws \Doctrine\DBAL\Driver\Exception
      */
     public function duplicate(int $id): string
     {
@@ -755,7 +754,6 @@ class SessionsRepository extends ServiceEntityRepository
     }
 
     /**
-     * @throws \Doctrine\DBAL\Driver\Exception
      * @throws \Doctrine\DBAL\Exception
      */
     public function fetchTC1FieldOfficeSummary(string $minDate, string $maxDate, int $fieldOfficeId): ?array
@@ -791,6 +789,28 @@ class SessionsRepository extends ServiceEntityRepository
             )->fetchAllAssociative();
     }
 
+    public function getTableIA1SummaryFormTreatmentCategoriesData(
+        string $minDate,
+        string $maxDate,
+        array $fieldOfficesId
+    ): array {
+        return $this->getEntityManager()->getConnection()
+            ->executeQuery(
+                "SELECT s.session_id, tc.name as treatment_category, p.name as phase, s.field_office_id
+                        FROM sessions as s
+                    LEFT JOIN treatment_categories as tc ON s.treatment_category_id = tc.treatment_category_id
+                    LEFT JOIN phases p on s.phase_id = p.phase_id
+                    WHERE s.date BETWEEN CAST(:minDate AS DATE) AND CAST(:maxDate AS DATE)
+                    AND s.field_office_id IN (:fieldOfficesId)",
+                [
+                    'minDate' => $minDate,
+                    'maxDate' => $maxDate,
+                    'fieldOfficesId' => $fieldOfficesId,
+                ],
+                ['fieldOfficesId' => Connection::PARAM_INT_ARRAY]
+            )->fetchAllAssociative();
+    }
+
     public function getTableIA1SummaryFormTreatmentCategoryDataRegional(string $minDate, string $maxDate, string $fieldOfficeIds): array
     {
         $conn = $this->getEntityManager()->getConnection();
@@ -813,6 +833,21 @@ class SessionsRepository extends ServiceEntityRepository
                     LEFT JOIN session_activities sa on s.session_activity_id = sa.session_activity_id
                     WHERE s.session_id IN (:sessionIds)",
                 ['sessionIds' => $ids],
+                ['sessionIds' => Connection::PARAM_INT_ARRAY]
+            )->fetchAllAssociative();
+    }
+
+    public function getVpaFacilitatorsByIds(array $ids)
+    {
+        return $this->getEntityManager()->getConnection()
+            ->executeQuery(
+                "SELECT s.field_office_id, rfs.resource_facilitator_id FROM sessions s
+                    LEFT JOIN resource_facilitator_session rfs on s.session_id = rfs.session_id
+                    WHERE s.session_id IN (:sessionIds) AND rfs.resource_facilitator_type = :type",
+                [
+                    'sessionIds' => $ids,
+                    'type' => 'VPA'
+                ],
                 ['sessionIds' => Connection::PARAM_INT_ARRAY]
             )->fetchAllAssociative();
     }

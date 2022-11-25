@@ -289,10 +289,11 @@ class ClientSessionsRepository extends ServiceEntityRepository
         return $this->getEntityManager()->getConnection()
             ->executeQuery(
                 "SELECT cs.*, cr.name as client_remarks, s.trees_planted, c.offense_category, c.gender, c.is_pwd,
-                        c.is_senior_citizen, p.name as phase, ct.description as client_type FROM client_sessions cs
+                        c.is_senior_citizen, p.name as phase, ct.description as client_type, s.field_office_id
+                    FROM client_sessions cs
                     LEFT JOIN clients c on cs.client_id = c.client_id
                     LEFT JOIN client_remarks cr on c.client_remarks_id = cr.client_remarks_id
-                    LEFT JOIN pmeis.sessions s on cs.session_id = s.session_id
+                    LEFT JOIN sessions s on cs.session_id = s.session_id
                     LEFT JOIN phases p on s.phase_id = p.phase_id
                     LEFT JOIN client_types ct on c.client_type_id = ct.client_type_id
                     WHERE cs.session_id IN (:sessionIds)",

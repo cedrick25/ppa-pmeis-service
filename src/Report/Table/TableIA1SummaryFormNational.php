@@ -212,13 +212,17 @@ class TableIA1SummaryFormNational implements Form
         $fieldOffices = $this->fieldOfficesRepository->findBy(['regionId' => $regionId]);
 
         foreach ($fieldOffices as $fieldOffice) {
-            $treatmentCategoryTotal = $this->getTreatmentCategoriesData($minMaxDate['min'], $minMaxDate['max'], $fieldOffice->getFieldOfficeId());
+            $treatmentCategoryTotal = $this->getTreatmentCategoriesData(
+                $minMaxDate['min'],
+                $minMaxDate['max'],
+                $fieldOffice->getFieldOfficeId()
+            );
 
             if (count($treatmentCategoryTotal) < 1) {
                 continue;
             }
 
-            $clientSessionsData = $this->getClientSessionsData($minMaxDate, $fieldOffice->getFieldOfficeId());
+            $clientSessionsData = $this->getClientSessionsData();
 
             $data[$fieldOffice->getName()] = [
                 'treatment_categories' => $treatmentCategoryTotal,
@@ -234,9 +238,10 @@ class TableIA1SummaryFormNational implements Form
     private function getTreatmentCategoriesData(string $minDate, string $maxDate, int $fieldOfficeId): array
     {
         $treatmentCategoryTotal = ['MTCS' => ['Total' => 0], 'RA' => ['Total' => 0]];
-        $sessions = $this->sessionsRepository->getTableIA1SummaryFormTreatmentCategoryData($minDate, $maxDate, $fieldOfficeId);
+        $sessions = $this->sessionsRepository
+            ->getTableIA1SummaryFormTreatmentCategoryData($minDate, $maxDate, $fieldOfficeId);
 
-        if (count($sessions) < 1) {
+        if (empty($sessions)) {
             return [];
         }
 
@@ -256,20 +261,19 @@ class TableIA1SummaryFormNational implements Form
         return $treatmentCategoryTotal;
     }
 
-    private function getClientSessionsData(array $minMaxDate, int $fieldOfficeId): array
+    private function getClientSessionsData(): array
     {
         $fsgClients = [];
         $clientsId = ['active_supervision' => [], 'others' => []];
         $clientSessions = $this->clientSessionsRepository->findBySessionIds($this->sessionIds);
-        $clientsIdUnderSupervision = $this->clientsRepository->findClientsIdUnderSupervisionPeriod($minMaxDate, $fieldOfficeId);
 
         foreach ($clientSessions as $clientSession) {
             $clientId = (int) $clientSession['client_id'];
 
-            if (in_array($clientId, $clientsIdUnderSupervision)) {
-                $clientsId['active_supervision'][] = $clientId;
-            } else {
+            if ('Pet' == $clientSession['role'] || 'Term' == $clientSession['role']) {
                 $clientsId['others'][] = $clientId;
+            } else {
+                $clientsId['active_supervision'][] = $clientId;
             }
 
             if (intval($clientSession['fsi'])) {

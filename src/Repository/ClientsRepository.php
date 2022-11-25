@@ -374,7 +374,6 @@ class ClientsRepository extends ServiceEntityRepository
      * @param string[] $minMaxDate
      * @param int $fieldOfficeId
      * @return int[]
-     * @throws \Doctrine\DBAL\Driver\Exception
      * @throws \Doctrine\DBAL\Exception
      */
     public function findClientsIdUnderSupervisionPeriod(array $minMaxDate, int $fieldOfficeId): array

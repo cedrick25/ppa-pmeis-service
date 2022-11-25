@@ -221,7 +221,7 @@ class TableIA1SummaryForm implements Form
             $minMaxDate['max'],
             $fieldOfficeId
         );
-        $clientSessionsData = $this->getClientSessionsData($minMaxDate, $fieldOfficeId);
+        $clientSessionsData = $this->getClientSessionsData();
         $tca1Part2 = $this->sessionsRepository->fetchTCA1Part2($fieldOfficeId, $quarterData);
         $vpa = $this->extractVpa($tca1Part2);
         $sessions = $this->sessionsRepository->findWithActivitiesByIds($this->sessionIds);
@@ -269,10 +269,9 @@ class TableIA1SummaryForm implements Form
     }
 
     /**
-     * @throws \Doctrine\DBAL\Driver\Exception
      * @throws \Doctrine\DBAL\Exception
      */
-    private function getClientSessionsData(array $minMaxDate, int $fieldOfficeId): array
+    private function getClientSessionsData(): array
     {
         $fsgClients = [];
         $clientsId = ['active_supervision' => [], 'others' => []];
@@ -283,16 +282,14 @@ class TableIA1SummaryForm implements Form
             ];
         }
         $clientSessions = $this->clientSessionsRepository->findBySessionIds($this->sessionIds);
-        $clientsIdUnderSupervision = $this->clientsRepository
-            ->findClientsIdUnderSupervisionPeriod($minMaxDate, $fieldOfficeId);
 
         foreach ($clientSessions as $clientSession) {
             $clientId = (int) $clientSession['client_id'];
 
-            if (in_array($clientId, $clientsIdUnderSupervision)) {
-                $clientsId['active_supervision'][] = $clientId;
-            } else {
+            if ('Pet' == $clientSession['role'] || 'Term' == $clientSession['role']) {
                 $clientsId['others'][] = $clientId;
+            } else {
+                $clientsId['active_supervision'][] = $clientId;
             }
 
             if (intval($clientSession['fsi'])) {

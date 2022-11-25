@@ -46,7 +46,6 @@ class ResourceFacilitatorSessionRepository extends ServiceEntityRepository
     /**
      * @throws \Doctrine\DBAL\Exception\InvalidArgumentException
      * @throws InvalidArgumentException
-     * @throws ORMException
      */
     public function create(ResourceFacilitatorSessionModel $resourceFacilitatorSessionData): int | null
     {
@@ -71,8 +70,6 @@ class ResourceFacilitatorSessionRepository extends ServiceEntityRepository
      * @param int $sessionId
      * @param array<string, mixed> $facilitators
      * @throws \Doctrine\DBAL\Exception\InvalidArgumentException
-     * @throws ORMException
-     * @throws MappingException
      * @throws InvalidArgumentException
      */
     public function batchCreate(int $sessionId, array $facilitators): void
@@ -101,7 +98,6 @@ class ResourceFacilitatorSessionRepository extends ServiceEntityRepository
     }
 
     /**
-     * @throws \Doctrine\DBAL\Driver\Exception
      * @throws \Doctrine\DBAL\Exception
      */
     public function deleteBySessionId(int $sessionId): void
@@ -205,7 +201,6 @@ class ResourceFacilitatorSessionRepository extends ServiceEntityRepository
 
     /**
      * @throws InvalidArgumentException
-     * @throws ORMException
      */
     public function delete(int $id): bool
     {
