@@ -14,6 +14,7 @@ class TechnicalAssistance implements \JsonSerializable
         private string $date,
         private string $venue,
         private int $fieldOfficeId,
+        private array $assistanceType,
         private ?string $remarks = null,
         private ?array $participants = [],
         private ?array $personsInvolved = [],
@@ -64,6 +65,14 @@ class TechnicalAssistance implements \JsonSerializable
     public function getFieldOfficeId(): int
     {
         return $this->fieldOfficeId;
+    }
+
+    /**
+     * @return array
+     */
+    public function getAssistanceType(): array
+    {
+        return $this->assistanceType;
     }
 
     /**

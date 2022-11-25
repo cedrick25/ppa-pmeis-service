@@ -31,7 +31,7 @@ class TechnicalAssistancePersonsInvolvedRepository extends ServiceEntityReposito
     {
         foreach ($personsInvolved as $personInvolved) {
             $type = $personInvolved['type']['value'];
-            $role = $personInvolved['role']['value'];
+            $role = $personInvolved['role'];
             $id = 'others' === $type ? 0 : (int) $personInvolved['id']['value'];
 
             $entity = new TechnicalAssistancePersonsInvolved();
@@ -178,10 +178,7 @@ class TechnicalAssistancePersonsInvolvedRepository extends ServiceEntityReposito
 
         return [
             'type' => $type,
-            'role' => [
-                'label' => $role,
-                'value' => $role,
-            ],
+            'role' => $role,
             'name' => $name
         ];
     }

@@ -109,6 +109,7 @@ class TechnicalAssistanceRepository extends ServiceEntityRepository
         $entity->setDate($this->appDateHelper->convertStringToImmutableDate($data->getDate()));
         $entity->setVenue($data->getVenue());
         $entity->setFieldOfficeId($data->getFieldOfficeId());
+        $entity->setAssistanceType($data->getAssistanceType()['value']);
         $entity->setRemarks($data->getRemarks());
         $entity->setCreatedAt($this->appDateHelper->getCurrentImmutableDate());
 
@@ -201,6 +202,7 @@ class TechnicalAssistanceRepository extends ServiceEntityRepository
         $entity->setDate($this->appDateHelper->convertStringToImmutableDate($data->getDate()));
         $entity->setVenue($data->getVenue());
         $entity->setFieldOfficeId($data->getFieldOfficeId());
+        $entity->setAssistanceType($data->getAssistanceType()['value']);
         $entity->setRemarks($data->getRemarks());
         $entity->setUpdatedAt($this->appDateHelper->getCurrentImmutableDate());
 

@@ -116,6 +116,10 @@ class TechnicalAssistance implements TechnicalAssistanceInterface
 
             foreach ($results['items'] as $i => $item) {
                 $technicalAssistanceId = $item['id'];
+                $results['items'][$i]['assistance_type'] = [
+                    'label' => $item['assistance_type'],
+                    'value' => $item['assistance_type'],
+                ];
                 $results['items'][$i]['participants'] = $participants[$technicalAssistanceId];
                 $results['items'][$i]['personInvolved'] = $personInvolved[$technicalAssistanceId];
             }
@@ -138,6 +142,10 @@ class TechnicalAssistance implements TechnicalAssistanceInterface
             return $this->appFormatter->formatResponse(ResponseEnum::NO_DATA, null);
         }
 
+        $technicalAssistance['assistance_type'] = [
+            'label' => $technicalAssistance['assistance_type'],
+            'value' => $technicalAssistance['assistance_type'],
+        ];
         $technicalAssistance['participants'] = $this->participantsRepository
             ->findByTechnicalAssistanceId([$id])[$id];
         $technicalAssistance['personsInvolved'] = $this->technicalAssistancePersonsInvolvedRepository
