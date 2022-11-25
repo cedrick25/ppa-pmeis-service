@@ -10,7 +10,7 @@ use App\Repository\RegionsRepository;
 use App\Repository\FieldOfficesRepository;
 use App\Repository\QuartersRepository;
 use App\Repository\SessionsRepository;
-use App\Service\Volunteerism\SocialMarketing;
+use App\Service\Volunteerism\JailDecongestion;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Style\Border;
@@ -23,8 +23,9 @@ class TableVIA1National implements Form
 
 
     public function __construct(
-        private SocialMarketing             $service,
+        private JailDecongestion            $service,
         private RegionsRepository           $regionsRepository,
+        private FieldOfficesRepository      $fieldOfficesRepository,
         private QuartersRepository          $quartersRepository,
         private SessionsRepository          $sessionsRepository,
         private ClientSessionsRepository    $clientSessionsRepository,
@@ -76,59 +77,97 @@ class TableVIA1National implements Form
         $spreadsheet = $this->header();
 
         $count = 0;
-        // $count = $this->data ? count($this->data['rows']) : 0;
-        // foreach ($this->data['rows'] as $v) {
-        // }
+
+        $result = $this->data;
 
         if ($this->regions) {
             $ctr = 9;
-            $totals = [
-                'B' => 0,
-                'C' => 0,
-                'D' => 0,
-                'E' => 0,
+
+            $total = [
+                'jail'        => 0,
+                'office'      => 0,
+                'probation'   => 0,
+                'clemency'    => 0,
+                'pao'         => 0,
+                'prosecution' => 0,
+                'others'      => 0,
+                'msec'        => 0,
+                'release'     => 0,
             ];
 
             foreach ($this->regions as $k => $v) {
                 $index = ($ctr + $k);
 
-                $result = $this->data;
+                $jailDecongestion = [
+                    'jail'        => 0,
+                    'office'      => 0,
+                    'probation'   => 0,
+                    'clemency'    => 0,
+                    'pao'         => 0,
+                    'prosecution' => 0,
+                    'others'      => 0,
+                    'msec'        => 0,
+                    'release'     => 0,
+                ];
 
-                $pao = 0;
-                $others = 0;
-        
-                if ($result['rows'][$k]) {
-                    foreach ($result['rows'][$k][0] as $v1) {
-                        switch($v1['social_marketing_activity_id']) {
-                            case 3:
-                                $pao++;
-                                break;
-                            case 4:
-                                $others++;
-                                break;
+                if ($result['rows']) {
+                    if ($result['rows'][$v->getRegionId()]) {
+                        foreach ($result['rows'][$v->getRegionId()] as $fieldOffice) {
+                            foreach ($fieldOffice as $v1) {
+                                if ($v1['jail_venue']) {
+                                    $jailDecongestion['jail'] += 1;
+                                    $total['jail'] += 1;
+                                }  
+                
+                                if ($v1['jail_office']) {
+                                    $jailDecongestion['office'] += 1;
+                                    $total['office'] += 1;
+                                } 
+                
+                                $jailDecongestion['probation']   += $v1['probation'];
+                                $jailDecongestion['clemency']    += $v1['clemency'];
+                                $jailDecongestion['pao']         += $v1['referral_pao'];
+                                $jailDecongestion['prosecution'] += $v1['referral_prosecution'];
+                                $jailDecongestion['others']      += $v1['referral_others'];
+                                $jailDecongestion['msec']        += $v1['gcta'];
+                                $jailDecongestion['release']     += $v1['recognizance'];
+
+                                $total['probation']   += $v1['probation'];
+                                $total['clemency']    += $v1['clemency'];
+                                $total['pao']         += $v1['referral_pao'];
+                                $total['prosecution'] += $v1['referral_prosecution'];
+                                $total['others']      += $v1['referral_others'];
+                                $total['msec']        += $v1['gcta'];
+                                $total['release']     += $v1['recognizance'];
+                            }
                         }
                     }
                 }
 
                 $spreadsheet->getActiveSheet()->setCellValue('A' . $index, $v->getName());
-                $spreadsheet->getActiveSheet()->setCellValue('B' . $index, $pao);
-                $spreadsheet->getActiveSheet()->setCellValue('C' . $index, $pao);
-                $spreadsheet->getActiveSheet()->setCellValue('D' . $index, $pao);
-                $spreadsheet->getActiveSheet()->setCellValue('E' . $index, $pao);
-
-                $totals['B'] += $pao;
-                $totals['C'] += $pao;
-                $totals['D'] += $pao;
-                $totals['E'] += $pao;
+                $spreadsheet->getActiveSheet()->setCellValue('B' . $index, $jailDecongestion['jail']);
+                $spreadsheet->getActiveSheet()->setCellValue('C' . $index, $jailDecongestion['office']);
+                $spreadsheet->getActiveSheet()->setCellValue('D' . $index, $jailDecongestion['probation']);
+                $spreadsheet->getActiveSheet()->setCellValue('E' . $index, $jailDecongestion['clemency']);
+                $spreadsheet->getActiveSheet()->setCellValue('F' . $index, $jailDecongestion['pao']);
+                $spreadsheet->getActiveSheet()->setCellValue('G' . $index, $jailDecongestion['prosecution']);
+                $spreadsheet->getActiveSheet()->setCellValue('H' . $index, $jailDecongestion['others']);
+                $spreadsheet->getActiveSheet()->setCellValue('I' . $index, $jailDecongestion['msec']);
+                $spreadsheet->getActiveSheet()->setCellValue('J' . $index, $jailDecongestion['release']);
             }
 
             $totalIndex = $ctr + count($this->regions);
 
             $spreadsheet->getActiveSheet()->setCellValue('A' . $totalIndex, 'TOTAL');
-            $spreadsheet->getActiveSheet()->setCellValue('B' . $totalIndex, $totals['B']);
-            $spreadsheet->getActiveSheet()->setCellValue('C' . $totalIndex, $totals['C']);
-            $spreadsheet->getActiveSheet()->setCellValue('D' . $totalIndex, $totals['D']);
-            $spreadsheet->getActiveSheet()->setCellValue('E' . $totalIndex, $totals['E']);
+            $spreadsheet->getActiveSheet()->setCellValue('B' . $totalIndex, $total['jail']);
+            $spreadsheet->getActiveSheet()->setCellValue('C' . $totalIndex, $total['office']);
+            $spreadsheet->getActiveSheet()->setCellValue('D' . $totalIndex, $total['probation']);
+            $spreadsheet->getActiveSheet()->setCellValue('E' . $totalIndex, $total['clemency']);
+            $spreadsheet->getActiveSheet()->setCellValue('F' . $totalIndex, $total['pao']);
+            $spreadsheet->getActiveSheet()->setCellValue('G' . $totalIndex, $total['prosecution']);
+            $spreadsheet->getActiveSheet()->setCellValue('H' . $totalIndex, $total['others']);
+            $spreadsheet->getActiveSheet()->setCellValue('I' . $totalIndex, $total['msec']);
+            $spreadsheet->getActiveSheet()->setCellValue('J' . $totalIndex, $total['release']);
         }
 
         return $spreadsheet;
@@ -261,22 +300,24 @@ class TableVIA1National implements Form
     private function getData(array $data): array
     {
         $this->quarters = $this->quartersRepository->find($data['quarter_id']);
-        $this->regions  = $this->regionsRepository->list();
+        $this->regions = $this->regionsRepository->list();
 
-        $rows = [];
-        foreach ($this->regions as $v) {
-            $result = $this->service->getReport(
-                $data['quarter_id'],
-                1,
-                // $data['type'],
-                'MEETINGS_PARTICIPATIONS',
-            );
+        $result = [];
 
-            $rows[] = array_values($result['data'] ?? []);
+        foreach ($this->regions as $region) {
+            $result[$region->getRegionId()] = [];
+            $fieldOffices = $this->fieldOfficesRepository->findBy(['regionId' => $region->getRegionId()]);
+
+            foreach ($fieldOffices as $fieldOffice) {
+                $res = $this->service->getReport(
+                    $data['quarter_id'],
+                    $fieldOffice->getFieldOfficeId(),
+                );
+    
+                $result[$region->getRegionId()][$fieldOffice->getFieldOfficeId()] = $res['data'] ?? [];
+            }
         }
 
-
-        return ['rows' => $rows];
+        return ['rows' => $result];
     }
-
 }

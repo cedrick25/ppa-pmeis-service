@@ -10,7 +10,7 @@ use App\Repository\RegionsRepository;
 use App\Repository\FieldOfficesRepository;
 use App\Repository\QuartersRepository;
 use App\Repository\SessionsRepository;
-use App\Service\Volunteerism\SocialMarketing;
+use App\Service\Volunteerism\ResourceMobilization;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Style\Border;
@@ -21,9 +21,8 @@ class TableIVRegional implements Form
 {
     private const TABLE_NAME = "TableIVRegional";
 
-
     public function __construct(
-        private SocialMarketing             $service,
+        private ResourceMobilization        $service,
         private RegionsRepository           $regionsRepository,
         private FieldOfficesRepository      $fieldOfficesRepository,
         private QuartersRepository          $quartersRepository,
@@ -78,59 +77,99 @@ class TableIVRegional implements Form
         $spreadsheet = $this->header();
 
         $count = 0;
-        // $count = $this->data ? count($this->data['rows']) : 0;
-        // foreach ($this->data['rows'] as $v) {
-        // }
+
+        $result = $this->data;
 
         if ($this->fieldOffices) {
             $ctr = 9;
-            $totals = [
-                'B' => 0,
-                'C' => 0,
-                'D' => 0,
-                'E' => 0,
+
+            $resources     = ['cash', 'materials', 'technicalAssistance'];
+            $sourceTypes   = ['GO', 'NGO', 'IND'];
+
+            $total = [
+                'cash' => [
+                    'GO' => 0,
+                    'NGO' => 0,
+                    'IND' => 0,
+                ],
+                'materials' => [
+                    'GO' => 0,
+                    'NGO' => 0,
+                    'IND' => 0,
+                ],
+                'technicalAssistance' => [
+                    'GO' => 0,
+                    'NGO' => 0,
+                    'IND' => 0,
+                ],
+                'donors' => 0,
             ];
 
             foreach ($this->fieldOffices as $k => $v) {
                 $index = ($ctr + $k);
 
-                $result = $this->data;
+                $resMob = [
+                    'cash' => [
+                        'GO' => 0,
+                        'NGO' => 0,
+                        'IND' => 0,
+                    ],
+                    'materials' => [
+                        'GO' => 0,
+                        'NGO' => 0,
+                        'IND' => 0,
+                    ],
+                    'technicalAssistance' => [
+                        'GO' => 0,
+                        'NGO' => 0,
+                        'IND' => 0,
+                    ],
+                    'donors' => 0,
+                ];
 
-                $pao = 0;
-                $others = 0;
+                if ($result['rows']) {
+                    if ($result['rows'][$v->getFieldOfficeId()][$this->type]) {
+                        foreach ($result['rows'][$v->getFieldOfficeId()][$this->type] as $v1) {
+                            foreach ($resources as $resource) {
+                                // Resources
+                                foreach($v1[$resource] as $x) {
+                                    $resMob[$resource][$x['source_type']['value']] += $x[$resource == 'cash' ? 'amount' : 'estimated_amount'];
+                                    $resMob['donors'] += 1;
         
-                if ($result['rows'][$k]) {
-                    foreach ($result['rows'][$k][0] as $v1) {
-                        switch($v1['social_marketing_activity_id']) {
-                            case 3:
-                                $pao++;
-                                break;
-                            case 4:
-                                $others++;
-                                break;
+                                    $total[$resource][$x['source_type']['value']] += $x[$resource == 'cash' ? 'amount' : 'estimated_amount'];
+                                    $total['donors'] += 1;
+                                }
+                            }
                         }
                     }
                 }
 
                 $spreadsheet->getActiveSheet()->setCellValue('A' . $index, $v->getName());
-                $spreadsheet->getActiveSheet()->setCellValue('B' . $index, $pao);
-                $spreadsheet->getActiveSheet()->setCellValue('C' . $index, $pao);
-                $spreadsheet->getActiveSheet()->setCellValue('D' . $index, $pao);
-                $spreadsheet->getActiveSheet()->setCellValue('E' . $index, $pao);
-
-                $totals['B'] += $pao;
-                $totals['C'] += $pao;
-                $totals['D'] += $pao;
-                $totals['E'] += $pao;
+                $spreadsheet->getActiveSheet()->setCellValue('B' . $index, $resMob['cash']['GO']);
+                $spreadsheet->getActiveSheet()->setCellValue('C' . $index, $resMob['cash']['NGO']);
+                $spreadsheet->getActiveSheet()->setCellValue('D' . $index, $resMob['cash']['IND']);
+                $spreadsheet->getActiveSheet()->setCellValue('E' . $index, $resMob['materials']['GO']);
+                $spreadsheet->getActiveSheet()->setCellValue('F' . $index, $resMob['materials']['NGO']);
+                $spreadsheet->getActiveSheet()->setCellValue('G' . $index, $resMob['materials']['IND']);
+                $spreadsheet->getActiveSheet()->setCellValue('H' . $index, $resMob['technicalAssistance']['GO']);
+                $spreadsheet->getActiveSheet()->setCellValue('I' . $index, $resMob['technicalAssistance']['NGO']);
+                $spreadsheet->getActiveSheet()->setCellValue('J' . $index, $resMob['technicalAssistance']['IND']);
+                $spreadsheet->getActiveSheet()->setCellValue('K' . $index, $resMob['donors']);
             }
 
             $totalIndex = $ctr + count($this->fieldOffices);
 
             $spreadsheet->getActiveSheet()->setCellValue('A' . $totalIndex, 'TOTAL');
-            $spreadsheet->getActiveSheet()->setCellValue('B' . $totalIndex, $totals['B']);
-            $spreadsheet->getActiveSheet()->setCellValue('C' . $totalIndex, $totals['C']);
-            $spreadsheet->getActiveSheet()->setCellValue('D' . $totalIndex, $totals['D']);
-            $spreadsheet->getActiveSheet()->setCellValue('E' . $totalIndex, $totals['E']);
+            $spreadsheet->getActiveSheet()->setCellValue('B' . $totalIndex, $total['cash']['GO']);
+            $spreadsheet->getActiveSheet()->setCellValue('C' . $totalIndex, $total['cash']['NGO']);
+            $spreadsheet->getActiveSheet()->setCellValue('D' . $totalIndex, $total['cash']['IND']);
+            $spreadsheet->getActiveSheet()->setCellValue('E' . $totalIndex, $total['materials']['GO']);
+            $spreadsheet->getActiveSheet()->setCellValue('F' . $totalIndex, $total['materials']['NGO']);
+            $spreadsheet->getActiveSheet()->setCellValue('G' . $totalIndex, $total['materials']['IND']);
+            $spreadsheet->getActiveSheet()->setCellValue('H' . $totalIndex, $total['technicalAssistance']['GO']);
+            $spreadsheet->getActiveSheet()->setCellValue('I' . $totalIndex, $total['technicalAssistance']['NGO']);
+            $spreadsheet->getActiveSheet()->setCellValue('J' . $totalIndex, $total['technicalAssistance']['IND']);
+            $spreadsheet->getActiveSheet()->setCellValue('K' . $totalIndex, $total['donors']);
         }
 
         return $spreadsheet;
@@ -278,24 +317,21 @@ class TableIVRegional implements Form
     {
         $this->region   = $this->regionsRepository->find($data['region_id']);
         $this->quarters = $this->quartersRepository->find($data['quarter_id']);
-        $this->type     = $data['type'];
+        $this->type = $data['type'];
 
         $this->fieldOffices = $this->fieldOfficesRepository->findBy(['regionId' => $data['region_id']]);
 
-        $rows = [];
-        foreach ($this->fieldOffices as $v) {
-            $result = $this->service->getReport(
+        $result = [];
+
+        foreach ($this->fieldOffices as $fieldOffice) {
+            $res = $this->service->getReport(
                 $data['quarter_id'],
-                $v->getFieldOfficeId(),
-                // $data['type'],
-                'MEETINGS_PARTICIPATIONS',
+                $fieldOffice->getFieldOfficeId(),
             );
 
-            $rows[] = array_values($result['data'] ?? []);
+            $result[$fieldOffice->getFieldOfficeId()] = $res['data'] ?? [];
         }
 
-
-        return ['rows' => $rows];
+        return ['rows' => $result];
     }
-
 }

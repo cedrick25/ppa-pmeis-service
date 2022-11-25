@@ -10,7 +10,7 @@ use App\Repository\RegionsRepository;
 use App\Repository\FieldOfficesRepository;
 use App\Repository\QuartersRepository;
 use App\Repository\SessionsRepository;
-use App\Service\Volunteerism\SocialMarketing;
+use App\Service\Volunteerism\TechnicalAssistance;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Style\Border;
@@ -23,7 +23,7 @@ class TableIIIA3Regional implements Form
 
 
     public function __construct(
-        private SocialMarketing             $service,
+        private TechnicalAssistance         $service,
         private RegionsRepository           $regionsRepository,
         private FieldOfficesRepository      $fieldOfficesRepository,
         private QuartersRepository          $quartersRepository,
@@ -77,59 +77,98 @@ class TableIIIA3Regional implements Form
         $spreadsheet = $this->header();
 
         $count = 0;
-        // $count = $this->data ? count($this->data['rows']) : 0;
-        // foreach ($this->data['rows'] as $v) {
-        // }
+
+        $result = $this->data;
 
         if ($this->fieldOffices) {
             $ctr = 9;
-            $totals = [
-                'B' => 0,
-                'C' => 0,
-                'D' => 0,
-                'E' => 0,
-            ];
 
+            $total = [
+                'TECHNICAL ASSISTANCE' => [
+                    'agencies_assisted'   => 0,
+                    'assistance_rendered' => 0,
+                    'participants'        => 0,
+                ],
+                'OUTREACH ACTIVITIES TO OTHER AGENCIES' => [
+                    'agencies_assisted'   => 0,
+                    'assistance_rendered' => 0,
+                    'participants'        => 0,
+                ],
+                'OTHER RELATED COMMUNITY PARTICIPATION' => [
+                    'agencies_assisted'   => 0,
+                    'assistance_rendered' => 0,
+                    'participants'        => 0,
+                ],
+                'PUBLIC ASSISTANCE' => [
+                    'agencies_assisted'   => 0,
+                    'assistance_rendered' => 0,
+                    'participants'        => 0,
+                ],
+            ];
             foreach ($this->fieldOffices as $k => $v) {
                 $index = ($ctr + $k);
 
-                $result = $this->data;
-
-                $pao = 0;
-                $others = 0;
+                $activityRoles = [
+                    'TECHNICAL ASSISTANCE' => [
+                        'agencies_assisted'   => 0,
+                        'assistance_rendered' => 0,
+                        'participants'        => 0,
+                    ],
+                    'OUTREACH ACTIVITIES TO OTHER AGENCIES' => [
+                        'agencies_assisted'   => 0,
+                        'assistance_rendered' => 0,
+                        'participants'        => 0,
+                    ],
+                    'OTHER RELATED COMMUNITY PARTICIPATION' => [
+                        'agencies_assisted'   => 0,
+                        'assistance_rendered' => 0,
+                        'participants'        => 0,
+                    ],
+                    'PUBLIC ASSISTANCE' => [
+                        'agencies_assisted'   => 0,
+                        'assistance_rendered' => 0,
+                        'participants'        => 0,
+                    ],
+                ];
         
-                if ($result['rows'][$k]) {
-                    foreach ($result['rows'][$k][0] as $v1) {
-                        switch($v1['social_marketing_activity_id']) {
-                            case 3:
-                                $pao++;
-                                break;
-                            case 4:
-                                $others++;
-                                break;
+                if ($result['rows']) {
+                    if ($result['rows'][$v->getFieldOfficeId()]) {
+                        foreach ($result['rows'][$v->getFieldOfficeId()] as $v1) {
+                            $activityRoles[$v1['assistance_type']]['agencies_assisted'] += 1;
+                            $total[$v1['assistance_type']]['agencies_assisted'] += 1;
+                            $activityRoles[$v1['assistance_type']]['assistance_rendered'] += 1;
+                            $total[$v1['assistance_type']]['assistance_rendered'] += 1;
+                            
+                            foreach ($v1['participants'] as $participant) {
+                                $activityRoles[$v1['assistance_type']]['participants'] += $participant['no'];
+                                $total[$v1['assistance_type']]['participants'] += $participant['no'];
+                            }
                         }
                     }
                 }
 
                 $spreadsheet->getActiveSheet()->setCellValue('A' . $index, $v->getName());
-                $spreadsheet->getActiveSheet()->setCellValue('B' . $index, $pao);
-                $spreadsheet->getActiveSheet()->setCellValue('C' . $index, $pao);
-                $spreadsheet->getActiveSheet()->setCellValue('D' . $index, $pao);
-                $spreadsheet->getActiveSheet()->setCellValue('E' . $index, $pao);
-
-                $totals['B'] += $pao;
-                $totals['C'] += $pao;
-                $totals['D'] += $pao;
-                $totals['E'] += $pao;
+                $spreadsheet->getActiveSheet()->setCellValue('B' . $index, $activityRoles['TECHNICAL ASSISTANCE']['agencies_assisted']);
+                $spreadsheet->getActiveSheet()->setCellValue('C' . $index, $activityRoles['TECHNICAL ASSISTANCE']['assistance_rendered']);
+                $spreadsheet->getActiveSheet()->setCellValue('D' . $index, $activityRoles['TECHNICAL ASSISTANCE']['participants']);
+                $spreadsheet->getActiveSheet()->setCellValue('E' . $index, $activityRoles['OUTREACH ACTIVITIES TO OTHER AGENCIES']['agencies_assisted']);
+                $spreadsheet->getActiveSheet()->setCellValue('F' . $index, $activityRoles['OUTREACH ACTIVITIES TO OTHER AGENCIES']['assistance_rendered']);
+                $spreadsheet->getActiveSheet()->setCellValue('G' . $index, $activityRoles['OUTREACH ACTIVITIES TO OTHER AGENCIES']['participants']);
+                $spreadsheet->getActiveSheet()->setCellValue('H' . $index, $activityRoles['PUBLIC ASSISTANCE']['assistance_rendered']);
+                $spreadsheet->getActiveSheet()->setCellValue('I' . $index, $activityRoles['PUBLIC ASSISTANCE']['participants']);
             }
 
             $totalIndex = $ctr + count($this->fieldOffices);
 
             $spreadsheet->getActiveSheet()->setCellValue('A' . $totalIndex, 'TOTAL');
-            $spreadsheet->getActiveSheet()->setCellValue('B' . $totalIndex, $totals['B']);
-            $spreadsheet->getActiveSheet()->setCellValue('C' . $totalIndex, $totals['C']);
-            $spreadsheet->getActiveSheet()->setCellValue('D' . $totalIndex, $totals['D']);
-            $spreadsheet->getActiveSheet()->setCellValue('E' . $totalIndex, $totals['E']);
+            $spreadsheet->getActiveSheet()->setCellValue('B' . $totalIndex, $total['TECHNICAL ASSISTANCE']['agencies_assisted']);
+            $spreadsheet->getActiveSheet()->setCellValue('C' . $totalIndex, $total['TECHNICAL ASSISTANCE']['assistance_rendered']);
+            $spreadsheet->getActiveSheet()->setCellValue('D' . $totalIndex, $total['TECHNICAL ASSISTANCE']['participants']);
+            $spreadsheet->getActiveSheet()->setCellValue('E' . $totalIndex, $total['OUTREACH ACTIVITIES TO OTHER AGENCIES']['agencies_assisted']);
+            $spreadsheet->getActiveSheet()->setCellValue('F' . $totalIndex, $total['OUTREACH ACTIVITIES TO OTHER AGENCIES']['assistance_rendered']);
+            $spreadsheet->getActiveSheet()->setCellValue('G' . $totalIndex, $total['OUTREACH ACTIVITIES TO OTHER AGENCIES']['participants']);
+            $spreadsheet->getActiveSheet()->setCellValue('H' . $totalIndex, $total['PUBLIC ASSISTANCE']['assistance_rendered']);
+            $spreadsheet->getActiveSheet()->setCellValue('I' . $totalIndex, $total['PUBLIC ASSISTANCE']['participants']);
         }
 
         return $spreadsheet;
@@ -268,19 +307,17 @@ class TableIIIA3Regional implements Form
 
         $this->fieldOffices = $this->fieldOfficesRepository->findBy(['regionId' => $data['region_id']]);
 
-        $rows = [];
-        foreach ($this->fieldOffices as $v) {
-            $result = $this->service->getReport(
+        $result = [];
+
+        foreach ($this->fieldOffices as $fieldOffice) {
+            $res = $this->service->getReport(
                 $data['quarter_id'],
-                $v->getFieldOfficeId(),
-                'MEETINGS_PARTICIPATIONS',
+                $fieldOffice->getFieldOfficeId(),
             );
 
-            $rows[] = array_values($result['data'] ?? []);
+            $result[$fieldOffice->getFieldOfficeId()] = $res['data'] ?? [];
         }
 
-
-        return ['rows' => $rows];
+        return ['rows' => $result];
     }
-
 }
