@@ -2,15 +2,13 @@
 
 namespace App\Report\Table;
 
-use App\Entity\FieldOffices;
 use App\Entity\Quarters;
 use App\Entity\Regions;
 use App\Repository\ClientSessionsRepository;
 use App\Repository\FieldOfficesRepository;
 use App\Repository\QuartersRepository;
 use App\Repository\RegionsRepository;
-use App\Repository\SessionsRepository;
-use App\Service\TherapeuticCommunity\QuartersInterface;
+use App\Service\TherapeuticCommunity\SessionsInterface;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Style\Border;
@@ -26,9 +24,8 @@ class TableIA8SummaryFormRegional implements Form
         private RegionsRepository           $regionsRepository,
         private QuartersRepository          $quartersRepository,
         private ClientSessionsRepository    $clientSessionsRepository,
-        private QuartersInterface           $service,
+        private SessionsInterface           $service,
         private array                       $data = [],
-        private array                       $sessionIds = [],
         private ?Regions                    $region = null,
         private ?Quarters                   $quarter = null,
         private int                         $lastFilledOutCellY = 10,
@@ -48,7 +45,7 @@ class TableIA8SummaryFormRegional implements Form
         $this->region = $this->regionsRepository->find($regionId);
         $this->quarter = $this->quartersRepository->find($quarterId);
 
-        $this->data = $this->getData($quarterId, $regionId);
+        $this->data = $this->getData($regionId);
 
         $spreadsheet = $this->footer();
         $writer = IOFactory::createWriter($spreadsheet, "Xlsx");
@@ -189,15 +186,15 @@ class TableIA8SummaryFormRegional implements Form
         return $spreadsheet;
     }
 
-    private function getData(int $quarterId, int $regionId): array
+    private function getData(int $regionId): array
     {
         $data = [];
         $fieldOffices = $this->fieldOfficesRepository->findBy(['regionId' => $regionId]);
 
         foreach ($fieldOffices as $fieldOffice) {
-            $part1s = $this->service->getTCA1Part1($quarterId, $fieldOffice->getFieldOfficeId());
+            $part1s = $this->service->getTCA1Part1($this->quarter, $fieldOffice->getFieldOfficeId());
 
-            if (! isset($part1s['data'])) {
+            if (empty($part1s)) {
                 continue;
             }
 
@@ -221,7 +218,7 @@ class TableIA8SummaryFormRegional implements Form
 
             $sessionIds = [];
 
-            foreach ($part1s['data'] as $part1) {
+            foreach ($part1s as $part1) {
                 $sessionIds[] = $part1['session_id'];
             }
 
@@ -248,7 +245,8 @@ class TableIA8SummaryFormRegional implements Form
                 }
             }
 
-            $initialValues['gender']['total'] = $initialValues['gender']['M'] + $initialValues['gender']['F'];
+            $initialValues['gender']['total'] = $initialValues['gender']['M'] + $initialValues['gender']['F' .
+                ''];
             $initialValues['offense_category']['total'] = $initialValues['offense_category']['DO'] + $initialValues['offense_category']['NDO'];
 
             if ($initialValues['gender']['total'] == 0) {
