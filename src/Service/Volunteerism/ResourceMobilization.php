@@ -154,9 +154,9 @@ class ResourceMobilization implements ResourceMobilizationInterface
 
             foreach ($results['items'] as $i => $item) {
                 $resMobId = (int) $item['resource_mobilization_id'];
-                $results['items'][$i]['cash'] = $cash[$resMobId];
-                $results['items'][$i]['materials'] = $materials[$resMobId];
-                $results['items'][$i]['technicalAssistance'] = $technicalAssistance[$resMobId];
+                $results['items'][$i]['cash'] = $cash[$resMobId] ?? [];
+                $results['items'][$i]['materials'] = $materials[$resMobId] ?? [];
+                $results['items'][$i]['technicalAssistance'] = $technicalAssistance[$resMobId] ?? [];
                 $results['items'][$i]['securedBy'] = $securedBy[$resMobId];
             }
 
