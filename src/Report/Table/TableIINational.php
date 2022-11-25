@@ -82,6 +82,7 @@ class TableIINational implements Form
 
         if ($this->regions) {
             $ctr = 9;
+            
             foreach ($this->regions as $k => $v) {
                 $personnelIndex = ($ctr + $k);
                 $volunteerIndex = $personnelIndex + count($this->regions) + 6;
