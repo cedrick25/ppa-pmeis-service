@@ -13,8 +13,6 @@ use App\Service\Volunteerism\IdSupportInterface;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Style\Border;
-use PhpOffice\PhpSpreadsheet\Style\Color;
-use PhpOffice\PhpSpreadsheet\Style\Fill;
 use PhpOffice\PhpSpreadsheet\Writer\Exception;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
@@ -31,7 +29,7 @@ class TableIDSummaryFormRegional implements Form
         private ?Quarters           $quarter = null,
         private int                 $lastFilledOutCellY = 7,
         private array               $data = [],
-    ){}
+    ) {}
 
     public function supports(string $tableName): bool
     {

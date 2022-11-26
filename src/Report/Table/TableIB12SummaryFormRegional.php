@@ -6,8 +6,10 @@ namespace App\Report\Table;
 
 use App\Entity\Quarters;
 use App\Entity\Regions;
+use App\Repository\FieldOfficesRepository;
 use App\Repository\QuartersRepository;
 use App\Repository\RegionsRepository;
+use App\Repository\RJConductProcessesRepository;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Style\Border;
@@ -21,11 +23,13 @@ class TableIB12SummaryFormRegional implements Form
     public function __construct(
         private QuartersRepository  $quartersRepository,
         private RegionsRepository   $regionsRepository,
+        private FieldOfficesRepository  $fieldOfficesRepository,
+        private RJConductProcessesRepository $conductProcessesRepository,
         private ?Regions            $region = null,
         private ?Quarters           $quarter = null,
-        private int                 $lastFilledOutCellY = 14,
+        private int                 $lastFilledOutCellY = 8,
         private array               $data = [],
-    ){}
+    ) {}
 
     public function supports(string $tableName): bool
     {
@@ -64,16 +68,80 @@ class TableIB12SummaryFormRegional implements Form
     public function body(): Spreadsheet
     {
         $spreadsheet = $this->header();
+        $quarterId = intval($this->data['quarter_id']);
+        $regionId = intval($this->data['region_id']);
+
+        $fieldOffices = $this->fieldOfficesRepository->findBy(['regionId' => $regionId]);
+        $fieldOfficesId = array_map(fn($fieldOffice) => $fieldOffice->getFieldOfficeId(), $fieldOffices);
+        $processes = $this->getProcesses($quarterId, $fieldOfficesId);
+        $cellsX = [
+            'ACTIVE_SUPERVISION' => [
+                'status' => ['RESOLVED' => 'B', 'UNRESOLVED' => 'C',],
+                'outcome' => [
+                    'Restitution' => 'D',
+                    'Community Work Services' => 'E',
+                    'Restored Relationships' => 'F',
+                    'Others' => 'G',
+                ],
+            ],
+            'PETITIONERS' => [
+                'status' => ['RESOLVED' => 'I', 'UNRESOLVED' => 'J',],
+                'outcome' => [
+                    'Restitution' => 'K',
+                    'Community Work Services' => 'L',
+                    'Restored Relationships' => 'M',
+                    'Others' => 'N',
+                ],
+            ],
+        ];
+        $totals = [
+            'B' => 0, 'C' => 0, 'D' => 0, 'E' => 0, 'F' => 0, 'G' => 0, 'I' => 0, 'J' => 0,
+            'K' => 0, 'L' => 0, 'M' => 0, 'N' => 0,
+        ];
+
+        foreach ($fieldOffices as $fieldOffice) {
+            $process = $processes[$fieldOffice->getFieldOfficeId()] ?? [];
+
+            if (empty($process)) {
+                continue;
+            }
+            $this->lastFilledOutCellY++;
+
+            $spreadsheet->getActiveSheet()->setCellValue('A' . $this->lastFilledOutCellY, $fieldOffice->getName());
+            foreach ($process as $group => $item) {
+                foreach ($item as $type => $value) {
+                    foreach ($value as $key => $score) {
+                        $cellX = $cellsX[$group][$type][$key];
+                        $spreadsheet->getActiveSheet()->setCellValue(
+                            $cellX . $this->lastFilledOutCellY,
+                            $score
+                        );
+
+                        $totals[$cellX] += $score;
+                    }
+                }
+            }
+        }
+
+        $this->lastFilledOutCellY++;
+        $spreadsheet->getActiveSheet()->setCellValue('A' . $this->lastFilledOutCellY, 'Total');
+
+        foreach ($totals as $cellX => $score) {
+            $spreadsheet->getActiveSheet()->setCellValue(
+                $cellX . $this->lastFilledOutCellY,
+                $score
+            );
+        }
+
+        $spreadsheet->getActiveSheet()->getStyle('A5:O' . $this->lastFilledOutCellY)
+            ->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
 
         return $spreadsheet;
     }
 
     public function header(): Spreadsheet
     {
-        $spreadsheet = $this->prepare();
-        $spreadsheet->getActiveSheet()->getStyle('A5:O10')->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
-
-        return $spreadsheet;
+        return $this->prepare();
     }
 
     /**
@@ -109,7 +177,6 @@ class TableIB12SummaryFormRegional implements Form
             'L8' => 'CWS',
             'M8' => 'Restoration of Relationships',
             'N8' => 'OTHERS',
-            'A10' => 'Total',
         ];
 
         $mergesCoordinates = [
@@ -149,5 +216,33 @@ class TableIB12SummaryFormRegional implements Form
         }
 
         return $spreadsheet;
+    }
+
+    private function getProcesses(int $quarterId, array $fieldOfficesId): array
+    {
+        $results = [];
+        $processes = $this->conductProcessesRepository->findByFieldOfficesIdWithDetails($quarterId, $fieldOfficesId);
+
+        foreach ($processes as $process) {
+            $fieldOfficeId = (int) $process['field_office_id'];
+            $group = $process['rj_group'];
+            $status = $process['status'];
+            $translatedStatus = ('Agreement Reached' == $status || 'Completed' == $status) ? 'RESOLVED' : 'UNRESOLVED';
+            $outcome = $process['outcome'];
+
+            if (! isset($results[$fieldOfficeId][$group]['status'][$translatedStatus])) {
+                $results[$fieldOfficeId][$group]['status'][$translatedStatus] = 0;
+            }
+
+            $results[$fieldOfficeId][$group]['status'][$translatedStatus]++;
+
+            if (! isset($results[$fieldOfficeId]['outcome'][$group][$outcome])) {
+                $results[$fieldOfficeId][$group]['outcome'][$outcome] = 0;
+            }
+
+            $results[$fieldOfficeId][$group]['outcome'][$outcome]++;
+        }
+
+        return $results;
     }
 }

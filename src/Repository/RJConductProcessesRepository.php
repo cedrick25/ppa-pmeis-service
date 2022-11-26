@@ -257,4 +257,20 @@ class RJConductProcessesRepository extends ServiceEntityRepository
 
         return $response;
     }
+
+    public function findByFieldOfficesIdWithDetails(int $quarterId, array $fieldOfficesId): array
+    {
+        return $this->getEntityManager()->getConnection()
+            ->executeQuery(
+                "SELECT rp.*, rs.name as status, ro.name as outcome FROM rjconduct_processes as rp
+                    LEFT JOIN rjprocess_status as rs ON rp.rjps_id = rs.id_rjprocess_status
+                    LEFT JOIN rjoutcomes as ro ON rp.rjo_id = ro.rj_outcome_id
+                    WHERE rp.field_office_id IN (:fieldOfficesId) AND rp.quarter_id = :quarterId",
+                [
+                    'fieldOfficesId' => $fieldOfficesId,
+                    'quarterId' => $quarterId,
+                ],
+                ['fieldOfficesId' => Connection::PARAM_INT_ARRAY],
+            )->fetchAllAssociative();
+    }
 }
