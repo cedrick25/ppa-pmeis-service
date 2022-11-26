@@ -267,7 +267,6 @@ class TableIA26SummaryFormRegional implements Form
                 $initialValues[$part1['phase_name']]['jicl'] += $jicl;
                 $initialValues[$part1['phase_name']]['ftmdo'] += $ftmdo;
                 $initialValues[$part1['phase_name']]['total'] += $total;
-                $initialValues[$part1['phase_name']]['fsi'] += intval($part1['fsg_number']);
             }
 
 
@@ -284,6 +283,8 @@ class TableIA26SummaryFormRegional implements Form
                 if (intval($clientSession['is_senior_citizen'])) {
                     $initialValues['is_senior_citizen']++;
                 }
+
+                $initialValues[$part1['phase_name']]['fsi'] += intval($clientSession['fsi']);
             }
 
             $initialValues['gender']['total'] = $initialValues['gender']['M'] + $initialValues['gender']['F'];
