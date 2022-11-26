@@ -21,7 +21,6 @@ class TableIB12SummaryFormNational implements Form
     public function __construct(
         private QuartersRepository  $quartersRepository,
         private RegionsRepository   $regionsRepository,
-        private ?Regions            $region = null,
         private ?Quarters           $quarter = null,
         private int                 $lastFilledOutCellY = 14,
         private array               $data = [],
@@ -71,7 +70,8 @@ class TableIB12SummaryFormNational implements Form
     public function header(): Spreadsheet
     {
         $spreadsheet = $this->prepare();
-        $spreadsheet->getActiveSheet()->getStyle('A5:O10')->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
+        $spreadsheet->getActiveSheet()->getStyle('A5:O10')
+            ->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
 
         return $spreadsheet;
     }

@@ -95,9 +95,9 @@ class TableIAB1SummaryForm implements Form
             'Others' => ['ACTIVE_SUPERVISION' => 0, 'PETITIONER' => 0]
         ];
 
-        foreach ($this->data['activities'] as $type=>$activity) {
-            foreach ($activity as $process=>$item) {
-                foreach ($item as $label=>$value) {
+        foreach ($this->data['activities'] as $type => $activity) {
+            foreach ($activity as $process => $item) {
+                foreach ($item as $label => $value) {
                     $coordinate = $activitiesCoordinateY[$process][$label] . $coordinateX[$type];
                     $spreadsheet->getActiveSheet()->setCellValue($coordinate, $value);
                 }

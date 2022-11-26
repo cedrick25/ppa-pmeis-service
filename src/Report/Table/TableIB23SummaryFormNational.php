@@ -6,8 +6,12 @@ namespace App\Report\Table;
 
 use App\Entity\Quarters;
 use App\Entity\Regions;
+use App\Repository\FieldOfficesRepository;
 use App\Repository\QuartersRepository;
 use App\Repository\RegionsRepository;
+use App\Repository\RJConductProcessesRepository;
+use App\Repository\RJRelatedActivitiesRepository;
+use App\Repository\RjRelatedRestitutionsRepository;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Style\Border;
@@ -21,11 +25,14 @@ class TableIB23SummaryFormNational implements Form
     public function __construct(
         private QuartersRepository  $quartersRepository,
         private RegionsRepository   $regionsRepository,
-        private ?Regions            $region = null,
+        private FieldOfficesRepository  $fieldOfficesRepository,
+        private RJRelatedActivitiesRepository $relatedActivitiesRepository,
+        private RjRelatedRestitutionsRepository $restitutionsRepository,
+        private RJConductProcessesRepository $conductProcessesRepository,
         private ?Quarters           $quarter = null,
-        private int                 $lastFilledOutCellY = 14,
+        private int                 $lastFilledOutCellY = 10,
         private array               $data = [],
-    ){}
+    ) {}
 
     public function supports(string $tableName): bool
     {
@@ -38,9 +45,6 @@ class TableIB23SummaryFormNational implements Form
     public function generate(array $data): BinaryFileResponse
     {
         $quarterId = intval($data['quarter_id']);
-        $regionId = intval($data['region_id']);
-
-        $this->region = $this->regionsRepository->find($regionId);
         $this->quarter = $this->quartersRepository->find($quarterId);
         $this->data = $data;
 
@@ -63,7 +67,122 @@ class TableIB23SummaryFormNational implements Form
 
     public function body(): Spreadsheet
     {
+        $responses = [];
         $spreadsheet = $this->header();
+        $quarterId = intval($this->data['quarter_id']);
+
+        $regions = $this->regionsRepository->findAll();
+
+        foreach ($regions as $region) {
+            $fieldOffices = $this->fieldOfficesRepository->findBy(['regionId' => $region->getRegionId()]);
+            $fieldOfficesId = array_map(fn($fieldOffice) => $fieldOffice->getFieldOfficeId(), $fieldOffices);
+            $processes = $this->getProcessData($quarterId, $fieldOfficesId);
+            $relatedActivities = $this->getActivities($quarterId, $fieldOfficesId);
+            $restitutions = $this->getRestitutions($quarterId, $fieldOfficesId);
+
+            $totals = [
+                'name' => $region->getName(),
+                'process_client_active' => 0,
+                'process_client_petitioner' => 0,
+                'activity_client_active' => 0,
+                'activity_client_petitioner' => 0,
+                'restitution_client_active' => 0,
+                'restitution_client_petitioner' => 0,
+                'original_amount' => 0,
+                'start_of_quarter' => 0,
+                'balance' => 0,
+                'paid_client_active' => 0,
+                'paid_client_petitioner' => 0,
+                'amount_paid_active' => 0,
+                'amount_paid_petitioner' => 0,
+                'amount_remitted_active' => 0,
+                'amount_remitted_petitioner' => 0,
+            ];
+
+            foreach ($fieldOffices as $fieldOffice) {
+                $relatedActivity = $relatedActivities[$fieldOffice->getFieldOfficeId()] ?? [];
+                $restitution = $restitutions[$fieldOffice->getFieldOfficeId()] ?? [];
+                $process = $processes[$fieldOffice->getFieldOfficeId()] ?? [];
+
+                if (empty($relatedActivity)) {
+                    continue;
+                }
+
+                $totals['process_client_active'] += $process['ACTIVE_SUPERVISION'] ?? 0;
+                $totals['process_client_petitioner'] += $process['PETITIONERS'] ?? 0;
+                $totals['activity_client_active'] += $relatedActivity['ACTIVE_SUPERVISION'] ?? 0;
+                $totals['activity_client_petitioner'] += $relatedActivity['PETITIONERS'] ?? 0;
+                $totals['restitution_client_active'] += $restitution['ACTIVE_SUPERVISION'] ?? 0;
+                $totals['restitution_client_petitioner'] += $restitution['PETITIONERS'] ?? 0;
+                $totals['original_amount'] += $restitution['originalAmount'] ?? 0;
+                $totals['start_of_quarter'] += $restitution['startOfQuarter'] ?? 0;
+                $totals['balance'] += $restitution['balance'] ?? 0;
+                $totals['paid_client_active'] += $restitution['ACTIVE_SUPERVISION'] ?? 0;
+                $totals['paid_client_petitioner'] += $restitution['PETITIONERS'] ?? 0;
+                $totals['amount_paid_active'] += $restitution['group']['ACTIVE_SUPERVISION']['paymentAmount'] ?? 0;
+                $totals['amount_paid_petitioner'] += $restitution['group']['PETITIONERS']['paymentAmount'] ?? 0;
+                $totals['amount_remitted_active'] += $restitution['group']['ACTIVE_SUPERVISION']['remittedAmount'] ?? 0;
+                $totals['amount_remitted_petitioner'] += $restitution['group']['PETITIONERS']['remittedAmount'] ?? 0;
+            }
+
+            $responses[] = $totals;
+        }
+
+        $cellsX = [
+            'name' =>'A',
+            'process_client_active' =>'B',
+            'process_client_petitioner' => 'C',
+            'activity_client_active' => 'D',
+            'activity_client_petitioner' => 'E',
+            'restitution_client_active' => 'F',
+            'restitution_client_petitioner' => 'G',
+            'original_amount' => 'H',
+            'start_of_quarter' => 'I',
+            'balance' => 'J',
+            'paid_client_active' => 'K',
+            'paid_client_petitioner' => 'L',
+            'amount_paid_active' => 'M',
+            'amount_paid_petitioner' => 'N',
+            'amount_remitted_active' => 'O',
+            'amount_remitted_petitioner' => 'P',
+        ];
+
+        $totals = [
+            'process_client_active' => 0,
+            'process_client_petitioner' => 0,
+            'activity_client_active' => 0,
+            'activity_client_petitioner' => 0,
+            'restitution_client_active' => 0,
+            'restitution_client_petitioner' => 0,
+            'original_amount' => 0,
+            'start_of_quarter' => 0,
+            'balance' => 0,
+            'paid_client_active' => 0,
+            'paid_client_petitioner' => 0,
+            'amount_paid_active' => 0,
+            'amount_paid_petitioner' => 0,
+            'amount_remitted_active' => 0,
+            'amount_remitted_petitioner' => 0,
+        ];
+
+        foreach ($responses as $response) {
+            foreach ($response as $key => $item) {
+                $spreadsheet->getActiveSheet()->setCellValue($cellsX[$key] . $this->lastFilledOutCellY, $item);
+
+                if ('name' == $key) {
+                    continue;
+                }
+
+                $totals[$key] += $item;
+            }
+
+            $this->lastFilledOutCellY++;
+        }
+
+        $spreadsheet->getActiveSheet()->setCellValue('A' . $this->lastFilledOutCellY, 'Total');
+        foreach ($totals as $key => $total) {
+            $spreadsheet->getActiveSheet()->setCellValue($cellsX[$key] . $this->lastFilledOutCellY, $total);
+        }
 
         return $spreadsheet;
     }
@@ -71,7 +190,8 @@ class TableIB23SummaryFormNational implements Form
     public function header(): Spreadsheet
     {
         $spreadsheet = $this->prepare();
-        $spreadsheet->getActiveSheet()->getStyle('A5:P9')->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
+        $spreadsheet->getActiveSheet()->getStyle('A5:P9')
+            ->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
 
         return $spreadsheet;
     }
@@ -113,7 +233,8 @@ class TableIB23SummaryFormNational implements Form
         ];
 
         $mergesCoordinates = [
-            'A5:A7','B5:C5','D5:E6','F5:P5','B6:B7','C6:C7','F6:F7','G6:G7','H6:H7','I6:I7','J6:K6','L6:M6','N6:N7','O6:P6',
+            'A5:A7','B5:C5','D5:E6','F5:P5','B6:B7','C6:C7','F6:F7','G6:G7','H6:H7','I6:I7','J6:K6','L6:M6','N6:N7',
+            'O6:P6',
         ];
 
         $boldCoordinates = ['A1:P7', 'A9'];
@@ -152,5 +273,95 @@ class TableIB23SummaryFormNational implements Form
         }
 
         return $spreadsheet;
+    }
+
+    private function getProcessData(int $quarterId, array $fieldOfficesId): array
+    {
+        $results = [];
+        $processes = $this->conductProcessesRepository->findByFieldOfficesId($quarterId, $fieldOfficesId);
+
+        foreach ($processes as $fieldOfficeId => $process) {
+            foreach ($process as $item) {
+                $group = $item['rj_group'];
+
+                if (! isset($results[$fieldOfficeId][$group])) {
+                    $results[$fieldOfficeId][$group] = 0;
+                }
+
+                $results[$fieldOfficeId][$group]++;
+            }
+        }
+
+        return $results;
+    }
+
+    private function getActivities(int $quarterId, array $fieldOfficesId): array
+    {
+        $results = [];
+        $activities = $this->relatedActivitiesRepository->findByFieldOfficesId($quarterId, $fieldOfficesId);
+
+        foreach ($activities as $fieldOfficeId => $activity) {
+            foreach ($activity as $item) {
+                $group = $item['rj_group'];
+
+                if (! isset($results[$fieldOfficeId][$group])) {
+                    $results[$fieldOfficeId][$group] = 0;
+                }
+
+                $results[$fieldOfficeId][$group]++;
+            }
+        }
+
+        return $results;
+    }
+
+    private function getRestitutions(int $quarterId, array $fieldOfficesId): array
+    {
+        $results = [];
+        $restitutions = $this->restitutionsRepository->findByFieldOfficesId($quarterId, $fieldOfficesId);
+
+        foreach ($restitutions as $fieldOfficeId => $restitution) {
+            foreach ($restitution as $item) {
+                $group = $item['rj_group'];
+
+                if (! isset($results[$fieldOfficeId][$group])) {
+                    $results[$fieldOfficeId][$group] = 0;
+                }
+
+                $results[$fieldOfficeId][$group]++;
+
+                if (! isset($results[$fieldOfficeId]['originalAmount'])) {
+                    $results[$fieldOfficeId]['originalAmount'] = 0;
+                }
+
+                $results[$fieldOfficeId]['originalAmount'] += (int) $item['original_amount'];
+
+                if (! isset($results[$fieldOfficeId]['startOfQuarter'])) {
+                    $results[$fieldOfficeId]['startOfQuarter'] = 0;
+                }
+
+                $results[$fieldOfficeId]['startOfQuarter'] += (int) $item['start_of_quarter'];
+
+                if (! isset($results[$fieldOfficeId]['balance'])) {
+                    $results[$fieldOfficeId]['balance'] = 0;
+                }
+
+                $results[$fieldOfficeId]['balance'] += (int) $item['balance'];
+
+                if (! isset($results[$fieldOfficeId]['group'][$group]['paymentAmount'])) {
+                    $results[$fieldOfficeId]['group'][$group]['paymentAmount'] = 0;
+                }
+
+                $results[$fieldOfficeId]['group'][$group]['paymentAmount'] += (int) $item['payment_amount'];
+
+                if (! isset($results[$fieldOfficeId]['group'][$group]['remittedAmount'])) {
+                    $results[$fieldOfficeId]['group'][$group]['remittedAmount'] = 0;
+                }
+
+                $results[$fieldOfficeId]['group'][$group]['remittedAmount'] += (int) $item['remitted_amount'];
+            }
+        }
+
+        return $results;
     }
 }

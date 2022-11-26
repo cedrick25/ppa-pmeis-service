@@ -31,7 +31,7 @@ class TableIB23SummaryFormRegional implements Form
         private RJConductProcessesRepository $conductProcessesRepository,
         private ?Regions            $region = null,
         private ?Quarters           $quarter = null,
-        private int                 $lastFilledOutCellY = 14,
+        private int                 $lastFilledOutCellY = 10,
     ) {}
 
     public function supports(string $tableName): bool
@@ -161,6 +161,7 @@ class TableIB23SummaryFormRegional implements Form
             $this->lastFilledOutCellY++;
         }
 
+        $spreadsheet->getActiveSheet()->setCellValue('A' . $this->lastFilledOutCellY, 'Total');
         foreach ($totals as $key => $total) {
             $spreadsheet->getActiveSheet()->setCellValue($cellsX[$key] . $this->lastFilledOutCellY, $total);
         }
