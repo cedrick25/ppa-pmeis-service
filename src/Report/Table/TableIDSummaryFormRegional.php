@@ -6,8 +6,10 @@ namespace App\Report\Table;
 
 use App\Entity\Quarters;
 use App\Entity\Regions;
+use App\Repository\FieldOfficesRepository;
 use App\Repository\QuartersRepository;
 use App\Repository\RegionsRepository;
+use App\Service\Volunteerism\IdSupportInterface;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Style\Border;
@@ -23,9 +25,11 @@ class TableIDSummaryFormRegional implements Form
     public function __construct(
         private QuartersRepository  $quartersRepository,
         private RegionsRepository   $regionsRepository,
+        private FieldOfficesRepository $fieldOfficesRepository,
+        private IdSupportInterface  $idSupport,
         private ?Regions            $region = null,
         private ?Quarters           $quarter = null,
-        private int                 $lastFilledOutCellY = 14,
+        private int                 $lastFilledOutCellY = 7,
         private array               $data = [],
     ){}
 
@@ -66,6 +70,57 @@ class TableIDSummaryFormRegional implements Form
     public function body(): Spreadsheet
     {
         $spreadsheet = $this->header();
+        $quarterId = intval($this->data['quarter_id']);
+        $regionId = intval($this->data['region_id']);
+
+        $fieldOffices = $this->fieldOfficesRepository->findBy(['regionId' => $regionId]);
+
+        $cellsX = [
+            'TCLP' => ['Personnel' => 'B', 'VPA' => 'C'],
+            'RJ' => ['Personnel' => 'D', 'VPA' => 'E'],
+            'VPA' => ['Personnel' => 'F', 'VPA' => 'G'],
+            'GAD' => ['Personnel' => 'H', 'VPA' => 'I'],
+            'OTHERS' => ['Personnel' => 'J', 'VPA' => 'K'],
+        ];
+
+        foreach ($fieldOffices as $fieldOffice) {
+            $report = $this->idSupport->getIdSupportReport($quarterId, $fieldOffice->getFieldOfficeId());
+
+            if (! isset($report['data'])) {
+                continue;
+            }
+
+            $this->lastFilledOutCellY++;
+
+            $results = [];
+            $total = 0;
+            $reports = $report['data'];
+
+            $spreadsheet->getActiveSheet()->setCellValue('A' . $this->lastFilledOutCellY, $fieldOffice->getName());
+
+            foreach ($reports as $report) {
+                $program = $report['program'];
+                $type = $report['type'];
+
+                if (! isset($results[$program][$type])) {
+                    $results[$program][$type] = 0;
+                }
+
+                $results[$program][$type]++;
+                $total++;
+            }
+
+            foreach ($results as $program => $items) {
+                foreach ($items as $type => $score) {
+                    $spreadsheet->getActiveSheet()->setCellValue(
+                        $cellsX[$program][$type] . $this->lastFilledOutCellY,
+                        $score
+                    );
+                }
+            }
+
+            $spreadsheet->getActiveSheet()->setCellValue('L' . $this->lastFilledOutCellY, $total);
+        }
 
         return $spreadsheet;
     }
@@ -73,7 +128,8 @@ class TableIDSummaryFormRegional implements Form
     public function header(): Spreadsheet
     {
         $spreadsheet = $this->prepare();
-        $spreadsheet->getActiveSheet()->getStyle('A5:L9')->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
+        $spreadsheet->getActiveSheet()->getStyle('A5:L9')
+            ->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
 
         return $spreadsheet;
     }
@@ -108,7 +164,6 @@ class TableIDSummaryFormRegional implements Form
             'J7' => 'PERSONNEL',
             'K7' => 'VPA',
             'L7' => 'ASSISTED',
-            'A9' => 'TOTAL',
         ];
 
         $mergesCoordinates = [

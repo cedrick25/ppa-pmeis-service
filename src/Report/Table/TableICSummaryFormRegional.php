@@ -91,6 +91,7 @@ class TableICSummaryFormRegional implements Form
             'no_of_services_rendered_during_quarter' => 'N',
             'no_of_services_rendered_by_vpa' => 'O',
         ];
+
         foreach ($fieldOffices as $fieldOffice) {
             $this->lastFilledOutCellY++;
 
@@ -128,7 +129,7 @@ class TableICSummaryFormRegional implements Form
             'A1' => 'REGION ' . $this->region->getName(),
             'A2' => 'IQPR SUMMARY FORM',
             'A3' => $this->quarter->getName() . ' QTR, ' . $this->quarter->getYear(),
-            'A4' => "I.C.  VPA MONITORING",
+            'A4' => "SUPPORT TO OTHER FOs ON TC, RJ, VPAs  GAD IMPLEMENTATION",
             'A5' => 'FIELD OFFICES',
             'B5' => 'No. of VPAs (start of the quarter)',
             'C5' => 'Appointed',
