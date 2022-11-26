@@ -3,7 +3,6 @@
 namespace App\Report\Table;
 
 use App\Entity\Quarters;
-use App\Entity\Regions;
 use App\Repository\FieldOfficesRepository;
 use App\Repository\QuartersRepository;
 use App\Repository\RegionsRepository;
@@ -26,7 +25,6 @@ class TableIAB1ASummaryFormNationalAS implements Form
         private QuartersRepository     $quartersRepository,
         private RegionsRepository      $regionsRepository,
         private array                  $data = [],
-        private ?Regions               $region = null,
         private ?Quarters              $quarter = null,
         private int                    $lastFilledOutCellY = 10,
     ) {}
@@ -39,14 +37,13 @@ class TableIAB1ASummaryFormNationalAS implements Form
     public function generate(array $data): BinaryFileResponse
     {
         $quarterId = intval($data['quarter_id']);
-        $regionId = intval($data['region_id']);
-
-        $this->region = $this->regionsRepository->find($regionId);
         $this->quarter = $this->quartersRepository->find($quarterId);
+        $regions = $this->regionsRepository->findAll();
 
-        $fieldOffices = $this->fieldOfficesRepository->findBy(['regionId' => $regionId]);
 
-        foreach ($fieldOffices as $fieldOffice) {
+        foreach ($regions as $region) {
+            $fieldOffices = $this->fieldOfficesRepository->findBy(['regionId' => $region->getRegionId()]);
+
             // TODO: identify the source of sessions_conducted - RJ is not linked to any session
             $initialValues = [
                 'sessions_conducted' => 0,
@@ -69,36 +66,40 @@ class TableIAB1ASummaryFormNationalAS implements Form
                 'Others' => $initialValues,
             ];
 
-            $conductedProcess = $this->conductProcessesService->getRJIB1($quarterId, $fieldOffice->getFieldOfficeId());
+            foreach ($fieldOffices as $fieldOffice) {
+                $conductedProcess = $this->conductProcessesService
+                    ->getRJIB1($quarterId, $fieldOffice->getFieldOfficeId());
 
-            if (isset($conductedProcess['data'])) {
-                foreach ($conductedProcess['data'] as $conductedProcessData) {
-                    if ('ACTIVE_SUPERVISION' === $conductedProcessData['rj_group']) {
-                        continue;
-                    }
+                if (isset($conductedProcess['data'])) {
+                    foreach ($conductedProcess['data'] as $conductedProcessData) {
+                        if ('PETITIONER' === $conductedProcessData['rj_group']) {
+                            continue;
+                        }
 
-                    $rjpType = $conductedProcessData['rjp_type'];
-                    $gender = $conductedProcessData['gender'];
-                    $build[$rjpType]['total_clients']++;
-                    $build[self::PRE_ENCOUNTER_ACT]['acts_conducted']++;
-                    $build[self::PRE_ENCOUNTER_ACT]['total_clients']++;
-                    $build[$rjpType]['gender'][$gender]++;
-                    $build[self::PRE_ENCOUNTER_ACT]['gender'][$gender]++;
+                        $rjpType = $conductedProcessData['rjp_type'];
+                        $gender = $conductedProcessData['gender'];
+                        $build[$rjpType]['total_clients']++;
+                        $build[self::PRE_ENCOUNTER_ACT]['acts_conducted']++;
+                        $build[self::PRE_ENCOUNTER_ACT]['total_clients']++;
+                        $build[$rjpType]['gender'][$gender]++;
+                        $build[self::PRE_ENCOUNTER_ACT]['gender'][$gender]++;
 
-                    if (intval($conductedProcessData['is_pwd'])) {
-                        $build[$rjpType]['is_pwd']++;
-                        $build[self::PRE_ENCOUNTER_ACT]['is_pwd']++;
-                    }
+                        if (intval($conductedProcessData['is_pwd'])) {
+                            $build[$rjpType]['is_pwd']++;
+                            $build[self::PRE_ENCOUNTER_ACT]['is_pwd']++;
+                        }
 
-                    if (intval($conductedProcessData['is_senior_citizen'])) {
-                        $build[$rjpType]['is_sc']++;
-                        $build[self::PRE_ENCOUNTER_ACT]['is_sc']++;
+                        if (intval($conductedProcessData['is_senior_citizen'])) {
+                            $build[$rjpType]['is_sc']++;
+                            $build[self::PRE_ENCOUNTER_ACT]['is_sc']++;
+                        }
                     }
                 }
             }
 
-            $this->data[$fieldOffice->getName()] = $build;
+            $this->data[$region->getName()] = $build;
         }
+
 
         $spreadsheet = $this->footer();
         $writer = IOFactory::createWriter($spreadsheet, "Xlsx");

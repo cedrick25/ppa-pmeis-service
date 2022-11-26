@@ -25,7 +25,6 @@ class TableIAB1ASummaryFormNationalPT implements Form
         private QuartersRepository     $quartersRepository,
         private RegionsRepository      $regionsRepository,
         private array                  $data = [],
-        private ?Regions               $region = null,
         private ?Quarters              $quarter = null,
         private int                    $lastFilledOutCellY = 10,
     ) {}
@@ -38,14 +37,11 @@ class TableIAB1ASummaryFormNationalPT implements Form
     public function generate(array $data): BinaryFileResponse
     {
         $quarterId = intval($data['quarter_id']);
-        $regionId = intval($data['region_id']);
-
-        $this->region = $this->regionsRepository->find($regionId);
         $this->quarter = $this->quartersRepository->find($quarterId);
+        $regions = $this->regionsRepository->findAll();
 
-        $fieldOffices = $this->fieldOfficesRepository->findBy(['regionId' => $regionId]);
-
-        foreach ($fieldOffices as $fieldOffice) {
+        foreach ($regions as $region) {
+            $fieldOffices = $this->fieldOfficesRepository->findBy(['regionId' => $region->getRegionId()]);
             // TODO: identify the source of sessions_conducted - RJ is not linked to any session
             $initialValues = [
                 'sessions_conducted' => 0,
@@ -68,35 +64,38 @@ class TableIAB1ASummaryFormNationalPT implements Form
                 'Others' => $initialValues,
             ];
 
-            $conductedProcess = $this->conductProcessesService->getRJIB1($quarterId, $fieldOffice->getFieldOfficeId());
+            foreach ($fieldOffices as $fieldOffice) {
+                $conductedProcess = $this->conductProcessesService
+                    ->getRJIB1($quarterId, $fieldOffice->getFieldOfficeId());
 
-            if (isset($conductedProcess['data'])) {
-                foreach ($conductedProcess['data'] as $conductedProcessData) {
-                    if ('PETITIONER' === $conductedProcessData['rj_group']) {
-                        continue;
-                    }
+                if (isset($conductedProcess['data'])) {
+                    foreach ($conductedProcess['data'] as $conductedProcessData) {
+                        if ('ACTIVE_SUPERVISION' === $conductedProcessData['rj_group']) {
+                            continue;
+                        }
 
-                    $rjpType = $conductedProcessData['rjp_type'];
-                    $gender = $conductedProcessData['gender'];
-                    $build[$rjpType]['total_clients']++;
-                    $build[self::PRE_ENCOUNTER_ACT]['acts_conducted']++;
-                    $build[self::PRE_ENCOUNTER_ACT]['total_clients']++;
-                    $build[$rjpType]['gender'][$gender]++;
-                    $build[self::PRE_ENCOUNTER_ACT]['gender'][$gender]++;
+                        $rjpType = $conductedProcessData['rjp_type'];
+                        $gender = $conductedProcessData['gender'];
+                        $build[$rjpType]['total_clients']++;
+                        $build[self::PRE_ENCOUNTER_ACT]['acts_conducted']++;
+                        $build[self::PRE_ENCOUNTER_ACT]['total_clients']++;
+                        $build[$rjpType]['gender'][$gender]++;
+                        $build[self::PRE_ENCOUNTER_ACT]['gender'][$gender]++;
 
-                    if (intval($conductedProcessData['is_pwd'])) {
-                        $build[$rjpType]['is_pwd']++;
-                        $build[self::PRE_ENCOUNTER_ACT]['is_pwd']++;
-                    }
+                        if (intval($conductedProcessData['is_pwd'])) {
+                            $build[$rjpType]['is_pwd']++;
+                            $build[self::PRE_ENCOUNTER_ACT]['is_pwd']++;
+                        }
 
-                    if (intval($conductedProcessData['is_senior_citizen'])) {
-                        $build[$rjpType]['is_sc']++;
-                        $build[self::PRE_ENCOUNTER_ACT]['is_sc']++;
+                        if (intval($conductedProcessData['is_senior_citizen'])) {
+                            $build[$rjpType]['is_sc']++;
+                            $build[self::PRE_ENCOUNTER_ACT]['is_sc']++;
+                        }
                     }
                 }
             }
 
-            $this->data[$fieldOffice->getName()] = $build;
+            $this->data[$region->getName()] = $build;
         }
 
         $spreadsheet = $this->footer();
@@ -111,7 +110,8 @@ class TableIAB1ASummaryFormNationalPT implements Form
     public function header(): Spreadsheet
     {
         $spreadsheet = $this->prepare();
-        $spreadsheet->getActiveSheet()->getStyle('A7:AE10')->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
+        $spreadsheet->getActiveSheet()->getStyle('A7:AE10')
+            ->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
 
         return $spreadsheet;
     }
@@ -157,15 +157,14 @@ class TableIAB1ASummaryFormNationalPT implements Form
             ],
         ];
 
-        foreach ($this->data as $fieldOffice=>$activities)
-        {
+        foreach ($this->data as $fieldOffice => $activities) {
             $this->lastFilledOutCellY++;
 
-            foreach ($activities as $rjType=>$activity) {
+            foreach ($activities as $rjType => $activity) {
                 $spreadsheet->getActiveSheet()->setCellValue('A' . $this->lastFilledOutCellY, $fieldOffice);
-                foreach ($activity as $field=>$value) {
+                foreach ($activity as $field => $value) {
                     if ('gender' === $field) {
-                        foreach ($value as $type=>$val) {
+                        foreach ($value as $type => $val) {
                             $spreadsheet->getActiveSheet()
                                 ->setCellValue($coordinates[$rjType][$field][$type] . $this->lastFilledOutCellY, $val);
                         }
@@ -173,7 +172,10 @@ class TableIAB1ASummaryFormNationalPT implements Form
                         continue;
                     }
 
-                    $spreadsheet->getActiveSheet()->setCellValue($coordinates[$rjType][$field] . $this->lastFilledOutCellY, $value);
+                    $spreadsheet->getActiveSheet()->setCellValue(
+                        $coordinates[$rjType][$field] . $this->lastFilledOutCellY,
+                        $value
+                    );
                 }
             }
         }
@@ -244,8 +246,10 @@ class TableIAB1ASummaryFormNationalPT implements Form
         ];
 
         $mergesCoordinates = [
-            'A7:A10', 'B7:AI7', 'B8:G8', 'H8:N8', 'N8:T8', 'U8:AA8', 'AB8:AE8', 'B9:B10', 'C9:C10', 'D9:E9', 'F9:F10', 'G9:G10', 'H9:H10',
-            'I9:I10', 'J9:K9', 'L9:L10', 'M9:M10', 'N9:N10', 'O9:O10', 'P9:Q9', 'R9:R10', 'S9:S10', 'T9:T10', 'U9:U10', 'V9:W9', 'X9:X10',
+            'A7:A10', 'B7:AI7', 'B8:G8', 'H8:N8', 'N8:T8', 'U8:AA8', 'AB8:AE8', 'B9:B10', 'C9:C10', 'D9:E9', 'F9:F10',
+            'G9:G10', 'H9:H10',
+            'I9:I10', 'J9:K9', 'L9:L10', 'M9:M10', 'N9:N10', 'O9:O10', 'P9:Q9', 'R9:R10', 'S9:S10', 'T9:T10', 'U9:U10',
+            'V9:W9', 'X9:X10',
             'Y9:Y10','Z9:Z10','AA9:AA10','AB9:AC9','AD9:AD10','AE9:AE10'
         ];
 

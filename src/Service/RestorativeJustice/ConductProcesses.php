@@ -140,7 +140,11 @@ class ConductProcesses implements ConductProcessesInterface
             $isDeleted = $this->repository->delete($id);
 
             if (! $isDeleted) {
-                return $this->appFormatter->formatResponse(ResponseEnum::DELETING_FAILED, null, ['app' => ResponseEnum::NO_DATA]);
+                return $this->appFormatter->formatResponse(
+                    ResponseEnum::DELETING_FAILED,
+                    null,
+                    ['app' => ResponseEnum::NO_DATA]
+                );
             }
 
             $this->conductedProcessPersonsInvolvedRepository->deleteByConductedProcessId($id);
@@ -148,10 +152,12 @@ class ConductProcesses implements ConductProcessesInterface
             $this->auditTrail->log(AuditTrailActions::DELETE, [], $this->shortName, $id);
 
             return $this->appFormatter->formatResponse(ResponseEnum::DELETING_SUCCESS, null);
-        } catch (InvalidArgumentException $exception) {
-            return $this->appFormatter->formatResponse(ResponseEnum::DELETING_FAILED, null, ['cache' => $exception->getMessage()]);
-        } catch (\Doctrine\ORM\ORMException | ORMException $exception) {
-            return $this->appFormatter->formatResponse(ResponseEnum::DELETING_FAILED, null, ['orm' => $exception->getMessage()]);
+        } catch (\Doctrine\ORM\ORMException|ORMException|InvalidArgumentException $exception) {
+            return $this->appFormatter->formatResponse(
+                ResponseEnum::DELETING_FAILED,
+                null,
+                ['cache' => $exception->getMessage()]
+            );
         }
     }
 
@@ -165,8 +171,12 @@ class ConductProcesses implements ConductProcessesInterface
             }
 
             $return = [];
-            $conductProcessesId =  array_map(fn($conductProcess) => $conductProcess['rj_conduct_process_id'], $conductProcesses);
-            $personsInvolved = $this->conductedProcessPersonsInvolvedRepository->findByConductedProcessIds($conductProcessesId);
+            $conductProcessesId =  array_map(
+                fn($conductProcess) => $conductProcess['rj_conduct_process_id'],
+                $conductProcesses
+            );
+            $personsInvolved = $this->conductedProcessPersonsInvolvedRepository
+                ->findByConductedProcessIds($conductProcessesId);
 
             foreach ($conductProcesses as $conductProcess) {
                 $conductProcess['personsInvolved'] = $personsInvolved[$conductProcess['rj_conduct_process_id']];
@@ -176,7 +186,11 @@ class ConductProcesses implements ConductProcessesInterface
 
             return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_SUCCESS, $return);
         } catch (InvalidArgumentException | CacheException  $e) {
-            return $this->appFormatter->formatResponse(ResponseEnum::UPDATING_FAILED, null, ['cache' => $e->getMessage()]);
+            return $this->appFormatter->formatResponse(
+                ResponseEnum::UPDATING_FAILED,
+                null,
+                ['cache' => $e->getMessage()]
+            );
         }
     }
 
