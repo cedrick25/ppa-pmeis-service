@@ -2,15 +2,12 @@
 
 namespace App\Report\Table;
 
-use App\Entity\FieldOffices;
 use App\Entity\Quarters;
-use App\Entity\Regions;
 use App\Repository\ClientSessionsRepository;
 use App\Repository\FieldOfficesRepository;
 use App\Repository\QuartersRepository;
 use App\Repository\RegionsRepository;
-use App\Repository\SessionsRepository;
-use App\Service\TherapeuticCommunity\QuartersInterface;
+use App\Service\TherapeuticCommunity\SessionsInterface;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Style\Border;
@@ -26,13 +23,11 @@ class TableIA8SummaryFormNational implements Form
         private RegionsRepository           $regionsRepository,
         private QuartersRepository          $quartersRepository,
         private ClientSessionsRepository    $clientSessionsRepository,
-        private QuartersInterface           $service,
+        private SessionsInterface           $service,
         private array                       $data = [],
-        private array                       $sessionIds = [],
-        private ?Regions                    $region = null,
         private ?Quarters                   $quarter = null,
         private int                         $lastFilledOutCellY = 10,
-    ){}
+    ) {}
 
     public function supports(string $tableName): bool
     {
@@ -41,14 +36,9 @@ class TableIA8SummaryFormNational implements Form
 
     public function generate(array $data): BinaryFileResponse
     {
-
-        $regionId = intval($data['region_id']);
         $quarterId = intval($data['quarter_id']);
-
-        $this->region = $this->regionsRepository->find($regionId);
         $this->quarter = $this->quartersRepository->find($quarterId);
-
-        $this->data = $this->getData($quarterId, $regionId);
+        $this->data = $this->getData();
 
         $spreadsheet = $this->footer();
         $writer = IOFactory::createWriter($spreadsheet, "Xlsx");
@@ -63,7 +53,8 @@ class TableIA8SummaryFormNational implements Form
     {
         $spreadsheet = $this->prepare();
 
-        $spreadsheet->getActiveSheet()->getStyle('A8:U10')->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
+        $spreadsheet->getActiveSheet()->getStyle('A8:U10')
+            ->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
 
         return $spreadsheet;
     }
@@ -72,16 +63,25 @@ class TableIA8SummaryFormNational implements Form
     {
         $spreadsheet = $this->header();
 
-        foreach ($this->data as $fieldOffice=>$data) {
+        foreach ($this->data as $fieldOffice => $data) {
             $this->lastFilledOutCellY++;
 
             $spreadsheet->getActiveSheet()->setCellValue('A' . $this->lastFilledOutCellY, $fieldOffice);
             $spreadsheet->getActiveSheet()->setCellValue('B' . $this->lastFilledOutCellY, $data['gender']['F']);
             $spreadsheet->getActiveSheet()->setCellValue('C' . $this->lastFilledOutCellY, $data['gender']['M']);
             $spreadsheet->getActiveSheet()->setCellValue('D' . $this->lastFilledOutCellY, $data['gender']['total']);
-            $spreadsheet->getActiveSheet()->setCellValue('E' . $this->lastFilledOutCellY, $data['offense_category']['DO']);
-            $spreadsheet->getActiveSheet()->setCellValue('F' . $this->lastFilledOutCellY, $data['offense_category']['NDO']);
-            $spreadsheet->getActiveSheet()->setCellValue('G' . $this->lastFilledOutCellY, $data['offense_category']['total']);
+            $spreadsheet->getActiveSheet()->setCellValue(
+                'E' . $this->lastFilledOutCellY,
+                $data['offense_category']['DO']
+            );
+            $spreadsheet->getActiveSheet()->setCellValue(
+                'F' . $this->lastFilledOutCellY,
+                $data['offense_category']['NDO']
+            );
+            $spreadsheet->getActiveSheet()->setCellValue(
+                'G' . $this->lastFilledOutCellY,
+                $data['offense_category']['total']
+            );
             $spreadsheet->getActiveSheet()->setCellValue('H' . $this->lastFilledOutCellY, $data['is_pwd']);
             $spreadsheet->getActiveSheet()->setCellValue('I' . $this->lastFilledOutCellY, $data['is_senior_citizen']);
             $spreadsheet->getActiveSheet()->setCellValue('J' . $this->lastFilledOutCellY, $data['Petitioners']['prep']);
@@ -89,7 +89,10 @@ class TableIA8SummaryFormNational implements Form
             $spreadsheet->getActiveSheet()->setCellValue('L' . $this->lastFilledOutCellY, $data['Petitioners']['II']);
             $spreadsheet->getActiveSheet()->setCellValue('M' . $this->lastFilledOutCellY, $data['Petitioners']['III']);
             $spreadsheet->getActiveSheet()->setCellValue('N' . $this->lastFilledOutCellY, $data['Petitioners']['IV']);
-            $spreadsheet->getActiveSheet()->setCellValue('O' . $this->lastFilledOutCellY, $data['Petitioners']['total']);
+            $spreadsheet->getActiveSheet()->setCellValue(
+                'O' . $this->lastFilledOutCellY,
+                $data['Petitioners']['total']
+            );
             $spreadsheet->getActiveSheet()->setCellValue('P' . $this->lastFilledOutCellY, $data['Terminated']['prep']);
             $spreadsheet->getActiveSheet()->setCellValue('Q' . $this->lastFilledOutCellY, $data['Terminated']['I']);
             $spreadsheet->getActiveSheet()->setCellValue('R' . $this->lastFilledOutCellY, $data['Terminated']['II']);
@@ -152,10 +155,10 @@ class TableIA8SummaryFormNational implements Form
             'A8:A10', 'B8:U8', 'B9:D9', 'E9:G9', 'H9:H10', 'I9:I10', 'J9:O9', 'P9:U9'
         ];
 
-        $boldCoordinates = ['A8:U11'];
+        $boldCoordinates = ['A8:U10'];
 
-        $verticalAlignedCoordinates = ['A8:U11' => 'center'];
-        $horizontalAlignedCoordinates = ['A8:U11' => 'center'];
+        $verticalAlignedCoordinates = ['A8:U10' => 'center'];
+        $horizontalAlignedCoordinates = ['A8:U10' => 'center'];
 
         $adjustedColumnWidthCoordinates = ['A' => 30];
 
@@ -186,18 +189,13 @@ class TableIA8SummaryFormNational implements Form
         return $spreadsheet;
     }
 
-    private function getData(int $quarterId, int $regionId): array
+    private function getData(): array
     {
         $data = [];
-        $fieldOffices = $this->fieldOfficesRepository->findBy(['regionId' => $regionId]);
+        $regions = $this->regionsRepository->findAll();
 
-        foreach ($fieldOffices as $fieldOffice) {
-            $part1s = $this->service->getTCA1Part1($quarterId, $fieldOffice->getFieldOfficeId());
-
-            if (! isset($part1s['data'])) {
-                continue;
-            }
-
+        foreach ($regions as $region) {
+            $fieldOffices = $this->fieldOfficesRepository->findBy(['regionId' => $region->getRegionId()]);
             $initialPhaseValues = ['prep' => 0, 'I' => 0, 'II' => 0, 'III' => 0, 'IV' => 0, 'total' => 0];
             $initialValues = [
                 'gender' => [
@@ -216,45 +214,50 @@ class TableIA8SummaryFormNational implements Form
                 'Terminated' => $initialPhaseValues,
             ];
 
-            $sessionIds = [];
+            foreach ($fieldOffices as $fieldOffice) {
+                $part1s = $this->service->getTCA1Part1($this->quarter, $fieldOffice->getFieldOfficeId());
 
-            foreach ($part1s['data'] as $part1) {
-                $sessionIds[] = $part1['session_id'];
-            }
-
-            $clientSessions = $this->clientSessionsRepository->findBySessionIds($sessionIds);
-
-            foreach ($clientSessions as $clientSession) {
-                $clientType = $clientSession['client_type'];
-
-                if ('Petitioners' !== $clientType && 'Terminated' !== $clientType) {
+                if (empty($part1s)) {
                     continue;
                 }
 
-                $initialValues['gender'][$clientSession['gender']]++;
-                $initialValues['offense_category'][$clientSession['offense_category']]++;
-                $initialValues[$clientType][$clientSession['phase']]++;
-                $initialValues[$clientType]['total']++;
+                $sessionIds = [];
 
-                if (intval($clientSession['is_pwd'])) {
-                    $initialValues['is_pwd']++;
+                foreach ($part1s as $part1) {
+                    $sessionIds[] = $part1['session_id'];
                 }
 
-                if (intval($clientSession['is_senior_citizen'])) {
-                    $initialValues['is_senior_citizen']++;
+                $clientSessions = $this->clientSessionsRepository->findBySessionIds($sessionIds);
+
+                foreach ($clientSessions as $clientSession) {
+                    $clientType = $clientSession['client_type'];
+
+                    if ('Petitioners' !== $clientType && 'Terminated' !== $clientType) {
+                        continue;
+                    }
+
+                    $initialValues['gender'][$clientSession['gender']]++;
+                    $initialValues['offense_category'][$clientSession['offense_category']]++;
+                    $initialValues[$clientType][$clientSession['phase']]++;
+                    $initialValues[$clientType]['total']++;
+
+                    if (intval($clientSession['is_pwd'])) {
+                        $initialValues['is_pwd']++;
+                    }
+
+                    if (intval($clientSession['is_senior_citizen'])) {
+                        $initialValues['is_senior_citizen']++;
+                    }
                 }
+
+                $initialValues['gender']['total'] += $initialValues['gender']['M'] + $initialValues['gender']['F'];
+                $initialValues['offense_category']['total'] +=
+                    $initialValues['offense_category']['DO'] +
+                    $initialValues['offense_category']['NDO'];
             }
 
-            $initialValues['gender']['total'] = $initialValues['gender']['M'] + $initialValues['gender']['F'];
-            $initialValues['offense_category']['total'] = $initialValues['offense_category']['DO'] + $initialValues['offense_category']['NDO'];
-
-            if ($initialValues['gender']['total'] == 0) {
-                continue;
-            }
-
-            $data[$fieldOffice->getName()] = $initialValues;
+            $data[$region->getName()] = $initialValues;
         }
-
 
         return $data;
     }

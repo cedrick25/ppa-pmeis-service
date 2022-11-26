@@ -164,8 +164,8 @@ class TableIA26SummaryFormNational implements Form
         $mergesCoordinates = [
             'B8:AW8', 'B10:B11', 'C10:C11', 'D9:D11', 'E10:E11', 'F10:F11', 'J10:J11', 'K10:K11', 'L10:L11', 'M10:M11',
             'N10:N11', 'O10:O11', 'P10:P11',
-            'Q10:Q11', 'R10:R11', 'S10:S11', 'T10:T11', 'U10:U11', 'V10:V11', 'W10:W11', 'X10:X11', 'Y10:Y11', 'Z10:Z11',
-            'AA10:AA11', 'AB10:AB11',
+            'Q10:Q11', 'R10:R11', 'S10:S11', 'T10:T11', 'U10:U11', 'V10:V11', 'W10:W11', 'X10:X11', 'Y10:Y11',
+            'Z10:Z11', 'AA10:AA11', 'AB10:AB11',
             'AD10:AD11', 'AE10:AE11', 'AF10:AF11', 'AG10:AG11', 'AH10:AH11', 'AI10:AI11', 'AJ10:AJ11', 'AK10:AK11',
             'AL10:AM10', 'AN10:AO10', 'AP10:AQ10', 'AR10:AS10', 'AT10:AU10', 'G9:G11', 'H9:H11', 'I9:I11', 'AC10:AC11',
             'J9:P9', 'Q9:W9', 'X9:AC9', 'AE9:AK9', 'AL9:AU9', 'AV10:AV11', 'AW10:AW11', 'E9:F9'
