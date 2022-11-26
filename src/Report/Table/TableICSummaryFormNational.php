@@ -5,9 +5,10 @@ declare(strict_types=1);
 namespace App\Report\Table;
 
 use App\Entity\Quarters;
-use App\Entity\Regions;
+use App\Repository\FieldOfficesRepository;
 use App\Repository\QuartersRepository;
 use App\Repository\RegionsRepository;
+use App\Service\Volunteerism\VolunteerInterface;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Style\Border;
@@ -23,11 +24,12 @@ class TableICSummaryFormNational implements Form
     public function __construct(
         private QuartersRepository  $quartersRepository,
         private RegionsRepository   $regionsRepository,
-        private ?Regions            $region = null,
+        private FieldOfficesRepository $fieldOfficesRepository,
+        private VolunteerInterface  $volunteer,
         private ?Quarters           $quarter = null,
         private int                 $lastFilledOutCellY = 14,
         private array               $data = [],
-    ){}
+    ) {}
 
     public function supports(string $tableName): bool
     {
@@ -66,6 +68,78 @@ class TableICSummaryFormNational implements Form
     public function body(): Spreadsheet
     {
         $spreadsheet = $this->header();
+        $quarterId = intval($this->data['quarter_id']);
+        $regions = $this->regionsRepository->findAll();
+
+        $cellsX = [
+            'start_of_quarter_vpa' => 'B',
+            'new_appointed' => 'C',
+            'dropped' => 'D',
+            'total_number_of_vpa_during_quarter' => 'E',
+            'inactive' => 'F',
+            'total_active_vpa' => 'G',
+            'no_of_vpa_supervising_clients' => 'H',
+            'total_number_of_clients_supervised' => 'I',
+            'no_of_vpa_acting_as_resource_individuals' => 'J',
+            'vpa_acting_both_supervising_and_resource_individual' => 'K',
+            'total_number_of_vpa_mobilize' => 'L',
+            'percent_of_vpa_mobilized' => 'M',
+            'no_of_services_rendered_during_quarter' => 'N',
+            'no_of_services_rendered_by_vpa' => 'O',
+        ];
+        $template = [
+            'start_of_quarter_vpa' => 0,
+            'new_appointed' => 0,
+            'dropped' => 0,
+            'total_number_of_vpa_during_quarter' => 0,
+            'inactive' => 0,
+            'total_active_vpa' => 0,
+            'no_of_vpa_supervising_clients' => 0,
+            'total_number_of_clients_supervised' => 0,
+            'no_of_vpa_acting_as_resource_individuals' => 0,
+            'vpa_acting_both_supervising_and_resource_individual' => 0,
+            'total_number_of_vpa_mobilize' => 0,
+            'percent_of_vpa_mobilized' => 0,
+            'no_of_services_rendered_during_quarter' => 0,
+            'no_of_services_rendered_by_vpa' => 0,
+        ];
+        $totals = $template;
+
+        foreach ($regions as $region) {
+            $this->lastFilledOutCellY++;
+            $fieldOffices = $this->fieldOfficesRepository->findBy(['regionId' => $region->getRegionId()]);
+
+
+            $scores = $template;
+
+            foreach ($fieldOffices as $fieldOffice) {
+                $report = $this->volunteer->getVpaMonitoring($quarterId, $fieldOffice->getFieldOfficeId());
+
+                foreach ($report as $key => $item) {
+                    $scores[$key] += $item;
+                    $totals[$key] += $item;
+                }
+            }
+
+            $spreadsheet->getActiveSheet()->setCellValue('A' . $this->lastFilledOutCellY, $region->getName());
+
+            foreach ($scores as $key => $score) {
+                $spreadsheet->getActiveSheet()->setCellValue(
+                    $cellsX[$key] . $this->lastFilledOutCellY,
+                    $score
+                );
+            }
+        }
+
+        $this->lastFilledOutCellY++;
+        $spreadsheet->getActiveSheet()->setCellValue('A' . $this->lastFilledOutCellY, 'Total');
+
+        foreach ($totals as $key => $score) {
+            $spreadsheet->getActiveSheet()->setCellValue(
+                $cellsX[$key] . $this->lastFilledOutCellY,
+                $score
+            );
+        }
 
         return $spreadsheet;
     }
@@ -73,7 +147,8 @@ class TableICSummaryFormNational implements Form
     public function header(): Spreadsheet
     {
         $spreadsheet = $this->prepare();
-        $spreadsheet->getActiveSheet()->getStyle('A5:P9')->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
+        $spreadsheet->getActiveSheet()->getStyle('A5:P9')
+            ->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
 
         return $spreadsheet;
     }
@@ -92,47 +167,38 @@ class TableICSummaryFormNational implements Form
             'A5' => 'REGIONAL OFFICES',
             'B5' => 'No. of VPAs (start of the quarter)',
             'C5' => 'Appointed',
-            'E5' => 'Dropped (expired appointment or any other cause)',
-            'F5' => 'TOTAL NUMBER OF VPAs  DURING THE QUARTER',
-            'G5' => 'No. of INACTIVE VPAs during the QTR',
-            'H5' => 'TOTAL  ACTIVE VPAs DURING THE QUARTER',
-            'I5' => '% of VPAs mobilized',
-            'J5' => 'No. of VPAs supervising clients during the quarter (Head count)',
-            'K5' => '%',
-            'L5' => 'No. of VPAs acting as resource individuals during the quarter (Head count)',
-            'M5' => '%',
-            'N5' => 'Acting as Both (Supervising VPAs and Resource Individual/ Head count)',
-            'O5' => '%',
-            'P5' => 'Total number of clients supervised (Headcount)',
-            'Q5' => 'No. of services rendered by VPAs during the quarter (service count or frequency)',
-            'R5' => 'Percent of services rendered by VPAs',
-            'C6' => 'New',
-            'D6' => 'Re-appointed',
+            'D5' => 'Dropped (expired appointment or any other cause)',
+            'E5' => 'TOTAL NUMBER OF VPAs  DURING THE QUARTER',
+            'F5' => 'No. of INACTIVE VPAs during the QTR',
+            'G5' => 'TOTAL  ACTIVE VPAs DURING THE QUARTER',
+            'H5' => 'No. of VPAs supervising clients during the quarter (Head count)',
+            'I5' => 'Total Number of clients Supervised',
+            'J5' => 'No. of VPAs acting as resource individuals during the quarter (Head count)',
+            'K5' => 'Acting as Both (Supervising VPAs and Resource Individual/ Head count)',
+            'L5' => 'Total Number of VPA mobilized (per head count)',
+            'M5' => 'Percent of VPA mobilized (per head count)',
+            'N5' => 'No. of services rendered by VPAs during the quarter',
+            'O5' => 'No. of services rendered By a VPA',
             'B7' => '(1)',
             'C7' => '(2)',
-            'E7' => '(3)',
-            'F7' => '(4)',
-            'G7' => '(5)',
-            'H7' => '(6)',
-            'I7' => '(7)',
-            'J7' => '(8)',
-            'K7' => '(9)',
-            'L7' => '(10)',
-            'M7' => '(11)',
-            'N7' => '(12)',
-            'O7' => '(13)',
-            'P7' => '(14)',
-            'Q7' => '(15)',
-            'R7' => '(16)',
-            'A8' => 'Formula',
-            'F8' => '(1+2)-3',
-            'H8' => '4-5',
-            'I8' => '6÷4',
-            'K8' => '8÷6',
-            'M8' => '10÷6',
-            'O8' => '12÷6',
-            'R8' => '15÷6',
-            'A10' => 'Total',
+            'D7' => '(3)',
+            'E7' => '(4)',
+            'F7' => '(5)',
+            'G7' => '(6)',
+            'H7' => '(7)',
+            'I7' => '(8)',
+            'J7' => '(9)',
+            'K7' => '(10)',
+            'L7' => '(11)',
+            'M7' => '(12)',
+            'N7' => '(13)',
+            'O7' => '(14)',
+            'E8' => '(1+2)-3',
+            'G9' => '4-5',
+            'H9' => '6÷4',
+            'L9' => '7+9+10=11',
+            'M9' => '11/6=12',
+            'O9' => '13/6=14'
         ];
 
         $mergesCoordinates = ['A5:A6', 'C5:D5'];
