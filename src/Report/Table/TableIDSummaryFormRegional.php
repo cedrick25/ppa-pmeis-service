@@ -122,16 +122,15 @@ class TableIDSummaryFormRegional implements Form
             $spreadsheet->getActiveSheet()->setCellValue('L' . $this->lastFilledOutCellY, $total);
         }
 
+        $spreadsheet->getActiveSheet()->getStyle('A5:L' . $this->lastFilledOutCellY)
+            ->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
+
         return $spreadsheet;
     }
 
     public function header(): Spreadsheet
     {
-        $spreadsheet = $this->prepare();
-        $spreadsheet->getActiveSheet()->getStyle('A5:L9')
-            ->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
-
-        return $spreadsheet;
+        return $this->prepare();
     }
 
     /**
@@ -169,7 +168,7 @@ class TableIDSummaryFormRegional implements Form
         $mergesCoordinates = [
             'A5:A7','B5:L5','B6:C6','D6:E6','F6:G6','H6:I6','J6:K6',
         ];
-        $boldCoordinates = ['A5:L7', 'A9:L9'];
+        $boldCoordinates = ['A5:L7'];
         $verticalAlignedCoordinates = ['A5:L7' => 'center'];
         $horizontalAlignedCoordinates = ['A5:L7' => 'center'];
         $adjustedColumnWidthCoordinates = ['A' => 25];

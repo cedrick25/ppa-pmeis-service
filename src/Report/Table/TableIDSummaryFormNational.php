@@ -5,14 +5,13 @@ declare(strict_types=1);
 namespace App\Report\Table;
 
 use App\Entity\Quarters;
-use App\Entity\Regions;
+use App\Repository\FieldOfficesRepository;
 use App\Repository\QuartersRepository;
 use App\Repository\RegionsRepository;
+use App\Service\Volunteerism\IdSupportInterface;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Style\Border;
-use PhpOffice\PhpSpreadsheet\Style\Color;
-use PhpOffice\PhpSpreadsheet\Style\Fill;
 use PhpOffice\PhpSpreadsheet\Writer\Exception;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
@@ -23,11 +22,12 @@ class TableIDSummaryFormNational implements Form
     public function __construct(
         private QuartersRepository  $quartersRepository,
         private RegionsRepository   $regionsRepository,
-        private ?Regions            $region = null,
+        private FieldOfficesRepository  $fieldOfficesRepository,
+        private IdSupportInterface  $idSupport,
         private ?Quarters           $quarter = null,
-        private int                 $lastFilledOutCellY = 14,
+        private int                 $lastFilledOutCellY = 7,
         private array               $data = [],
-    ){}
+    ) {}
 
     public function supports(string $tableName): bool
     {
@@ -40,9 +40,7 @@ class TableIDSummaryFormNational implements Form
     public function generate(array $data): BinaryFileResponse
     {
         $quarterId = intval($data['quarter_id']);
-        $regionId = intval($data['region_id']);
 
-        $this->region = $this->regionsRepository->find($regionId);
         $this->quarter = $this->quartersRepository->find($quarterId);
         $this->data = $data;
 
@@ -66,16 +64,104 @@ class TableIDSummaryFormNational implements Form
     public function body(): Spreadsheet
     {
         $spreadsheet = $this->header();
+        $quarterId = intval($this->data['quarter_id']);
+        $regions = $this->regionsRepository->findAll();
+
+        $cellsX = [
+            'TCLP' => ['Personnel' => 'B', 'VPA' => 'C'],
+            'RJ' => ['Personnel' => 'D', 'VPA' => 'E'],
+            'VPA' => ['Personnel' => 'F', 'VPA' => 'G'],
+            'GAD' => ['Personnel' => 'H', 'VPA' => 'I'],
+            'OTHERS' => ['Personnel' => 'J', 'VPA' => 'K'],
+        ];
+
+        $totals = ['total' => 0];
+
+        foreach ($regions as $region) {
+            $this->lastFilledOutCellY++;
+            $fieldOffices = $this->fieldOfficesRepository->findBy(['regionId' => $region->getRegionId()]);
+            $scores = [];
+
+            foreach ($fieldOffices as $fieldOffice) {
+                $report = $this->idSupport->getIdSupportReport($quarterId, $fieldOffice->getFieldOfficeId());
+
+                if (! isset($report['data'])) {
+                    continue;
+                }
+
+                $results = [];
+                $total = 0;
+                $reports = $report['data'];
+
+                foreach ($reports as $report) {
+                    $program = $report['program'];
+                    $type = $report['type'];
+
+                    if (! isset($results[$program][$type])) {
+                        $results[$program][$type] = 0;
+                    }
+
+                    $results[$program][$type]++;
+                    $total++;
+                }
+
+                foreach ($results as $program => $items) {
+                    foreach ($items as $type => $score) {
+                        if (! isset($scores[$program][$type])) {
+                            $scores[$program][$type] = 0;
+                        }
+
+                        $scores[$program][$type] += $score;
+
+                        if (! isset($totals[$program][$type])) {
+                            $totals[$program][$type] = 0;
+                        }
+
+                        $totals[$program][$type] += $score;
+                    }
+                }
+
+                $spreadsheet->getActiveSheet()->setCellValue('L' . $this->lastFilledOutCellY, $total);
+                $totals['total'] += $total;
+            }
+
+            $spreadsheet->getActiveSheet()->setCellValue('A' . $this->lastFilledOutCellY, $region->getName());
+            foreach ($scores as $program => $items) {
+                foreach ($items as $type => $score) {
+                    $spreadsheet->getActiveSheet()->setCellValue(
+                        $cellsX[$program][$type] . $this->lastFilledOutCellY,
+                        $score
+                    );
+                }
+            }
+        }
+
+        $this->lastFilledOutCellY++;
+        $spreadsheet->getActiveSheet()->setCellValue('A' . $this->lastFilledOutCellY, 'Total');
+        foreach ($totals as $program => $items) {
+            if ('total' == $program) {
+                $spreadsheet->getActiveSheet()->setCellValue('L' . $this->lastFilledOutCellY, $items);
+
+                continue;
+            }
+
+            foreach ($items as $type => $score) {
+                $spreadsheet->getActiveSheet()->setCellValue(
+                    $cellsX[$program][$type] . $this->lastFilledOutCellY,
+                    $score
+                );
+            }
+        }
+
+        $spreadsheet->getActiveSheet()->getStyle('A5:L' . $this->lastFilledOutCellY)
+            ->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
 
         return $spreadsheet;
     }
 
     public function header(): Spreadsheet
     {
-        $spreadsheet = $this->prepare();
-        $spreadsheet->getActiveSheet()->getStyle('A5:L9')->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
-
-        return $spreadsheet;
+        return $this->prepare();
     }
 
     /**
@@ -108,13 +194,12 @@ class TableIDSummaryFormNational implements Form
             'J7' => 'PERSONNEL',
             'K7' => 'VPA',
             'L7' => 'ASSISTED',
-            'A9' => 'TOTAL',
         ];
 
         $mergesCoordinates = [
             'A5:A7','B5:L5','B6:C6','D6:E6','F6:G6','H6:I6','J6:K6',
         ];
-        $boldCoordinates = ['A5:L7', 'A9:L9'];
+        $boldCoordinates = ['A5:L7'];
         $verticalAlignedCoordinates = ['A5:L7' => 'center'];
         $horizontalAlignedCoordinates = ['A5:L7' => 'center'];
         $adjustedColumnWidthCoordinates = ['A' => 25];
