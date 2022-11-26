@@ -115,13 +115,34 @@ class TableIA1SummaryFormRegional implements Form
             $spreadsheet->getActiveSheet()->setCellValue('B' . $this->lastFilledOutCellY, $sessions['fsg_frequency']);
             $spreadsheet->getActiveSheet()->setCellValue('C' . $this->lastFilledOutCellY, $sessions['total_vpa']);
             $spreadsheet->getActiveSheet()->setCellValue('D' . $this->lastFilledOutCellY, $sessions['vpa_frequency']);
-            $spreadsheet->getActiveSheet()->setCellValue('E' . $this->lastFilledOutCellY, $sessions['tree_planting_participants']);
-            $spreadsheet->getActiveSheet()->setCellValue('F' . $this->lastFilledOutCellY, $sessions['tree_planting_activity']);
-            $spreadsheet->getActiveSheet()->setCellValue('G' . $this->lastFilledOutCellY, $sessions['tree_planting_planted']);
-            $spreadsheet->getActiveSheet()->setCellValue('H' . $this->lastFilledOutCellY, $sessions['community_service']);
-            $spreadsheet->getActiveSheet()->setCellValue('I' . $this->lastFilledOutCellY, $sessions['self_help_association']);
-            $spreadsheet->getActiveSheet()->setCellValue('J' . $this->lastFilledOutCellY, $sessions['self_help_activity']);
-            $spreadsheet->getActiveSheet()->setCellValue('K' . $this->lastFilledOutCellY, $sessions['self_help_clients']);
+            $spreadsheet->getActiveSheet()->setCellValue(
+                'E' . $this->lastFilledOutCellY,
+                $sessions['tree_planting_participants']
+            );
+            $spreadsheet->getActiveSheet()->setCellValue(
+                'F' . $this->lastFilledOutCellY,
+                $sessions['tree_planting_activity']
+            );
+            $spreadsheet->getActiveSheet()->setCellValue(
+                'G' . $this->lastFilledOutCellY,
+                $sessions['tree_planting_planted']
+            );
+            $spreadsheet->getActiveSheet()->setCellValue(
+                'H' . $this->lastFilledOutCellY,
+                $sessions['community_service']
+            );
+            $spreadsheet->getActiveSheet()->setCellValue(
+                'I' . $this->lastFilledOutCellY,
+                $sessions['self_help_association']
+            );
+            $spreadsheet->getActiveSheet()->setCellValue(
+                'J' . $this->lastFilledOutCellY,
+                $sessions['self_help_activity']
+            );
+            $spreadsheet->getActiveSheet()->setCellValue(
+                'K' . $this->lastFilledOutCellY,
+                $sessions['self_help_clients']
+            );
         }
 
         $spreadsheet->getActiveSheet()

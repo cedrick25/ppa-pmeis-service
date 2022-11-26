@@ -3,9 +3,7 @@
 namespace App\Report\Table;
 
 use App\Entity\Quarters;
-use App\Entity\Regions;
 use App\Repository\ClientSessionsRepository;
-use App\Repository\ClientsRepository;
 use App\Repository\FieldOfficesRepository;
 use App\Repository\QuartersRepository;
 use App\Repository\RegionsRepository;
@@ -26,14 +24,12 @@ class TableIA1SummaryFormNational implements Form
         private QuartersRepository          $quartersRepository,
         private SessionsRepository          $sessionsRepository,
         private ClientSessionsRepository    $clientSessionsRepository,
-        private ClientsRepository           $clientsRepository,
         private FieldOfficesRepository       $fieldOfficesRepository,
         private array                       $data = [],
         private array                       $sessionIds = [],
-        private ?Regions                    $region = null,
         private ?Quarters                   $quarter = null,
         private int                         $lastFilledOutCellY = 12,
-    ){}
+    ) {}
 
     public function supports(string $tableName): bool
     {
@@ -76,22 +72,30 @@ class TableIA1SummaryFormNational implements Form
             'RA' => ['RBM' => 'H', 'AEP' => 'I', 'S' => 'J', 'CI' => 'K', 'PVS' => 'L', 'Total' => 'M']
         ];
 
-        foreach ($this->data as $fieldOffice => $sessions) {
+        foreach ($this->data as $region => $sessions) {
             $this->lastFilledOutCellY++;
 
-            $spreadsheet->getActiveSheet()->setCellValue('A' . $this->lastFilledOutCellY, $fieldOffice);
+            $spreadsheet->getActiveSheet()->setCellValue('A' . $this->lastFilledOutCellY, $region);
 
-            foreach ($sessions['treatment_categories'] as $category=>$treatmentCategory) {
-                foreach ($treatmentCategory as $subCategory=>$score) {
-                    $spreadsheet->getActiveSheet()->setCellValue(
-                        $treatmentCategoryCells[$category][$subCategory] . $this->lastFilledOutCellY,
-                        $score
-                    );
+            foreach ($sessions['treatment_categories'] as $treatmentCategories) {
+                foreach ($treatmentCategories as $category => $treatmentCategory) {
+                    foreach ($treatmentCategory as $subCategory => $score) {
+                        $spreadsheet->getActiveSheet()->setCellValue(
+                            $treatmentCategoryCells[$category][$subCategory] . $this->lastFilledOutCellY,
+                            $score
+                        );
+                    }
                 }
             }
 
-            $spreadsheet->getActiveSheet()->setCellValue('N' . $this->lastFilledOutCellY, $sessions['client_frequency_active_supervision']);
-            $spreadsheet->getActiveSheet()->setCellValue('O' . $this->lastFilledOutCellY, $sessions['client_frequency_others']);
+            $spreadsheet->getActiveSheet()->setCellValue(
+                'N' . $this->lastFilledOutCellY,
+                $sessions['client_frequency_active_supervision']
+            );
+            $spreadsheet->getActiveSheet()->setCellValue(
+                'O' . $this->lastFilledOutCellY,
+                $sessions['client_frequency_others']
+            );
             $spreadsheet->getActiveSheet()
                 ->getStyle('A' . $this->lastFilledOutCellY . ':O' . $this->lastFilledOutCellY)
                 ->getBorders()
@@ -99,7 +103,7 @@ class TableIA1SummaryFormNational implements Form
                 ->setBorderStyle(Border::BORDER_THIN);
         }
 
-        $this->lastFilledOutCellY++;
+        $this->lastFilledOutCellY += 2;
         $beforePlotCellY = $this->lastFilledOutCellY + 1;
 
         $spreadsheet = $this->plotContinuationHeader($spreadsheet);
@@ -109,15 +113,36 @@ class TableIA1SummaryFormNational implements Form
 
             $spreadsheet->getActiveSheet()->setCellValue('A' . $this->lastFilledOutCellY, $fieldOffice);
             $spreadsheet->getActiveSheet()->setCellValue('B' . $this->lastFilledOutCellY, $sessions['fsg_frequency']);
-            $spreadsheet->getActiveSheet()->setCellValue('C' . $this->lastFilledOutCellY, 'No Data.');
-            $spreadsheet->getActiveSheet()->setCellValue('D' . $this->lastFilledOutCellY, 'No Data.');
-            $spreadsheet->getActiveSheet()->setCellValue('E' . $this->lastFilledOutCellY, 'No Data.');
-            $spreadsheet->getActiveSheet()->setCellValue('F' . $this->lastFilledOutCellY, 'No Data.');
-            $spreadsheet->getActiveSheet()->setCellValue('G' . $this->lastFilledOutCellY, 'No Data.');
-            $spreadsheet->getActiveSheet()->setCellValue('H' . $this->lastFilledOutCellY, 'No Data.');
-            $spreadsheet->getActiveSheet()->setCellValue('I' . $this->lastFilledOutCellY, 'No Data.');
-            $spreadsheet->getActiveSheet()->setCellValue('J' . $this->lastFilledOutCellY, 'No Data.');
-            $spreadsheet->getActiveSheet()->setCellValue('K' . $this->lastFilledOutCellY, 'No Data.');
+            $spreadsheet->getActiveSheet()->setCellValue('C' . $this->lastFilledOutCellY, $sessions['total_vpa']);
+            $spreadsheet->getActiveSheet()->setCellValue('D' . $this->lastFilledOutCellY, $sessions['vpa_frequency']);
+            $spreadsheet->getActiveSheet()->setCellValue(
+                'E' . $this->lastFilledOutCellY,
+                $sessions['tree_planting_participants']
+            );
+            $spreadsheet->getActiveSheet()->setCellValue(
+                'F' . $this->lastFilledOutCellY,
+                $sessions['tree_planting_activity']
+            );
+            $spreadsheet->getActiveSheet()->setCellValue(
+                'G' . $this->lastFilledOutCellY,
+                $sessions['tree_planting_planted']
+            );
+            $spreadsheet->getActiveSheet()->setCellValue(
+                'H' . $this->lastFilledOutCellY,
+                $sessions['community_service']
+            );
+            $spreadsheet->getActiveSheet()->setCellValue(
+                'I' . $this->lastFilledOutCellY,
+                $sessions['self_help_association']
+            );
+            $spreadsheet->getActiveSheet()->setCellValue(
+                'J' . $this->lastFilledOutCellY,
+                $sessions['self_help_activity']
+            );
+            $spreadsheet->getActiveSheet()->setCellValue(
+                'K' . $this->lastFilledOutCellY,
+                $sessions['self_help_clients']
+            );
         }
 
         $spreadsheet->getActiveSheet()
@@ -201,61 +226,104 @@ class TableIA1SummaryFormNational implements Form
     private function getData(array $data): array
     {
         $quarterId = intval($data['quarter_id']);
-        $regionId = intval($data['region_id']);
         $data = [];
 
-        $this->region = $this->regionsRepository->find($regionId);
         $this->quarter = $this->quartersRepository->find($quarterId);
 
         $quarterData = $this->quartersRepository->find($quarterId);
         $minMaxDate = $this->quartersRepository->getQuarterMinMaxDate($quarterData);
-        $fieldOffices = $this->fieldOfficesRepository->findBy(['regionId' => $regionId]);
+        $regions = $this->regionsRepository->findAll();
 
-        foreach ($fieldOffices as $fieldOffice) {
-            $treatmentCategoryTotal = $this->getTreatmentCategoriesData(
+        foreach ($regions as $region) {
+            $fieldOffices = $this->fieldOfficesRepository->findBy(['regionId' => $region->getRegionId()]);
+            $fieldOfficesId = array_map(fn($fieldOffice) => $fieldOffice->getFieldOfficeId(), $fieldOffices);
+            $treatmentCategoryTotals = $this->getTreatmentCategoriesData(
                 $minMaxDate['min'],
                 $minMaxDate['max'],
-                $fieldOffice->getFieldOfficeId()
+                $fieldOfficesId
             );
+            $clientSessionsData = $this->getClientSessionsData();
+            $vpas = $this->getVpas();
+            $activities = $this->activities();
 
-            if (count($treatmentCategoryTotal) < 1) {
-                continue;
+            $totals = [
+                'treatment_categories' => [],
+                'client_frequency_active_supervision' => 0,
+                'client_frequency_others' => 0,
+                'fsg_frequency' => 0,
+                'total_vpa' => 0,
+                'vpa_frequency' => 0,
+                'tree_planting_participants' => 0,
+                'tree_planting_activity' => 0,
+                'tree_planting_planted' => 0,
+                'community_service' => 0,
+                'self_help_association' => 0,
+                'self_help_activity' => 0,
+                'self_help_clients' => 0,
+            ];
+
+            foreach ($fieldOffices as $fieldOffice) {
+                $treatmentCategoryTotal = $treatmentCategoryTotals[$fieldOffice->getFieldOfficeId()] ?? [];
+                $clientFrequency = $clientSessionsData['client_frequency'][$fieldOffice->getFieldOfficeId()] ?? [];
+                $fsgFrequency = $clientSessionsData['fsg_frequency'][$fieldOffice->getFieldOfficeId()] ?? [];
+                $vpa = $vpas[$fieldOffice->getFieldOfficeId()] ?? [];
+                $activity = $activities[$fieldOffice->getFieldOfficeId()] ?? [];
+
+                if (empty($treatmentCategoryTotal)) {
+                    continue;
+                }
+
+                $totals['treatment_categories'][] = $treatmentCategoryTotal;
+                $totals['client_frequency_active_supervision'] += $clientFrequency['active_supervision'] ?? 0;
+                $totals['client_frequency_others'] += $clientFrequency['others'] ?? 0;
+                $totals['fsg_frequency'] += $fsgFrequency;
+                $totals['total_vpa'] += \count(\array_unique($vpa['total']));
+                $totals['vpa_frequency'] += $vpa['frequency'];
+                $totals['tree_planting_participants'] += $activity['trees_planting']['participants'];
+                $totals['tree_planting_activity'] += $activity['trees_planting']['activity'];
+                $totals['tree_planting_planted'] += $activity['trees_planting']['planted'];
+                $totals['community_service'] += $activity['communityService'];
+                $totals['self_help_association'] += $activity['selfHelp']['association'];
+                $totals['self_help_activity'] += $activity['selfHelp']['activity'];
+                $totals['self_help_clients'] += $activity['selfHelp']['clients'];
             }
 
-            $clientSessionsData = $this->getClientSessionsData();
-
-            $data[$fieldOffice->getName()] = [
-                'treatment_categories' => $treatmentCategoryTotal,
-                'client_frequency_active_supervision' => $clientSessionsData['client_frequency']['active_supervision'],
-                'client_frequency_others' => $clientSessionsData['client_frequency']['others'],
-                'fsg_frequency' => $clientSessionsData['fsg_frequency'],
-            ];
+            $data[$region->getName()] = $totals;
         }
 
         return $data;
     }
 
-    private function getTreatmentCategoriesData(string $minDate, string $maxDate, int $fieldOfficeId): array
+    private function getTreatmentCategoriesData(string $minDate, string $maxDate, array $fieldOfficesId): array
     {
-        $treatmentCategoryTotal = ['MTCS' => ['Total' => 0], 'RA' => ['Total' => 0]];
-        $sessions = $this->sessionsRepository
-            ->getTableIA1SummaryFormTreatmentCategoryData($minDate, $maxDate, $fieldOfficeId);
+        $treatmentCategoryTotal = [];
+        $sessions = $this->sessionsRepository->getTableIA1SummaryFormTreatmentCategoriesData(
+            $minDate,
+            $maxDate,
+            $fieldOfficesId
+        );
 
         if (empty($sessions)) {
             return [];
         }
 
         foreach ($sessions as $session) {
+            $fieldOfficeId = $session['field_office_id'];
             $treatmentCategories = explode('-', $session['treatment_category']);
             // This is bad, it is classified as side effect.
             $this->sessionIds[] = intval($session['session_id']);
 
-            if (! isset($treatmentCategoryTotal[$treatmentCategories[0]][$treatmentCategories[1]])) {
-                $treatmentCategoryTotal[$treatmentCategories[0]][$treatmentCategories[1]] = 0;
+            if (! isset($treatmentCategoryTotal[$fieldOfficeId][$treatmentCategories[0]][$treatmentCategories[1]])) {
+                $treatmentCategoryTotal[$fieldOfficeId][$treatmentCategories[0]][$treatmentCategories[1]] = 0;
             }
 
-            $treatmentCategoryTotal[$treatmentCategories[0]]['Total']++;
-            $treatmentCategoryTotal[$treatmentCategories[0]][$treatmentCategories[1]]++;
+            $treatmentCategoryTotal[$fieldOfficeId][$treatmentCategories[0]][$treatmentCategories[1]]++;
+
+            if (! isset($treatmentCategoryTotal[$fieldOfficeId][$treatmentCategories[0]]['Total'])) {
+                $treatmentCategoryTotal[$fieldOfficeId][$treatmentCategories[0]]['Total'] = 0;
+            }
+
+            $treatmentCategoryTotal[$fieldOfficeId][$treatmentCategories[0]]['Total']++;
         }
 
         return $treatmentCategoryTotal;
@@ -264,29 +332,38 @@ class TableIA1SummaryFormNational implements Form
     private function getClientSessionsData(): array
     {
         $fsgClients = [];
-        $clientsId = ['active_supervision' => [], 'others' => []];
+        $clientsFrequency = [];
         $clientSessions = $this->clientSessionsRepository->findBySessionIds($this->sessionIds);
 
         foreach ($clientSessions as $clientSession) {
-            $clientId = (int) $clientSession['client_id'];
+            $fieldOfficeId = (int) $clientSession['field_office_id'];
 
             if ('Pet' == $clientSession['role'] || 'Term' == $clientSession['role']) {
-                $clientsId['others'][] = $clientId;
+                if (! isset($clientsFrequency[$fieldOfficeId]['others'])) {
+                    $clientsFrequency[$fieldOfficeId]['others'] = 0;
+                }
+
+                $clientsFrequency[$fieldOfficeId]['others']++;
             } else {
-                $clientsId['active_supervision'][] = $clientId;
+                if (! isset($clientsFrequency[$fieldOfficeId]['active_supervision'])) {
+                    $clientsFrequency[$fieldOfficeId]['active_supervision'] = 0;
+                }
+
+                $clientsFrequency[$fieldOfficeId]['active_supervision']++;
             }
 
             if (intval($clientSession['fsi'])) {
-                $fsgClients[] = $clientId;
+                if (! isset($fsgClients[$fieldOfficeId])) {
+                    $fsgClients[$fieldOfficeId] = 0;
+                }
+
+                $fsgClients[$fieldOfficeId]++;
             }
         }
 
-        $clientsId['active_supervision'] = count(array_unique($clientsId['active_supervision']));
-        $clientsId['others'] = count(array_unique($clientsId['others']));
-
         return [
-            'client_frequency' => $clientsId,
-            'fsg_frequency' => count(array_unique($fsgClients)),
+            'client_frequency' => $clientsFrequency,
+            'fsg_frequency' => $fsgClients,
         ];
     }
 
@@ -352,5 +429,117 @@ class TableIA1SummaryFormNational implements Form
         $this->lastFilledOutCellY++;
 
         return $spreadsheet;
+    }
+
+    private function getVpas(): array
+    {
+        $results = [];
+        $vpas = $this->sessionsRepository->getVpaFacilitatorsByIds($this->sessionIds);
+
+        foreach ($vpas as $vpa) {
+            $fieldOfficeId = (int) $vpa['field_office_id'];
+
+            if (! isset($results[$fieldOfficeId]['total'])) {
+                $results[$fieldOfficeId]['total'] = [];
+            }
+
+            $results[$fieldOfficeId]['total'][] = $vpa['resource_facilitator_id'];
+
+            if (! isset($results[$fieldOfficeId]['frequency'])) {
+                $results[$fieldOfficeId]['frequency'] = 0;
+            }
+
+            $results[$fieldOfficeId]['frequency']++;
+        }
+
+        return $results;
+    }
+
+    private function activities(): array
+    {
+        $activities = [];
+        $sessions = $this->sessionsRepository->findWithActivitiesByIds($this->sessionIds);
+        $clientsPerSessions = $this->formatClientsPerSession(
+            $this->clientSessionsRepository->findBySessionIds($this->sessionIds)
+        );
+
+        foreach ($sessions as $session) {
+            $fieldOfficeId = (int) $session['field_office_id'];
+            $sessionId = (int) $session['session_id'];
+            $isTreePlanted = boolval($session['is_tree_planting']);
+            $isCooperativeSelfHelp = boolval($session['is_cooperative_self_help']);
+            $isCooperativeSelfHelpActivity = boolval($session['is_cooperative_self_help_activities']);
+            $isCommunityService = boolval($session['is_community_service']);
+
+            if ($isTreePlanted) {
+                if (! isset($activities[$fieldOfficeId]['trees_planting']['participants'])) {
+                    $activities[$fieldOfficeId]['trees_planting']['participants'] = 0;
+                }
+                $activities[$fieldOfficeId]['trees_planting']['participants'] += $clientsPerSessions[$sessionId];
+
+                if (! isset($activities[$fieldOfficeId]['trees_planting']['activity'])) {
+                    $activities[$fieldOfficeId]['trees_planting']['activity'] = 0;
+                }
+                $activities[$fieldOfficeId]['trees_planting']['activity']++;
+
+                $tressPlanted = (int) $session['trees_planted'];
+                if (! isset($activities[$fieldOfficeId]['trees_planting']['planted'])) {
+                    $activities[$fieldOfficeId]['trees_planting']['planted'] = 0;
+                }
+                $activities[$fieldOfficeId]['trees_planting']['planted'] += $tressPlanted;
+            }
+
+            if ($isCooperativeSelfHelp) {
+                if (! isset($activities[$fieldOfficeId]['selfHelp']['association'])) {
+                    $activities[$fieldOfficeId]['selfHelp']['association'] = 0;
+                }
+                $activities[$fieldOfficeId]['selfHelp']['association']++;
+
+                if (! isset($activities[$fieldOfficeId]['selfHelp']['clients'])) {
+                    $activities[$fieldOfficeId]['selfHelp']['clients'] = 0;
+                }
+                $activities[$fieldOfficeId]['selfHelp']['clients'] += $clientsPerSessions[$sessionId];
+            }
+
+            if ($isCooperativeSelfHelpActivity) {
+                if (! isset($activities[$fieldOfficeId]['selfHelp']['activity'])) {
+                    $activities[$fieldOfficeId]['selfHelp']['activity'] = 0;
+                }
+                $activities[$fieldOfficeId]['selfHelp']['activity']++;
+
+                if (!$isCooperativeSelfHelp) {
+                    if (! isset($activities[$fieldOfficeId]['selfHelp']['clients'])) {
+                        $activities[$fieldOfficeId]['selfHelp']['clients'] = 0;
+                    }
+                    $activities[$fieldOfficeId]['selfHelp']['clients'] += $clientsPerSessions[$sessionId];
+                }
+            }
+
+            if ($isCommunityService) {
+                if (! isset($activities[$fieldOfficeId]['communityService'])) {
+                    $activities[$fieldOfficeId]['communityService'] = 0;
+                }
+                $activities[$fieldOfficeId]['communityService']++;
+            }
+        }
+
+        return $activities;
+    }
+
+    private function formatClientsPerSession(array $clientsSessions): array
+    {
+        $results = [];
+
+        foreach ($clientsSessions as $clientsSession) {
+            $sessionId = (int) $clientsSession['session_id'];
+
+            if (! isset($results[$sessionId])) {
+                $results[$sessionId] = 0;
+            }
+
+            $results[$sessionId]++;
+        }
+
+        return $results;
     }
 }
