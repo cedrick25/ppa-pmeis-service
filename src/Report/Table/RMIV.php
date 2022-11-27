@@ -21,7 +21,7 @@ class RMIV implements Form
         private ResourceMobilization    $service,
         private int                     $lastFilledOutCellY = 8,
         private array                   $data = [],
-    ){}
+    ) {}
 
     public function supports(string $tableName): bool
     {
@@ -95,26 +95,26 @@ class RMIV implements Form
         $spreadsheet->getActiveSheet()->setCellValue("A" . $this->lastFilledOutCellY, '1.  THERAPEUTIC ');
         $this->lastFilledOutCellY++;
         $spreadsheet->getActiveSheet()->setCellValue("A" . $this->lastFilledOutCellY, '     COMMUNITY  (TC)');
-        $spreadsheet = $this->plot($this->data['rows']['TC'], $spreadsheet);
+        $spreadsheet = $this->plot($this->data['rows']['TC'] ?? [], $spreadsheet);
         $this->lastFilledOutCellY++;
 
         $this->lastFilledOutCellY++;
         $spreadsheet->getActiveSheet()->setCellValue("A" . $this->lastFilledOutCellY, '2.  RESTORATIVE JUSTICE');
         $this->lastFilledOutCellY++;
         $spreadsheet->getActiveSheet()->setCellValue("A" . $this->lastFilledOutCellY, '      (RJ)');
-        $spreadsheet = $this->plot($this->data['rows']['RJ'], $spreadsheet);
+        $spreadsheet = $this->plot($this->data['rows']['RJ'] ?? [], $spreadsheet);
         $this->lastFilledOutCellY++;
 
         $this->lastFilledOutCellY++;
         $spreadsheet->getActiveSheet()->setCellValue("A" . $this->lastFilledOutCellY, '3.  VOLUNTEERISM  (VPA)');
-        $spreadsheet = $this->plot($this->data['rows']['VPA'], $spreadsheet);
+        $spreadsheet = $this->plot($this->data['rows']['VPA'] ?? [], $spreadsheet);
         $this->lastFilledOutCellY++;
 
         $this->lastFilledOutCellY++;
         $spreadsheet->getActiveSheet()->setCellValue("A" . $this->lastFilledOutCellY, '4.   GENDER AND ');
         $this->lastFilledOutCellY++;
         $spreadsheet->getActiveSheet()->setCellValue("A" . $this->lastFilledOutCellY, '       DEVELOPMENT  (GAD)');
-        $spreadsheet = $this->plot($this->data['rows']['GAD'], $spreadsheet);
+        $spreadsheet = $this->plot($this->data['rows']['GAD'] ?? [], $spreadsheet);
         $this->lastFilledOutCellY++;
 
         $this->lastFilledOutCellY++;
@@ -124,7 +124,7 @@ class RMIV implements Form
         $this->lastFilledOutCellY++;
         $spreadsheet->getActiveSheet()->setCellValue("A" . $this->lastFilledOutCellY, '     SENIOR CITIZENS');
         // TODO: To be discussed
-        $spreadsheet = $this->plot($this->data['rows']['PWDSC'], $spreadsheet);
+        $spreadsheet = $this->plot($this->data['rows']['PWDSC'] ?? [], $spreadsheet);
         $this->lastFilledOutCellY++;
 
         $this->lastFilledOutCellY++;
@@ -134,7 +134,7 @@ class RMIV implements Form
             'A' . $this->lastFilledOutCellY,
             '     (To include LGUs - on detail)'
         );
-        $spreadsheet = $this->plot($this->data['rows']['OTHERS'], $spreadsheet);
+        $spreadsheet = $this->plot($this->data['rows']['OTHERS'] ?? [], $spreadsheet);
         $this->lastFilledOutCellY++;
 
         $spreadsheet = $this->plotTotal($spreadsheet);
