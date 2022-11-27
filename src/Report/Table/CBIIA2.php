@@ -124,16 +124,16 @@ class CBIIA2 implements Form
     {
         $spreadsheet = new Spreadsheet();
         $textAndCoordinates = [
-            'N' => $this->data[SystemSettingNames::GENERATED_REPORTS_CODE],
+            'N1' => $this->data[SystemSettingNames::GENERATED_REPORTS_CODE],
             'a3' => 'Table II.A.2 –  VPAs',
-            'a5' => 'Title', 'a6' => '(1)', 
+            'a5' => 'Title', 'a6' => '(1)',
             'b5' => 'Date', 'b6' => '(2)',
-            'c5' => 'No. of', 'c6' => 'Participants', 'c7' => '(3)', 
+            'c5' => 'No. of', 'c6' => 'Participants', 'c7' => '(3)',
             'd5' => 'Name/s', 'd6' => '(4)',
             'e4' => 'P', 'e5' => 'W', 'e6' => 'D', 'e7' => '(5)',
             'f4' => 'S', 'f5' => 'C', 'f6' => '', 'f7' => '(6)',
             'g4' => 'Trainings Conducted   (7)', 'g5' => 'In-House', 'g6' => '(Indicate if CO/
-             RO/ FO)', 'h5' => 'Out-House', 'h6' => '(Indicate Name of conducting 
+             RO/ FO)', 'h5' => 'Out-House', 'h6' => '(Indicate Name of conducting
              Agency/ Organization)',
             'i4' => 'No. of', 'i5' => 'Training', 'i6' => 'Hours', 'i7' => '(8)',
             'j4' => 'REMARKS', 'j7' => '(9)',
@@ -152,7 +152,7 @@ class CBIIA2 implements Form
             'A4:A7', 'B4:B7', 'C4:C7', 'D4:D7', 'E4:E7', 'F4:F7', 'G4:h4', 'G6:G7', 'H6:H7', 'J4:J7', 'I4:I7'
         ];
 
-        foreach ($textAndCoordinates as $coordinate=>$text) {
+        foreach ($textAndCoordinates as $coordinate => $text) {
             $spreadsheet->getActiveSheet()->setCellValue($coordinate, $text);
         }
         foreach ($mergesCoordinates as $coordinate) {
