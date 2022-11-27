@@ -32,6 +32,7 @@ use App\Repository\VolunteerSupervisionsRepository;
 use App\Service\System\AuditTrail;
 use App\Service\System\SystemCodeSettings;
 use Doctrine\ORM\Exception\ORMException;
+use DoctrineExtensions\Query\Mysql\Date;
 use Exception;
 use Psr\Cache\CacheException;
 use Psr\Cache\InvalidArgumentException;
@@ -324,6 +325,13 @@ class Volunteer implements VolunteerInterface
             $religions = $this->getReligions();
 
             $data = [];
+            $ageRanges = [
+                '15-24' => ['min' => 15, 'max' => 24],
+                '25-34' => ['min' => 25, 'max' => 34],
+                '35-44' => ['min' => 35, 'max' => 44],
+                '45-54' => ['min' => 45, 'max' => 54],
+                '55-64' => ['min' => 55, 'max' => 64],
+            ];
             foreach ($volunteers as $volunteer) {
                 $fieldOffice = $volunteer['field_office'];
                 $civilStatus = $civilStatuses[$volunteer['civil_status']];
@@ -356,6 +364,38 @@ class Volunteer implements VolunteerInterface
                 $data[$fieldOffice]['religion'][$religion]++;
                 $data[$fieldOffice]['occupation'][$occupation]++;
                 $data[$fieldOffice]['education_attainment'][$educationBackground]++;
+
+                $dob = $this->appDateHelper->convertStringToImmutableDate($volunteer['date_of_birth']);
+
+                if (null == $dob) {
+                    if (! isset($data[$fieldOffice]['age'][0])) {
+                        $data[$fieldOffice]['age'][0] = 0;
+                    }
+
+                    $data[$fieldOffice]['age'][0]++;
+                    continue;
+                }
+
+                $age = $dob->diff(new \DateTime());
+
+                if ($age->y > 65) {
+                    if (! isset($data[$fieldOffice]['age'][65])) {
+                        $data[$fieldOffice]['age'][65] = 0;
+                    }
+
+                    $data[$fieldOffice]['age'][65]++;
+                    continue;
+                }
+
+                foreach ($ageRanges as $key => $range) {
+                    if ($range['max'] >= $age->y && $range['min'] <= $age->y) {
+                        if (! isset($data[$fieldOffice]['age'][$key])) {
+                            $data[$fieldOffice]['age'][$key] = 0;
+                        }
+
+                        $data[$fieldOffice]['age'][$key]++;
+                    }
+                }
             }
 
             return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_SUCCESS, $data);

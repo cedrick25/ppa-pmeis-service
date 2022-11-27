@@ -19,7 +19,7 @@ class SocioDemographicEducationalAge implements Form
         private Volunteer   $service,
         private int         $lastFilledOutCellY = 10,
         private array       $data = [],
-    ){}
+    ) {}
 
     public function supports(string $tableName): bool
     {
@@ -79,23 +79,54 @@ class SocioDemographicEducationalAge implements Form
             'HS Level' => 0,
             'Elementary' => 0,
             'Not Indicated' => 0,
-            'Total' => 0
+            '15-24' => 0,
+            '25-34' => 0,
+            '35-44' => 0,
+            '45-54' => 0,
+            '55-64' => 0,
+            65 => 0,
+            0 => 0,
+            'Total' => 0,
+            'AgeTotal' => 0,
+        ];
+        $ageCellsX = [
+            '15-24' => 'K',
+            '25-34' => 'L',
+            '35-44' => 'M',
+            '45-54' => 'N',
+            '55-64' => 'O',
+            65 => 'P',
+            0 => 'Q',
         ];
 
-        foreach ($this->data['rows'] as $region=>$row) {
+        foreach ($this->data['rows'] as $region => $row) {
             $this->lastFilledOutCellY++;
             $spreadsheet->getActiveSheet()->setCellValue("A" . $this->lastFilledOutCellY, $region);
 
             $totalScore = 0;
-            foreach ($row['education_attainment'] as $educationAttainment=>$value) {
+            $agesTotal = 0;
+            foreach ($row['education_attainment'] as $educationAttainment => $value) {
                 $cellColumn = $coordinates['education_attainment'][$educationAttainment];
                 $total[$educationAttainment] += $value;
                 $spreadsheet->getActiveSheet()->setCellValue($cellColumn . $this->lastFilledOutCellY, $value);
                 $totalScore += $value;
             }
 
+            foreach ($row['age'] as $key => $score) {
+                $spreadsheet->getActiveSheet()->setCellValue(
+                    $ageCellsX[$key] . $this->lastFilledOutCellY,
+                    $score
+                );
+
+                $agesTotal += $score;
+                $total[$key] += $value;
+            }
+
+
             $total['Total'] += $totalScore;
+            $total['AgeTotal'] += $totalScore;
             $spreadsheet->getActiveSheet()->setCellValue('J' . $this->lastFilledOutCellY, $totalScore);
+            $spreadsheet->getActiveSheet()->setCellValue('R' . $this->lastFilledOutCellY, $agesTotal);
         }
         $this->lastFilledOutCellY++;
         $spreadsheet->getActiveSheet()->setCellValue('A' . $this->lastFilledOutCellY, 'GRAND TOTALS');
@@ -109,19 +140,28 @@ class SocioDemographicEducationalAge implements Form
         $spreadsheet->getActiveSheet()->setCellValue('H' . $this->lastFilledOutCellY, $total['Elementary']);
         $spreadsheet->getActiveSheet()->setCellValue('I' . $this->lastFilledOutCellY, $total['Not Indicated']);
         $spreadsheet->getActiveSheet()->setCellValue('J' . $this->lastFilledOutCellY, $total['Total']);
+        $spreadsheet->getActiveSheet()->setCellValue('K' . $this->lastFilledOutCellY, $total['15-24']);
+        $spreadsheet->getActiveSheet()->setCellValue('L' . $this->lastFilledOutCellY, $total['25-34']);
+        $spreadsheet->getActiveSheet()->setCellValue('M' . $this->lastFilledOutCellY, $total['35-44']);
+        $spreadsheet->getActiveSheet()->setCellValue('N' . $this->lastFilledOutCellY, $total['45-54']);
+        $spreadsheet->getActiveSheet()->setCellValue('O' . $this->lastFilledOutCellY, $total['55-64']);
+        $spreadsheet->getActiveSheet()->setCellValue('P' . $this->lastFilledOutCellY, $total[65]);
+        $spreadsheet->getActiveSheet()->setCellValue('Q' . $this->lastFilledOutCellY, $total[0]);
+        $spreadsheet->getActiveSheet()->setCellValue('R' . $this->lastFilledOutCellY, $total['AgeTotal']);
 
-        $spreadsheet->getActiveSheet()->getStyle('A10:R' . $this->lastFilledOutCellY)->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
-        $spreadsheet->getActiveSheet()->getStyle('A10:R' . $this->lastFilledOutCellY)->getAlignment()->setHorizontal('center');
-        $spreadsheet->getActiveSheet()->getStyle('A10:R' . $this->lastFilledOutCellY)->getAlignment()->setVertical('center');
+        $spreadsheet->getActiveSheet()->getStyle('A10:R' . $this->lastFilledOutCellY)
+            ->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
+        $spreadsheet->getActiveSheet()->getStyle('A10:R' . $this->lastFilledOutCellY)
+            ->getAlignment()->setHorizontal('center');
+        $spreadsheet->getActiveSheet()->getStyle('A10:R' . $this->lastFilledOutCellY)
+            ->getAlignment()->setVertical('center');
 
         return $spreadsheet;
     }
 
     public function header(): Spreadsheet
     {
-        $spreadsheet = $this->prepare();
-
-        return $spreadsheet;
+        return $this->prepare();
     }
 
     /**
@@ -196,7 +236,8 @@ class SocioDemographicEducationalAge implements Form
         }
 
         foreach ($outlineBorderThinCoordinates as $coordinate) {
-            $spreadsheet->getActiveSheet()->getStyle($coordinate)->getBorders()->getOutline()->setBorderStyle(Border::BORDER_THIN);
+            $spreadsheet->getActiveSheet()->getStyle($coordinate)
+                ->getBorders()->getOutline()->setBorderStyle(Border::BORDER_THIN);
         }
 
         foreach ($rotateTextCoordinates as $coordinate) {
