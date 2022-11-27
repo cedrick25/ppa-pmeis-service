@@ -55,7 +55,10 @@ class RJIB3 implements Form
     {
         $spreadsheet = $this->body();
         $this->lastFilledOutCellY++;
-        $spreadsheet->getActiveSheet()->setCellValue('A' . $this->lastFilledOutCellY, "NOTE: No. of victims/ offended parties who received CL payments will be reflected in the FO's IQPR Summary Form.");
+        $spreadsheet->getActiveSheet()->setCellValue(
+            'A' . $this->lastFilledOutCellY,
+            "NOTE: No. of victims/ offended parties who received CL payments will be reflected in the FO's IQPR Summary Form."
+        );
 
         $this->lastFilledOutCellY++;
         $this->lastFilledOutCellY++;
@@ -135,13 +138,17 @@ class RJIB3 implements Form
     {
         $spreadsheet = new Spreadsheet();
         $textAndCoordinates = [
-            'R1' => $this->data[SystemSettingNames::GENERATED_REPORTS_CODE], 'A2' => 'Table I.B.3   RESTITUTION - CIVIL LIABILITY INDEMNIFICATION', 'A5' => "CLIENT'S NAME",
-            'B5' => 'SEX', 'E5' => 'TOTAL AMOUNT (4)', 'I5' => 'PAYMENT (5)', 'R5' => 'REMARKS', 'D6' => 'OFFENSE ', 'E6' => 'CIVIL',
-            'G6' => 'AMOUNT PAID THIS QTR.', 'H6' => ' BALANCE END OF QTR.', 'I6' => 'FORM', 'J6' => 'MODE', 'K6' => 'DATE', 'L6' => 'AMOUNT',
+            'R1' => $this->data[SystemSettingNames::GENERATED_REPORTS_CODE],
+            'A2' => 'Table I.B.3   RESTITUTION - CIVIL LIABILITY INDEMNIFICATION', 'A5' => "CLIENT'S NAME",
+            'B5' => 'SEX', 'E5' => 'TOTAL AMOUNT (4)', 'I5' => 'PAYMENT (5)', 'R5' => 'REMARKS', 'D6' => 'OFFENSE ',
+            'E6' => 'CIVIL',
+            'G6' => 'AMOUNT PAID THIS QTR.', 'H6' => ' BALANCE END OF QTR.', 'I6' => 'FORM', 'J6' => 'MODE',
+            'K6' => 'DATE', 'L6' => 'AMOUNT',
             'M6' => 'Received by', 'N6' => ' REMITTED', 'B7' => '(2)', 'D7' => '(Please Specify)', 'E7' => 'LIABILITY',
-            'N7' => ' To Offended Party (Indicate name if thru Representative)', 'P7' => 'AMOUNT', 'Q7' => 'DATE', 'B8' => 'F', 'C8' => 'M',
-            'E8' => 'ORIGINAL', 'F8' => 'START OF', 'A9' => '(1)', 'D9' => '(3)', 'E9' => 'AMOUNT', 'F9' => 'QUARTER', 'R9' => '(6)',
-            'A10' => 'I.  ACTIVE SUPERVISION', 'A11' => '(ALL clients  with CL))'
+            'N7' => ' To Offended Party (Indicate name if thru Representative)', 'P7' => 'AMOUNT', 'Q7' => 'DATE',
+            'B8' => 'F', 'C8' => 'M',
+            'E8' => 'ORIGINAL', 'F8' => 'START OF', 'A9' => '(1)', 'D9' => '(3)', 'E9' => 'AMOUNT', 'F9' => 'QUARTER',
+            'R9' => '(6)', 'A10' => 'I.  ACTIVE SUPERVISION', 'A11' => '(ALL clients  with CL))'
         ];
 
         $wrapTextCoordinates = ["A5:R8"];
@@ -310,6 +317,6 @@ class RJIB3 implements Form
             $data['field_office_id']
         );
 
-        return ['rows' => isset($results['data']) ? array_values($results['data']) : []];
+        return ['rows' => array_values($result['data'] ?? [])];
     }
 }
