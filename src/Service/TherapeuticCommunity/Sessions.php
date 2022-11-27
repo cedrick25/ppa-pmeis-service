@@ -393,7 +393,11 @@ class Sessions implements SessionsInterface
 
             return $this->appFormatter->formatResponse("Duplicating Successful", []);
         } catch (\Doctrine\DBAL\Driver\Exception|\Doctrine\DBAL\Exception $e) {
-            return $this->appFormatter->formatResponse(ResponseEnum::UPDATING_FAILED, null, ['cache' => $e->getMessage()]);
+            return $this->appFormatter->formatResponse(
+                ResponseEnum::UPDATING_FAILED,
+                null,
+                ['cache' => $e->getMessage()]
+            );
         }
     }
 

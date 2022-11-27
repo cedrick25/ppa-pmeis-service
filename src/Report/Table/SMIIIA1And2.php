@@ -20,7 +20,7 @@ class SMIIIA1And2 implements Form
         private SocialMarketing $service,
         private int             $lastFilledOutCellY = 3,
         private array           $data = [],
-    ){}
+    ) {}
 
     public function supports(string $tableName): bool
     {
@@ -85,15 +85,21 @@ class SMIIIA1And2 implements Form
 
             $personInvolvedCellY = $this->lastFilledOutCellY;
             foreach ($socialMarketing['personInvolved'] as $personInvolved) {
-                $cellX = ('VPA' == $personInvolved['type']['value']) ? 'F' : 'E';
                 $name = (strlen($personInvolved['othersName']) > 0)
                     ? $personInvolved['othersName']
                     : $personInvolved['id']['label'];
 
-                $spreadsheet->getActiveSheet()->setCellValue(
-                    $cellX . $personInvolvedCellY,
-                    $name . '/' . $personInvolved['role']
-                );
+                if ('MEETINGS_PARTICIPATIONS' === $socialMarketing['type']) {
+                    $cellX = ('VPA' == $personInvolved['type']['value']) ? 'F' : 'E';
+
+                    $spreadsheet->getActiveSheet()->setCellValue(
+                        $cellX . $personInvolvedCellY,
+                        $name . '/' . $personInvolved['role']
+                    );
+                } else {
+                    $spreadsheet->getActiveSheet()->setCellValue('E' . $personInvolvedCellY, $name);
+                    $spreadsheet->getActiveSheet()->setCellValue('F' . $personInvolvedCellY, $personInvolved['role']);
+                }
 
                 $personInvolvedCellY++;
             }
@@ -152,7 +158,7 @@ class SMIIIA1And2 implements Form
             'A' => 63, 'B' => 45, 'C' => 10, 'D' => 10, 'E' => 25, 'F' => 15, 'G' => 15, 'H' => 20,
         ];
         $outlineBorderThinCoordinates = [
-            'A2:A3', 'B2:B3', 'C2:D2', 'E2:F2', 'G2:G3', 
+            'A2:A3', 'B2:B3', 'C2:D2', 'E2:F2', 'G2:G3',
         ];
 
         foreach ($textAndCoordinates as $coordinate => $text) {
