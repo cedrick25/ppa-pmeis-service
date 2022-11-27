@@ -95,7 +95,7 @@ class SMIIIA3 implements Form
                 $spreadsheet->getActiveSheet()->setCellValue('F' . $personInvolvedCellY, $name);
                 $spreadsheet->getActiveSheet()->setCellValue(
                     'G' . $personInvolvedCellY,
-                    $personInvolved['role']['value']
+                    $personInvolved['role']
                 );
 
                 $personInvolvedCellY++;
