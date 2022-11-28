@@ -535,11 +535,11 @@ class Volunteer implements VolunteerInterface
         $pdf = new TCPDF();
         $pdf->setCreator(PDF_CREATOR);
         $pdf->setAuthor('PPA');
-        $pdf->setTitle('Testing');
+        $pdf->setTitle('Certificate');
         $pdf->setPrintHeader(false);
         $pdf->setPrintFooter(false);
         $pdf->startPage();
-        $logo = dirname(__DIR__ ) . '/../../assets/ppa.png';
+        $logo = dirname(__DIR__) . '/../../assets/ppa.png';
         $heading = <<<EOD
             <h3 style="text-align: right;">$code</h3>
             <h3 style="text-align: center;line-height: 5px;">Republic of the Philippines</h3>
@@ -551,7 +551,7 @@ class Volunteer implements VolunteerInterface
         EOD;
 
         $pdf->writeHTMLCell(0, 0, '', '', $heading);
-        $pdf->Image($logo,  85, 75, 40, 40, '', '', 'T', false, 300, '', false, false, 1, false, false, false);
+        $pdf->Image($logo,  85, 75, 40, 40, '', '', 'T', false, 300, '', false, false, 1);
         $body = <<<EOD
             <div>
                 <h2 style="text-align: center;"><i>Certificate of Appointment</i></h2>
@@ -583,36 +583,102 @@ class Volunteer implements VolunteerInterface
 
     public function getId(array $data): string
     {
-        $volunteer = $this->repository->find($data['volunteer_id']);
-        $idNo = $volunteer->getVolunteerId();
-        $fullName = $volunteer->getFirstName() . ' ' . $volunteer->getMiddleName() . ' ' . $volunteer->getLastName();
-        $fieldOffice = $this->fieldOfficesRepository->find($volunteer->getFieldOfficeId());
-        $fieldOfficeName = $fieldOffice->getName();
+        if (\count($data['volunteer_ids']) > 4) {
+            return 'Invalid ID count';
+        }
+        $volunteersId = $data['volunteer_ids'];
+        $volunteers = $this->repository->findByIds($volunteersId);
+        $fieldOffice = $this->fieldOfficesRepository->find($volunteers[0]->getFieldOfficeId());
         $region = $this->regionsRepository->find($fieldOffice->getRegionId());
-        $regionName = $region->getName();
+
         $code = $this->systemCodeSettings->getByName(SystemSettingNames::VPA_CERTIFICATE_REPORT_CODE);
-        $address = $volunteer->getPresentAddress();
-        $bloodType = $volunteer->getBloodType();
-        $weight = $volunteer->getWeight();
-        $height = $volunteer->getHeight();
-        $emergencyName = $volunteer->getEmergencyName();
-        $emergencyNumber = $volunteer->getEmergencyNumber();
         $administrator = $this->systemCodeSettings->getByName(SystemSettingNames::OIC_ADMINISTRATOR);
 
-        $pdf = new TCPDF();
+        $pdf = new TCPDF('P', "mm", array(350, 215), true, 'UTF-8', false);
+        $pdf->setAutoPageBreak(true);
         $pdf->setCreator(PDF_CREATOR);
         $pdf->setAuthor('PPA');
-        $pdf->setTitle('Testing');
+        $pdf->setTitle('ID');
         $pdf->setPrintHeader(false);
         $pdf->setPrintFooter(false);
         $pdf->startPage();
-        $logo = dirname(__DIR__ ) . '/../../assets/ppa.png';
-        $picture = dirname(__DIR__ ) . '/../../assets/placeholder-1x1.gif';
+        $logo = dirname(__DIR__) . '/../../assets/ppa.png';
+        $picture = dirname(__DIR__) . '/../../assets/placeholder-1x1.gif';
 
         $pdf->writeHTMLCell(0, 0, '', '');
-        $pdf->Image($logo,  2.5, 12.5, 15, 15, '', '', 'T', false, 300, '', false, false, 1, false, false, false);
-        $pdf->Image($picture,  37.5, 40, 25.4, 25.4, '', '', 'T', false, 300, '', false, false, 1, false, false, false);
-        $body = <<<EOD
+        foreach ($volunteersId as $key => $id) {
+            switch ($key) {
+                case 0:
+                    $pdf->Image($logo, 2.5, 12.5, 15, 15, '', '', 'T', false, 300, '', false, false, 1);
+                    $pdf->Image($picture, 37.5, 40, 25.4, 25.4, '', '', 'T', false, 300, '', false, false, 1);
+                    break;
+                case 1:
+                    $pdf->Image($logo, 102.5, 12.5, 15, 15, '', '', 'T', false, 300, '', false, false, 1);
+                    $pdf->Image($picture, 135.5, 40, 25.4, 25.4, '', '', 'T', false, 300, '', false, false, 1);
+                    break;
+                case 2:
+                    $pdf->Image($logo, 2.5, 162.5, 15, 15, '', '', 'T', false, 300, '', false, false, 1);
+                    $pdf->Image($picture, 37.5, 190, 25.4, 25.4, '', '', 'T', false, 300, '', false, false, 1);
+                    break;
+                default:
+                    $pdf->Image($logo, 102.5, 162.5, 15, 15, '', '', 'T', false, 300, '', false, false, 1);
+                    $pdf->Image($picture, 135.5, 190, 25.4, 25.4, '', '', 'T', false, 300, '', false, false, 1);
+                    break;
+            }
+        }
+        $front = <<<EOD
+            <style>
+                .full-name {
+                    text-align: center;
+                    font-size: 15px;
+                    font-weight: normal;
+                    background-color: #f7ef4d;
+                }
+                .title {
+                    text-align: center;
+                    font-weight: bold;
+                    background-color: #e9ad63;
+                    color: #fff;
+                }
+                .admin-name {
+                    text-align: center;
+                    line-height: 5px;
+                }
+                .admin-title {
+                    text-align: center;
+                    font-weight: normal;
+                }
+            </style>
+            <table width="100%" cellpadding="0" border="0">
+
+        EOD;
+
+        foreach ($volunteers as $index => $volunteer) {
+            $fullName = $volunteer->getFirstName().' '.$volunteer->getMiddleName().' '.$volunteer->getLastName();
+
+            $front .= $this->createFrontId(
+                $index % 2 == 0 ? 'start' : 'end',
+                (string) $volunteer->getVolunteerId(),
+                $fullName,
+                $fieldOffice->getName(),
+                $region->getName(),
+                $administrator,
+                count($volunteersId),
+                $index
+            );
+        }
+
+        $front .= <<<EOD
+        
+            </table>
+        EOD;
+
+        $pdf->writeHTMLCell(0, 0, 0, 0, $front);
+
+        $pdf->AddPage();
+        $pdf->setPage(2);
+
+        $back = <<<EOD
             <style>
                 table.back-page {
                     border-collapse: collapse;
@@ -637,92 +703,34 @@ class Volunteer implements VolunteerInterface
                     border: none;
                 }
             </style>
-            <table width="100%" cellpadding="0" border="0">
-                <tr>
-                    <td width="50%" style="border: 1px solid #000000;">
-                        <h4 style="text-align: center">Republic of the Philippines</h4>
-                        <h4 style="text-align: center;line-height: 1px">Department of Justice</h4>
-                        <h3 style="text-align: center">PAROLE AND PROBATION ADMINISTRATION</h3>
-                        <div></div>
-                        <div></div>
-                        <div></div>
-                        <div></div>
-                        <div></div>
-                        <div></div>
-                        <div></div>
-                        <h3>
-                            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-                            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-                            ID No.: $idNo
-                        </h3>
-                        <h2 style="text-align: center;font-size: 15px;font-weight: normal;background-color: #f7ef4d;">$fullName</h2>
-                        <h2 style="text-align: center;font-weight: bold;background-color: #e9ad63;color: #fff;">Volunteer Probation Assistant</h2>
-                        <h3 style="text-align: center;"><i>$fieldOfficeName</i></h3>
-                        <h3 style="text-align: center"><i>$regionName</i></h3>
-                        <div></div>
-                        <h2 style="text-align: center;line-height: 5px;">$administrator</h2>
-                        <h3 style="text-align: center;font-weight: normal;">Administrator</h3>
-                    </td>
-                    <td width="50%">
-                        <table class="back-page">
-                            <tr>
-                                <td colspan="3" style="text-align: right;border: none;">$code</td>
-                            </tr>
-                            <tr>
-                                <td colspan="3" class="back-page-title">&nbsp;ADDRESS: </td>
-                            </tr>
-                            <tr>
-                                <td colspan="3" style="height: 60px;">&nbsp;$address</td>
-                            </tr>
-                            <tr>
-                                <td class="back-page-title force-center">BLOOD TYPE</td>
-                                <td class="back-page-title force-center">HEIGHT</td>
-                                <td class="back-page-title force-center">WEIGHT</td>
-                            </tr>
-                            <tr>
-                                <td style="height: 50px;">$bloodType</td>
-                                <td style="height: 50px;">$weight</td>
-                                <td style="height: 50px;">$height</td>
-                            </tr>
-                            <tr><td colspan="3"></td></tr>
-                            <tr><td colspan="3" class="back-page-title">&nbsp;IN CASE OF EMERGENCY, NOTIFY:</td></tr>
-                            <tr><td colspan="3" style="height: 60px;">&nbsp;$emergencyName</td></tr>
-                            <tr>
-                                <td class="back-page-title">&nbsp;TEL. NO.:</td>
-                                <td colspan="2">&nbsp;$emergencyNumber</td>
-                            </tr>
-                            <tr>
-                                <td colspan="3" class="no-border">* This card is non-transferable and must be worn at all times when supervising clients.</td>
-                            </tr>
-                            <tr>
-                                <td colspan="3" class="no-border">* Heavy penalty for unlawful use pursuant to Article 177 and 179, RPC</td>
-                            </tr>
-                            <tr>
-                                <td colspan="3" class="no-border"></td>
-                            </tr>
-                            <tr>
-                                <td colspan="3" class="no-border">_________________________________</td>
-                            </tr>
-                            <tr>
-                                <td colspan="3" class="no-border">Signature</td>
-                            </tr>
-                            <tr>
-                                <td colspan="3" class="no-border force-left" style="font-weight: bold;">This ID valid from:</td>
-                            </tr>
-                            <tr>
-                                <td colspan="3" class="no-border force-left" style="font-weight: bold;">until:</td>
-                            </tr>
-                        </table>
-                    </td>
-                </tr>
-                <tr><td width="100%" colspan="2"></td></tr>
+            <table>
+        EOD;
+
+        foreach ($volunteers as $index => $volunteer) {
+            $back .= $this->createBackId(
+                $index % 2 == 0 ? 'start' : 'end',
+                $code,
+                $volunteer->getPresentAddress(),
+                $volunteer->getBloodType(),
+                $volunteer->getWeight(),
+                $volunteer->getHeight(),
+                $volunteer->getEmergencyName(),
+                $volunteer->getEmergencyNumber(),
+                count($volunteersId),
+                $index
+            );
+        }
+
+        $back .= <<<EOD
             </table>
         EOD;
 
-        $pdf->writeHTMLCell(0, 0, 0, 0, $body);
+        $pdf->writeHTMLCell(0, 0, 0, 0, $back);
         $pdf->endPage();
 
-        $this->auditTrail->log(AuditTrailActions::DOWNLOAD, $data, $this->shortName, $data['volunteer_id']);
+        foreach ($volunteersId as $id) {
+            $this->auditTrail->log(AuditTrailActions::DOWNLOAD, $data, $this->shortName, $id);
+        }
 
         return $pdf->Output('mark.pdf', 'E');
     }
@@ -850,5 +858,134 @@ private function getVpaActingAsResourceIndividuals(Quarters $quarterData, int $f
         //	JD VI.A.1
 
         return \array_unique($volunteerIds);
+    }
+
+    private function createFrontId(
+        string $trPosition,
+        string $idNo,
+        string $fullName,
+        string $fieldOfficeName,
+        string $regionName,
+        string $administrator,
+        int $volunteerCount,
+        int $index,
+    ): string {
+        $body = <<<EOD
+                    <td width="50%" style="border: 1px solid #000000;">
+                        <h4 style="text-align: center">Republic of the Philippines</h4>
+                        <h4 style="text-align: center;line-height: 1px">Department of Justice</h4>
+                        <h3 style="text-align: center">PAROLE AND PROBATION ADMINISTRATION</h3>
+                        <div></div>
+                        <div></div>
+                        <div></div>
+                        <div></div>
+                        <div></div>
+                        <div></div>
+                        <div></div>
+                        <h3>
+                            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                            ID No.: $idNo
+                        </h3>
+                        <h2 class="full-name">$fullName</h2>
+                        <h2 class="title">Volunteer Probation Assistant</h2>
+                        <h3 style="text-align: center;"><i>$fieldOfficeName</i></h3>
+                        <h3 style="text-align: center"><i>$regionName</i></h3>
+                        <div></div>
+                        <h2 class="admin-name">$administrator</h2>
+                        <h3 class="admin-title">Administrator</h3>
+                    </td>
+        EOD;
+
+        if ('start' ==$trPosition) {
+            if ($volunteerCount == 1 || (2 == $index && $volunteerCount == 3)) {
+                return '<tr>' . $body . '</tr>';
+            }
+
+            return '<tr>' . $body;
+        }
+
+        return $body . '</tr>';
+    }
+
+    private function createBackId(
+        string $trPosition,
+        string $code,
+        string $address,
+        string $bloodType,
+        string $weight,
+        string $height,
+        string $emergencyName,
+        string $emergencyNumber,
+        int $volunteerCount,
+        int $index,
+    ): string {
+        $body = <<<EOD
+            <td width="50%" style="border: 1px solid #000000;">
+                <table class="back-page">
+                    <tr>
+                        <td colspan="3" style="text-align: right;border: none;">$code</td>
+                    </tr>
+                    <tr>
+                        <td colspan="3" class="back-page-title">&nbsp;ADDRESS: </td>
+                    </tr>
+                    <tr>
+                        <td colspan="3" style="height: 60px;">&nbsp;$address</td>
+                    </tr>
+                    <tr>
+                        <td class="back-page-title force-center">BLOOD TYPE</td>
+                        <td class="back-page-title force-center">HEIGHT</td>
+                        <td class="back-page-title force-center">WEIGHT</td>
+                    </tr>
+                    <tr>
+                        <td style="height: 50px;">$bloodType</td>
+                        <td style="height: 50px;">$weight</td>
+                        <td style="height: 50px;">$height</td>
+                    </tr>
+                    <tr><td colspan="3"></td></tr>
+                    <tr><td colspan="3" class="back-page-title">&nbsp;IN CASE OF EMERGENCY, NOTIFY:</td></tr>
+                    <tr><td colspan="3" style="height: 60px;">&nbsp;$emergencyName</td></tr>
+                    <tr>
+                        <td class="back-page-title">&nbsp;TEL. NO.:</td>
+                        <td colspan="2">&nbsp;$emergencyNumber</td>
+                    </tr>
+                    <tr>
+                        <td colspan="3" class="no-border">
+                            * This card is non-transferable and must be worn at all times when supervising clients.
+                        </td>
+                    </tr>
+                    <tr>
+                        <td colspan="3" class="no-border">
+                            * Heavy penalty for unlawful use pursuant to Article 177 and 179, RPC
+                        </td>
+                    </tr>
+                    <tr>
+                        <td colspan="3" class="no-border"></td>
+                    </tr>
+                    <tr>
+                        <td colspan="3" class="no-border">_________________________________</td>
+                    </tr>
+                    <tr>
+                        <td colspan="3" class="no-border">Signature</td>
+                    </tr>
+                    <tr>
+                        <td colspan="3" class="no-border force-left" style="font-weight: bold;">This ID valid from:</td>
+                    </tr>
+                    <tr>
+                        <td colspan="3" class="no-border force-left" style="font-weight: bold;">until:</td>
+                    </tr>
+                </table>
+            </td>
+        EOD;
+
+        if ('start' ==$trPosition) {
+            if ($volunteerCount == 1 || (2 == $index && $volunteerCount == 3)) {
+                return '<tr>' . $body . '</tr>';
+            }
+
+            return '<tr>' . $body;
+        }
+
+        return $body . '</tr>';
     }
 }

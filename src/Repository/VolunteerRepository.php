@@ -224,7 +224,6 @@ class VolunteerRepository extends ServiceEntityRepository
     /**
      * @param int $id
      * @return bool|array<string, mixed>
-     * @throws \Doctrine\DBAL\Driver\Exception
      * @throws \Doctrine\DBAL\Exception
      */
     public function getById(int $id): bool|array
@@ -460,8 +459,6 @@ class VolunteerRepository extends ServiceEntityRepository
      * @param int $fieldOfficeId
      * @param int[] $volunteerIds
      * @return Volunteer[]
-     * @throws \Doctrine\DBAL\Driver\Exception
-     * @throws \Doctrine\DBAL\Exception
      */
     public function findInactiveVolunteersByFieldOffice(
         int $fieldOfficeId,
@@ -485,10 +482,10 @@ class VolunteerRepository extends ServiceEntityRepository
     public function findByIds(array $ids): array
     {
         return $this->createQueryBuilder('v')
-            ->select('v.firstName, v.middleName, v.lastName, v.gender, v.civilStatus,
-                            v.religion, v.occupation, v.educationAttainment, v.fieldOfficeId')
+            ->select()
             ->where('v.volunteerId IN (:ids)')
             ->andWhere('v.deletedAt IS NULL')
+            ->andWhere("v.vpaStatus = 'APPOINTED' ")
             ->andWhere('v.dateAppointed IS NOT NULL')
             ->setParameter('ids', $ids, Connection::PARAM_INT_ARRAY)
             ->getQuery()
