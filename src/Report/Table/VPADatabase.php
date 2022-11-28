@@ -58,8 +58,9 @@ class VPADatabase implements Form
     public function body(): Spreadsheet
     {
         $spreadsheet = $this->header();
+        $volunteers = $this->data['volunteers'] ?? [];
 
-        foreach ($this->data['volunteers'] as $volunteer) {
+        foreach ($volunteers as $volunteer) {
             $this->lastFilledOutCellY++;
 
             $middleInitial = $volunteer['middle_name'] != null ? substr($volunteer['middle_name'], 0, 1) . '.' : '';
