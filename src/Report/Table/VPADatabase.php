@@ -106,7 +106,7 @@ class VPADatabase implements Form
         $spreadsheet = new Spreadsheet();
 
         $textAndCoordinates = [
-            'L1' => 'PPA-CSD-FR-009-01', 'A2' => 'VPA DATABASE', 'A3' => 'REGION: PPA-CSD-FR-009-01',
+            'L1' => 'PPA-CSD-FR-009-01', 'A2' => 'VPA DATABASE', 'A3' => 'REGION: ' . $this->data['header']['region'] ?? 'NCR',
             'A5' => 'NAME', 'B5' => 'ID Number', 'C5' => 'Date of Appointment', 'D5' => 'Address', 'E5' => 'Ht.',
             'F5' => 'Wt.', 'G5' => 'Gender', 'H5' => 'Date of Birth', 'I5' => 'Age', 'J5' => 'Civil Status',
             'K5' => 'Religion', 'L5' => 'Education', 'M5' => 'Occupation'
