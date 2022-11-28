@@ -38,6 +38,11 @@ class ProgramMaterialsDevelopment
     /**
      * @ORM\Column(type="string", length=255)
      */
+    private string $utilizedFor;
+
+    /**
+     * @ORM\Column(type="string", length=255)
+     */
     private string $remarks;
 
     /**
@@ -105,6 +110,22 @@ class ProgramMaterialsDevelopment
         $this->program = $program;
 
         return $this;
+    }
+
+    /**
+     * @return string
+     */
+    public function getUtilizedFor(): string
+    {
+        return $this->utilizedFor;
+    }
+
+    /**
+     * @param string $utilizedFor
+     */
+    public function setUtilizedFor(string $utilizedFor): void
+    {
+        $this->utilizedFor = $utilizedFor;
     }
 
     public function getRemarks(): ?string

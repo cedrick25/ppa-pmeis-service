@@ -106,6 +106,10 @@ class ProgramMaterialsDevelopment implements ProgramMaterialsDevelopmentInterfac
 
             foreach ($results['items'] as $i => $item) {
                 $pmdId = $item['program_materials_development_id'];
+                $results['items'][$i]['utilized_for'] = [
+                    'label' => $item['utilized_for'],
+                    'value' => $item['utilized_for'],
+                ];
                 $results['items'][$i]['personsResponsible'] = $personsResponsible[$pmdId];
             }
 
@@ -127,6 +131,10 @@ class ProgramMaterialsDevelopment implements ProgramMaterialsDevelopmentInterfac
             return $this->appFormatter->formatResponse(ResponseEnum::NO_DATA, null);
         }
 
+        $result['utilized_for'] = [
+            'label' => $result['utilized_for'],
+            'value' => $result['utilized_for'],
+        ];
         $result['personsResponsible'] = $this->pmdPersonResponsibleRepository
             ->findPersonsResponsibleByPmdId([$id])[$id];
 

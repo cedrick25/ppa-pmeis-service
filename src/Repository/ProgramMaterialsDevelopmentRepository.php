@@ -30,8 +30,6 @@ class ProgramMaterialsDevelopmentRepository extends ServiceEntityRepository
         private CacheHelper $cacheHelper,
         private Helper $helper,
         private AppDateHelper $appDateHelper,
-        private VolunteerRepository $volunteerRepository,
-        private UserDetailsRepository $userDetailsRepository,
     )
     {
         parent::__construct($registry, ProgramMaterialsDevelopment::class);
@@ -70,6 +68,7 @@ class ProgramMaterialsDevelopmentRepository extends ServiceEntityRepository
         $entity->setParticulars($data->getParticulars());
         $entity->setDate($this->appDateHelper->convertStringToImmutableDate($data->getDate()));
         $entity->setProgram($data->getProgram());
+        $entity->setUtilizedFor($data->getUtilizedFor()['value'] ?? '');
         $entity->setRemarks($data->getRemarks());
         $entity->setFieldOfficeId($data->getFieldOfficeId());
         $entity->setCreatedAt($this->appDateHelper->getCurrentImmutableDate());
@@ -218,6 +217,7 @@ class ProgramMaterialsDevelopmentRepository extends ServiceEntityRepository
         $entity->setParticulars($data->getParticulars());
         $entity->setDate($this->appDateHelper->convertStringToImmutableDate($data->getDate()));
         $entity->setProgram($data->getProgram());
+        $entity->setUtilizedFor($data->getUtilizedFor()['value'] ?? '');
         $entity->setRemarks($data->getRemarks());
         $entity->setFieldOfficeId($data->getFieldOfficeId());
         $entity->setUpdatedAt($this->appDateHelper->getCurrentImmutableDate());

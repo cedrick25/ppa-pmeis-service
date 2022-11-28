@@ -12,13 +12,14 @@ class ProgramMaterialsDevelopment implements \JsonSerializable
         private string $particulars,
         private string $date,
         private string $program,
+        private array $utilizedFor,
         private string $remarks,
         private int $fieldOfficeId,
         private array $personsResponsible,
         private ?DateTimeInterface $createdAt = null,
         private ?DateTimeInterface $updatedAt = null,
         private ?DateTimeInterface $deletedAt = null
-    ){}
+    ) {}
 
     /**
      * @Assert\NotBlank
@@ -45,6 +46,14 @@ class ProgramMaterialsDevelopment implements \JsonSerializable
     public function getProgram(): string
     {
         return $this->program;
+    }
+
+    /**
+     * @return array
+     */
+    public function getUtilizedFor(): array
+    {
+        return $this->utilizedFor;
     }
 
     /**
