@@ -69,34 +69,43 @@ class TableVSummaryForm implements Form
         $spreadsheet = $this->header();
 
         $count = [
-            'TC' => 0,
-            'RJ' => 0,
-            'VPA' => 0,
-            'GAD' => 0,
-            'OTHERS' => 0,
+            'Materials/Session Plans Developed' => [
+                'TC'     => 0,
+                'RJ'     => 0,
+                'VPA'    => 0,
+                'GAD'    => 0,
+                'OTHERS' => 0,
+            ],
+            'Materials Reproduced/Distributed' => [
+                'TC'     => 0,
+                'RJ'     => 0,
+                'VPA'    => 0,
+                'GAD'    => 0,
+                'OTHERS' => 0,
+            ],
         ];
 
         $result = $this->data;
 
         if ($result['rows']) {
             foreach ($result['rows'] as $v) {
-                $count[$v['program']] ++;
+                $count[$v['utilized_for']][$v['program']] ++;
             }
         }
 
-        $spreadsheet->getActiveSheet()->setCellValue('B9', $count['TC']);
-        $spreadsheet->getActiveSheet()->setCellValue('B10', $count['RJ']);
-        $spreadsheet->getActiveSheet()->setCellValue('B11', $count['VPA']);
-        $spreadsheet->getActiveSheet()->setCellValue('B12', $count['GAD']);
-        $spreadsheet->getActiveSheet()->setCellValue('B13', $count['OTHERS']);
-        $spreadsheet->getActiveSheet()->setCellValue('B15', array_sum($count));
+        $spreadsheet->getActiveSheet()->setCellValue('B9', $count['Materials/Session Plans Developed']['TC']);
+        $spreadsheet->getActiveSheet()->setCellValue('B10', $count['Materials/Session Plans Developed']['RJ']);
+        $spreadsheet->getActiveSheet()->setCellValue('B11', $count['Materials/Session Plans Developed']['VPA']);
+        $spreadsheet->getActiveSheet()->setCellValue('B12', $count['Materials/Session Plans Developed']['GAD']);
+        $spreadsheet->getActiveSheet()->setCellValue('B13', $count['Materials/Session Plans Developed']['OTHERS']);
+        $spreadsheet->getActiveSheet()->setCellValue('B15', array_sum($count['Materials/Session Plans Developed']));
 
-        $spreadsheet->getActiveSheet()->setCellValue('C9', 0);
-        $spreadsheet->getActiveSheet()->setCellValue('C10', 0);
-        $spreadsheet->getActiveSheet()->setCellValue('C11', 0);
-        $spreadsheet->getActiveSheet()->setCellValue('C12', 0);
-        $spreadsheet->getActiveSheet()->setCellValue('C13', 0);
-        $spreadsheet->getActiveSheet()->setCellValue('C15', 0);
+        $spreadsheet->getActiveSheet()->setCellValue('C9', $count['Materials Reproduced/Distributed']['TC']);
+        $spreadsheet->getActiveSheet()->setCellValue('C10', $count['Materials Reproduced/Distributed']['RJ']);
+        $spreadsheet->getActiveSheet()->setCellValue('C11', $count['Materials Reproduced/Distributed']['VPA']);
+        $spreadsheet->getActiveSheet()->setCellValue('C12', $count['Materials Reproduced/Distributed']['GAD']);
+        $spreadsheet->getActiveSheet()->setCellValue('C13', $count['Materials Reproduced/Distributed']['OTHERS']);
+        $spreadsheet->getActiveSheet()->setCellValue('C15', array_sum($count['Materials Reproduced/Distributed']));
 
         return $spreadsheet;
     }
