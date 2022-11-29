@@ -83,7 +83,7 @@ class TableIAB1SummaryForm implements Form
             self::PRE_ENCOUNTER_ACT => ['Conducted' => 'A', 'F' => 'B', 'M' => 'C', 'PWD' => 'D', 'SC' => 'E'],
             'Mediation' => ['Conducted' => 'F', 'F' => 'G', 'M' => 'H', 'PWD' => 'I', 'SC' => 'J'],
             'Conferencing' => ['Conducted' => 'K', 'F' => 'L', 'M' => 'M', 'PWD' => 'N', 'SC' => 'O'],
-            'Circle Of Support' => ['Conducted' => 'P', 'F' => 'Q', 'M' => 'R', 'PWD' => 'S', 'SC' => 'T'],
+            'Circle of Support' => ['Conducted' => 'P', 'F' => 'Q', 'M' => 'R', 'PWD' => 'S', 'SC' => 'T'],
             'Others  (Indigenous Practices, etc.)' => ['Conducted' => 'U', 'F' => 'V', 'M' => 'W', 'PWD' => 'X', 'SC' => 'Y']
         ];
 
@@ -91,7 +91,7 @@ class TableIAB1SummaryForm implements Form
             self::PRE_ENCOUNTER_ACT => ['ACTIVE_SUPERVISION' => 0, 'PETITIONER' => 0],
             'Mediation' => ['ACTIVE_SUPERVISION' => 0, 'PETITIONER' => 0],
             'Conferencing' => ['ACTIVE_SUPERVISION' => 0, 'PETITIONER' => 0],
-            'Circle Of Support' => ['ACTIVE_SUPERVISION' => 0, 'PETITIONER' => 0],
+            'Circle of Support' => ['ACTIVE_SUPERVISION' => 0, 'PETITIONER' => 0],
             'Others  (Indigenous Practices, etc.)' => ['ACTIVE_SUPERVISION' => 0, 'PETITIONER' => 0]
         ];
 
