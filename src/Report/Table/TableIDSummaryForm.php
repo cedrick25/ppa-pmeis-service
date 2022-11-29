@@ -65,6 +65,7 @@ class TableIDSummaryForm implements Form
 
     public function body(): Spreadsheet
     {
+        $a = 0;
         $supportedFieldOffices = ['Personnel' => [], 'VPA' => []];
         $programs = [];
         $cellsY = [
