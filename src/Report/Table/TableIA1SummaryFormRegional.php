@@ -264,13 +264,13 @@ class TableIA1SummaryFormRegional implements Form
                 'fsg_frequency' => $fsgFrequency,
                 'total_vpa' => \count(\array_unique($vpa['total'])),
                 'vpa_frequency' => $vpa['frequency'],
-                'tree_planting_participants' => $activity['trees_planting']['participants'],
-                'tree_planting_activity' => $activity['trees_planting']['activity'],
-                'tree_planting_planted' => $activity['trees_planting']['planted'],
-                'community_service' => $activity['communityService'],
-                'self_help_association' => $activity['selfHelp']['association'],
-                'self_help_activity' => $activity['selfHelp']['activity'],
-                'self_help_clients' => $activity['selfHelp']['clients'],
+                'tree_planting_participants' => $activity['trees_planting']['participants'] ?? 0,
+                'tree_planting_activity' => $activity['trees_planting']['activity'] ?? 0,
+                'tree_planting_planted' => $activity['trees_planting']['planted'] ?? 0,
+                'community_service' => $activity['communityService'] ?? 0,
+                'self_help_association' => $activity['selfHelp']['association'] ?? 0,
+                'self_help_activity' => $activity['selfHelp']['activity'] ?? 0,
+                'self_help_clients' => $activity['selfHelp']['clients'] ?? 0,
             ];
         }
 

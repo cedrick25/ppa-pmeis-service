@@ -279,13 +279,13 @@ class TableIA1SummaryFormNational implements Form
                 $totals['fsg_frequency'] += $fsgFrequency;
                 $totals['total_vpa'] += \count(\array_unique($vpa['total']));
                 $totals['vpa_frequency'] += $vpa['frequency'];
-                $totals['tree_planting_participants'] += $activity['trees_planting']['participants'];
-                $totals['tree_planting_activity'] += $activity['trees_planting']['activity'];
-                $totals['tree_planting_planted'] += $activity['trees_planting']['planted'];
-                $totals['community_service'] += $activity['communityService'];
-                $totals['self_help_association'] += $activity['selfHelp']['association'];
-                $totals['self_help_activity'] += $activity['selfHelp']['activity'];
-                $totals['self_help_clients'] += $activity['selfHelp']['clients'];
+                $totals['tree_planting_participants'] += $activity['trees_planting']['participants'] ?? 0;
+                $totals['tree_planting_activity'] += $activity['trees_planting']['activity'] ?? 0;
+                $totals['tree_planting_planted'] += $activity['trees_planting']['planted'] ?? 0;
+                $totals['community_service'] += $activity['communityService'] ?? 0;
+                $totals['self_help_association'] += $activity['selfHelp']['association'] ?? 0;
+                $totals['self_help_activity'] += $activity['selfHelp']['activity'] ?? 0;
+                $totals['self_help_clients'] += $activity['selfHelp']['clients'] ?? 0;
             }
 
             $data[$region->getName()] = $totals;
