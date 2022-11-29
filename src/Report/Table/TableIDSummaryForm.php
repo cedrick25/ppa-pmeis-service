@@ -71,7 +71,7 @@ class TableIDSummaryForm implements Form
         $cellsY = [
             'TC'=> 7,
             'RJ'=> 8,
-            'VPAs'=> 9,
+            'VPA'=> 9,
             'GAD'=> 10,
             'OTHERS'=> 11,
         ];
