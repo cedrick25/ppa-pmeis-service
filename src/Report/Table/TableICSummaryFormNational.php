@@ -42,9 +42,7 @@ class TableICSummaryFormNational implements Form
     public function generate(array $data): BinaryFileResponse
     {
         $quarterId = intval($data['quarter_id']);
-        $regionId = intval($data['region_id']);
 
-        $this->region = $this->regionsRepository->find($regionId);
         $this->quarter = $this->quartersRepository->find($quarterId);
         $this->data = $data;
 
