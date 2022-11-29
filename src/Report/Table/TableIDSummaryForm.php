@@ -68,7 +68,7 @@ class TableIDSummaryForm implements Form
         $supportedFieldOffices = ['Personnel' => [], 'VPA' => []];
         $programs = [];
         $cellsY = [
-            'TCLP'=> 7,
+            'TC'=> 7,
             'RJ'=> 8,
             'VPAs'=> 9,
             'GAD'=> 10,
@@ -104,8 +104,8 @@ class TableIDSummaryForm implements Form
             }
         }
 
-        $spreadsheet->getActiveSheet()->setCellValue('B12', $typesTotal['Personnel']);
-        $spreadsheet->getActiveSheet()->setCellValue('C12', $typesTotal['VPA']);
+        $spreadsheet->getActiveSheet()->setCellValue('B12', $typesTotal['Personnel'] ?? 0);
+        $spreadsheet->getActiveSheet()->setCellValue('C12', $typesTotal['VPA'] ?? 0);
 
         $spreadsheet->getActiveSheet()->setCellValue('B14', \count($supportedFieldOffices['Personnel']));
         $spreadsheet->getActiveSheet()->setCellValue('C14', \count($supportedFieldOffices['VPA']));
