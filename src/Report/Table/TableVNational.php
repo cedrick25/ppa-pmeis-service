@@ -84,14 +84,14 @@ class TableVNational implements Form
             $ctr = 9;
 
             $total = [
-                'developed'   => [
+                'Materials/Session Plans Developed'   => [
                     'TC'      => 0,
                     'RJ'      => 0,
                     'VPA'     => 0,
                     'GAD'     => 0,
                     'OTHERS'  => 0,
                 ],
-                'distributed' => [
+                'Materials Reproduced/Distributed' => [
                     'TC'      => 0,
                     'RJ'      => 0,
                     'VPA'     => 0,
@@ -104,14 +104,14 @@ class TableVNational implements Form
                 $index = ($ctr + $k);
 
                 $pmd = [
-                    'developed'   => [
+                    'Materials/Session Plans Developed'   => [
                         'TC'      => 0,
                         'RJ'      => 0,
                         'VPA'     => 0,
                         'GAD'     => 0,
                         'OTHERS'  => 0,
                     ],
-                    'distributed' => [
+                    'Materials Reproduced/Distributed' => [
                         'TC'      => 0,
                         'RJ'      => 0,
                         'VPA'     => 0,
@@ -124,39 +124,39 @@ class TableVNational implements Form
                     if ($result['rows'][$v->getRegionId()]) {
                         foreach ($result['rows'][$v->getRegionId()] as $fieldOffice) {
                             foreach ($fieldOffice as $v1) {
-                                $pmd['developed'][$v1['program']] ++;
-                                $total['developed'][$v1['program']] ++;
+                                $pmd[$v1['utilized_for']][$v1['program']] ++;
+                                $total[$v1['utilized_for']][$v1['program']] ++;
                             }
                         }
                     }
                 }
 
                 $spreadsheet->getActiveSheet()->setCellValue('A' . $index, $v->getName());
-                $spreadsheet->getActiveSheet()->setCellValue('B' . $index, $pmd['developed']['TC']);
-                $spreadsheet->getActiveSheet()->setCellValue('C' . $index, $pmd['developed']['RJ']);
-                $spreadsheet->getActiveSheet()->setCellValue('D' . $index, $pmd['developed']['VPA']);
-                $spreadsheet->getActiveSheet()->setCellValue('E' . $index, $pmd['developed']['GAD']);
-                $spreadsheet->getActiveSheet()->setCellValue('F' . $index, $pmd['developed']['OTHERS']);
-                $spreadsheet->getActiveSheet()->setCellValue('G' . $index, $pmd['distributed']['TC']);
-                $spreadsheet->getActiveSheet()->setCellValue('H' . $index, $pmd['distributed']['RJ']);
-                $spreadsheet->getActiveSheet()->setCellValue('I' . $index, $pmd['distributed']['VPA']);
-                $spreadsheet->getActiveSheet()->setCellValue('J' . $index, $pmd['distributed']['GAD']);
-                $spreadsheet->getActiveSheet()->setCellValue('K' . $index, $pmd['distributed']['OTHERS']);
+                $spreadsheet->getActiveSheet()->setCellValue('B' . $index, $pmd['Materials/Session Plans Developed']['TC']);
+                $spreadsheet->getActiveSheet()->setCellValue('C' . $index, $pmd['Materials/Session Plans Developed']['RJ']);
+                $spreadsheet->getActiveSheet()->setCellValue('D' . $index, $pmd['Materials/Session Plans Developed']['VPA']);
+                $spreadsheet->getActiveSheet()->setCellValue('E' . $index, $pmd['Materials/Session Plans Developed']['GAD']);
+                $spreadsheet->getActiveSheet()->setCellValue('F' . $index, $pmd['Materials/Session Plans Developed']['OTHERS']);
+                $spreadsheet->getActiveSheet()->setCellValue('G' . $index, $pmd['Materials Reproduced/Distributed']['TC']);
+                $spreadsheet->getActiveSheet()->setCellValue('H' . $index, $pmd['Materials Reproduced/Distributed']['RJ']);
+                $spreadsheet->getActiveSheet()->setCellValue('I' . $index, $pmd['Materials Reproduced/Distributed']['VPA']);
+                $spreadsheet->getActiveSheet()->setCellValue('J' . $index, $pmd['Materials Reproduced/Distributed']['GAD']);
+                $spreadsheet->getActiveSheet()->setCellValue('K' . $index, $pmd['Materials Reproduced/Distributed']['OTHERS']);
             }
 
             $totalIndex = $ctr + count($this->regions);
 
             $spreadsheet->getActiveSheet()->setCellValue('A' . $totalIndex, 'TOTAL');
-            $spreadsheet->getActiveSheet()->setCellValue('B' . $totalIndex, $total['developed']['TC']);
-            $spreadsheet->getActiveSheet()->setCellValue('C' . $totalIndex, $total['developed']['RJ']);
-            $spreadsheet->getActiveSheet()->setCellValue('D' . $totalIndex, $total['developed']['VPA']);
-            $spreadsheet->getActiveSheet()->setCellValue('E' . $totalIndex, $total['developed']['GAD']);
-            $spreadsheet->getActiveSheet()->setCellValue('F' . $totalIndex, $total['developed']['OTHERS']);
-            $spreadsheet->getActiveSheet()->setCellValue('G' . $totalIndex, $total['distributed']['TC']);
-            $spreadsheet->getActiveSheet()->setCellValue('H' . $totalIndex, $total['distributed']['RJ']);
-            $spreadsheet->getActiveSheet()->setCellValue('I' . $totalIndex, $total['distributed']['VPA']);
-            $spreadsheet->getActiveSheet()->setCellValue('J' . $totalIndex, $total['distributed']['GAD']);
-            $spreadsheet->getActiveSheet()->setCellValue('K' . $totalIndex, $total['distributed']['OTHERS']);
+            $spreadsheet->getActiveSheet()->setCellValue('B' . $totalIndex, $total['Materials/Session Plans Developed']['TC']);
+            $spreadsheet->getActiveSheet()->setCellValue('C' . $totalIndex, $total['Materials/Session Plans Developed']['RJ']);
+            $spreadsheet->getActiveSheet()->setCellValue('D' . $totalIndex, $total['Materials/Session Plans Developed']['VPA']);
+            $spreadsheet->getActiveSheet()->setCellValue('E' . $totalIndex, $total['Materials/Session Plans Developed']['GAD']);
+            $spreadsheet->getActiveSheet()->setCellValue('F' . $totalIndex, $total['Materials/Session Plans Developed']['OTHERS']);
+            $spreadsheet->getActiveSheet()->setCellValue('G' . $totalIndex, $total['Materials Reproduced/Distributed']['TC']);
+            $spreadsheet->getActiveSheet()->setCellValue('H' . $totalIndex, $total['Materials Reproduced/Distributed']['RJ']);
+            $spreadsheet->getActiveSheet()->setCellValue('I' . $totalIndex, $total['Materials Reproduced/Distributed']['VPA']);
+            $spreadsheet->getActiveSheet()->setCellValue('J' . $totalIndex, $total['Materials Reproduced/Distributed']['GAD']);
+            $spreadsheet->getActiveSheet()->setCellValue('K' . $totalIndex, $total['Materials Reproduced/Distributed']['OTHERS']);
         }
 
         return $spreadsheet;
