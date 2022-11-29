@@ -312,7 +312,7 @@ class TableIA1SummaryForm implements Form
         $vpaFrequency = 0;
 
         foreach ($part2 as $item) {
-            foreach ($item['vpa_resource_person'] as $vpa) {
+            foreach ($item['vpa_resource_person'] ?? [] as $vpa) {
                 $vpaFrequency++;
                 $vpaHeadCount[] = $vpa['volunteer_id'];
             }
