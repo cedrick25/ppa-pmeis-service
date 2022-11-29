@@ -84,7 +84,7 @@ class TableIB12SummaryFormRegional implements Form
                     'Others' => 'G',
                 ],
             ],
-            'PETITIONERS' => [
+            'PETITIONER' => [
                 'status' => ['RESOLVED' => 'I', 'UNRESOLVED' => 'J',],
                 'outcome' => [
                     'Restitution' => 'K',
