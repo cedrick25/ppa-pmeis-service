@@ -68,7 +68,7 @@ class TableIDSummaryFormNational implements Form
         $regions = $this->regionsRepository->findAll();
 
         $cellsX = [
-            'TCLP' => ['Personnel' => 'B', 'VPA' => 'C'],
+            'TC' => ['Personnel' => 'B', 'VPA' => 'C'],
             'RJ' => ['Personnel' => 'D', 'VPA' => 'E'],
             'VPA' => ['Personnel' => 'F', 'VPA' => 'G'],
             'GAD' => ['Personnel' => 'H', 'VPA' => 'I'],

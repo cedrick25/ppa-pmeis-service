@@ -74,7 +74,7 @@ class TableIDSummaryFormRegional implements Form
         $fieldOffices = $this->fieldOfficesRepository->findBy(['regionId' => $regionId]);
 
         $cellsX = [
-            'TCLP' => ['Personnel' => 'B', 'VPA' => 'C'],
+            'TC' => ['Personnel' => 'B', 'VPA' => 'C'],
             'RJ' => ['Personnel' => 'D', 'VPA' => 'E'],
             'VPA' => ['Personnel' => 'F', 'VPA' => 'G'],
             'GAD' => ['Personnel' => 'H', 'VPA' => 'I'],
