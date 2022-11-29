@@ -364,10 +364,10 @@ class TableIAB1SummaryForm implements Form
         $mediationPetitioner = $process['Mediation']['PETITIONER'];
         $conferencingActive = $process['Conferencing']['ACTIVE_SUPERVISION'];
         $conferencingPetitioner = $process['Conferencing']['PETITIONER'];
-        $cosActive = $process['COS']['ACTIVE_SUPERVISION'];
-        $cosPetitioner = $process['COS']['PETITIONER'];
-        $othersActive = $process['Others']['ACTIVE_SUPERVISION'];
-        $othersPetitioner = $process['Others']['PETITIONER'];
+        $cosActive = $process['Circle of Support']['ACTIVE_SUPERVISION'];
+        $cosPetitioner = $process['Circle of Support']['PETITIONER'];
+        $othersActive = $process['Others  (Indigenous Practices, etc.)']['ACTIVE_SUPERVISION'];
+        $othersPetitioner = $process['Others  (Indigenous Practices, etc.)']['PETITIONER'];
 
         $totalActive = array_sum([
             intval($preEncounterActActive),
