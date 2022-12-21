@@ -325,6 +325,23 @@ class Volunteer implements VolunteerInterface
             $religions = $this->getReligions();
 
             $data = [];
+
+            $fieldOffices = $this->fieldOfficesRepository->findBy(['regionId' => $regionId]);
+
+            if ($fieldOffices) {
+                foreach ($fieldOffices as $fieldOffice) {
+                    $data[$fieldOffice->getName()] = [
+                        'gender' => [],
+                        'civil_status' => [],
+                        'religion' => [],
+                        'occupation' => [],
+                        'education_attainment' => [],
+                        'age' => [],
+                    ];
+
+                }
+            }
+
             $ageRanges = [
                 '15-24' => ['min' => 15, 'max' => 24],
                 '25-34' => ['min' => 25, 'max' => 34],
@@ -397,6 +414,8 @@ class Volunteer implements VolunteerInterface
                     }
                 }
             }
+
+            // var_dump($data);
 
             return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_SUCCESS, $data);
         } catch (\Exception $e) {
