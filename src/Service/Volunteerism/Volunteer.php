@@ -558,7 +558,6 @@ class Volunteer implements VolunteerInterface
                 <h2 style="text-align: center;font-size: 15px;font-weight: normal">$fullName</h2>
                 <h2 style="text-align: center"><i>of</i></h2>
                 <h2 style="text-align: center;font-size: 15px;font-weight: normal">$address</div>
-                <h2 style="text-align: center">Department</h2>
                 <h4 style="text-align: center">is hereby appointed as <span style="font-size: 13px">VOLUNTEER PROBATION ASSISTANT</span> of the</h4>
                 <h3 style="text-align: center;line-height: 5px;"><i>$fieldOfficeName</i></h3>
                 <h3 style="text-align: center;line-height: 5px;"><i>$regionName</i></h3>
@@ -716,6 +715,8 @@ class Volunteer implements VolunteerInterface
                 $volunteer->getHeight(),
                 $volunteer->getEmergencyName(),
                 $volunteer->getEmergencyNumber(),
+                $volunteer->getDateAppointed()->format('Y-m-d'),
+                date('Y-m-d', strtotime($volunteer->getDateAppointed()->format('Y-m-d') . ' + 90 days')),
                 count($volunteersId),
                 $index
             );
@@ -917,6 +918,8 @@ private function getVpaActingAsResourceIndividuals(Quarters $quarterData, int $f
         string $height,
         string $emergencyName,
         string $emergencyNumber,
+        string $validFrom,
+        string $validUntil,
         int $volunteerCount,
         int $index,
     ): string {
@@ -969,10 +972,10 @@ private function getVpaActingAsResourceIndividuals(Quarters $quarterData, int $f
                         <td colspan="3" class="no-border">Signature</td>
                     </tr>
                     <tr>
-                        <td colspan="3" class="no-border force-left" style="font-weight: bold;">This ID valid from:</td>
+                        <td colspan="3" class="no-border force-left" style="font-weight: bold;">This ID valid from: $validFrom</td>
                     </tr>
                     <tr>
-                        <td colspan="3" class="no-border force-left" style="font-weight: bold;">until:</td>
+                        <td colspan="3" class="no-border force-left" style="font-weight: bold;">until: $validUntil</td>
                     </tr>
                 </table>
             </td>
