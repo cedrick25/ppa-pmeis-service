@@ -76,12 +76,6 @@ class CBIIA2 implements Form
                 $spreadsheet->getActiveSheet()->setCellValue("b" . $this->lastFilledOutCellY, $row['start_date'] . ' - ' . $row['end_date']);
                 $spreadsheet->getActiveSheet()->setCellValue("c" . $this->lastFilledOutCellY, $row['no_of_participants']);
                 $total['nop'] += (int) $row['no_of_participants'];
-                if (intval($row['is_pwd']) > 0) {
-                    $spreadsheet->getActiveSheet()->setCellValue("e" . $this->lastFilledOutCellY, '/');
-                }
-                if (intval($row['is_senior_citizen']) > 0) {
-                    $spreadsheet->getActiveSheet()->setCellValue("f" . $this->lastFilledOutCellY, '/');
-                }
 
                 $spreadsheet->getActiveSheet()->setCellValue("g" . $this->lastFilledOutCellY, $row['tc_in_house']);
                 $spreadsheet->getActiveSheet()->setCellValue("h" . $this->lastFilledOutCellY, $row['tc_out_house']);
@@ -90,6 +84,13 @@ class CBIIA2 implements Form
                 foreach ($row['participants'] as $participant) {
                     $spreadsheet->getActiveSheet()->setCellValue("d" . $this->lastFilledOutCellY, $participant['personnel_name']);
                     $spreadsheet->getActiveSheet()->setCellValue("j" . $this->lastFilledOutCellY, $participant['remarks']);
+                    if (intval($participant['is_pwd']) > 0) {
+                        $spreadsheet->getActiveSheet()->setCellValue("e" . $this->lastFilledOutCellY, '/');
+                    }
+                    if (intval($participant['is_senior_citizen']) > 0) {
+                        $spreadsheet->getActiveSheet()->setCellValue("f" . $this->lastFilledOutCellY, '/');
+                    }
+    
                     $this->lastFilledOutCellY++;
                 }
             }

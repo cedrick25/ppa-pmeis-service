@@ -24,8 +24,10 @@ class CapabilityBuildingParticipantsRepository extends ServiceEntityRepository
         parent::__construct($registry, CapabilityBuildingParticipants::class);
     }
 
-    public function batchCreate(int $capabilityBuildingId, array $participants): void
-    {
+    public function batchCreate(
+        int $capabilityBuildingId,
+        array $participants
+    ): void {
         foreach ($participants as $participant) {
             $entity = new CapabilityBuildingParticipants();
             $entity->setCapabilityBuildingId($capabilityBuildingId);
@@ -40,30 +42,41 @@ class CapabilityBuildingParticipantsRepository extends ServiceEntityRepository
         $this->getEntityManager()->clear(CapabilityBuildingParticipants::class);
     }
 
-    public function deleteByCapabilityBuildingId(int $capabilityBuildingId): void
-    {
-        $this->getEntityManager()->getConnection()
+    public function deleteByCapabilityBuildingId(
+        int $capabilityBuildingId
+    ): void {
+        $this->getEntityManager()
+            ->getConnection()
             ->executeQuery(
-                "DELETE FROM capability_building_participants WHERE capability_building_id = :capability_building_id",
+                'DELETE FROM capability_building_participants WHERE capability_building_id = :capability_building_id',
                 ['capability_building_id' => $capabilityBuildingId]
             );
     }
 
-    public function findParticipantsByCapabilityBuildingsId(array $ids): array
+    public function findParticipantsByCapabilityBuildingsId(array $ids, string $type = 'VPA'): array
     {
         $return = [];
 
-        $results = $this->getEntityManager()->getConnection()
+        $join = $type === 'VPA' ? 'JOIN volunteer p ON cbp.personnel_id = p.volunteer_id' : 'JOIN user_details p ON cbp.personnel_id = p.user_account_id';
+
+        $results = $this->getEntityManager()
+            ->getConnection()
             ->executeQuery(
-                "SELECT cbp.* FROM capability_building_participants cbp
-                    WHERE cbp.capability_building_id IN (:ids)",
+                "SELECT 
+                    cbp.*, 
+                    p.is_pwd, 
+                    p.is_senior_citizen 
+                FROM capability_building_participants cbp
+                $join
+                WHERE cbp.capability_building_id IN (:ids)",
                 ['ids' => $ids],
                 ['ids' => Connection::PARAM_INT_ARRAY]
-            )->fetchAllAssociative();
+            )
+            ->fetchAllAssociative();
 
         foreach ($results as $result) {
             $capabilityBuildingId = (int) $result['capability_building_id'];
-            if (! isset($return[$capabilityBuildingId])) {
+            if (!isset($return[$capabilityBuildingId])) {
                 $return[$capabilityBuildingId][] = $result;
 
                 continue;

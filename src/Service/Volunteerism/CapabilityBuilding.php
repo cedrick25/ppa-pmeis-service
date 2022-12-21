@@ -94,7 +94,7 @@ class CapabilityBuilding implements CapabilityBuildingInterface
                 $capabilityBuildings
             );
             $participants = $this->capabilityBuildingParticipantsRepository
-                ->findParticipantsByCapabilityBuildingsId($capabilityBuildingsId);
+                ->findParticipantsByCapabilityBuildingsId($capabilityBuildingsId, $type);
 
             foreach ($capabilityBuildings as $capabilityBuilding) {
                 if (! isset($data[$capabilityBuilding['subtype']])) {
