@@ -11,6 +11,8 @@ use App\Enum\Response as ResponseEnum;
 use App\Model\ClientSessions as ClientSessionModel;
 use App\Model\Sessions as SessionsModel;
 use App\Repository\ClientSessionsRepository;
+use App\Repository\ClientsRepository;
+use App\Repository\ClientTypesRepository;
 use App\Repository\FieldOfficesRepository;
 use App\Repository\QuartersRepository;
 use App\Repository\ResourceFacilitatorSessionRepository;
@@ -35,6 +37,8 @@ class Sessions implements SessionsInterface
         private AppDateHelper                        $appDateHelper,
         private QuartersRepository                   $quartersRepository,
         private ClientSessionsRepository             $clientSessionsRepository,
+        private ClientsRepository                    $clientsRepository,
+        private ClientTypesRepository                $clientTypesRepository,
         private ResourceFacilitatorSessionRepository $resourceFacilitatorSessionRepository,
         private AuditTrail                           $auditTrail,
         private FieldOfficesRepository                $fieldOfficesRepository,
@@ -354,6 +358,7 @@ class Sessions implements SessionsInterface
             $initialValues = $this->getInitialValues();
             $quarterInitialValues = $this->getCurrentQuarterInitialValues($currentQuarter);
             $less = $this->getLess($currentQuarter, $fieldOfficeId);
+            $clientsAttendingTc = $this->getClientsAttendingTC($currentQuarter, $fieldOfficeId);
 
             return $this->appFormatter->formatResponse(
                 ResponseEnum::FETCHING_SUCCESS,
@@ -371,11 +376,11 @@ class Sessions implements SessionsInterface
                     'less' => $less,
                     'totalLess' => $this->getTotalLess($less),
                     'totalAdjustedSupervisionCaseLoad' => $initialValues,
-                    'clientsAttendingTC' => $this->getClientsAttendingTC($currentQuarter, $fieldOfficeId),
-                    'percentageOfClientsAttendingTC' => $initialValues
+                    'clientsAttendingTC' => $clientsAttendingTc,
+                    'percentageOfClientsAttendingTC' => $this->getPercentageOfClientsAttendingTc($clientsAttendingTc),
                 ]
             );
-        } catch (\Doctrine\DBAL\Driver\Exception| Exception $e) {
+        } catch (Exception $e) {
             return $this->appFormatter->formatResponse(
                 ResponseEnum::FETCHING_FAILED,
                 null,
@@ -420,20 +425,23 @@ class Sessions implements SessionsInterface
                 return $this->appFormatter->formatResponse(ResponseEnum::NO_DATA, null);
             }
 
-            $fieldOfficesId = $this->repository->findFieldOfficeIdsInSessionByQuarterAndRegionId($currentQuarter, $regionId);
+            $fieldOfficesId = $this->repository
+                ->findFieldOfficeIdsInSessionByQuarterAndRegionId($currentQuarter, $regionId);
 
             foreach ($fieldOfficesId as $fieldOfficeId) {
                 $tempResults[$fieldOfficeId] = $initialValues;
             }
 
-            $sessionClients = $this->clientSessionsRepository->findAbsenteesRemarksIdAndFieldOfficeIdBySessionId($sessionIds);
+            $sessionClients = $this->clientSessionsRepository
+                ->findAbsenteesRemarksIdAndFieldOfficeIdBySessionId($sessionIds);
 
             foreach ($sessionClients as $sessionClient) {
                 $fieldOfficeId = $sessionClient['field_office_id'];
                 $clientRemarksId = (string) $sessionClient['client_remarks_id'];
 
                 if (! isset($tempResults[$fieldOfficeId][$clientRemarksId])) {
-                    // Note: Log the error saying no matching field office id and client remarks id -- but this shouldn't happen
+                    // Note: Log the error saying no matching field office id
+                    // and client remarks id -- but this shouldn't happen
                     continue;
                 }
 
@@ -442,15 +450,16 @@ class Sessions implements SessionsInterface
 
             $fieldOfficesName = $this->fieldOfficesRepository->findNamesByFieldOfficeIds($fieldOfficesId);
 
-            foreach ($tempResults as $fieldOfficeId=>$tempResult) {
+            foreach ($tempResults as $fieldOfficeId => $tempResult) {
                 $fieldOfficeName = $fieldOfficesName[$fieldOfficeId];
                 $subtotal = 0;
                 // to be filled out by frontend columns
                 $result = $this->generateRegionalTC7RowInitialValue();
 
-                foreach ($tempResult as $clientRemarksId=>$value) {
+                foreach ($tempResult as $clientRemarksId => $value) {
                     $clientRemarksId = (int) $clientRemarksId;
-                    $equivalentColumnNumber = $this->getRegionalTC7ClientRemarksIdColumnNumberEquivalent($clientRemarksId);
+                    $equivalentColumnNumber = $this
+                        ->getRegionalTC7ClientRemarksIdColumnNumberEquivalent($clientRemarksId);
 
                     if (3 === $clientRemarksId || 4 === $clientRemarksId || 5 === $clientRemarksId) {
                         $result[11] += $value;
@@ -465,8 +474,12 @@ class Sessions implements SessionsInterface
             }
 
             return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_SUCCESS, $results);
-        } catch (\Doctrine\DBAL\Driver\Exception $e) {
-            return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_FAILED, null, ['orm' => $e->getMessage()]);
+        } catch (\Doctrine\DBAL\Exception $e) {
+            return $this->appFormatter->formatResponse(
+                ResponseEnum::FETCHING_FAILED,
+                null,
+                ['orm' => $e->getMessage()]
+            );
         }
     }
     public function getNationalTC7(int $quarterId): array
@@ -636,6 +649,35 @@ class Sessions implements SessionsInterface
         }
 
         return $initialValues;
+    }
+
+    private function getPercentageOfClientsAttendingTc(array $clientsAttendingTc): array
+    {
+        $data = [];
+        $totalClients = [];
+        $clientTypeForm = $this->getClientTypeFormEquivalent();
+        $clientTypes = $this->clientTypesRepository->list();
+
+        foreach ($clientTypes as $clientType) {
+            if ('Pet' == $clientType->getCode() || 'Term' == $clientType->getCode()) {
+                continue;
+            }
+            $clients = $this->clientsRepository->findByClientTypeId($clientType->getClientTypeId());
+            $form = $clientTypeForm[$clientType->getCode()];
+
+            if (! isset($totalClients[$form])) {
+                $totalClients[$form] = 0;
+            }
+
+            $totalClients[$form] += \count($clients);
+        }
+
+        foreach ($clientsAttendingTc as $form => $value) {
+            $totalClient = $totalClients[$form];
+            $data[$form] = $totalClient > 0 ? (($value / $totalClient) * 100) : 0;
+        }
+
+        return $data;
     }
 
     private function getInitialValues(): array
