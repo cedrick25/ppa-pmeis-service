@@ -144,14 +144,18 @@ class VPADatabase implements Form
             $spreadsheet->getActiveSheet()->getColumnDimension($coordinate)->setWidth($width);
         }
 
-        $spreadsheet->getActiveSheet()->getStyle('A5:M5')->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
+        $spreadsheet->getActiveSheet()->getStyle('A5:M5')
+            ->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
 
         return $spreadsheet;
     }
 
     private function getData(array $data): array
     {
-        $result = $this->service->getVPADatabase($data['region_id']);
+        $result = $this->service->getVPADatabase(
+            $data['region_id'],
+            $data['field_office_id'] ?? null
+        );
 
         return $result['data'] ?? [];
     }

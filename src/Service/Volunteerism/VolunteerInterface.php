@@ -27,7 +27,7 @@ interface VolunteerInterface
 
     public function getConsolidatedSocioDemographic(int $regionId): array;
 
-    public function getVPADatabase(int $regionId): array;
+    public function getVPADatabase(int $regionId, int $fieldOfficeId = null): array;
 
     public function getVpaMonitoring(int $quarterId, int $fieldOfficeId): array;
 

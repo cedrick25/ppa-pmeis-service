@@ -376,6 +376,22 @@ class VolunteerRepository extends ServiceEntityRepository
      * @param int $fieldOfficeId
      * @return Volunteer[]
      */
+    public function findByFieldOffice(int $fieldOfficeId): array
+    {
+        $query = $this->getEntityManager()->getConnection()->executeQuery(
+            "SELECT volunteer.*, fo.name as field_office FROM volunteer
+                LEFT JOIN field_offices as fo ON volunteer.field_office_id = fo.field_office_id
+                WHERE fo.field_office_id = :fieldOfficeId AND volunteer.deleted_at IS NULL",
+            ['fieldOfficeId' => $fieldOfficeId]
+        );
+
+        return $query->fetchAllAssociative();
+    }
+
+    /**
+     * @param int $fieldOfficeId
+     * @return Volunteer[]
+     */
     public function findAppointedVpaByFieldOffice(int $fieldOfficeId): array
     {
         /** @var Volunteer[] */

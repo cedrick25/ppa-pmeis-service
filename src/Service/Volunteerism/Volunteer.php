@@ -427,7 +427,7 @@ class Volunteer implements VolunteerInterface
         }
     }
 
-    public function getVPADatabase(int $regionId): array
+    public function getVPADatabase(int $regionId, int $fieldOfficeId = null): array
     {
         try {
             $data = [
@@ -436,7 +436,8 @@ class Volunteer implements VolunteerInterface
             ];
             $region = $this->regionsRepository->find($regionId);
             $data['header']['region'] = $region->getName();
-            $volunteers = $this->repository->findByRegionId($regionId);
+            $volunteers = (null != $fieldOfficeId) ? $this->repository->findByFieldOffice($fieldOfficeId)
+                : $this->repository->findByRegionId($regionId);
 
             if (sizeof($volunteers) <= 0) {
                 return $this->appFormatter->formatResponse(ResponseEnum::NO_DATA, null);
