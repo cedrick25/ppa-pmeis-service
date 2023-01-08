@@ -206,4 +206,23 @@ class ResourceMobilizationRepository extends ServiceEntityRepository
                 ['id' => $id],
             )->fetchAssociative();
     }
+
+    public function getVolunteerIdsByDateRange(array $minMaxDate, int $fieldOfficeId): ?array
+    {
+        return $this->getEntityManager()->getConnection()
+            ->executeQuery(
+                "SELECT DISTINCT rmsb.secured_by_id FROM resource_mobilization rm
+                        LEFT JOIN res_mob_secured_by rmsb ON rm.resource_mobilization_id = rmsb.res_mob_id
+                        WHERE rm.field_office_id = :fieldOfficeId
+                        AND rmsb.type = :type
+                        AND rm.date BETWEEN CAST(:min AS DATE) AND CAST(:max AS DATE)
+                        AND rm.deleted_at IS NULL",
+                [
+                    'min' => (string) $minMaxDate['min'],
+                    'max' => (string) $minMaxDate['max'],
+                    'type' => 'VPA',
+                    'fieldOfficeId' => $fieldOfficeId,
+                ]
+            )->fetchAllAssociative();
+    }
 }

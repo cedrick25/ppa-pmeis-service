@@ -211,4 +211,23 @@ class TechnicalAssistanceRepository extends ServiceEntityRepository
 
         return ResponseEnum::OK;
     }
+
+    public function getVolunteerIdsByDateRange(array $minMaxDate, int $fieldOfficeId): ?array
+    {
+        return $this->getEntityManager()->getConnection()
+            ->executeQuery(
+                "SELECT DISTINCT tapi.persons_involved_id FROM technical_assistance ta
+                        LEFT JOIN technical_assistance_persons_involved tapi ON ta.id = tapi.technical_assistance_id
+                        WHERE ta.field_office_id = :fieldOfficeId
+                        AND tapi.type = :type
+                        AND ta.date BETWEEN CAST(:min AS DATE) AND CAST(:max AS DATE)
+                        AND ta.deleted_at IS NULL",
+                [
+                    'min' => (string) $minMaxDate['min'],
+                    'max' => (string) $minMaxDate['max'],
+                    'type' => 'VPA',
+                    'fieldOfficeId' => $fieldOfficeId,
+                ]
+            )->fetchAllAssociative();
+    }
 }

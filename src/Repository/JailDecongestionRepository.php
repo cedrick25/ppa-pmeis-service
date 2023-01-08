@@ -223,4 +223,24 @@ class JailDecongestionRepository extends ServiceEntityRepository
                 ['id' => $id],
             )->fetchAssociative();
     }
+
+    public function getVolunteerIdsByDateRange(array $minMaxDate, int $fieldOfficeId): ?array
+    {
+        return $this->getEntityManager()->getConnection()
+            ->executeQuery(
+                "SELECT DISTINCT jdpr.person_responsible_id FROM jail_decongestion jd
+                        LEFT JOIN jail_decongestion_person_responsible jdpr
+                            ON jd.jail_decongestion_id = jdpr.jail_decongestion_id
+                        WHERE jd.field_office_id = :fieldOfficeId
+                        AND jdpr.type = :type
+                        AND jd.date BETWEEN CAST(:min AS DATE) AND CAST(:max AS DATE)
+                        AND jd.deleted_at IS NULL",
+                [
+                    'min' => (string) $minMaxDate['min'],
+                    'max' => (string) $minMaxDate['max'],
+                    'type' => 'VPA',
+                    'fieldOfficeId' => $fieldOfficeId,
+                ]
+            )->fetchAllAssociative();
+    }
 }

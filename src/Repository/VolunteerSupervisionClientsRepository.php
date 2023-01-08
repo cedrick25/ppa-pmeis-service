@@ -90,4 +90,15 @@ class VolunteerSupervisionClientsRepository extends ServiceEntityRepository
 
         return $return;
     }
+
+    public function findBySupervisionId(array $ids): array
+    {
+        return $this->getEntityManager()->getConnection()
+            ->executeQuery(
+                "SELECT * FROM volunteer_supervision_clients vsc
+                    WHERE vsc.volunteer_supervision_id IN (:ids)",
+                ['ids' => $ids],
+                ['ids' => Connection::PARAM_INT_ARRAY]
+            )->fetchAllAssociative();
+    }
 }
