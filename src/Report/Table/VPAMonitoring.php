@@ -97,9 +97,10 @@ class VPAMonitoring implements Form
                 'M' . $this->lastFilledOutCellY,
                 $row['no_of_services_rendered_during_quarter']
             );
+            $noOfServicesRenderedVyVpa = $row['no_of_services_rendered_by_vpa'] ?? 0;
             $spreadsheet->getActiveSheet()->setCellValue(
                 'N' . $this->lastFilledOutCellY,
-                $row['no_of_services_rendered_by_vpa']
+                ($noOfServicesRenderedVyVpa > 0 ? $noOfServicesRenderedVyVpa * 100 : 0) . '%'
             );
         }
 
@@ -155,8 +156,7 @@ class VPAMonitoring implements Form
             'E6' => '(1+2)-3',
             'G6' => '4-5',
             'H6' => '6÷4',
-            'L6' => '7+9+10=11',
-            'M6' => '11/6=12',
+            'L6' => '7+9+10=12',
             'N6' => '13/6=14'
         ];
         $boldCoordinates = ['P1', 'A2', 'E3', 'G3', 'A5:N6'];
