@@ -273,4 +273,18 @@ class RJConductProcessesRepository extends ServiceEntityRepository
                 ['fieldOfficesId' => Connection::PARAM_INT_ARRAY],
             )->fetchAllAssociative();
     }
+
+    public function findByQuarterAndFieldOffice(int $quarterId, int $fieldOfficeId): array
+    {
+        $conn = $this->getEntityManager()->getConnection();
+        $sql = "SELECT rp.rj_conduct_process_id FROM rjconduct_processes as rp
+                WHERE rp.quarter_id = :quarter_id AND rp.field_office_id = :field_office_id
+                  AND rp.deleted_at IS NULL";
+        $query = $conn->executeQuery(
+            $sql,
+            ['quarter_id' => $quarterId, 'field_office_id' => $fieldOfficeId]
+        );
+
+        return $query->fetchAllAssociative();
+    }
 }

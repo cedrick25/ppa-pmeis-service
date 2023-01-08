@@ -205,6 +205,29 @@ class SocialMarketingRepository extends ServiceEntityRepository
     /**
      * @param string[] $minMaxDate
      * @param int $fieldOfficeId
+     * @return array<int|string, array<int, array<string, mixed>>>
+     * @throws \Doctrine\DBAL\Exception
+     */
+    public function findByDateRangeWithoutType(array $minMaxDate, int $fieldOfficeId): array
+    {
+        return $this->getEntityManager()->getConnection()
+            ->executeQuery(
+                "SELECT sm.*, fo.name as field_office, sma.name as social_marketing_activity FROM social_marketing as sm
+                LEFT JOIN field_offices as fo ON sm.field_office_id = fo.field_office_id
+                LEFT JOIN social_marketing_activities as sma ON sm.social_marketing_activity_id = sma.id
+                WHERE sm.field_office_id = :field_office_id
+                  AND sm.date BETWEEN CAST(:min AS DATE) AND CAST(:max AS DATE)",
+                [
+                    'min' => $minMaxDate['min'],
+                    'max' => $minMaxDate['max'],
+                    'field_office_id' => $fieldOfficeId,
+                ],
+            )->fetchAllAssociative();
+    }
+
+    /**
+     * @param string[] $minMaxDate
+     * @param int $fieldOfficeId
      * @param string $type
      * @return array<int|string, array<int, array<string, mixed>>> | bool
      * @throws \Doctrine\DBAL\Exception

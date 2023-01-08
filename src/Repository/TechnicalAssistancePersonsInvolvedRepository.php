@@ -106,6 +106,18 @@ class TechnicalAssistancePersonsInvolvedRepository extends ServiceEntityReposito
         return $return;
     }
 
+    public function getDistinctTechnicalAssistanceIdByVolunteerIds(array $volunteerIds): array
+    {
+        return $this->createQueryBuilder('tapi')
+            ->select('tapi.technicalAssistanceId')
+            ->where("tapi.type = 'VPA'")
+            ->andWhere('tapi.personsInvolvedId IN (:ids)')
+            ->setParameter('ids', $volunteerIds, Connection::PARAM_INT_ARRAY)
+            ->distinct()
+            ->getQuery()
+            ->getResult();
+    }
+
     /**
      * @return array<string, string>
      */

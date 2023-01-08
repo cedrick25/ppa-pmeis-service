@@ -382,6 +382,18 @@ class ResourceFacilitatorSessionRepository extends ServiceEntityRepository
         $stmt->executeQuery();
     }
 
+    public function getDistinctSessionIdsByVolunteerIds(array $volunteerIds): array
+    {
+        return $this->createQueryBuilder('rfs')
+            ->select('rfs.sessionId')
+            ->where("rfs.resourceFacilitatorType = 'VPA'")
+            ->andWhere('rfs.resourceFacilitatorId IN (:ids)')
+            ->setParameter('ids', $volunteerIds, Connection::PARAM_INT_ARRAY)
+            ->distinct()
+            ->getQuery()
+            ->getResult();
+    }
+
     private function isConflicted(
         ResourceFacilitatorSession $fetchedResourceFacilitatorSession,
         ResourceFacilitatorSessionModel $resourceFacilitatorSessionData): bool

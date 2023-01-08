@@ -104,6 +104,18 @@ class SocialMarketingPersonInvolvedRepository extends ServiceEntityRepository
         return $return;
     }
 
+    public function getDistinctSocialMarketingsIdByVolunteerIds(array $volunteerIds): array
+    {
+        return $this->createQueryBuilder('smpi')
+            ->select('smpi.socialMarketingId')
+            ->where("smpi.type = 'VPA'")
+            ->andWhere('smpi.personInvolvedId IN (:ids)')
+            ->setParameter('ids', $volunteerIds, Connection::PARAM_INT_ARRAY)
+            ->distinct()
+            ->getQuery()
+            ->getResult();
+    }
+
     /**
      * @return array<string, string>
      */

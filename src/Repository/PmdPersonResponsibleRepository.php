@@ -101,6 +101,18 @@ class PmdPersonResponsibleRepository extends ServiceEntityRepository
         return $return;
     }
 
+    public function getDistinctPmdIdByVolunteerIds(array $volunteerIds): array
+    {
+        return $this->createQueryBuilder('pmdpr')
+            ->select('pmdpr.pmdId')
+            ->where("pmdpr.type = 'VPA'")
+            ->andWhere('pmdpr.personResponsibleId IN (:ids)')
+            ->setParameter('ids', $volunteerIds, Connection::PARAM_INT_ARRAY)
+            ->distinct()
+            ->getQuery()
+            ->getResult();
+    }
+
     /**
      * @return array<string, string>
      */

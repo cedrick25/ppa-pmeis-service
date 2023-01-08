@@ -100,6 +100,18 @@ class ResMobSecuredByRepository extends ServiceEntityRepository
             );
     }
 
+    public function getDistinctResMobIdByVolunteerIds(array $volunteerIds): array
+    {
+        return $this->createQueryBuilder('rmsb')
+            ->select('rmsb.resMobId')
+            ->where("rmsb.type = 'VPA'")
+            ->andWhere('rmsb.securedById IN (:ids)')
+            ->setParameter('ids', $volunteerIds, Connection::PARAM_INT_ARRAY)
+            ->distinct()
+            ->getQuery()
+            ->getResult();
+    }
+
     /**
      * @return array<string, string>
      */

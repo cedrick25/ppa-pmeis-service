@@ -8,6 +8,7 @@ use App\Entity\IdSupport;
 use App\Enum\Response as ResponseEnum;
 use App\Model\IdSupport as IdSupportModel;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
+use Doctrine\DBAL\Connection;
 use Doctrine\ORM\ORMException;
 use Doctrine\Persistence\ManagerRegistry;
 use Exception;
@@ -206,5 +207,24 @@ class IdSupportRepository extends ServiceEntityRepository
                 WHERE ids.id = :id",
                 ['id' => $id]
             )->fetchAssociative();
+    }
+
+    public function getServicesByDateRangeAndVolunteerIds(array $minMaxDate, array $volunteerIds): ?array
+    {
+        return $this->getEntityManager()->getConnection()
+            ->executeQuery(
+                "SELECT DISTINCT is2.vpa_personnel_id FROM id_support is2
+                    WHERE is2.vpa_personnel_id IN (:volunteerIds)
+                    AND is2.type = :type
+                    AND is2.date BETWEEN CAST(:min AS DATE) AND CAST(:max AS DATE)
+                    AND is2.deleted_at IS NULL",
+                [
+                    'min' => $minMaxDate['min'],
+                    'max' => $minMaxDate['max'],
+                    'type' => 'VPA',
+                    'volunteerIds' => $volunteerIds
+                ],
+                ['volunteerIds' => Connection::PARAM_INT_ARRAY],
+            )->fetchAllAssociative();
     }
 }

@@ -101,6 +101,18 @@ class JailDecongestionPersonResponsibleRepository extends ServiceEntityRepositor
         return $return;
     }
 
+    public function getDistinctJDIdByVolunteerIds(array $volunteerIds): array
+    {
+        return $this->createQueryBuilder('jdpr')
+            ->select('jdpr.jailDecongestionId')
+            ->where("jdpr.type = 'VPA'")
+            ->andWhere('jdpr.personResponsibleId IN (:ids)')
+            ->setParameter('ids', $volunteerIds, Connection::PARAM_INT_ARRAY)
+            ->distinct()
+            ->getQuery()
+            ->getResult();
+    }
+
     /**
      * @return array<string, string>
      */

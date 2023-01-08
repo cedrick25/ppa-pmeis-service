@@ -137,6 +137,18 @@ class RjConductedProcessPersonsInvolvedRepository extends ServiceEntityRepositor
         return $query->fetchAllAssociative();
     }
 
+    public function getDistinctConductedProcessIdsByVolunteerIds(array $volunteerIds): array
+    {
+        return $this->createQueryBuilder('rjcppi')
+            ->select('rjcppi.rjConductedProcessId')
+            ->where("rjcppi.type = 'VPA'")
+            ->andWhere('rjcppi.personsInvolvedId IN (:ids)')
+            ->setParameter('ids', $volunteerIds, Connection::PARAM_INT_ARRAY)
+            ->distinct()
+            ->getQuery()
+            ->getResult();
+    }
+
     private function convertData(
         string $type,
         int $personsInvolvedId,

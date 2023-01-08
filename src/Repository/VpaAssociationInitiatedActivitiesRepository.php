@@ -8,6 +8,7 @@ use App\Entity\VpaAssociationInitiatedActivities;
 use App\Enum\Response as ResponseEnum;
 use App\Model\VpaAssociationInitiatedActivities as VpaAssociationInitiatedActivitiesModel;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
+use Doctrine\DBAL\Connection;
 use Doctrine\ORM\ORMException;
 use Doctrine\Persistence\ManagerRegistry;
 use Psr\Cache\CacheException;
@@ -246,5 +247,20 @@ class VpaAssociationInitiatedActivitiesRepository extends ServiceEntityRepositor
         $this->getEntityManager()->flush();
 
         return ResponseEnum::OK;
+    }
+
+    public function getServicesRenderedByVolunteersId(int $quarterId, array $volunteerIds): array
+    {
+        return $this->getEntityManager()->getConnection()
+            ->executeQuery(
+                "SELECT vaia.service_rendered_id FROM vpa_association_initiated_activities vaia
+                    WHERE vaia.volunteer_id IN (:volunteerIds)
+                    AND vaia.quarter_id = :quarterId",
+                [
+                    'quarterId' => $quarterId,
+                    'volunteerIds' => $volunteerIds
+                ],
+                ['volunteerIds' => Connection::PARAM_INT_ARRAY],
+            )->fetchAllAssociative();
     }
 }

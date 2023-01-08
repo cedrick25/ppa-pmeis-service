@@ -167,17 +167,19 @@ class VolunteerSupervisionsRepository extends ServiceEntityRepository
         return $query->fetchAllAssociative();
     }
 
-    public function getServicesRenderedByVolunteersId(array $volunteerIds): array
+    public function getServicesRenderedByVolunteersId(int $quarterId, array $volunteerIds): array
     {
-        $query = $this->getEntityManager()->getConnection()
+        return $this->getEntityManager()->getConnection()
             ->executeQuery(
                 "SELECT vs.services_rendered_id FROM volunteer_supervisions vs
-                    WHERE vs.volunteer_id IN (:volunteerIds)",
-                ['volunteerIds' => $volunteerIds],
+                    WHERE vs.volunteer_id IN (:volunteerIds)
+                    AND vs.quarter_id = :quarterId",
+                [
+                    'quarterId' => $quarterId,
+                    'volunteerIds' => $volunteerIds
+                ],
                 ['volunteerIds' => Connection::PARAM_INT_ARRAY],
-            );
-
-        return $query->fetchAllAssociative();
+            )->fetchAllAssociative();
     }
 
     /**
