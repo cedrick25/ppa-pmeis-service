@@ -271,8 +271,13 @@ class TableIA26SummaryFormRegional implements Form
 
 
             $clientSessions = $this->clientSessionsRepository->findBySessionIds($sessionIds);
+            $clientIds = [];
 
             foreach ($clientSessions as $clientSession) {
+                if (in_array($clientSession['client_id'], $clientIds)) {
+                    continue;
+                }
+
                 $initialValues['gender'][$clientSession['gender']]++;
                 $initialValues['offense_category'][$clientSession['offense_category']]++;
 
@@ -285,6 +290,8 @@ class TableIA26SummaryFormRegional implements Form
                 }
 
                 $initialValues[$part1['phase_name']]['fsi'] += intval($clientSession['fsi']);
+
+                $clientIds[] = $clientSession['client_id'];
             }
 
             $initialValues['gender']['total'] = $initialValues['gender']['M'] + $initialValues['gender']['F'];

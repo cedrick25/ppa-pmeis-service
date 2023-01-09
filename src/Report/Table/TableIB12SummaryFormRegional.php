@@ -236,7 +236,7 @@ class TableIB12SummaryFormRegional implements Form
 
             $results[$fieldOfficeId][$group]['status'][$translatedStatus]++;
 
-            if (! isset($results[$fieldOfficeId]['outcome'][$group][$outcome])) {
+            if (! isset($results[$fieldOfficeId][$group]['outcome'][$outcome])) {
                 $results[$fieldOfficeId][$group]['outcome'][$outcome] = 0;
             }
 
