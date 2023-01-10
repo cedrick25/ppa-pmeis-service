@@ -9,6 +9,7 @@ use App\Entity\Regions;
 use App\Repository\FieldOfficesRepository;
 use App\Repository\QuartersRepository;
 use App\Repository\RegionsRepository;
+use App\Repository\RjConductedProcessPersonsInvolvedRepository;
 use App\Repository\RJConductProcessesRepository;
 use App\Repository\RJRelatedActivitiesRepository;
 use App\Repository\RjRelatedRestitutionsRepository;
@@ -29,6 +30,7 @@ class TableIB23SummaryFormNational implements Form
         private RJRelatedActivitiesRepository $relatedActivitiesRepository,
         private RjRelatedRestitutionsRepository $restitutionsRepository,
         private RJConductProcessesRepository $conductProcessesRepository,
+        private RjConductedProcessPersonsInvolvedRepository $conductedProcessPersonsInvolvedRepository,
         private ?Quarters           $quarter = null,
         private int                 $lastFilledOutCellY = 10,
         private array               $data = [],
@@ -281,14 +283,23 @@ class TableIB23SummaryFormNational implements Form
         $processes = $this->conductProcessesRepository->findByFieldOfficesId($quarterId, $fieldOfficesId);
 
         foreach ($processes as $fieldOfficeId => $process) {
+            $results[$fieldOfficeId] = [
+                'ACTIVE_SUPERVISION' => 0,
+                'PETITIONERS' => 0,
+            ];
+            $processIdsPerGroup = [
+                'ACTIVE_SUPERVISION' => [],
+                'PETITIONERS' => [],
+            ];
             foreach ($process as $item) {
                 $group = $item['rj_group'];
+                $processIdsPerGroup[$group][] = (int) $item['rj_conduct_process_id'];
+            }
 
-                if (! isset($results[$fieldOfficeId][$group])) {
-                    $results[$fieldOfficeId][$group] = 0;
-                }
-
-                $results[$fieldOfficeId][$group]++;
+            foreach ($processIdsPerGroup as $group => $ids) {
+                $vpa = $this->conductedProcessPersonsInvolvedRepository
+                    ->getDistinctPersonResponsibleByConductedProcessIds($ids, 'VPA');
+                $results[$fieldOfficeId][$group] += \count($vpa);
             }
         }
 
@@ -321,45 +332,74 @@ class TableIB23SummaryFormNational implements Form
         $restitutions = $this->restitutionsRepository->findByFieldOfficesId($quarterId, $fieldOfficesId);
 
         foreach ($restitutions as $fieldOfficeId => $restitution) {
+            $clientData = [];
+            $resultValues = [
+                'ACTIVE_SUPERVISION' => 0,
+                'PETITIONERS' => 0,
+                'originalAmount' => 0,
+                'startOfQuarter' => 0,
+                'balance' => 0,
+                'group' => [
+                    'ACTIVE_SUPERVISION' => [
+                        'paymentAmount' => 0,
+                        'remittedAmount' => 0,
+                    ],
+                    'PETITIONERS' => [
+                        'paymentAmount' => 0,
+                        'remittedAmount' => 0,
+                    ]
+                ]
+            ];
+
             foreach ($restitution as $item) {
                 $group = $item['rj_group'];
+                $clientId = $item['client_id'];
 
-                if (! isset($results[$fieldOfficeId][$group])) {
-                    $results[$fieldOfficeId][$group] = 0;
+                if (array_key_exists($clientId, $clientData)) {
+                    $clientData[$clientId]['originalAmount'] = (int) $item['original_amount'];
+                    $clientData[$clientId]['startOfQuarter'] = (int) $item['start_of_quarter'];
+                    $clientData[$clientId]['balance'] = (int) $item['balance'];
+
+                    if (! isset($clientData[$clientId]['group'][$group]['paymentAmount'])) {
+                        $clientData[$clientId]['group'][$group]['paymentAmount'] = 0;
+                    }
+
+                    $clientData[$clientId]['group'][$group]['paymentAmount'] += (int) $item['payment_amount'];
+
+                    if (! isset($clientData[$clientId]['group'][$group]['remittedAmount'])) {
+                        $clientData[$clientId]['group'][$group]['remittedAmount'] = 0;
+                    }
+
+                    $clientData[$clientId]['group'][$group]['remittedAmount'] += (int) $item['remitted_amount'];
+                    continue;
                 }
 
-                $results[$fieldOfficeId][$group]++;
-
-                if (! isset($results[$fieldOfficeId]['originalAmount'])) {
-                    $results[$fieldOfficeId]['originalAmount'] = 0;
+                if (! isset($clientData[$clientId][$group])) {
+                    $clientData[$clientId][$group] = 0;
                 }
 
-                $results[$fieldOfficeId]['originalAmount'] += (int) $item['original_amount'];
-
-                if (! isset($results[$fieldOfficeId]['startOfQuarter'])) {
-                    $results[$fieldOfficeId]['startOfQuarter'] = 0;
-                }
-
-                $results[$fieldOfficeId]['startOfQuarter'] += (int) $item['start_of_quarter'];
-
-                if (! isset($results[$fieldOfficeId]['balance'])) {
-                    $results[$fieldOfficeId]['balance'] = 0;
-                }
-
-                $results[$fieldOfficeId]['balance'] += (int) $item['balance'];
-
-                if (! isset($results[$fieldOfficeId]['group'][$group]['paymentAmount'])) {
-                    $results[$fieldOfficeId]['group'][$group]['paymentAmount'] = 0;
-                }
-
-                $results[$fieldOfficeId]['group'][$group]['paymentAmount'] += (int) $item['payment_amount'];
-
-                if (! isset($results[$fieldOfficeId]['group'][$group]['remittedAmount'])) {
-                    $results[$fieldOfficeId]['group'][$group]['remittedAmount'] = 0;
-                }
-
-                $results[$fieldOfficeId]['group'][$group]['remittedAmount'] += (int) $item['remitted_amount'];
+                $clientData[$clientId][$group]++;
+                $clientData[$clientId]['originalAmount'] = (int) $item['original_amount'];
+                $clientData[$clientId]['startOfQuarter'] = (int) $item['start_of_quarter'];
+                $clientData[$clientId]['balance'] = (int) $item['balance'];
+                $clientData[$clientId]['group'][$group]['paymentAmount'] = (int) $item['payment_amount'];
+                $clientData[$clientId]['group'][$group]['remittedAmount'] = (int) $item['remitted_amount'];
             }
+
+            foreach ($clientData as $item) {
+                foreach ($item as $key => $value) {
+                    if ('group' === $key) {
+                        foreach ($value as $groupName => $amount) {
+                            $resultValues['group'][$groupName]['paymentAmount'] += $amount['paymentAmount'];
+                            $resultValues['group'][$groupName]['remittedAmount'] += $amount['remittedAmount'];
+                        }
+                        continue;
+                    }
+                    $resultValues[$key] += $value;
+                }
+            }
+
+            $results[$fieldOfficeId] = $resultValues;
         }
 
         return $results;

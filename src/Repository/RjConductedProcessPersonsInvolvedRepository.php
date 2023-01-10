@@ -194,6 +194,18 @@ class RjConductedProcessPersonsInvolvedRepository extends ServiceEntityRepositor
         );
     }
 
+    public function getDistinctPersonResponsibleByConductedProcessIds(array $ids, string $type): array
+    {
+        $query = $this->getEntityManager()->getConnection()->executeQuery(
+            "SELECT DISTINCT(rcppi.persons_involved_id) FROM rj_conducted_process_persons_involved as rcppi
+                    WHERE rcppi.rj_conducted_process_id IN (:ids) AND rcppi.type = :type",
+            ['ids' => $ids, 'type' => $type],
+            ['ids' => Connection::PARAM_INT_ARRAY]
+        );
+
+        return $query->fetchAllAssociative();
+    }
+
     /**
      * @return array<string, string>
      */
