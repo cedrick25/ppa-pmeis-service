@@ -7,10 +7,10 @@ namespace App\Repository;
 use App\Common\AppDateHelper;
 use App\Common\CacheHelper;
 use App\Entity\Volunteer;
+use App\Enum\Common;
 use App\Enum\Response as ResponseEnum;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\DBAL\Connection;
-use Doctrine\ORM\OptimisticLockException;
 use Doctrine\ORM\ORMException;
 use Doctrine\Persistence\ManagerRegistry;
 use App\Model\Volunteer as VolunteerModel;
@@ -18,6 +18,7 @@ use Exception;
 use Psr\Cache\CacheException;
 use Psr\Cache\InvalidArgumentException;
 use Symfony\Contracts\Cache\TagAwareCacheInterface;
+use DateTime;
 
 /**
  * @method Volunteer|null find($id, $lockMode = null, $lockVersion = null)
@@ -322,6 +323,7 @@ class VolunteerRepository extends ServiceEntityRepository
             $conn = $this->getEntityManager()->getConnection();
             $startOffset = $pageSize * ($page-1);
             $result = [];
+            $monthsInterval = Common::VPA_NUMBER_OF_MONTHS_APPOINTMENT - Common::NUMBER_OF_MONTHS_BEFORE_VPA_EXPIRATION;
 
             $sql = "SELECT v.*, fo.name as field_office_name, rg.region_id, rg.name as region_name,
                     v.civil_status as civil_status_id, v.religion as religion_id, v.occupation as occupation_id,
@@ -334,7 +336,7 @@ class VolunteerRepository extends ServiceEntityRepository
                 LEFT JOIN religion as r ON v.religion = r.religion_id
                 LEFT JOIN occupation as o ON v.occupation = o.occupation_id
                 LEFT JOIN education_background as eb ON v.education_attainment = eb.education_background_id
-                WHERE v.deleted_at IS NULL AND v.date_appointed >= DATE_ADD(v.date_appointed, INTERVAL 21 MONTH)
+                WHERE v.deleted_at IS NULL AND NOW() >= DATE_ADD(v.date_appointed, INTERVAL $monthsInterval MONTH)
                 ORDER BY v.volunteer_id DESC ";
 
             $result['totalItems'] = $this->helper->getCustomQueryPaginatedTotalItems($conn, $sql);
@@ -343,7 +345,22 @@ class VolunteerRepository extends ServiceEntityRepository
 
             $stmt = $conn->prepare($sql);
             $query = $stmt->executeQuery();
-            $result['data'] = $query->fetchAllAssociative();
+            $volunteers = $query->fetchAllAssociative();
+
+            $expirationMonths = Common::VPA_NUMBER_OF_MONTHS_APPOINTMENT;
+
+            foreach($volunteers as $volunteer) {
+                $expirationDate = new DateTime($volunteer['date_appointed']. " + $expirationMonths months");
+                $currentDate = new DateTime('now');
+
+                if ($currentDate > $expirationDate) {
+                    dd($currentDate, $expirationDate);
+                    continue;
+                }
+
+                $volunteer['days_before_expiration'] = $currentDate->diff($expirationDate)->days;
+                $result['data'][] = $volunteer;
+            }
 
             return $result;
         });

@@ -145,9 +145,9 @@ class Volunteer implements VolunteerInterface
             }
 
             return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_SUCCESS, $volunteers);
-        } catch (CacheException|InvalidArgumentException $exception) {
+        } catch (CacheException | InvalidArgumentException $exception) {
             return $this->appFormatter->formatResponse(
-                esponseEnum::FETCHING_FAILED,
+                ResponseEnum::FETCHING_FAILED,
                 null,
                 ['cache' => $exception->getMessage()]
             );
@@ -159,7 +159,7 @@ class Volunteer implements VolunteerInterface
         try {
             $isDeleted = $this->repository->softDelete($id);
 
-            if (! $isDeleted) {
+            if (!$isDeleted) {
                 return $this->appFormatter->formatResponse(
                     ResponseEnum::DELETING_FAILED,
                     null,
@@ -198,12 +198,14 @@ class Volunteer implements VolunteerInterface
 
             return $this->appFormatter->formatResponse(ResponseEnum::UPDATING_SUCCESS, null);
         } catch (Exception $e) {
-            return $this->appFormatter->formatResponse(ResponseEnum::UPDATING_FAILED,
+            return $this->appFormatter->formatResponse(
+                ResponseEnum::UPDATING_FAILED,
                 null,
                 ['app' => $e->getMessage()]
             );
         } catch (InvalidArgumentException $e) {
-            return $this->appFormatter->formatResponse(ResponseEnum::UPDATING_FAILED,
+            return $this->appFormatter->formatResponse(
+                ResponseEnum::UPDATING_FAILED,
                 null,
                 ['cache' => $e->getMessage()]
             );
@@ -242,7 +244,7 @@ class Volunteer implements VolunteerInterface
             }
 
             return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_SUCCESS, $volunteers);
-        } catch (CacheException|InvalidArgumentException $exception) {
+        } catch (CacheException | InvalidArgumentException $exception) {
             return $this->appFormatter->formatResponse(
                 ResponseEnum::FETCHING_FAILED,
                 null,
@@ -353,7 +355,6 @@ class Volunteer implements VolunteerInterface
                         'education_attainment' => [],
                         'age' => [],
                     ];
-
                 }
             }
 
@@ -371,23 +372,23 @@ class Volunteer implements VolunteerInterface
                 $occupation = $occupations[$volunteer['occupation']];
                 $educationBackground = $educationBackgrounds[$volunteer['education_attainment']];
 
-                if (! isset($data[$fieldOffice]['gender'][$volunteer['gender']])) {
+                if (!isset($data[$fieldOffice]['gender'][$volunteer['gender']])) {
                     $data[$fieldOffice]['gender'][$volunteer['gender']] = 0;
                 }
 
-                if (! isset($data[$fieldOffice]['civil_status'][$civilStatus])) {
+                if (!isset($data[$fieldOffice]['civil_status'][$civilStatus])) {
                     $data[$fieldOffice]['civil_status'][$civilStatus] = 0;
                 }
 
-                if (! isset($data[$fieldOffice]['religion'][$religion])) {
+                if (!isset($data[$fieldOffice]['religion'][$religion])) {
                     $data[$fieldOffice]['religion'][$religion] = 0;
                 }
 
-                if (! isset($data[$fieldOffice]['occupation'][$occupation])) {
+                if (!isset($data[$fieldOffice]['occupation'][$occupation])) {
                     $data[$fieldOffice]['occupation'][$occupation] = 0;
                 }
 
-                if (! isset($data[$fieldOffice]['education_attainment'][$educationBackground])) {
+                if (!isset($data[$fieldOffice]['education_attainment'][$educationBackground])) {
                     $data[$fieldOffice]['education_attainment'][$educationBackground] = 0;
                 }
 
@@ -400,7 +401,7 @@ class Volunteer implements VolunteerInterface
                 $dob = $this->appDateHelper->convertStringToImmutableDate($volunteer['date_of_birth']);
 
                 if (null == $dob) {
-                    if (! isset($data[$fieldOffice]['age'][0])) {
+                    if (!isset($data[$fieldOffice]['age'][0])) {
                         $data[$fieldOffice]['age'][0] = 0;
                     }
 
@@ -411,7 +412,7 @@ class Volunteer implements VolunteerInterface
                 $age = $dob->diff(new \DateTime());
 
                 if ($age->y > 65) {
-                    if (! isset($data[$fieldOffice]['age'][65])) {
+                    if (!isset($data[$fieldOffice]['age'][65])) {
                         $data[$fieldOffice]['age'][65] = 0;
                     }
 
@@ -421,7 +422,7 @@ class Volunteer implements VolunteerInterface
 
                 foreach ($ageRanges as $key => $range) {
                     if ($range['max'] >= $age->y && $range['min'] <= $age->y) {
-                        if (! isset($data[$fieldOffice]['age'][$key])) {
+                        if (!isset($data[$fieldOffice]['age'][$key])) {
                             $data[$fieldOffice]['age'][$key] = 0;
                         }
 
@@ -492,7 +493,7 @@ class Volunteer implements VolunteerInterface
 
         $startOfQuarterVpa = $this->repository->findAppointedVpaByFieldOffice($fieldOfficeId);
         $minMaxDate = $this->quartersRepository->getQuarterMinMaxDate($quarterData);
-        $volunteerIds = array_map(fn($volunteer) => $volunteer->getVolunteerId(), $startOfQuarterVpa);
+        $volunteerIds = array_map(fn ($volunteer) => $volunteer->getVolunteerId(), $startOfQuarterVpa);
         $appointedDuringQuarter = $this->getAppointedVpaDuringQuarterCount($minMaxDate, $fieldOfficeId);
         $dropped = $this->getDroppedVolunteers($minMaxDate, $fieldOfficeId);
         // we change the criteria of startOfQuarterVpa and included all vpa that is appointed regardless if it is new/
@@ -503,7 +504,7 @@ class Volunteer implements VolunteerInterface
         // to get number 13 here, load volunteer supervision as a whole
         $supervisionActivities = $this->volunteerSupervisionsRepository->findByVolunteerIds($volunteerIds);
         $supervisionActivitiesId = array_map(
-            fn($supervisionActivity) => $supervisionActivity['volunteer_supervisions_id'],
+            fn ($supervisionActivity) => $supervisionActivity['volunteer_supervisions_id'],
             $supervisionActivities
         );
         $supervisionActivityClients = $this->supervisionClientsRepository
@@ -516,14 +517,14 @@ class Volunteer implements VolunteerInterface
         );
         $supervisionActivitiesVolunteerIds = array_unique(
             array_map(
-                fn($supervisionActivity) => $supervisionActivity['volunteer_id'],
+                fn ($supervisionActivity) => $supervisionActivity['volunteer_id'],
                 $supervisionActivities
             )
         );
 
         // Table 1.A.1
         $sessions = $this->sessionsRepository->getSessionDataByQuarterAndFieldOfficeId($fieldOfficeId, $quarterData);
-        $sessionIds = array_map(fn($session) => intval($session['session_id']), $sessions);
+        $sessionIds = array_map(fn ($session) => intval($session['session_id']), $sessions);
         $vpaActingAsResourceIndividuals = $this->getVpaActingAsResourceIndividuals(
             $quarterData,
             $minMaxDate,
@@ -578,7 +579,7 @@ class Volunteer implements VolunteerInterface
             'total_number_of_clients_supervised' => \count($totalNumberOfClientsSupervised),
             'no_of_vpa_acting_as_resource_individuals' => $noOfVpaActingAsResourceIndividuals,
             'vpa_acting_both_supervising_and_resource_individual' =>
-                \count($vpaActingBothSupervisingAndResourceIndividual),
+            \count($vpaActingBothSupervisingAndResourceIndividual),
             'total_number_of_vpa_mobilize' => $totalNumberOfVpaMobilize,
             'percent_of_vpa_mobilized' => $percentOfVpaMobilized,
             'no_of_services_rendered_during_quarter' => $noOfServicesRenderedByVpaDuringQuarter,
@@ -721,7 +722,7 @@ class Volunteer implements VolunteerInterface
         EOD;
 
         foreach ($volunteers as $index => $volunteer) {
-            $fullName = $volunteer->getFirstName().' '.$volunteer->getMiddleName().' '.$volunteer->getLastName();
+            $fullName = $volunteer->getFirstName() . ' ' . $volunteer->getMiddleName() . ' ' . $volunteer->getLastName();
 
             $front .= $this->createFrontId(
                 $index % 2 == 0 ? 'start' : 'end',
@@ -826,7 +827,7 @@ class Volunteer implements VolunteerInterface
         return $religions;
     }
 
-    private function getOccupations():array
+    private function getOccupations(): array
     {
         $occupations = [];
         $rawOccupations = $this->occupationRepository->findAll();
@@ -869,66 +870,65 @@ class Volunteer implements VolunteerInterface
         array $minMaxDate,
         int $fieldOfficeId,
         array $sessionIds,
-    ): array
-    {
+    ): array {
         $volunteerIds = [];
 
         $vpaInSessions = $this->resourceFacilitatorSessionRepository->getDistinctVolunteerIdsBySessionIds($sessionIds);
         $vpaIdsInSessions = $vpaInSessions ?
-            array_map(fn($vpa) => (int) $vpa['resourceFacilitatorId'], $vpaInSessions) : [];
+            array_map(fn ($vpa) => (int) $vpa['resourceFacilitatorId'], $vpaInSessions) : [];
 
         // Table 1.B.1
         $vpaInRjConductedProcess = $this->conductProcessesRepository
             ->getVolunteerIdsByQuarterAndFieldOffice($quarterData->getQuarterId(), $fieldOfficeId);
         $vpaIdsInRjConductedProcess = $vpaInRjConductedProcess ?
-            array_map(fn($vpa) =>  (int) $vpa['persons_involved_id'], $vpaInRjConductedProcess) : [];
+            array_map(fn ($vpa) =>  (int) $vpa['persons_involved_id'], $vpaInRjConductedProcess) : [];
 
         // Table 1.B.2
         $vpasInvolvedInRJActivities = $this->rjRelatedActivitiesRepository
             ->getVolunteerIdsByQuarterAndFieldOffice($quarterData->getQuarterId(), $fieldOfficeId);
         $vpaInvolvedInRJActivitiesIds = $vpasInvolvedInRJActivities ?
-            array_map(fn($vpa) => (int) $vpa['persons_involved_id'], $vpasInvolvedInRJActivities) : [];
+            array_map(fn ($vpa) => (int) $vpa['persons_involved_id'], $vpasInvolvedInRJActivities) : [];
 
         // Table 1.C.4
         $vpasInvolvedInAssociationActivities = $this->vpaAssociationRepository
             ->getVolunteerIdsByDateRange($quarterData->getQuarterId(), $fieldOfficeId);
         $vpaInvolvedInAssociationActivitiesIds = $vpasInvolvedInAssociationActivities ?
-            array_map(fn($vpa) => $vpa['volunteer_id'], $vpasInvolvedInAssociationActivities) : [];
+            array_map(fn ($vpa) => $vpa['volunteer_id'], $vpasInvolvedInAssociationActivities) : [];
 
         // Support ID
         $vpaInvolvedInSupportId = $this->idSupportRepository->getVolunteerIdsByDateRange($minMaxDate, $fieldOfficeId);
         $vpaIdsInvolvedInSupportId = $vpaInvolvedInSupportId ?
-            array_map(fn($vpa) => (int) $vpa['vpa_personnel_id'], $vpaInvolvedInSupportId) : [];
+            array_map(fn ($vpa) => (int) $vpa['vpa_personnel_id'], $vpaInvolvedInSupportId) : [];
 
         // Table 3.A.1 - 3
         $vpasInvolvedInSocialMarketing = $this->socialMarketingRepository
             ->getVolunteerIdsByDateRange($minMaxDate, $fieldOfficeId, 'INFORMATION_DISSEMINATION');
         $vpasInvolvedInSocialMarketingIds = $vpasInvolvedInSocialMarketing ?
-            array_map(fn($vpa) => (int) $vpa, $vpasInvolvedInSocialMarketing) : [];
+            array_map(fn ($vpa) => (int) $vpa, $vpasInvolvedInSocialMarketing) : [];
 
         // SM 3
         $vpaInvolvedInTechnicalAssistants = $this->technicalAssistanceRepository
             ->getVolunteerIdsByDateRange($minMaxDate, $fieldOfficeId);
         $vpaInvolvedInTechnicalAssistantsId = $vpaInvolvedInTechnicalAssistants ?
-            array_map(fn($vpa) => (int) $vpa['persons_involved_id'], $vpaInvolvedInTechnicalAssistants) : [];
+            array_map(fn ($vpa) => (int) $vpa['persons_involved_id'], $vpaInvolvedInTechnicalAssistants) : [];
 
         //	RM IV,
         $vpaInvolvedInResourceMobilizations = $this->resourceMobilizationRepository
             ->getVolunteerIdsByDateRange($minMaxDate, $fieldOfficeId);
         $vpaInvolvedInResourceMobilizationsId = $vpaInvolvedInResourceMobilizations ?
-            array_map(fn($vpa) => (int) $vpa['secured_by_id'], $vpaInvolvedInResourceMobilizations) : [];
+            array_map(fn ($vpa) => (int) $vpa['secured_by_id'], $vpaInvolvedInResourceMobilizations) : [];
 
         //	PMD V,
         $vpaInvolvedInProgramMaterials = $this->programMaterialsDevelopmentRepository
             ->getVolunteerIdsByDateRange($minMaxDate, $fieldOfficeId);
         $vpaInvolvedInProgramMaterialsIds = $vpaInvolvedInProgramMaterials ?
-            array_map(fn($vpa) => (int) $vpa['person_responsible_id'], $vpaInvolvedInProgramMaterials) : [];
+            array_map(fn ($vpa) => (int) $vpa['person_responsible_id'], $vpaInvolvedInProgramMaterials) : [];
 
         //	JD VI.A.1
         $vpaInvolvedInJailDecongestions = $this->jailDecongestionRepository
             ->getVolunteerIdsByDateRange($minMaxDate, $fieldOfficeId);
         $vpaInvolvedInJailDecongestionsId = $vpaInvolvedInJailDecongestions ?
-            array_map(fn($vpa) => (int) $vpa['person_responsible_id'], $vpaInvolvedInJailDecongestions) : [];
+            array_map(fn ($vpa) => (int) $vpa['person_responsible_id'], $vpaInvolvedInJailDecongestions) : [];
 
         $volunteerIds = \array_merge(
             $volunteerIds,
@@ -960,7 +960,8 @@ class Volunteer implements VolunteerInterface
         $sessionsIdFromFacilitators = \array_map(
             fn ($facilitatorSessionId) => $facilitatorSessionId['sessionId'],
             $this->resourceFacilitatorSessionRepository
-                ->getDistinctSessionIdsByVolunteerIds($volunteerIds));
+                ->getDistinctSessionIdsByVolunteerIds($volunteerIds)
+        );
         $sessions = \array_intersect($sessionIds, $sessionsIdFromFacilitators);
 
         //	RJ I.B.1,
@@ -1096,7 +1097,7 @@ class Volunteer implements VolunteerInterface
                     </td>
         EOD;
 
-        if ('start' ==$trPosition) {
+        if ('start' == $trPosition) {
             if ($volunteerCount == 1 || (2 == $index && $volunteerCount == 3)) {
                 return '<tr>' . $body . '</tr>';
             }
@@ -1179,7 +1180,7 @@ class Volunteer implements VolunteerInterface
             </td>
         EOD;
 
-        if ('start' ==$trPosition) {
+        if ('start' == $trPosition) {
             if ($volunteerCount == 1 || (2 == $index && $volunteerCount == 3)) {
                 return '<tr>' . $body . '</tr>';
             }

@@ -7,6 +7,9 @@ build:
 start:
 	docker-compose up -d
 
+watch:
+	docker-compose up
+
 stop:
 	docker-compose down --remove-orphans
 
