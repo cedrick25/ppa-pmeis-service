@@ -354,7 +354,6 @@ class VolunteerRepository extends ServiceEntityRepository
                 $currentDate = new DateTime('now');
 
                 if ($currentDate > $expirationDate) {
-                    dd($currentDate, $expirationDate);
                     continue;
                 }
 
