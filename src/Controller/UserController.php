@@ -47,7 +47,8 @@ class UserController extends AbstractController
     {
         try {
             $data = json_decode($request->getContent(), true);
-            /** @var $user UserAccountWithDetails */
+            
+            /** @var UserAccountWithDetails $user */
             $user = $this->appHydrator->convertArrayToObject($data, UserAccountWithDetails::class);
 
             return $this->json($this->userService->register($user));
@@ -79,7 +80,8 @@ class UserController extends AbstractController
     {
         try {
             $data = json_decode($request->getContent(), true);
-            /** @var $user UserAccountWithDetails */
+
+            /** @var UserAccountWithDetails $user */
             $user = $this->appHydrator->convertArrayToObject($data, UserAccountWithDetails::class);
 
             return $this->json($this->userService->updateById((int) $request->get("id"), $user));
