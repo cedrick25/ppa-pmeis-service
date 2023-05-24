@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Service\TherapeuticCommunity;
 
 use App\Common\AppFormatter;
+use App\Entity\Quarters as EntityQuarters;
 use App\Enum\AuditTrailActions;
 use App\Enum\Response as ResponseEnum;
 use App\Model\Quarters as QuartersModel;
@@ -160,5 +161,10 @@ class Quarters implements QuartersInterface
         }
 
         return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_SUCCESS, $quarters);
+    }
+
+    public function getQuarterData(int $id): EntityQuarters
+    {
+        return $this->repository->find($id);
     }
 }

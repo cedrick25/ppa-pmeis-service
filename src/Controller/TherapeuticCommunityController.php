@@ -168,8 +168,10 @@ class TherapeuticCommunityController extends AbstractController
      */
     public function getTCA1Part1(Request $request): Response
     {
-        return $this->json($this->quartersService->getTCA1Part1(
-            (int) $request->get("id"),
+        $quarterData = $this->quartersService->getQuarterData((int) $request->get("id"));
+
+        return $this->json($this->sessionService->getTCA1Part1(
+            $quarterData,
             (int) $request->get("field_office_id")
         ));
     }
@@ -179,8 +181,10 @@ class TherapeuticCommunityController extends AbstractController
      */
     public function getTCA1Part2(Request $request): Response
     {
-        return $this->json($this->quartersService->getTCA1Part2(
-            (int) $request->get("id"),
+        $quarterData = $this->quartersService->getQuarterData((int) $request->get("id"));
+
+        return $this->json($this->sessionService->getTCA1Part2(
+            $quarterData,
             (int) $request->get("field_office_id")
         ));
     }

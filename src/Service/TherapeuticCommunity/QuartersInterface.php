@@ -3,6 +3,7 @@
 namespace App\Service\TherapeuticCommunity;
 
 use App\Model\Quarters as QuartersModel;
+use App\Entity\Quarters as EntityQuarters;
 
 interface QuartersInterface
 {
@@ -21,4 +22,6 @@ interface QuartersInterface
     public function searchPaginated(string $field, string $query,int $page, int $pageSize): array;
 
     public function getByYear(string $year): array;
+
+    public function getQuarterData(int $id): EntityQuarters;
 }

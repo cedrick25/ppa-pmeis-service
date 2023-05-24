@@ -561,7 +561,7 @@ class VolunteerRepository extends ServiceEntityRepository
      */
     public function updateVolunteerStatus(array $data): string
     {
-        $volunteer =$this->isExistingById($data['id']);
+        $volunteer = $this->isExistingById((int) $data['id']);
 
         if ($volunteer == null) {
             return ResponseEnum::NO_RECORD;

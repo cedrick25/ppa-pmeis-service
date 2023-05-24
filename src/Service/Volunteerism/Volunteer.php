@@ -309,7 +309,7 @@ class Volunteer implements VolunteerInterface
                 return $this->appFormatter->formatResponse(ResponseEnum::UPDATING_FAILED, null, ['app' => $isUpdated]);
             }
 
-            $this->auditTrail->log(AuditTrailActions::UPDATE, $data, $this->shortName, $data['id']);
+            $this->auditTrail->log(AuditTrailActions::UPDATE, $data, $this->shortName, (int) $data['id']);
 
             return $this->appFormatter->formatResponse(ResponseEnum::UPDATING_SUCCESS, null);
         } catch (Exception $e) {
