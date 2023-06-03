@@ -13,11 +13,11 @@ class ResourceMobilization implements \JsonSerializable
         private string $activityName,
         private string $date,
         private string $venue,
-        private array $cash,
-        private array $materials,
-        private array $technicalAssistance,
         private array $securedBy,
         private int $fieldOfficeId,
+        private ?array $cash = [],
+        private ?array $materials = [],
+        private ?array $technicalAssistance = [],
         private ?DateTimeInterface $createdAt = null,
         private ?DateTimeInterface $updatedAt = null,
         private ?DateTimeInterface $deletedAt = null
@@ -62,33 +62,33 @@ class ResourceMobilization implements \JsonSerializable
     /**
      * @return array
      */
-    public function getCash(): array
+    public function getSecuredBy(): array
+    {
+        return $this->securedBy;
+    }
+
+    /**
+     * @return array|null
+     */
+    public function getCash(): ?array
     {
         return $this->cash;
     }
 
     /**
-     * @return array
+     * @return array|null
      */
-    public function getMaterials(): array
+    public function getMaterials(): ?array
     {
         return $this->materials;
     }
 
     /**
-     * @return array
+     * @return array|null
      */
-    public function getTechnicalAssistance(): array
+    public function getTechnicalAssistance(): ?array
     {
         return $this->technicalAssistance;
-    }
-
-    /**
-     * @return array
-     */
-    public function getSecuredBy(): array
-    {
-        return $this->securedBy;
     }
 
     /**
