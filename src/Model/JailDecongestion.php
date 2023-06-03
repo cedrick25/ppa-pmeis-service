@@ -10,7 +10,6 @@ class JailDecongestion implements \JsonSerializable
 {
     public function __construct(
         private string $date,
-        private string $nameAddress,
         private bool $jailVenue,
         private bool $jailOffice,
         private ?int $probation,
@@ -23,6 +22,7 @@ class JailDecongestion implements \JsonSerializable
         private array $personResponsible,
         private string $remarks,
         private int $fieldOfficeId,
+        private ?string $nameAddress = null,
         private ?DateTimeInterface $createdAt = null,
         private ?DateTimeInterface $updatedAt = null,
         private ?DateTimeInterface $deletedAt = null
@@ -38,10 +38,9 @@ class JailDecongestion implements \JsonSerializable
     }
 
     /**
-     * @Assert\NotBlank
-     * @return string
+     * @return string|null
      */
-    public function getNameAddress(): string
+    public function getNameAddress(): ?string
     {
         return $this->nameAddress;
     }

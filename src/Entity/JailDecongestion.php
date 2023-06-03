@@ -24,9 +24,9 @@ class JailDecongestion
     private \DateTimeInterface $date;
 
     /**
-     * @ORM\Column(type="string", length=255)
+     * @ORM\Column(type="string", length=255, nullable=true)
      */
-    private string $nameAddress;
+    private ?string $nameAddress;
 
     /**
      * @ORM\Column(type="boolean")
@@ -122,18 +122,18 @@ class JailDecongestion
     }
 
     /**
-     * @return string
+     * @return string|null
      */
-    public function getNameAddress(): string
+    public function getNameAddress(): ?string
     {
         return $this->nameAddress;
     }
 
     /**
-     * @param string $nameAddress
+     * @param string|null $nameAddress
      * @return JailDecongestion
      */
-    public function setNameAddress(string $nameAddress): JailDecongestion
+    public function setNameAddress(?string $nameAddress): JailDecongestion
     {
         $this->nameAddress = $nameAddress;
         return $this;
