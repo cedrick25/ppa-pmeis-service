@@ -15,234 +15,278 @@ final class Version20211103175853 extends AbstractMigration
     public function up(Schema $schema): void
     {
         $currentDate = date("Y-m-d H:m:s");
-        $this->addSql("INSERT INTO field_offices (name, region_id ,created_at) VALUES "
-            . "('Quezon City Parole And Probation Office No. 1', 1, '{$currentDate}'),"
-            . "('Quezon City Parole And Probation Office No. 2', 1, '{$currentDate}'),"
-            . "('Manila City Parole And Probation Office No. 3', 1, '{$currentDate}'),"
-            . "('Manila City Parole And Probation Office No. 6', 1, '{$currentDate}'),"
-            . "('Baybay City Parole And Probation Office', 12, '{$currentDate}'),"
-            . "('Calbayog City Parole And Probation Office', 12, '{$currentDate}'),"
-            . "('Maasin City Parole And Probation Office', 12, '{$currentDate}'),"
-            . "('Ormoc City Parole And Probation Office', 12, '{$currentDate}'),"
-            . "('Tacloban City Parole And Probation Office', 12, '{$currentDate}'),"
-            . "('Biliran Parole And Probation Office', 12, '{$currentDate}'),"
-            . "('Eastern Samar Parole And Probation Office', 12, '{$currentDate}'),"
-            . "('Leyte Parole And Probation Office', 12, '{$currentDate}'),"
-            . "('Northern Samar Parole And Probation Office No', 12,'{$currentDate}'),"
-            . "('Samar Parole And Probation Office', 12, '{$currentDate}'),"
-            . "('Southern Leyte Parole And Probation Office', 12, '{$currentDate}'),"
-            . "('Cotabato City Parole And Probation Office', 11, '{$currentDate}'),"
-            . "('General Santos City Parole And Probation Office', 11, '{$currentDate}'),"
-            . "('Kidapawan City Parole And Probation Office', 11, '{$currentDate}'),"
-            . "('Koronadal City Parole And Probation Office', 11, '{$currentDate}'),"
-            . "('Marawi City Parole And Probation Office', 11, '{$currentDate}'),"
-            . "('Tacurong City Parole And Probation Office', 11, '{$currentDate}'),"
-            . "('Lanao Del Sur Parole And Probation Office', 11, '{$currentDate}'),"
-            . "('Maguindanao Parole And Probation Office', 11, '{$currentDate}'),"
-            . "('North Cotabato Parole And Probation Office', 11, '{$currentDate}'),"
-            . "('Sarangani Parole And Probation Office', 11, '{$currentDate}'),"
-            . "('South Cotabato Parole And Probation Office', 11, '{$currentDate}'),"
-            . "('Sultan Kudarat Parole And Probation Office', 11, '{$currentDate}'),"
-            . "('Iriga City Parole And Probation Office', 8, '{$currentDate}'),"
-            . "('Legaspi City Parole And Probation Office', 8, '{$currentDate}'),"
-            . "('Ligao City Parole And Probation Office', 8, '{$currentDate}'),"
-            . "('Masbate City Parole And Probation Office', 8, '{$currentDate}'),"
-            . "('Naga City Parole And Probation Office', 8, '{$currentDate}'),"
-            . "('Sorsogon City Parole And Probation Office', 8, '{$currentDate}'),"
-            . "('Tabaco City Parole And Probation Office', 8, '{$currentDate}'),"
-            . "('Albay Parole And Probation Office', 8, '{$currentDate}'),"
-            . "('Camarines Norte Parole And Probation Office', 8, '{$currentDate}'),"
-            . "('Camarines Sur Parole And Probation Office No. 1', 8, '{$currentDate}'),"
-            . "('Camarines Sur Parole And Probation Office No. 2', 8, '{$currentDate}'),"
-            . "('Catanduanes Parole And Probation Office', 8, '{$currentDate}'),"
-            . "('Masbate Province Parole And Probation Office', 8, '{$currentDate}'),"
-            . "('Sorsogon Province Parole And Probation Office', 8, '{$currentDate}'),"
-            . "('Cauayan City Parole And Probation Office', 2, '{$currentDate}'),"
-            . "('Ilagan City Parole And Probation Office', 2, '{$currentDate}'),"
-            . "('Santiago City Parole And Probation Office', 2, '{$currentDate}'),"
-            . "('Tuguegarao City Parole And Probation Office', 2, '{$currentDate}'),"
-            . "('Cagayan Parole And Probation Office No. 1', 2, '{$currentDate}'),"
-            . "('Cagayan Parole And Probation Office No. 2', 2, '{$currentDate}'),"
-            . "('Isabela Parole And Probation Office', 2, '{$currentDate}'),"
-            . "('Nueva Vizcaya Parole And Probation Office', 2, '{$currentDate}'),"
-            . "('Quirino Parole And Probation Office', 2, '{$currentDate}'),"
-            . "('Calapan City Parole And Probation Office', 7, '{$currentDate}'),"
-            . "('Puerto Princesa City Parole And Probation Office', 7, '{$currentDate}'),"
-            . "('Marinduque Parole And Probation Office', 7, '{$currentDate}'),"
-            . "('Occidental Mindoro Parole And Probation Office', 7, '{$currentDate}'),"
-            . "('Oriental Mindoro Parole And Probation Office', 7, '{$currentDate}'),"
-            . "('Palawan Parole And Probation Office No. 1', 7, '{$currentDate}'),"
-            . "('Palawan Parole And Probation Office No. 2', 7, '{$currentDate}'),"
-            . "('Romblon Parole And Probation Office', 7, '{$currentDate}'),"
-            . "('Bacolod City Parole And Probation Office No. 1', 9, '{$currentDate}'),"
-            . "('Bacolod City Parole And Probation Office No. 2', 9, '{$currentDate}'),"
-            . "('Bago City Parole And Probation Office', 9, '{$currentDate}'),"
-            . "('Cadiz City Parole And Probation Office', 9, '{$currentDate}'),"
-            . "('Escalante City Parole And Probation Office', 9, '{$currentDate}'),"
-            . "('Himamaylan City Parole And Probation Office', 9, '{$currentDate}'),"
-            . "('Iloilo City Parole And Probation Office', 9, '{$currentDate}'),"
-            . "('Kabankalan City Parole And Probation Office', 9, '{$currentDate}'),"
-            . "('La Carlota City Parole And Probation Office', 9, '{$currentDate}'),"
-            . "('Passi City Parole And Probation Office', 9, '{$currentDate}'),"
-            . "('Roxas City Parole And Probation Office', 9, '{$currentDate}'),"
-            . "('Sagay City Parole And Probation Office', 9, '{$currentDate}'),"
-            . "('San Carlos City Parole And Probation Office', 9, '{$currentDate}'),"
-            . "('Silay City Parole And Probation Office', 9, '{$currentDate}'),"
-            . "('Sipalay City Parole And Probation Office', 9, '{$currentDate}'),"
-            . "('Talisay City Parole And Probation Office', 9, '{$currentDate}'),"
-            . "('Victorias City Parole And Probation Office', 9, '{$currentDate}'),"
-            . "('Aklan Parole And Probation Office', 9, '{$currentDate}'),"
-            . "('Antique Parole And Probation Office', 9, '{$currentDate}'),"
-            . "('Capiz Parole And Probation Office', 9, '{$currentDate}'),"
-            . "('Guimaras Parole And Probation Office', 9, '{$currentDate}'),"
-            . "('Iloilo Province Parole And Probation Office No. 1', 9, '{$currentDate}'),"
-            . "('Iloilo Province Parole And Probation Office No. 2', 9, '{$currentDate}'),"
-            . "('Iloilo Province Parole And Probation Office No. 3', 9, '{$currentDate}'),"
-            . "('Baguio City Parole And Probation Office', 3, '{$currentDate}'),"
-            . "('Abra Parole And Probation Office', 3, '{$currentDate}'),"
-            . "('Apayao Parole And Probation Office', 3, '{$currentDate}'),"
-            . "('Benguet Parole And Probation Office', 3, '{$currentDate}'),"
-            . "('Ifugao Parole And Probation Office', 3, '{$currentDate}'),"
-            . "('Kalinga Parole And Probation Office', 3, '{$currentDate}'),"
-            . "('Mt. Province Parole And Probation Office', 3, '{$currentDate}'),"
-            . "('Dapitan City Parole And Probation Office', 13, '{$currentDate}'),"
-            . "('Dipolog City Parole And Probation Office', 13, '{$currentDate}'),"
-            . "('Pagadian City Parole And Probation Office', 13, '{$currentDate}'),"
-            . "('Zamboanga City Parole And Probation Office No. 1', 13, '{$currentDate}'),"
-            . "('Zamboanga City Parole And Probation Office No. 2', 13, '{$currentDate}'),"
-            . "('Sulu Parole And Probation Office', 13, '{$currentDate}'),"
-            . "('Zamboanga Del Sur Parole And Probation Office No. 1', 13, '{$currentDate}'),"
-            . "('Zamboanga Del Sur Parole And Probation Office No. 2', 13, '{$currentDate}'),"
-            . "('Zamboanga Sibugay Parole And Probation Office', 13, '{$currentDate}'),"
-            . "('Zamboanga Del Norte Parole And Probation Office', 13, '{$currentDate}'),"
-            . "('Cagayan De Oro City Parole And Probation Office', 14, '{$currentDate}'),"
-            . "('Gingoog City Parole And Probation Office', 14, '{$currentDate}'),"
-            . "('Iligan City Parole And Probation Office', 14, '{$currentDate}'),"
-            . "('Malaybalay City Parole And Probation Office', 14, '{$currentDate}'),"
-            . "('Oroquieta City Parole And Probation Office', 14, '{$currentDate}'),"
-            . "('Tangub City Parole And Probation Office', 14, '{$currentDate}'),"
-            . "('Valencia City Parole And Probation Office', 14, '{$currentDate}'),"
-            . "('Bukidnon Parole And Probation Office No. 1', 14, '{$currentDate}'),"
-            . "('Bukidnon Parole And Probation Office No. 2', 14, '{$currentDate}'),"
-            . "('Camiguin Parole And Probation Office', 14, '{$currentDate}'),"
-            . "('Lanao Del Norte Parole And Probation Office', 14, '{$currentDate}'),"
-            . "('Misamis Occidental Parole And Probation Office', 14, '{$currentDate}'),"
-            . "('Misamis Oriental Parole And Probation Office', 14, '{$currentDate}'),"
-            . "('Ozamiz City Parole And Probation Office', 14, '{$currentDate}'),"
-            . "('Alaminos City Parole And Probation Office', 2, '{$currentDate}'),"
-            . "('Candon City Parole And Probation Office', 2, '{$currentDate}'),"
-            . "('Dagupan City Parole And Probation Office', 2, '{$currentDate}'),"
-            . "('Laoag City Parole And Probation Office', 2, '{$currentDate}'),"
-            . "('San Fernando City Parole And Probation Office', 2, '{$currentDate}'),"
-            . "('Urdaneta City Parole And Probation Office', 2, '{$currentDate}'),"
-            . "('Vigan City/Ilocos Sur Parole And Probation Office', 2, '{$currentDate}'),"
-            . "('Ilocos Norte Parole And Probation Office', 2, '{$currentDate}'),"
-            . "('La Union Province Parole And Probation Office', 2, '{$currentDate}'),"
-            . "('Pangasinan Parole And Probation Office No. 1', 2, '{$currentDate}'),"
-            . "('Pangasinan Parole And Probation Office No. 2', 2, '{$currentDate}'),"
-            . "('Bislig City Parole And Probation Office', 15, '{$currentDate}'),"
-            . "('Butuan City Parole And Probation Office', 15, '{$currentDate}'),"
-            . "('Surigao City Parole And Probation Office', 15, '{$currentDate}'),"
-            . "('Tandag City Parole And Probation Office', 15, '{$currentDate}'),"
-            . "('Agusan Del Norte Parole And Probation Office', 15, '{$currentDate}'),"
-            . "('Agusan Del Sur Parole And Probation Office', 15, '{$currentDate}'),"
-            . "('Surigao Del Norte Parole And Probation Office No. 1', 15, '{$currentDate}'),"
-            . "('Surigao Del Norte Parole And Probation Office No. 2', 15, '{$currentDate}'),"
-            . "('Surigao Del Sur Parole And Probation Office', 15, '{$currentDate}'),"
-            . "('Bais City Parole And Probation Office', 11, '{$currentDate}'),"
-            . "('Bayawan City Parole And Probation Office', 11, '{$currentDate}'),"
-            . "('Bogo City Parole And Probation Office', 11, '{$currentDate}'),"
-            . "('Canlaon City Parole And Probation Office', 11, '{$currentDate}'),"
-            . "('Carcar City Parole And Probation Office', 11, '{$currentDate}'),"
-            . "('Cebu City Parole And Probation Office No. 1', 11, '{$currentDate}'),"
-            . "('Cebu City Parole And Probation Office No. 2', 11, '{$currentDate}'),"
-            . "('City Of Naga Parole And Probation Office', 11, '{$currentDate}'),"
-            . "('Danao City Parole And Probation Office', 11, '{$currentDate}'),"
-            . "('Dumaguete City Parole And Probation Office', 11, '{$currentDate}'),"
-            . "('Guihulngan City Parole And Probation Office', 11, '{$currentDate}'),"
-            . "('Lapu-lapu City Parole And Probation Office', 11, '{$currentDate}'),"
-            . "('Mandaue City Parole And Probation Office', 11, '{$currentDate}'),"
-            . "('Tagbilaran City Parole And Probation Office', 11, '{$currentDate}'),"
-            . "('Tanjay City Parole And Probation Office', 11, '{$currentDate}'),"
-            . "('Toledo City Parole And Probation Office', 11, '{$currentDate}'),"
-            . "('Bohol Province Parole And Probation Office No. 1', 11, '{$currentDate}'),"
-            . "('Bohol Province Parole And Probation Office No. 2', 11, '{$currentDate}'),"
-            . "('Cebu Province Parole And Probation Office', 11, '{$currentDate}'),"
-            . "('Negros Oriental Province Parole And Probation Office', 11, '{$currentDate}'),"
-            . "('Siquijor Province Parole And Probation Office', 11, '{$currentDate}'),"
-            . "('Antipolo City Parole And Probation Office', 6, '{$currentDate}'),"
-            . "('Batangas City Parole And Probation Office', 6, '{$currentDate}'),"
-            . "('Calamba City Parole And Probation Office', 6, '{$currentDate}'),"
-            . "('Cavite City Parole And Probation Office', 6, '{$currentDate}'),"
-            . "('Lipa City Parole And Probation Office', 6, '{$currentDate}'),"
-            . "('Lucena City Parole And Probation Office', 6, '{$currentDate}'),"
-            . "('San Pablo City Parole And Probation Office', 6, '{$currentDate}'),"
-            . "('Sta. Rosa City Parole And Probation Office', 6, '{$currentDate}'),"
-            . "('Tagaytay City Parole And Probation Office', 6, '{$currentDate}'),"
-            . "('Tanauan City Parole And Probation Office', 6, '{$currentDate}'),"
-            . "('Trece Martires City Parole And Probation Office', 6, '{$currentDate}'),"
-            . "('Batangas Province Parole And Probation Office', 6, '{$currentDate}'),"
-            . "('Cavite Province Parole And Probation Office', 6, '{$currentDate}'),"
-            . "('Laguna Province Parole And Probation Office', 6, '{$currentDate}'),"
-            . "('Quezon Province Parole And Probation Office No. 1', 6, '{$currentDate}'),"
-            . "('Quezon Province Parole And Probation Office No. 2', 6, '{$currentDate}'),"
-            . "('Quezon Province Parole And Probation Office No. 3', 6, '{$currentDate}'),"
-            . "('Rizal Parole And Probation Office No. 1', 6, '{$currentDate}'),"
-            . "('Rizal Parole And Probation Office No. 2', 6, '{$currentDate}'),"
-            . "('Las Pinas City Parole And Probation Office', 1, '{$currentDate}'),"
-            . "('Caloocan City Parole And Probation Office', 1, '{$currentDate}'),"
-            . "('Makati City Parole And Probation Office', 1, '{$currentDate}'),"
-            . "('Mandaluyong City/San Juan Parole And Probation Office', 1, '{$currentDate}'),"
-            . "('Malabon City/Navotas City Parole And Probation Office', 1, '{$currentDate}'),"
-            . "('Manila City Parole And Probation Office No. 1', 1, '{$currentDate}'),"
-            . "('Manila City Parole And Probation Office No. 3', 1, '{$currentDate}'),"
-            . "('Manila City Parole And Probation Office No. 2', 1, '{$currentDate}'),"
-            . "('Manila City Parole And Probation Office No. 4', 1, '{$currentDate}'),"
-            . "('Manila City Parole And Probation Office No. 6', 1, '{$currentDate}'),"
-            . "('Manila City Parole And Probation Office No. 5', 1, '{$currentDate}'),"
-            . "('Marikina City Parole And Probation Office', 1, '{$currentDate}'),"
-            . "('Paranaque City Parole And Probation Office', 1, '{$currentDate}'),"
-            . "('Muntinlupa City Parole And Probation Office', 1, '{$currentDate}'),"
-            . "('Pasay City Parole And Probation Office', 1, '{$currentDate}'),"
-            . "('Pasig City Parole And Probation Office', 1, '{$currentDate}'),"
-            . "('Quezon City Parole And Probation Office No. 2', 1, '{$currentDate}'),"
-            . "('Taguig City Parole And Probation Office', 1, '{$currentDate}'),"
-            . "('Quezon City Parole And Probation Office No. 3', 1, '{$currentDate}'),"
-            . "('Valenzuela City Parole And Probation Office', 1, '{$currentDate}'),"
-            . "('Central Office HQ', 1, '{$currentDate}'),"
-            . "('Davao City Parole And Probation Office No. 1', 16, '{$currentDate}'),"
-            . "('Davao City Parole And Probation Office No. 2', 16, '{$currentDate}'),"
-            . "('Davao City Parole And Probation Office No. 3', 16, '{$currentDate}'),"
-            . "('Samal Island Parole And Probation Office', 16, '{$currentDate}'),"
-            . "('Tagum City Parole And Probation Office', 16, '{$currentDate}'),"
-            . "('Digos City Parole And Probation Office', 16, '{$currentDate}'),"
-            . "('Davao Province Parole And Probation Office No. 1', 16, '{$currentDate}'),"
-            . "('Davao Province Parole And Probation Office No. 2', 16, '{$currentDate}'),"
-            . "('Compostela Valley Province Parole And Probation Office', 16, '{$currentDate}'),"
-            . "('Davao Del Sur Parole And Probation Office No. 1', 16, '{$currentDate}'),"
-            . "('Davao Del Sur Parole And Probation Office No. 2', 16, '{$currentDate}'),"
-            . "('Davao Oriental Parole And Probation Office', 16, '{$currentDate}'),"
-            . "('Angeles City Parole And Probation Office', 5, '{$currentDate}'),"
-            . "('Cabanatuan City Parole And Probation Office', 5, '{$currentDate}'),"
-            . "('Malolos City Parole And Probation Office', 5, '{$currentDate}'),"
-            . "('Olongapo City Parole And Probation Office', 5, '{$currentDate}'),"
-            . "('San Jose City Parole And Probation Office', 5, '{$currentDate}'),"
-            . "('Tarlac City Parole And Probation Office', 5, '{$currentDate}'),"
-            . "('Aurora Parole And Probation Office', 5, '{$currentDate}'),"
-            . "('Bataan Parole And Probation Office', 5, '{$currentDate}'),"
-            . "('Bulacan Parole And Probation Office No. 1', 5, '{$currentDate}'),"
-            . "('Bulacan Parole And Probation Office No. 2', 5, '{$currentDate}'),"
-            . "('Nueva Ecija Parole And Probation Office', 5, '{$currentDate}'),"
-            . "('Pampanga Parole And Probation Office', 5, '{$currentDate}'),"
-            . "('Tarlac Province Parole And Probation Office', 5, '{$currentDate}'),"
-            . "('Zambales Province Parole And Probation Office', 5, '{$currentDate}'),"
-            . "('Northern Samar Parole And Probation Office', 11, '{$currentDate}'),"
-            . "('Island Garden City Of Samal Parole And Probation Office', 9, '{$currentDate}'),"
-            . "('Taguig/Pateros City Parole And Probation Office', 1, '{$currentDate}'),"
-            . "('Basilan Parole and Probation Office', 13, '{$currentDate}'),"
-            . "('Panabo City Parole and Probation Office', 13, '{$currentDate}'),"
-            . "('Davao Occidental Parole And Probation Office', 16, '{$currentDate}'),"
-            . "('Davao Penal Colony', 13, '{$currentDate}')");
+        $this->addSql("INSERT INTO field_offices (name, region_id ,created_at) VALUES 
+            ('Regional Office - NCR', 1, '{$currentDate}'),
+            ('Caloocan City Parole And Probation Office', 1, '{$currentDate}'),
+            ('Las Pinas City Parole And Probation Office', 1, '{$currentDate}'),
+            ('Makati City Parole And Probation Office', 1, '{$currentDate}'),
+            ('Malabon City/Navotas City Parole And Probation Office', 1, '{$currentDate}'),
+            ('Mandaluyong City/San Juan Parole And Probation Office', 1, '{$currentDate}'),
+            ('Manila City Parole And Probation Office No. 1', 1, '{$currentDate}'),
+            ('Manila City Parole And Probation Office No. 2', 1, '{$currentDate}'),
+            ('Manila City Parole And Probation Office No. 3', 1, '{$currentDate}'),
+            ('Manila City Parole And Probation Office No. 4', 1, '{$currentDate}'),
+            ('Manila City Parole And Probation Office No. 5', 1, '{$currentDate}'),
+            ('Manila City Parole And Probation Office No. 6', 1, '{$currentDate}'),
+            ('Marikina City Parole And Probation Office', 1, '{$currentDate}'),
+            ('Muntinlupa City Parole And Probation Office', 1, '{$currentDate}'),
+            ('Paranaque City Parole And Probation Office',1, '{$currentDate}'),
+            ('Pasay City Parole And Probation Office', 1, '{$currentDate}'),
+            ('Pasig City Parole And Probation Office', 1, '{$currentDate}'),
+            ('Quezon City Parole And Probation Office No. 1', 1, '{$currentDate}'),
+            ('Quezon City Parole And Probation Office No. 2', 1, '{$currentDate}'),
+            ('Quezon City Parole And Probation Office No. 3', 1, '{$currentDate}'),
+            ('Taguig City/Pateros City Parole And Probation Office', 1, '{$currentDate}'),
+            ('Valenzuela City Parole And Probation Office', 1, '{$currentDate}'),
+            ('Central Office HQ', 1, '{$currentDate}'),
+            ('Regional Office - NCR', 1, '{$currentDate}'),
+            ('Caloocan City Parole And Probation Office', 1, '{$currentDate}'),
+            ('Las Pinas City Parole And Probation Office', 1, '{$currentDate}'),
+            ('Makati City Parole And Probation Office', 1, '{$currentDate}'),
+            ('Malabon City/Navotas City Parole And Probation Office', 1, '{$currentDate}'),
+            ('Mandaluyong City/San Juan Parole And Probation Office', 1, '{$currentDate}'),
+            ('Manila City Parole And Probation Office No. 1', 1, '{$currentDate}'),
+            ('Manila City Parole And Probation Office No. 2', 1, '{$currentDate}'),
+            ('Manila City Parole And Probation Office No. 3', 1, '{$currentDate}'),
+            ('Manila City Parole And Probation Office No. 4', 1, '{$currentDate}'),
+            ('Manila City Parole And Probation Office No. 5', 1, '{$currentDate}'),
+            ('Manila City Parole And Probation Office No. 6', 1, '{$currentDate}'),
+            ('Marikina City Parole And Probation Office', 1, '{$currentDate}'),
+            ('Muntinlupa City Parole And Probation Office', 1, '{$currentDate}'),
+            ('Paranaque City Parole And Probation Office',1, '{$currentDate}'),
+            ('Pasay City Parole And Probation Office', 1, '{$currentDate}'),
+            ('Pasig City Parole And Probation Office', 1, '{$currentDate}'),
+            ('Quezon City Parole And Probation Office No. 1', 1, '{$currentDate}'),
+            ('Quezon City Parole And Probation Office No. 2', 1, '{$currentDate}'),
+            ('Quezon City Parole And Probation Office No. 3', 1, '{$currentDate}'),
+            ('Taguig City/Pateros City Parole And Probation Office', 1, '{$currentDate}'),
+            ('Valenzuela City Parole And Probation Office', 1, '{$currentDate}'),
+            ('Central Office HQ', 1, '{$currentDate}'),
+            ('Taguig/Pateros City Parole And Probation Office', 1, '{$currentDate}'),
+            ('Technical Services Division', 1, '{$currentDate}'),
+            ('Office of the Administrator', 1, '{$currentDate}'),
+            ('Office of the Deputy Administrator', 1, '{$currentDate}'),
+            ('Case Management and Records Division(CMRD)', 1, '{$currentDate}'),
+            ('San Carlos City Parole And Probation Office', 2, '{$currentDate}'),
+            ('Regional Office - Region I', 2, '{$currentDate}'),
+            ('Alaminos City Parole And Probation Office', 2, '{$currentDate}'),
+            ('Candon City Parole And Probation Office', 2, '{$currentDate}'),
+            ('Dagupan City Parole And Probation Office', 2, '{$currentDate}'),
+            ('Laoag City Parole And Probation Office', 2, '{$currentDate}'),
+            ('San Fernando City Parole And Probation Office', 2, '{$currentDate}'),
+            ('Urdaneta City Parole And Probation Office', 2, '{$currentDate}'),
+            ('Vigan City/Ilocos Sur Parole And Probation Office', 2, '{$currentDate}'),
+            ('Ilocos Norte Parole And Probation Office', 2, '{$currentDate}'),
+            ('La Union Province Parole And Probation Office', 2, '{$currentDate}'),
+            ('Pangasinan Parole And Probation Office No. 1', 2, '{$currentDate}'),
+            ('Pangasinan Parole And Probation Office No. 2', 2, '{$currentDate}'),
+            ('Regional Office - CAR', 3, '{$currentDate}'),
+            ('Baguio City Parole And Probation Office', 3, '{$currentDate}'),
+            ('Abra Parole And Probation Office', 3, '{$currentDate}'),
+            ('Apayao Parole And Probation Office', 3, '{$currentDate}'),
+            ('Benguet Parole And Probation Office', 3, '{$currentDate}'),
+            ('Ifugao Parole And Probation Office', 3, '{$currentDate}'),
+            ('Kalinga Parole And Probation Office', 3, '{$currentDate}'),
+            ('Mt. Province Parole And Probation Office', 3, '{$currentDate}'),
+            ('Regional Office - Region II', 4, '{$currentDate}'),
+            ('Cauayan City Parole And Probation Office', 4, '{$currentDate}'),
+            ('Isabela Province/City of Ilagan Parole and Probation Office', 4, '{$currentDate}'),
+            ('Santiago City Parole And Probation Office', 4, '{$currentDate}'),
+            ('Tuguegarao City Parole And Probation Office', 4, '{$currentDate}'),
+            ('Cagayan Parole And Probation Office No. 1', 4, '{$currentDate}'),
+            ('Cagayan Parole And Probation Office No. 2', 4, '{$currentDate}'),
+            ('Isabela Parole And Probation Office', 4, '{$currentDate}'),
+            ('Nueva Vizcaya Parole And Probation Office', 4, '{$currentDate}'),
+            ('Quirino Parole And Probation Office', 4, '{$currentDate}'),
+            ('Regional Office - Region III', 5, '{$currentDate}'),
+            ('Angeles City Parole And Probation Office', 5, '{$currentDate}'),
+            ('Cabanatuan City Parole And Probation Office', 5, '{$currentDate}'),
+            ('Malolos City Parole And Probation Office', 5, '{$currentDate}'),
+            ('Olongapo City Parole And Probation Office', 5, '{$currentDate}'),
+            ('San Jose City Parole And Probation Office', 5, '{$currentDate}'),
+            ('Tarlac City Parole And Probation Office', 5, '{$currentDate}'),
+            ('Aurora Parole And Probation Office', 5, '{$currentDate}'),
+            ('Bataan Parole And Probation Office', 5, '{$currentDate}'),
+            ('Bulacan Parole And Probation Office No. 1', 5, '{$currentDate}'),
+            ('Bulacan Parole And Probation Office No. 2', 5, '{$currentDate}'),
+            ('Nueva Ecija Parole And Probation Office', 5, '{$currentDate}'),
+            ('Pampanga Parole And Probation Office', 5, '{$currentDate}'),
+            ('Tarlac Province Parole And Probation Office', 5, '{$currentDate}'),
+            ('Zambales Province Parole And Probation Office', 5, '{$currentDate}'),
+            ('Regional Office - Region IV-A', 6, '{$currentDate}'),
+            ('Antipolo City Parole And Probation Office', 6, '{$currentDate}'),
+            ('Batangas City Parole And Probation Office', 6, '{$currentDate}'),
+            ('Calamba City Parole And Probation Office', 6, '{$currentDate}'),
+            ('Cavite City Parole And Probation Office', 6, '{$currentDate}'),
+            ('Lipa City Parole And Probation Office', 6, '{$currentDate}'),
+            ('Lucena City Parole And Probation Office', 6, '{$currentDate}'),
+            ('San Pablo City Parole And Probation Office', 6, '{$currentDate}'),
+            ('Sta. Rosa City Parole And Probation Office', 6, '{$currentDate}'),
+            ('Tagaytay City Parole And Probation Office', 6, '{$currentDate}'),
+            ('Tanauan City Parole And Probation Office', 6, '{$currentDate}'),
+            ('Trece Martires City Parole And Probation Office', 6, '{$currentDate}'),
+            ('Batangas Province Parole And Probation Office', 6, '{$currentDate}'),
+            ('Cavite Province Parole And Probation Office', 6, '{$currentDate}'),
+            ('Laguna Province Parole And Probation Office', 6, '{$currentDate}'),
+            ('Quezon Province Parole And Probation Office No. 1', 6, '{$currentDate}'),
+            ('Quezon Province Parole And Probation Office No. 2', 6, '{$currentDate}'),
+            ('Quezon Province Parole And Probation Office No. 3', 6, '{$currentDate}'),
+            ('Rizal Parole And Probation Office No. 1', 6, '{$currentDate}'),
+            ('Rizal Parole And Probation Office No. 2', 6, '{$currentDate}'),
+            ('Regional Office - Region IV-B', 7, '{$currentDate}'),
+            ('Calapan City Parole And Probation Office', 7, '{$currentDate}'),
+            ('Puerto Princesa City Parole And Probation Office', 7, '{$currentDate}'),
+            ('Marinduque Parole And Probation Office', 7, '{$currentDate}'),
+            ('Occidental Mindoro Parole And Probation Office', 7, '{$currentDate}'),
+            ('Oriental Mindoro Parole And Probation Office', 7, '{$currentDate}'),
+            ('Palawan Parole And Probation Office No. 1', 7, '{$currentDate}'),
+            ('Palawan Parole And Probation Office No. 2', 7, '{$currentDate}'),
+            ('Romblon Parole And Probation Office', 7, '{$currentDate}'),
+            ('Regional Office - Region V', 8, '{$currentDate}'),
+            ('Iriga City Parole And Probation Office', 8, '{$currentDate}'),
+            ('Legaspi City Parole And Probation Office', 8, '{$currentDate}'),
+            ('Ligao City Parole And Probation Office', 8, '{$currentDate}'),
+            ('Masbate City Parole And Probation Office', 8, '{$currentDate}'),
+            ('Naga City Parole And Probation Office', 8, '{$currentDate}'),
+            ('Sorsogon City Parole And Probation Office', 8, '{$currentDate}'),
+            ('Tabaco City Parole And Probation Office', 8, '{$currentDate}'),
+            ('Albay Parole And Probation Office', 8, '{$currentDate}'),
+            ('Camarines Norte Parole And Probation Office', 8, '{$currentDate}'),
+            ('Camarines Sur Parole And Probation Office No. 1', 8, '{$currentDate}'),
+            ('Camarines Sur Parole And Probation Office No. 2', 8, '{$currentDate}'),
+            ('Catanduanes Parole And Probation Office', 8, '{$currentDate}'),
+            ('Masbate Province Parole And Probation Office', 8, '{$currentDate}'),
+            ('Sorsogon City Parole and Probation Officer', 8, '{$currentDate}'),
+            ('Regional Office - Region VI', 9, '{$currentDate}'),
+            ('Bacolod City Parole And Probation Office No. 1', 9, '{$currentDate}'),
+            ('Bacolod City Parole And Probation Office No. 2', 9, '{$currentDate}'),
+            ('Bago City Parole And Probation Office', 9, '{$currentDate}'),
+            ('Cadiz City Parole And Probation Office', 9, '{$currentDate}'),
+            ('Escalante City Parole And Probation Office', 9, '{$currentDate}'),
+            ('Himamaylan City Parole And Probation Office', 9, '{$currentDate}'),
+            ('Iloilo City Parole And Probation Office', 9, '{$currentDate}'),
+            ('Kabankalan City Parole And Probation Office', 9, '{$currentDate}'),
+            ('La Carlota City Parole And Probation Office', 9, '{$currentDate}'),
+            ('Passi City Parole And Probation Office', 9, '{$currentDate}'),
+            ('Roxas City Parole And Probation Office', 9, '{$currentDate}'),
+            ('Sagay City Parole And Probation Office', 9, '{$currentDate}'),
+            ('Silay City Parole And Probation Office', 9, '{$currentDate}'),
+            ('Sipalay City Parole And Probation Office', 9, '{$currentDate}'),
+            ('Victorias City Parole And Probation Office', 9, '{$currentDate}'),
+            ('Aklan Parole And Probation Office', 9, '{$currentDate}'),
+            ('Antique Parole And Probation Office', 9, '{$currentDate}'),
+            ('Capiz Parole And Probation Office', 9, '{$currentDate}'),
+            ('Guimaras Parole And Probation Office', 9, '{$currentDate}'),
+            ('Iloilo Province Parole And Probation Office No. 1', 9, '{$currentDate}'),
+            ('Iloilo Province Parole And Probation Office No. 2', 9, '{$currentDate}'),
+            ('Iloilo Province Parole And Probation Office No. 3', 9, '{$currentDate}'),
+            ('Talisay City - Region 6 Parole And Probation Office', 9, '{$currentDate}'),
+            ('Talisay City Parole And Probation Office', 10, '{$currentDate}'),
+            ('Regional Office - Region VII', 10, '{$currentDate}'),
+            ('Bais City Parole And Probation Office', 10, '{$currentDate}'),
+            ('Bayawan City Parole And Probation Office', 10, '{$currentDate}'),
+            ('Bogo City Parole And Probation Office', 10, '{$currentDate}'),
+            ('Canlaon City Parole And Probation Office', 10, '{$currentDate}'),
+            ('Carcar City Parole And Probation Office', 10, '{$currentDate}'),
+            ('Cebu City Parole And Probation Office No. 1', 10, '{$currentDate}'),
+            ('Cebu City Parole And Probation Office No. 2', 10, '{$currentDate}'),
+            ('City Of Naga Parole And Probation Office', 10, '{$currentDate}'),
+            ('Danao City Parole And Probation Office', 10, '{$currentDate}'),
+            ('Dumaguete City Parole And Probation Office', 10, '{$currentDate}'),
+            ('Guihulngan City Parole And Probation Office', 10, '{$currentDate}'),
+            ('Lapu-lapu City Parole And Probation Office', 10, '{$currentDate}'),
+            ('Mandaue City Parole And Probation Office', 10, '{$currentDate}'),
+            ('Tagbilaran City Parole And Probation Office', 10, '{$currentDate}'),
+            ('Tanjay City Parole And Probation Office', 10, '{$currentDate}'),
+            ('Toledo City Parole And Probation Office', 10, '{$currentDate}'),
+            ('Bohol Province Parole And Probation Office No. 1', 10, '{$currentDate}'),
+            ('Bohol Province Parole And Probation Office No. 2', 10, '{$currentDate}'),
+            ('Cebu Province Parole And Probation Office', 10, '{$currentDate}'),
+            ('Negros Oriental Province Parole And Probation Office', 10, '{$currentDate}'),
+            ('Siquijor Province Parole And Probation Office', 10, '{$currentDate}'),
+            ('Regional Office - Region VIII', 11, '{$currentDate}'),
+            ('Baybay City Parole And Probation Office', 11, '{$currentDate}'),
+            ('Calbayog City Parole And Probation Office', 11, '{$currentDate}'),
+            ('Maasin City Parole And Probation Office', 11, '{$currentDate}'),
+            ('Ormoc City Parole And Probation Office', 11, '{$currentDate}'),
+            ('Tacloban City Parole And Probation Office', 11, '{$currentDate}'),
+            ('Biliran Parole And Probation Office', 11, '{$currentDate}'),
+            ('Eastern Samar Parole And Probation Office', 11, '{$currentDate}'),
+            ('Leyte Parole And Probation Office', 11, '{$currentDate}'),
+            ('Northern Samar Parole And Probation Office No. 1', 11, '{$currentDate}'),
+            ('Northern Samar Parole And Probation Office No. 2', 11, '{$currentDate}'),
+            ('Samar Parole And Probation Office', 11, '{$currentDate}'),
+            ('Southern Leyte Parole And Probation Office', 11, '{$currentDate}'),
+            ('Northern Samar Parole And Probation Office', 11, '{$currentDate}'),
+            ('Regional Office - Region IX', 12, '{$currentDate}'),
+            ('Dapitan City Parole And Probation Office', 12, '{$currentDate}'),
+            ('Dipolog City Parole And Probation Office', 12, '{$currentDate}'),
+            ('Pagadian City Parole And Probation Office', 12, '{$currentDate}'),
+            ('Zamboanga City Parole And Probation Office No. 1', 12, '{$currentDate}'),
+            ('Zamboanga City Parole And Probation Office No. 2', 12, '{$currentDate}'),
+            ('Sulu Parole And Probation Office', 12, '{$currentDate}'),
+            ('Zamboanga Del Sur Parole And Probation Office No. 1', 12, '{$currentDate}'),
+            ('Zamboanga Del Sur Parole And Probation Office', 12, '{$currentDate}'),
+            ('Zamboanga Sibugay Parole And Probation Office', 12, '{$currentDate}'),
+            ('Zamboanga Del Norte Parole And Probation Office', 12, '{$currentDate}'),
+            ('Basilan Parole and Probation Office', 12, '{$currentDate}'),
+            ('Panabo City Parole and Probation Office', 12, '{$currentDate}'),
+            ('Regional Office - Region X', 13, '{$currentDate}'),
+            ('Cagayan De Oro City Parole And Probation Office', 13, '{$currentDate}'),
+            ('Gingoog City Parole And Probation Office', 13, '{$currentDate}'),
+            ('Iligan City Parole And Probation Office', 13, '{$currentDate}'),
+            ('Malaybalay City Parole And Probation Office', 13, '{$currentDate}'),
+            ('Oroquieta City Parole And Probation Office', 13, '{$currentDate}'),
+            ('Tangub City Parole And Probation Office', 13, '{$currentDate}'),
+            ('Valencia City Parole And Probation Office', 13, '{$currentDate}'),
+            ('Bukidnon Parole And Probation Office No. 1', 13, '{$currentDate}'),
+            ('Bukidnon Parole And Probation Office No. 2', 13, '{$currentDate}'),
+            ('Camiguin Parole And Probation Office', 13, '{$currentDate}'),
+            ('Lanao Del Norte Parole And Probation Office', 13, '{$currentDate}'),
+            ('Misamis Occidental Parole And Probation Office', 13, '{$currentDate}'),
+            ('Misamis Oriental Parole And Probation Office', 13, '{$currentDate}'),
+            ('Ozamiz City Parole And Probation Office', 13, '{$currentDate}'),
+            ('Regional Office - Region XIII', 14, '{$currentDate}'),
+            ('Bislig City Parole And Probation Office', 14, '{$currentDate}'),
+            ('Butuan City Parole And Probation Office', 14, '{$currentDate}'),
+            ('Surigao City Parole And Probation Office', 14, '{$currentDate}'),
+            ('Tandag City Parole And Probation Office', 14, '{$currentDate}'),
+            ('Agusan Del Norte Parole And Probation Office', 14, '{$currentDate}'),
+            ('Agusan Del Sur Parole And Probation Office', 14, '{$currentDate}'),
+            ('Surigao Del Norte Parole and Probation Office', 14, '{$currentDate}'),
+            ('Surigao Del Norte Parole And Probation Office No. 2', 14, '{$currentDate}'),
+            ('Surigao Del Sur Parole And Probation Office', 14, '{$currentDate}'),
+            ('Regional Office - Region XI', 15, '{$currentDate}'),
+            ('Davao City Parole And Probation Office No. 1', 15, '{$currentDate}'),
+            ('Davao City Parole And Probation Office No. 2', 15, '{$currentDate}'),
+            ('Davao City Parole And Probation Office No. 3', 15, '{$currentDate}'),
+            ('Samal City Parole And Probation Office', 15, '{$currentDate}'),
+            ('Tagum City Parole And Probation Office', 15, '{$currentDate}'),
+            ('Digos City Parole And Probation Office', 15, '{$currentDate}'),
+            ('Davao Province Parole And Probation Office No. 1', 15, '{$currentDate}'),
+            ('Davao Province Parole And Probation Office No. 2', 15, '{$currentDate}'),
+            ('Davao De Oro Parole And Probation Office', 15, '{$currentDate}'),
+            ('Davao Del Sur Parole And Probation Office', 15, '{$currentDate}'),
+            ('Davao Del Sur Parole And Probation Office No. 2', 15, '{$currentDate}'),
+            ('Davao Oriental Parole And Probation Office', 15, '{$currentDate}'),
+            ('Island Garden City Of Samal Parole And Probation Office', 15, '{$currentDate}'),
+            ('Davao Occidental Parole And Probation Office', 15, '{$currentDate}'),
+            ('Compostela Valley Province Parole And Probation Office', 15, '{$currentDate}'),
+            ('Regional Office - Region XII', 16, '{$currentDate}'),
+            ('Cotabato City Parole And Probation Office', 16, '{$currentDate}'),
+            ('General Santos City Parole And Probation Office', 16, '{$currentDate}'),
+            ('Kidapawan City Parole And Probation Office', 16, '{$currentDate}'),
+            ('Koronadal City Parole And Probation Office', 16, '{$currentDate}'),
+            ('Marawi City Parole And Probation Office', 16, '{$currentDate}'),
+            ('Tacurong City Parole And Probation Office', 16, '{$currentDate}'),
+            ('Lanao Del Sur Parole And Probation Office', 16, '{$currentDate}'),
+            ('Maguindanao Parole And Probation Office', 16, '{$currentDate}'),
+            ('North Cotabato Parole And Probation Office', 16, '{$currentDate}'),
+            ('Sarangani Parole And Probation Office', 16, '{$currentDate}'),
+            ('South Cotabato Parole And Probation Office', 16, '{$currentDate}'),
+            ('Sultan Kudarat Parole And Probation Office', 16, '{$currentDate}'),
+            ('Cotabato Province Parole And Probation Office', 16, '{$currentDate}'),
+        ");
     }
 
     public function down(Schema $schema): void
