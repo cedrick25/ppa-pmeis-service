@@ -285,7 +285,7 @@ final class Version20211103175853 extends AbstractMigration
             ('Sarangani Parole And Probation Office', 16, '{$currentDate}'),
             ('South Cotabato Parole And Probation Office', 16, '{$currentDate}'),
             ('Sultan Kudarat Parole And Probation Office', 16, '{$currentDate}'),
-            ('Cotabato Province Parole And Probation Office', 16, '{$currentDate}'),
+            ('Cotabato Province Parole And Probation Office', 16, '{$currentDate}');
         ");
     }
 
