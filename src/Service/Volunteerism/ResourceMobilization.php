@@ -178,10 +178,10 @@ class ResourceMobilization implements ResourceMobilizationInterface
             return $this->appFormatter->formatResponse(ResponseEnum::NO_DATA, null);
         }
 
-        $result['cash'] = $this->convertToCamelCase($this->cashRepository->findByResMobsId([$id])[$id]);
-        $result['materials'] = $this->convertToCamelCase($this->materialsRepository->findByResMobsId([$id])[$id]);
+        $result['cash'] = $this->convertToCamelCase($this->cashRepository->findByResMobsId([$id])[$id] ?? []);
+        $result['materials'] = $this->convertToCamelCase($this->materialsRepository->findByResMobsId([$id])[$id] ?? []);
         $result['technicalAssistance'] = $this->convertToCamelCase(
-            $this->technicalAssistanceRepository->findByResMobsId([$id])[$id]
+            $this->technicalAssistanceRepository->findByResMobsId([$id])[$id] ?? []
         );
         $result['securedBy'] = $this->securedByRepository->findByResMobId([$id])[$id];
 

@@ -149,8 +149,8 @@ class SocialMarketing implements SocialMarketingInterface
 
             foreach ($results['items'] as $i => $item) {
                 $socialMarketingId = $item['social_marketing_id'];
-                $results['items'][$i]['participants'] = $participants[$socialMarketingId];
-                $results['items'][$i]['personInvolved'] = $personInvolved[$socialMarketingId];
+                $results['items'][$i]['participants'] = $participants[$socialMarketingId] ?? [];
+                $results['items'][$i]['personInvolved'] = $personInvolved[$socialMarketingId] ?? [];
             }
 
             return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_SUCCESS, $results);
@@ -171,8 +171,8 @@ class SocialMarketing implements SocialMarketingInterface
             return $this->appFormatter->formatResponse(ResponseEnum::NO_DATA, null);
         }
 
-        $socialMarketing['personInvolved'] = $this->personInvolvedRepository->findBySocialMarketingsId([$id])[$id];
-        $socialMarketing['participants'] = $this->participantRepository->findBySocialMarketingId([$id])[$id];
+        $socialMarketing['personInvolved'] = $this->personInvolvedRepository->findBySocialMarketingsId([$id])[$id] ?? [];
+        $socialMarketing['participants'] = $this->participantRepository->findBySocialMarketingId([$id])[$id] ?? [];
 
         return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_SUCCESS, $socialMarketing);
     }
