@@ -15,6 +15,7 @@ use App\Repository\UserOtpRepository;
 use App\Service\System\AuditTrail;
 use Doctrine\ORM\ORMException;
 use Exception;
+use Lexik\Bundle\JWTAuthenticationBundle\Services\JWTTokenManagerInterface;
 use Psr\Cache\CacheException;
 use Psr\Cache\InvalidArgumentException;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
@@ -37,6 +38,7 @@ class User implements UserInterface
         private UserPasswordHasherInterface $userPasswordHasher,
         private PpaApiClient                $ppaApiClient,
         private UserOtpRepository           $userOtpRepository,
+        private JWTTokenManagerInterface    $jWTTokenManager,
     ) {
         $class = new \ReflectionClass($this);
         $this->shortName = $class->getShortName();
@@ -149,6 +151,12 @@ class User implements UserInterface
         if (!$isPasswordValid) {
             return null;
         }
+
+        // if ($encrypted) {
+        //     return [
+        //         'token' => $this->jWTTokenManager->create($user),
+        //     ];
+        // }
 
         $otp = random_bytes(5);
         $message =  "Your PMEIS OTP is " . $otp;
