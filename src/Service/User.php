@@ -164,7 +164,7 @@ class User implements UserInterface
 
         $isEmailOtpSent = $this->ppaApiClient->sendEmail($email, $message, $user->getUserAccountId());
         
-        if ($isEmailOtpSent) {
+        if (!$isEmailOtpSent) {
             return null;
         }
 
