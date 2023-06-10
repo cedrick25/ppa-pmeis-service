@@ -159,7 +159,7 @@ class User implements UserInterface
         // }
 
         $otp = random_bytes(5);
-        $message =  "Your PMEIS OTP is " . $otp;
+        $message =  "Your PMEIS OTP is " . (string) $otp;
 
         $isEmailOtpSent = $this->ppaApiClient->sendEmail($email, $message, $user->getUserAccountId());
         
@@ -171,7 +171,7 @@ class User implements UserInterface
             $this->ppaApiClient->sendSMS($user->getContactNumber(), $message, $user->getUserAccountId());
         }
 
-        $this->userOtpRepository->create($user->getUserAccountId(), $otp);
+        $this->userOtpRepository->create($user->getUserAccountId(), (string) $otp);
 
         return '/api/user/verify';
     }
