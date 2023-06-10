@@ -23,8 +23,13 @@ security:
             stateless: true
             anonymous: true
 
-        verify:
-            pattern: ^/api/user/verify
+        verifyOtp:
+            pattern: ^/api/user/otp/verify
+            stateless: true
+            anonymous: true
+
+        resendOtp:
+            pattern: ^/api/user/otp/resend
             stateless: true
             anonymous: true
 
@@ -37,5 +42,6 @@ security:
     access_control:
         - { path: ^/api/login, roles: IS_AUTHENTICATED_ANONYMOUSLY }
         - { path: ^/api/user/login, roles: IS_AUTHENTICATED_ANONYMOUSLY }
-        - { path: ^/api/user/verify, roles: IS_AUTHENTICATED_ANONYMOUSLY }
+        - { path: ^/api/user/otp/verify, roles: IS_AUTHENTICATED_ANONYMOUSLY }
+        - { path: ^/api/user/otp/resend, roles: IS_AUTHENTICATED_ANONYMOUSLY }
         - { path: ^/api,       roles: IS_AUTHENTICATED_FULLY }

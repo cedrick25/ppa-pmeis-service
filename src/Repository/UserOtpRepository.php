@@ -66,4 +66,12 @@ class UserOtpRepository extends ServiceEntityRepository
             $this->_em->flush();
         }
     }
+    
+    public function batchDelete(int $userAccountId): void
+    {
+        $this->_em->getConnection()->executeQuery(
+            "DELETE FROM user_otp WHERE user_account_id = :user_account_id",
+            ['user_account_id' => $userAccountId],
+        );
+    }
 }

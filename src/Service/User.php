@@ -160,7 +160,7 @@ class User implements UserInterface
 
         $otp = bin2hex(openssl_random_pseudo_bytes(5));
         $otp = substr($otp, 0, 5);
-        $message =  "Your PMEIS OTP is " . (string) $otp;
+        $message =  "Your PMEIS OTP is: " . $otp;
 
         $isEmailOtpSent = $this->ppaApiClient->sendEmail($email, $message, $user->getUserAccountId());
         
@@ -172,7 +172,8 @@ class User implements UserInterface
             $this->ppaApiClient->sendSMS($user->getContactNumber(), $message, $user->getUserAccountId());
         }
 
-        $this->userOtpRepository->create($user->getUserAccountId(), (string) $otp);
+        $this->userOtpRepository->batchDelete($user->getUserAccountId());
+        $this->userOtpRepository->create($user->getUserAccountId(), $otp);
 
         return [
             'emailAddress' => $email,
@@ -199,6 +200,33 @@ class User implements UserInterface
         return [
             'token' => $this->jWTTokenManager->create($user),
         ];
+    }
+
+    public function resendOtp(string $email): array
+    {
+        $user = $this->repository->findOneBy((['emailAddress' => $email]));
+
+        if (null == $user) {
+            return ['message' => 'User account not found for email: ' . $email];
+        }
+
+        $this->userOtpRepository->batchDelete($user->getUserAccountId());
+
+        $otp = bin2hex(openssl_random_pseudo_bytes(5));
+        $otp = substr($otp, 0, 5);
+        $message =  "Your PMEIS OTP is: " . $otp;
+
+        $isEmailOtpSent = $this->ppaApiClient->sendEmail($email, $message, $user->getUserAccountId());
+        
+        if (!$isEmailOtpSent) {
+            return ['message' => 'There is an error in sending OTP, please contact administrator.'];
+        }
+
+        if (null != $user->getContactNumber()) {
+            $this->ppaApiClient->sendSMS($user->getContactNumber(), $message, $user->getUserAccountId());
+        }
+        
+        return ['message' => 'OTP sent, please check your email or mobile.'];
     }
 
     public function deleteById(int $id): array
@@ -252,5 +280,10 @@ class User implements UserInterface
         } catch (CacheException|InvalidArgumentException $exception) {
             return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_FAILED, null, ['cache' => $exception->getMessage()]);
         }
+    }
+
+    private function cleanupUserOtp(int $userAccountId): void
+    {
+        $this->userOtpRepository->batchDelete($userAccountId);
     }
 }

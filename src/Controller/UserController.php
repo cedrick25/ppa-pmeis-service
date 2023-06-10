@@ -74,7 +74,7 @@ class UserController extends AbstractController
     }
 
     /**
-     * @Route("/verify", methods={"POST"})
+     * @Route("/otp/verify", methods={"POST"})
      */
     public function verifyOtp(Request $request): Response
     {
@@ -84,6 +84,20 @@ class UserController extends AbstractController
             $this->userService->verifyOtp(
                 $data['emailAddress'],
                 $data['otp'],
+            )
+        );
+    }
+
+    /**
+     * @Route("/otp/resend", methods={"POST"})
+     */
+    public function resendOtp(Request $request): Response
+    {
+        $data = json_decode($request->getContent(), true);
+
+        return $this->json(
+            $this->userService->resendOtp(
+                $data['emailAddress'],
             )
         );
     }

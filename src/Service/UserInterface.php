@@ -19,6 +19,8 @@ interface UserInterface
 
     public function verifyOtp(string $email, string $otp): array;
 
+    public function resendOtp(string $email): array;
+
     public function deleteById(int $id): array;
 
     public function updateById(int $id, UserAccountWithDetails $userAccountWithDetails): array;
