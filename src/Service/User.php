@@ -140,7 +140,7 @@ class User implements UserInterface
             $password = base64_decode($password);
         }
 
-        $user = $this->repository->findOneBy((['email' => $email]));
+        $user = $this->repository->findOneBy((['emailAddress' => $email]));
 
         if (null == $user) {
             return null;
