@@ -18,15 +18,15 @@ class PpaApiClient {
   public function sendEmail(string $email, string $message, int $userId): bool {
     $payload = [
       'message_CONTENT' => $message,
-      'message_DATETIME' => date('Y-m-d H:m:s'),
+      'message_DATETIME' => date('Y-m-d H:m:s', strtotime(' +1 day')),
       'message_TO' => $email,
       'api_key' => $_ENV['EMAIL_API_KEY'],
       'CREATED_BY' => $userId,
     ];
     
     try {
-      $this->client->request('POST', '/email', [
-        'body' => $payload
+      $this->client->request('POST', '/ppa-api-uams/wsv1/api/email', [
+        'json' => $payload
       ]);
 
       return true;
@@ -45,8 +45,8 @@ class PpaApiClient {
     ];
     
     try {
-      $this->client->request('POST', '/insertSMSManually', [
-        'body' => $payload
+      $this->client->request('POST', '/ppa-api-uams/wsv1/api/insertSMSManually', [
+        'json' => $payload
       ]);
 
       return true;
