@@ -158,7 +158,7 @@ class User implements UserInterface
         //     ];
         // }
 
-        $otp = random_bytes(5);
+        $otp = bin2hex(openssl_random_pseudo_bytes(5));
         $message =  "Your PMEIS OTP is " . (string) $otp;
 
         $isEmailOtpSent = $this->ppaApiClient->sendEmail($email, $message, $user->getUserAccountId());
