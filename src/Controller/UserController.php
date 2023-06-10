@@ -58,6 +58,22 @@ class UserController extends AbstractController
     }
 
     /**
+     * @Route("/login", methods={"POST"})
+     */
+    public function login(Request $request): Response
+    {
+        $data = json_decode($request->getContent(), true);
+
+        return $this->json(
+            $this->userService->login(
+                $data['email'],
+                $data['password'],
+                $data['encrypted'] ?? false,
+            )
+        );
+    }
+
+    /**
      * @Route("/{id}", methods={"GET"})
      */
     public function getById(Request $request): Response

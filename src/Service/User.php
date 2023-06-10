@@ -9,12 +9,15 @@ use App\Common\AppHydrator;
 use App\Enum\AuditTrailActions;
 use App\Enum\Response as ResponseEnum;
 use App\Model\UserAccountWithDetails;
+use App\Plugin\PpaApiClient;
 use App\Repository\UserAccountRepository;
+use App\Repository\UserOtpRepository;
 use App\Service\System\AuditTrail;
 use Doctrine\ORM\ORMException;
 use Exception;
 use Psr\Cache\CacheException;
 use Psr\Cache\InvalidArgumentException;
+use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 class User implements UserInterface
@@ -26,11 +29,14 @@ class User implements UserInterface
     public const USER_VALIDATION_FAILED = "User validation failed.";
 
     public function __construct(
-        private UserAccountRepository $repository,
-        private ValidatorInterface    $validator,
-        private AppFormatter          $appFormatter,
-        private AuditTrail            $auditTrail,
-        private AppHydrator           $hydrator,
+        private UserAccountRepository       $repository,
+        private ValidatorInterface          $validator,
+        private AppFormatter                $appFormatter,
+        private AuditTrail                  $auditTrail,
+        private AppHydrator                 $hydrator,
+        private UserPasswordHasherInterface $userPasswordHasher,
+        private PpaApiClient                $ppaApiClient,
+        private UserOtpRepository           $userOtpRepository,
     ) {
         $class = new \ReflectionClass($this);
         $this->shortName = $class->getShortName();
@@ -120,6 +126,46 @@ class User implements UserInterface
         } catch (\Exception | InvalidArgumentException $e) {
             return $this->appFormatter->formatResponse(self::USER_CREATION_FAILED, null, ['app' => $e->getMessage()]);
         }
+    }
+
+    /**
+     * @return string|null
+     */
+    public function login(string $email, string $password, bool $encrypted): ?string
+    {
+        if ($encrypted) {
+            $email = base64_decode($email);
+            $password = base64_decode($password);
+        }
+
+        $user = $this->repository->findOneBy((['email' => $email]));
+
+        if (null == $user) {
+            return null;
+        }
+
+        $isPasswordValid = $this->userPasswordHasher->isPasswordValid($user, $password);
+
+        if (!$isPasswordValid) {
+            return null;
+        }
+
+        $otp = random_bytes(5);
+        $message =  "Your PMEIS OTP is " . $otp;
+
+        $isEmailOtpSent = $this->ppaApiClient->sendEmail($email, $message, $user->getUserAccountId());
+        
+        if ($isEmailOtpSent) {
+            return null;
+        }
+
+        if (null != $user->getContactNumber()) {
+            $this->ppaApiClient->sendSMS($user->getContactNumber(), $message, $user->getUserAccountId());
+        }
+
+        $this->userOtpRepository->create($user->getUserAccountId(), $otp);
+
+        return '/api/user/verify';
     }
 
     public function deleteById(int $id): array

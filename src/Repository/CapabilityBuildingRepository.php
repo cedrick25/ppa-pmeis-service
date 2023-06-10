@@ -7,7 +7,6 @@ use App\Common\CacheHelper;
 use App\Entity\CapabilityBuilding;
 use App\Enum\Response as ResponseEnum;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
-use Doctrine\ORM\ORMException;
 use Doctrine\Persistence\ManagerRegistry;
 use Psr\Cache\CacheException;
 use Psr\Cache\InvalidArgumentException;

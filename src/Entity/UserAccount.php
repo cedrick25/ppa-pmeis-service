@@ -11,6 +11,7 @@ use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
 use App\Enum\UserType;
+use Lexik\Bundle\JWTAuthenticationBundle\Services\JWTTokenManagerInterface;
 
 /**
  * @ORM\Entity(repositoryClass=UserAccountRepository::class)
@@ -31,9 +32,9 @@ class UserAccount implements UserInterface, PasswordAuthenticatedUserInterface
     private string $emailAddress;
 
     /**
-     * @ORM\Column(type="string", length=255)
+     * @ORM\Column(type="string", length=255, nullable=true)
      */
-    private string $contactNumber;
+    private ?string $contactNumber;
 
     /**
      * @ORM\Column(type="string", length=255)
@@ -97,7 +98,7 @@ class UserAccount implements UserInterface, PasswordAuthenticatedUserInterface
         return $this->contactNumber;
     }
 
-    public function setContactNumber(string $contactNumber): self
+    public function setContactNumber(?string $contactNumber): self
     {
         $this->contactNumber = $contactNumber;
 
