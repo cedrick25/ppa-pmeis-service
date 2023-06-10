@@ -177,7 +177,7 @@ class User implements UserInterface
 
         return [
             'emailAddress' => $email,
-            'verifyUrl' => '/api/user/verify',
+            'verifyUrl' => '/api/user/otp/verify',
         ];
     }
 
@@ -210,8 +210,6 @@ class User implements UserInterface
             return ['message' => 'User account not found for email: ' . $email];
         }
 
-        $this->userOtpRepository->batchDelete($user->getUserAccountId());
-
         $otp = bin2hex(openssl_random_pseudo_bytes(5));
         $otp = substr($otp, 0, 5);
         $message =  "Your PMEIS OTP is: " . $otp;
@@ -221,6 +219,9 @@ class User implements UserInterface
         if (!$isEmailOtpSent) {
             return ['message' => 'There is an error in sending OTP, please contact administrator.'];
         }
+
+        $this->userOtpRepository->batchDelete($user->getUserAccountId());
+        $this->userOtpRepository->create($user->getUserAccountId(), $otp);
 
         if (null != $user->getContactNumber()) {
             $this->ppaApiClient->sendSMS($user->getContactNumber(), $message, $user->getUserAccountId());
