@@ -194,6 +194,8 @@ class User implements UserInterface
             return ['message' => 'OTP is not valid.'];
         }
 
+        $this->userOtpRepository->remove($otp, true);
+
         return [
             'token' => $this->jWTTokenManager->create($user),
         ];
