@@ -66,7 +66,7 @@ class UserController extends AbstractController
 
         return $this->json(
             $this->userService->login(
-                $data['email'],
+                $data['emailAddress'],
                 $data['password'],
                 $data['encrypted'] ?? false,
             )
