@@ -635,7 +635,7 @@ class Volunteer implements VolunteerInterface
                 <div></div>
                 <div></div>
                 <h2 style="text-align: center;line-height: 5px;">$administrator</h2>
-                <h2 style="text-align: center;line-height: 5px;">Administrator</h2>
+                <h2 style="text-align: center;line-height: 5px;">OIC Administrator</h2>
             </div>
         EOD;
 
@@ -1093,7 +1093,7 @@ class Volunteer implements VolunteerInterface
                         <h3 style="text-align: center"><i>$regionName</i></h3>
                         <div></div>
                         <h2 class="admin-name">$administrator</h2>
-                        <h3 class="admin-title">Administrator</h3>
+                        <h3 class="admin-title">OIC Administrator</h3>
                     </td>
         EOD;
 
