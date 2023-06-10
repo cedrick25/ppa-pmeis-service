@@ -131,9 +131,9 @@ class User implements UserInterface
     }
 
     /**
-     * @return string|null
+     * @return mixed[]
      */
-    public function login(string $email, string $password, bool $encrypted): ?string
+    public function login(string $email, string $password, bool $encrypted): array
     {
         if ($encrypted) {
             $email = base64_decode($email);
@@ -143,13 +143,13 @@ class User implements UserInterface
         $user = $this->repository->findOneBy((['emailAddress' => $email]));
 
         if (null == $user) {
-            return null;
+            return ['message' => 'User account not found for email: ' . $email];
         }
 
         $isPasswordValid = $this->userPasswordHasher->isPasswordValid($user, $password);
 
         if (!$isPasswordValid) {
-            return null;
+            return ['message' => 'Invalid Password'];
         }
 
         // if ($encrypted) {
@@ -165,7 +165,7 @@ class User implements UserInterface
         $isEmailOtpSent = $this->ppaApiClient->sendEmail($email, $message, $user->getUserAccountId());
         
         if (!$isEmailOtpSent) {
-            return null;
+            return ['message' => 'There is an error in sending OTP, please contact administrator.'];
         }
 
         if (null != $user->getContactNumber()) {
@@ -174,7 +174,29 @@ class User implements UserInterface
 
         $this->userOtpRepository->create($user->getUserAccountId(), (string) $otp);
 
-        return '/api/user/verify';
+        return [
+            'emailAddress' => $email,
+            'verifyUrl' => '/api/user/verify',
+        ];
+    }
+
+    public function verifyOtp(string $email, string $otp): array
+    {
+        $user = $this->repository->findOneBy((['emailAddress' => $email]));
+        
+        if (null == $user) {
+            return ['message' => 'User not found for email: ' . $email];
+        }
+
+        $otp = $this->userOtpRepository->findOneBy(['userAccountId' => $user->getUserAccountId(), 'otp' => $otp]);
+
+        if (null == $otp) {
+            return ['message' => 'OTP is not valid.'];
+        }
+
+        return [
+            'token' => $this->jWTTokenManager->create($user),
+        ];
     }
 
     public function deleteById(int $id): array

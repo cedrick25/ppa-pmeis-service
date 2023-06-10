@@ -74,6 +74,21 @@ class UserController extends AbstractController
     }
 
     /**
+     * @Route("/verify", methods={"POST"})
+     */
+    public function verifyOtp(Request $request): Response
+    {
+        $data = json_decode($request->getContent(), true);
+
+        return $this->json(
+            $this->userService->verifyOtp(
+                $data['emailAddress'],
+                $data['otp'],
+            )
+        );
+    }
+
+    /**
      * @Route("/{id}", methods={"GET"})
      */
     public function getById(Request $request): Response

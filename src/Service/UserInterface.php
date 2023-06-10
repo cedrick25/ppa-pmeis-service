@@ -13,9 +13,11 @@ interface UserInterface
     public function register(UserAccountWithDetails $userAccountWithDetails): array;
 
     /**
-     * @return string|null
+     * @return mixed[]
      */
-    public function login(string $email, string $password, bool $encrypted): ?string;
+    public function login(string $email, string $password, bool $encrypted): array;
+
+    public function verifyOtp(string $email, string $otp): array;
 
     public function deleteById(int $id): array;
 
