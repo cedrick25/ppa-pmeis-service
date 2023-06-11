@@ -50,9 +50,9 @@ class SupportOfRegionToFieldOffice
     private float $amount;
 
     /**
-     * @ORM\Column(type="string", length=255)
+     * @ORM\Column(type="string", length=255, nullable=true)
      */
-    private float $attributableCost;
+    private ?float $attributableCost;
 
     /**
      * @ORM\Column(type="float")
@@ -163,18 +163,18 @@ class SupportOfRegionToFieldOffice
     }
 
     /**
-     * @return float
+     * @return ?float
      */
-    public function getAttributableCost(): float
+    public function getAttributableCost(): ?float
     {
         return $this->attributableCost;
     }
 
     /**
-     * @param float $attributableCost
+     * @param ?float $attributableCost
      * @return SupportOfRegionToFieldOffice
      */
-    public function setAttributableCost(float $attributableCost): SupportOfRegionToFieldOffice
+    public function setAttributableCost(?float $attributableCost): SupportOfRegionToFieldOffice
     {
         $this->attributableCost = $attributableCost;
         return $this;

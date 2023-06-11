@@ -15,7 +15,7 @@ class SupportOfRegionToFieldOffice implements \JsonSerializable
         private int $fieldOfficeId,
         private string $particulars,
         private float $amount,
-        private float $attributableCost,
+        private ?float $attributableCost,
         private float $totalAmount,
         private string $remarks,
         private ?DateTimeInterface $createdAt = null,
@@ -80,11 +80,9 @@ class SupportOfRegionToFieldOffice implements \JsonSerializable
     }
 
     /**
-     * @Assert\NotBlank
-     * @Assert\GreaterThan(0)
-     * @return float
+     * @return ?float
      */
-    public function getAttributableCost(): float
+    public function getAttributableCost(): ?float
     {
         return $this->attributableCost;
     }
