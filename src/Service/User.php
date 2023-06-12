@@ -169,7 +169,7 @@ class User implements UserInterface
         }
         $middleName = $userDetails->getMiddleName() !== null ? ' ' . $userDetails->getMiddleName() : '';
         $fullName = $userDetails->getLastName() . ', ' . $userDetails->getFirstName() . $middleName;
-        $message =  "Hi $$fullName your PMEIS otp is: " . $otp;
+        $message =  "Hi $fullName your PMEIS otp is: " . $otp;
 
         $isEmailOtpSent = $this->ppaApiClient->sendEmail($email, $message, $user->getUserAccountId());
         
@@ -228,7 +228,7 @@ class User implements UserInterface
         }
         $middleName = $userDetails->getMiddleName() !== null ? ' ' . $userDetails->getMiddleName() : '';
         $fullName = $userDetails->getLastName() . ', ' . $userDetails->getFirstName() . $middleName;
-        $message =  "Hi $$fullName your PMEIS otp is: " . $otp;
+        $message =  "Hi $fullName your PMEIS otp is: " . $otp;
 
         $isEmailOtpSent = $this->ppaApiClient->sendEmail($email, $message, $user->getUserAccountId());
         
