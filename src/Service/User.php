@@ -11,6 +11,7 @@ use App\Enum\Response as ResponseEnum;
 use App\Model\UserAccountWithDetails;
 use App\Plugin\PpaApiClient;
 use App\Repository\UserAccountRepository;
+use App\Repository\UserDetailsRepository;
 use App\Repository\UserOtpRepository;
 use App\Service\System\AuditTrail;
 use Doctrine\ORM\ORMException;
@@ -39,6 +40,7 @@ class User implements UserInterface
         private PpaApiClient                $ppaApiClient,
         private UserOtpRepository           $userOtpRepository,
         private JWTTokenManagerInterface    $jWTTokenManager,
+        private UserDetailsRepository       $userDetailsRepository,
     ) {
         $class = new \ReflectionClass($this);
         $this->shortName = $class->getShortName();
@@ -160,7 +162,14 @@ class User implements UserInterface
 
         $otp = bin2hex(openssl_random_pseudo_bytes(5));
         $otp = substr($otp, 0, 5);
-        $message =  "Your PMEIS OTP is: " . $otp;
+        $userDetails = $this->userDetailsRepository->findOneBy(['userAccountId' => $user->getUserAccountId()]);
+
+        if (null === $userDetails) {
+            return ['message' => 'User details not found for email: ' . $email];
+        }
+        $middleName = $userDetails->getMiddleName() !== null ? ' ' . $userDetails->getMiddleName() : '';
+        $fullName = $userDetails->getLastName() . ', ' . $userDetails->getFirstName() . $middleName;
+        $message =  "Hi $$fullName your PMEIS otp is: " . $otp;
 
         $isEmailOtpSent = $this->ppaApiClient->sendEmail($email, $message, $user->getUserAccountId());
         
@@ -212,7 +221,14 @@ class User implements UserInterface
 
         $otp = bin2hex(openssl_random_pseudo_bytes(5));
         $otp = substr($otp, 0, 5);
-        $message =  "Your PMEIS OTP is: " . $otp;
+        $userDetails = $this->userDetailsRepository->findOneBy(['userAccountId' => $user->getUserAccountId()]);
+
+        if (null === $userDetails) {
+            return ['message' => 'User details not found for email: ' . $email];
+        }
+        $middleName = $userDetails->getMiddleName() !== null ? ' ' . $userDetails->getMiddleName() : '';
+        $fullName = $userDetails->getLastName() . ', ' . $userDetails->getFirstName() . $middleName;
+        $message =  "Hi $$fullName your PMEIS otp is: " . $otp;
 
         $isEmailOtpSent = $this->ppaApiClient->sendEmail($email, $message, $user->getUserAccountId());
         
@@ -281,10 +297,5 @@ class User implements UserInterface
         } catch (CacheException|InvalidArgumentException $exception) {
             return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_FAILED, null, ['cache' => $exception->getMessage()]);
         }
-    }
-
-    private function cleanupUserOtp(int $userAccountId): void
-    {
-        $this->userOtpRepository->batchDelete($userAccountId);
     }
 }
