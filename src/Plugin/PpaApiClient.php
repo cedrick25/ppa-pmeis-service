@@ -36,7 +36,7 @@ class PpaApiClient {
   public function sendSMS(string $mobileNumber, string $message, int $userId): bool {
     $payload = [
       'message_CONTENT' => $message,
-      'message_DATETIME' => date('Y-m-d H:m:s', strtotime('+26 hours')),
+      'message_DATETIME' => date('Y-m-d H:m:s', strtotime('+1 hour')),
       'message_TO' => $mobileNumber,
       'api_key' => $_ENV['EMAIL_API_KEY'],
       'CREATED_BY' => $userId,
