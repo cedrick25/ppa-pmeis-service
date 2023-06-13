@@ -11,12 +11,15 @@ class PpaApiClient {
   public function __construct()
   {
     $this->client = new Client();
+    date_default_timezone_set('Asia/Manila');
   }
   
   public function sendEmail(string $email, string $message, int $userId): bool {
+    $now = new \DateTime();
+    $now->add(new \DateInterval('PT2M'));
     $payload = [
       'message_CONTENT' => $message,
-      'message_DATETIME' => date('Y-m-d H:m:s', strtotime(' +1 day')),
+      'message_DATETIME' => $now->format('Y-m-d H:i:s'),
       'message_TO' => $email,
       'api_key' => $_ENV['EMAIL_API_KEY'],
       'CREATED_BY' => $userId,
@@ -34,9 +37,11 @@ class PpaApiClient {
   }
   
   public function sendSMS(string $mobileNumber, string $message, int $userId): bool {
+    $now = new \DateTime();
+    $now->add(new \DateInterval('PT2M'));
     $payload = [
       'message_CONTENT' => $message,
-      'message_DATETIME' => date('Y-m-d H:m:s', strtotime('+16 minutes')),
+      'message_DATETIME' => $now->format('Y-m-d H:i:s'),
       'message_TO' => $mobileNumber,
       'api_key' => $_ENV['EMAIL_API_KEY'],
       'CREATED_BY' => $userId,
