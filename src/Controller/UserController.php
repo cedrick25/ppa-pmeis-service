@@ -163,6 +163,14 @@ class UserController extends AbstractController
     }
 
     /**
+     * @Route("/position/delete/{id}", methods={"GET"})
+     */
+    public function deleteBytId(Request $request): Response
+    {
+        return $this->json($this->positionService->deleteById((int) $request->get("id")));
+    }
+
+    /**
      * @Route("/position/by/id/{id}", methods={"GET"})
      */
     public function getPositionById(Request $request): Response

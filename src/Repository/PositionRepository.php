@@ -79,6 +79,24 @@ class PositionRepository extends ServiceEntityRepository
         return $newPosition->getPositionId();
     }
 
+    /**
+     * @throws InvalidArgumentException
+     */
+    public function delete(int $id): bool
+    {
+        $entity = $this->isExistingById($id);
+        if (! $entity) {
+            return false;
+        }
+
+        $this->cache->invalidateTags([self::CACHE_TAG]);
+
+        $this->getEntityManager()->remove($entity);
+        $this->getEntityManager()->flush();
+
+        return true;
+    }
+
     public function isExistingById(int $id): bool | Position
     {
         $position = $this->findOneBy([
