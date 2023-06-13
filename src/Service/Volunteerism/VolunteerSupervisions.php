@@ -169,7 +169,7 @@ class VolunteerSupervisions implements VolunteerSupervisionsInterface
 
             foreach ($results['items'] as $i => $item) {
                 $volunteerSupervisionsId = $item['volunteer_supervisions_id'];
-                $results['items'][$i]['clients'] = $clients[$volunteerSupervisionsId];
+                $results['items'][$i]['clients'] = $clients[$volunteerSupervisionsId] ?? [];
             }
 
             return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_SUCCESS, $results);
