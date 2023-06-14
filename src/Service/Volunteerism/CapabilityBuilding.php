@@ -159,7 +159,7 @@ class CapabilityBuilding implements CapabilityBuildingInterface
 
             foreach ($results['items'] as $i => $item) {
                 $capabilityBuildingId = $item['capability_building_id'];
-                $results['items'][$i]['participants'] = $participants[$capabilityBuildingId];
+                $results['items'][$i]['participants'] = $participants[$capabilityBuildingId] ?? [];
             }
 
             return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_SUCCESS, $results);
