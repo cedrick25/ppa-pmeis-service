@@ -266,7 +266,10 @@ class TableIA1SummaryFormNational implements Form
                 $treatmentCategoryTotal = $treatmentCategoryTotals[$fieldOffice->getFieldOfficeId()] ?? [];
                 $clientFrequency = $clientSessionsData['client_frequency'][$fieldOffice->getFieldOfficeId()] ?? [];
                 $fsgFrequency = $clientSessionsData['fsg_frequency'][$fieldOffice->getFieldOfficeId()] ?? 0;
-                $vpa = $vpas[$fieldOffice->getFieldOfficeId()] ?? [];
+                if (!isset($vpas[$fieldOffice->getFieldOfficeId()])) {
+                    continue;
+                }
+                $vpa = $vpas[$fieldOffice->getFieldOfficeId()];
                 $activity = $activities[$fieldOffice->getFieldOfficeId()] ?? [];
 
                 if (empty($treatmentCategoryTotal)) {
