@@ -60,7 +60,7 @@ class User implements UserInterface
                 unset($userAccount["password"]);
                 $userAccount["user_account_id"] = (int) $userAccount["user_account_id"];
                 $userAccount["user_detail_id"] = (int) $userAccount["user_detail_id"];
-                $userAccount["field_office_id"] = (int) $userAccount["status"];
+                $userAccount["field_office_id"] = (int) $userAccount["field_office_id"];
                 $userAccount["region_id"] = (int) $userAccount["region_id"];
                 $userAccount["status"] = (int) $userAccount["status"];
                 $userAccount["is_pwd"] = (bool) $userAccount["is_pwd"];
@@ -92,7 +92,7 @@ class User implements UserInterface
             unset($userAccount["password"]);
             $userAccount["user_account_id"] = (int) $userAccount["user_account_id"];
             $userAccount["user_detail_id"] = (int) $userAccount["user_detail_id"];
-            $userAccount["field_office_id"] = (int) $userAccount["status"];
+            $userAccount["field_office_id"] = (int) $userAccount["field_office_id"];
             $userAccount["region_id"] = (int) $userAccount["region_id"];
             $userAccount["status"] = (int) $userAccount["status"];
             $userAccount["is_pwd"] = (bool) $userAccount["is_pwd"];
