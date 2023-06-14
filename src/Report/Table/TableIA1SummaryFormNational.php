@@ -265,7 +265,7 @@ class TableIA1SummaryFormNational implements Form
             foreach ($fieldOffices as $fieldOffice) {
                 $treatmentCategoryTotal = $treatmentCategoryTotals[$fieldOffice->getFieldOfficeId()] ?? [];
                 $clientFrequency = $clientSessionsData['client_frequency'][$fieldOffice->getFieldOfficeId()] ?? [];
-                $fsgFrequency = $clientSessionsData['fsg_frequency'][$fieldOffice->getFieldOfficeId()] ?? [];
+                $fsgFrequency = $clientSessionsData['fsg_frequency'][$fieldOffice->getFieldOfficeId()] ?? 0;
                 $vpa = $vpas[$fieldOffice->getFieldOfficeId()] ?? [];
                 $activity = $activities[$fieldOffice->getFieldOfficeId()] ?? [];
 
