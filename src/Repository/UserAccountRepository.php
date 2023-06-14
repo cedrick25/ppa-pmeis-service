@@ -158,7 +158,7 @@ class UserAccountRepository extends ServiceEntityRepository
         $user->setStatus($userAccountWithDetails->getStatus());
         $user->setUpdatedAt($this->appDateHelper->getCurrentImmutableDate());
 
-        if ($user->getPassword() !== null && strlen($user->getPassword()) > 0) {
+        if ($userAccountWithDetails->getPassword() !== null && strlen($userAccountWithDetails->getPassword()) > 0) {
             $hashedPassword = $this->userPasswordHasher->hashPassword($user, $userAccountWithDetails->getPassword());
             $user->setPassword($hashedPassword);
         }
