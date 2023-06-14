@@ -71,7 +71,9 @@ class VPADatabase implements Form
             $spreadsheet->getActiveSheet()->setCellValue("A" . $this->lastFilledOutCellY, $fullName);
             // TODO: replaced with volunteer_id -> id_no
             $spreadsheet->getActiveSheet()->setCellValue("B" . $this->lastFilledOutCellY, $volunteer['volunteer_id']);
-            $spreadsheet->getActiveSheet()->setCellValue("C" . $this->lastFilledOutCellY, $dateAppointed->format('y-M-d'));
+            if ($dateAppointed != null) {
+                $spreadsheet->getActiveSheet()->setCellValue("C" . $this->lastFilledOutCellY, $dateAppointed->format('y-M-d'));
+            }
             $spreadsheet->getActiveSheet()->setCellValue("D" . $this->lastFilledOutCellY, $volunteer['present_address']);
             $spreadsheet->getActiveSheet()->setCellValue("E" . $this->lastFilledOutCellY, $volunteer['height']);
             $spreadsheet->getActiveSheet()->setCellValue("F" . $this->lastFilledOutCellY, $volunteer['weight']);
