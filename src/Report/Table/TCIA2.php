@@ -146,7 +146,9 @@ class TCIA2 implements Form
 
         foreach ($this->summaryData as $quarter => $row) {
             foreach ($row as $phase => $score) {
-                $spreadsheet->getActiveSheet()->setCellValue($summaryCoordinates[$quarter][$phase], $score);
+                if (isset($summaryCoordinates[$quarter][$phase])) {
+                    $spreadsheet->getActiveSheet()->setCellValue($summaryCoordinates[$quarter][$phase], $score);
+                }
             }
 
             $spreadsheet->getActiveSheet()->setCellValue($summaryCoordinates[$quarter]['TOTAL'], array_sum($row));
