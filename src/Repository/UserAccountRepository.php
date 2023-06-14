@@ -65,7 +65,7 @@ class UserAccountRepository extends ServiceEntityRepository
             $sql = "SELECT ua.*, ud.*, rg.name as region_name, fe.name as field_office_name FROM user_account ua 
                     LEFT JOIN user_details ud ON ud.user_account_id = ua.user_account_id
                     LEFT JOIN field_offices fe ON fe.field_office_id = ua.field_office_id
-                    LEFT JOIN regions rg ON rg.region_id = fe.region_id
+                    LEFT JOIN regions rg ON rg.region_id = ua.region_id
                     WHERE $singleUser ua.deleted_at IS NULL";
             $stmt = $conn->prepare($sql);
             $query = $stmt->executeQuery();
