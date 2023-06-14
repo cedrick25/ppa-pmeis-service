@@ -657,6 +657,9 @@ class Volunteer implements VolunteerInterface
         $volunteersId = $data['volunteer_ids'];
         $volunteers = $this->repository->findByIds($volunteersId);
         $fieldOffice = $this->fieldOfficesRepository->find($volunteers[0]->getFieldOfficeId());
+        if ($fieldOffice == null) {
+            return 'No field office id';
+        }
         $region = $this->regionsRepository->find($fieldOffice->getRegionId());
 
         $code = $this->systemCodeSettings->getByName(SystemSettingNames::VPA_CERTIFICATE_REPORT_CODE);
