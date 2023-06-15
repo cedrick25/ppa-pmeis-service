@@ -90,9 +90,9 @@ class SessionsRepository extends ServiceEntityRepository
      */
     public function createWithClientsAndFacilitators(SessionsModel $sessionData): int|null
     {
-        if ($this->isExisting($sessionData)) {
-            return null;
-        }
+        // if ($this->isExisting($sessionData)) {
+        //     return null;
+        // }
 
         $this->cache->invalidateTags([self::CACHE_TAG]);
 
