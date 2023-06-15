@@ -208,7 +208,7 @@ class CapabilityBuilding implements CapabilityBuildingInterface
         }
 
         $result['participants'] = $this->transformParticipants($this->capabilityBuildingParticipantsRepository
-            ->findParticipantsByCapabilityBuildingsId([$id])[$id]) ?? [];
+            ->findParticipantsByCapabilityBuildingsId([$id])[$id] ?? []);
 
         return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_SUCCESS, $result);
     }
