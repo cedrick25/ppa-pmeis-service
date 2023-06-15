@@ -806,6 +806,7 @@ class Volunteer implements VolunteerInterface
         }
 
         return $pdf->Output('mark.pdf', 'E');
+        // return $pdf->Output('mark.pdf', 'D');
     }
 
     private function getCivilStatuses(): array

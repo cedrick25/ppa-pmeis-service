@@ -115,7 +115,9 @@ class SessionsRepository extends ServiceEntityRepository
         $this->getEntityManager()->flush();
 
         $this->clientSessionsRepository->batchCreate($session->getSessionId(), $sessionData->getAttendees());
-        $this->clientSessionsRepository->batchCreateAbsentees($session->getSessionId(), $sessionData->getAbsentees());
+        if ($sessionData->getAbsentees() !== null && count($sessionData->getAbsentees()) > 0) {
+            $this->clientSessionsRepository->batchCreateAbsentees($session->getSessionId(), $sessionData->getAbsentees());
+        }
         $this->resourceFacilitatorSessionRepository
             ->batchCreate($session->getSessionId(), $sessionData->getFacilitators());
 
@@ -867,10 +869,13 @@ class SessionsRepository extends ServiceEntityRepository
             ->where("se.date BETWEEN CAST(:minDate AS DATE) AND CAST(:maxDate AS DATE)")
             ->andWhere('se.phaseId = :phaseId')
             ->andWhere('se.sessionActivityId = :sessionActivityId')
+            ->andWhere('se.treatmentCategoryId = :treatmentCategoryId')
             ->andWhere('se.deletedAt IS NULL')
+            ->setMaxResults(1)
             ->setParameter('minDate', $minMaxDate['min'], 'string')
             ->setParameter('maxDate', $minMaxDate['max'], 'string')
             ->setParameter('phaseId', $sessionData->getPhaseId())
+            ->setParameter('treatmentCategoryId', $sessionData->getTreatmentCategoryId())
             ->setParameter('sessionActivityId', $sessionData->getSessionActivityId())
             ->getQuery()
             ->getOneOrNullResult();
