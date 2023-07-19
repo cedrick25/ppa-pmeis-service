@@ -48,6 +48,7 @@ class RJIB1 implements Form
     public function footer(): Spreadsheet
     {
         $spreadsheet = $this->body();
+        dd($this->data);
 
         $this->lastFilledOutCellY++;
         $footerHeadRowNumber = $this->lastFilledOutCellY;
@@ -281,9 +282,21 @@ class RJIB1 implements Form
             ]
         ];
 
+        $rowCount = \count($rows);
+
+        $this->data['footer']['adjusted_supervision_caseload'] += $rowCount;
+        $this->data['footer']['clients_undergone_rj_process'] += $rowCount;
+        
+
         foreach ($rows as $row) {
             $this->lastFilledOutCellY++;
             $fullName = $row['first_name'] . ' ' . $row['middle_name'] . ' ' . $row['last_name'];
+
+            if ($groupType === 'ACTIVE_SUPERVISION') {
+                $this->data['footer']['active_supervision']++;
+            } else {
+                $this->data['footer']['petitioners']++;
+            }
 
             $spreadsheet->getActiveSheet()->getRowDimension($this->lastFilledOutCellY)->setRowHeight(70);
 
