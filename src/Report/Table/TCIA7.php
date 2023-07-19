@@ -69,9 +69,9 @@ class TCIA7 implements Form
             'supervisionCasesDropped' => [$months[0] => 21, $months[1] => 22, $months[2] => 23],
             'totalSupervisionCasesHandled' => 24,
             'totalLess' => 39,
-            'totalAdjustedSupervisionCaseLoad' => 40,
-            'clientsAttendingTC' => 42,
-            'percentageOfClientsAttendingTC' => 44,
+            'totalAdjustedSupervisionCaseLoad' => 39,
+            'clientsAttendingTC' => 41,
+            'percentageOfClientsAttendingTC' => 43,
         ];
 
         foreach ($this->data['rows'] as $name=>$row) {
@@ -174,16 +174,16 @@ class TCIA7 implements Form
             'a33' => '       d.   In jail with no report submitted to court/ BPP',
             'a34' => '       e.   With serious ailment',
             'a35' => '       f.    On travel abroad ( with permit)',
-            'a36' => '       g.   Supervision cases dropped (Terminated, Revoked, Transferred)',
-            'a37' => '       h.   Cases Pending in Court/ BPP',
-            'a38' => '       i.    Others (specify):  No initial report ',
-            'a39' => ' ',
-            'a40' => '5.   Total Adjusted Supervision Caseload This Quarter',
-            'a41' => ' ',
-            'a42' => '6.   Total Number of Clients Attending TC',
-            'a43' => ' ',
-            'a44' => '7.   Percentage of Clients Attending TC',
-            'a45' => ' ',
+            // 'a36' => '       g.   Supervision cases dropped (Terminated, Revoked, Transferred)',
+            'a36' => '       g.   Cases Pending in Court/ BPP',
+            'a37' => '       h.    Others (specify):  No initial report ',
+            'a38' => ' ',
+            'a39' => '5.   Total Adjusted Supervision Caseload This Quarter',
+            'a40' => ' ',
+            'a41' => '6.   Total Number of Clients Attending TC',
+            'a42' => ' ',
+            'a43' => '7.   Percentage of Clients Attending TC',
+            'a44' => ' ',
 
         ];
         $boldCoordinates = ['f1', 'a4',];
