@@ -14,8 +14,6 @@ use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\Exception\InvalidArgumentException;
 use Doctrine\ORM\NonUniqueResultException;
-use Doctrine\ORM\OptimisticLockException;
-use Doctrine\ORM\ORMException;
 use Doctrine\Persistence\ManagerRegistry;
 use Exception;
 use Psr\Cache\CacheException;
@@ -108,6 +106,10 @@ class SessionsRepository extends ServiceEntityRepository
         $session->setPeriod($sessionData->getPeriod());
         $session->setLiLo($sessionData->getLiLo());
         $session->setFsgNumber($sessionData->getFsgNumber());
+        $session->setIsCommunityService($sessionData->isCommunityService());
+        $session->setIsTreePlanting($sessionData->isTreePlanting());
+        $session->setIsCooperativeSelfHelp($sessionData->isCooperativeSelfHelp());
+        $session->setIsCooperativeSelfHelpActivities($sessionData->isCooperativeSelfHelpActivities());
         $session->setCreatedBy($sessionData->getCreatedBy());
         $session->setCreatedAt($this->appDateHelper->getCurrentImmutableDate());
 
@@ -319,6 +321,11 @@ class SessionsRepository extends ServiceEntityRepository
         $session->setVenueId($sessionData->getVenueId());
         $session->setPeriod($sessionData->getPeriod());
         $session->setLiLo($sessionData->getLiLo());
+        $session->setFsgNumber($sessionData->getFsgNumber());
+        $session->setIsCommunityService($sessionData->isCommunityService());
+        $session->setIsTreePlanting($sessionData->isTreePlanting());
+        $session->setIsCooperativeSelfHelp($sessionData->isCooperativeSelfHelp());
+        $session->setIsCooperativeSelfHelpActivities($sessionData->isCooperativeSelfHelpActivities());
         $session->setCreatedBy($sessionData->getCreatedBy());
         $session->setUpdatedAt($this->appDateHelper->getCurrentImmutableDate());
 
@@ -500,8 +507,8 @@ class SessionsRepository extends ServiceEntityRepository
 
             $sql = "SELECT q.*, s.session_id, sa.name as session_activity_title, s.treatment_category_id,
                        s.trees_planted, s.field_office_id,s.fsg_number , p.name as phase_name, s.batch ,v.name as venue, s.date, s.period,
-                       sa.is_community_service, sa.is_cooperative_self_help, sa.is_cooperative_self_help_activities,
-                       sa.is_tree_planting FROM quarters as q 
+                       s.is_community_service, s.is_cooperative_self_help, s.is_cooperative_self_help_activities,
+                       s.is_tree_planting FROM quarters as q 
                     LEFT JOIN sessions as s ON s.date BETWEEN CAST('$minDate' AS DATE) AND CAST('$maxDate' AS DATE) 
                     LEFT JOIN session_activities as sa ON s.session_activity_id = sa.session_activity_id 
                     LEFT JOIN phases as p ON s.phase_id = p.phase_id
@@ -580,6 +587,10 @@ class SessionsRepository extends ServiceEntityRepository
                     $session['erp_resource_person'] = $erpFacilitators[$session['session_id']];
                 }
                 $session['count'] = $this->getClientSessionCount(
+                    $quarterData->getQuarterId(),
+                    intval($session['session_id'])
+                );
+                $session['attendees_count'] = $this->getAttendeesClientSessionCount(
                     $quarterData->getQuarterId(),
                     intval($session['session_id'])
                 );
@@ -1078,6 +1089,29 @@ class SessionsRepository extends ServiceEntityRepository
                         (SELECT COUNT(client_session_id) FROM client_sessions WHERE role = 'FTMDO' AND client_sessions.session_id = s.session_id) as ftmdo,
                         (SELECT COUNT(client_session_id) FROM client_sessions WHERE role = 'PET' AND client_sessions.session_id = s.session_id) as petitioners,
                         (SELECT COUNT(client_session_id) FROM client_sessions WHERE role = 'TERM' AND client_sessions.session_id = s.session_id) as `terminated`
+                        FROM sessions as s
+                LEFT JOIN quarters as q ON q.quarter_id = $id
+                WHERE s.session_id = $sessionId ORDER BY s.session_id";
+        $stmt = $conn->prepare($sql);
+        $query = $stmt->executeQuery();
+        return $query->fetchAssociative();
+    }
+
+    /**
+     * @throws \Doctrine\DBAL\Driver\Exception
+     * @throws \Doctrine\DBAL\Exception
+     */
+    private function getAttendeesClientSessionCount(int $id, int $sessionId): array|bool
+    {
+        $conn = $this->getEntityManager()->getConnection();
+        $sql = "SELECT s.session_id, s.field_office_id, s.li_lo,
+                        (SELECT COUNT(client_session_id) FROM client_sessions WHERE role = 'PS' AND client_sessions.session_id = s.session_id AND client_sessions.client_remarks_id IS NULL) as parolees,
+                        (SELECT COUNT(client_session_id) FROM client_sessions WHERE role = 'PR' AND client_sessions.session_id = s.session_id AND client_sessions.client_remarks_id IS NULL) as probationers,
+                        (SELECT COUNT(client_session_id) FROM client_sessions WHERE role = 'PD' AND client_sessions.session_id = s.session_id AND client_sessions.client_remarks_id IS NULL) as pardonees,
+                        (SELECT COUNT(client_session_id) FROM client_sessions WHERE role = 'JICL' AND client_sessions.session_id = s.session_id AND client_sessions.client_remarks_id IS NULL) as jicl,
+                        (SELECT COUNT(client_session_id) FROM client_sessions WHERE role = 'FTMDO' AND client_sessions.session_id = s.session_id AND client_sessions.client_remarks_id IS NULL) as ftmdo,
+                        (SELECT COUNT(client_session_id) FROM client_sessions WHERE role = 'PET' AND client_sessions.session_id = s.session_id AND client_sessions.client_remarks_id IS NULL) as petitioners,
+                        (SELECT COUNT(client_session_id) FROM client_sessions WHERE role = 'TERM' AND client_sessions.session_id = s.session_id AND client_sessions.client_remarks_id IS NULL) as `terminated`
                         FROM sessions as s
                 LEFT JOIN quarters as q ON q.quarter_id = $id
                 WHERE s.session_id = $sessionId ORDER BY s.session_id";

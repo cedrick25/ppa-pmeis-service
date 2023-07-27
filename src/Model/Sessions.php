@@ -29,6 +29,10 @@ class Sessions implements \JsonSerializable
         private ?array $facilitators = null,
         private ?array $absentees = null,
         private ?int $fsgNumber = null,
+        private bool $isCommunityService = false,
+        private bool $isTreePlanting = false,
+        private bool $isCooperativeSelfHelp = false,
+        private bool $isCooperativeSelfHelpActivities = false,
     ){}
 
     /**
@@ -191,6 +195,26 @@ class Sessions implements \JsonSerializable
     public function getFsgNumber(): ?int
     {
         return $this->fsgNumber;
+    }
+    
+    public function isCommunityService(): bool
+    {
+        return $this->isCommunityService;
+    }
+
+    public function isTreePlanting(): bool
+    {
+        return $this->isTreePlanting;
+    }
+
+    public function isCooperativeSelfHelp(): bool
+    {
+        return $this->isCooperativeSelfHelp;
+    }
+
+    public function isCooperativeSelfHelpActivities(): bool
+    {
+        return $this->isCooperativeSelfHelpActivities;
     }
 
     public function jsonSerialize(): array

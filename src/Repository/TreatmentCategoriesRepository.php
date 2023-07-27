@@ -15,7 +15,6 @@ use Doctrine\Persistence\ManagerRegistry;
 use Exception;
 use Psr\Cache\CacheException;
 use Psr\Cache\InvalidArgumentException;
-use Symfony\Contracts\Cache\ItemInterface;
 use Symfony\Contracts\Cache\TagAwareCacheInterface;
 
 /**

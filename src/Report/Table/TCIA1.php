@@ -167,13 +167,14 @@ class TCIA1 implements Form
             $spreadsheet->getActiveSheet()->setCellValue("U" . $this->lastFilledOutCellY, $part2Row['count']['jicl']);
             $spreadsheet->getActiveSheet()->setCellValue("V" . $this->lastFilledOutCellY, $part2Row['count']['ftmdo']);
             $total = intval($part2Row['count']['parolees']) + intval($part2Row['count']['probationers']) + intval($part2Row['count']['pardonees']) + intval($part2Row['count']['jicl']) + intval($part2Row['count']['ftmdo']);
+            $attendeesTotal = intval($part2Row['attendees_count']['parolees']) + intval($part2Row['attendees_count']['probationers']) + intval($part2Row['attendees_count']['pardonees']) + intval($part2Row['attendees_count']['jicl']) + intval($part2Row['attendees_count']['ftmdo']);
             $spreadsheet->getActiveSheet()->setCellValue("W" . $this->lastFilledOutCellY, $total);
             $spreadsheet->getActiveSheet()->setCellValue("X" . $this->lastFilledOutCellY, $part2Row['count']['petitioners']);
             $spreadsheet->getActiveSheet()->setCellValue("Y" . $this->lastFilledOutCellY, $part2Row['count']['terminated']);
             $spreadsheet->getActiveSheet()->setCellValue("AB" . $this->lastFilledOutCellY, $remarks);
 
             if ($isTreePlanting) {
-                $footer['clients_involve_in_tree_planting'] += $total;
+                $footer['clients_involve_in_tree_planting'] += $attendeesTotal;
             }
 
             $frequencies['probationers'] += $part2Row['count']['probationers'];
@@ -223,6 +224,8 @@ class TCIA1 implements Form
             $spreadsheet->getActiveSheet()->getStyle("A". $this->lastFilledOutCellY .":AB" . $this->lastFilledOutCellY)->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
         }
 
+        $this->data['footer'] = $footer;
+
         $this->lastFilledOutCellY++;
         $spreadsheet->getActiveSheet()->setCellValue("C" . $this->lastFilledOutCellY, 'TOTAL');
         $spreadsheet->getActiveSheet()->setCellValue("D" . $this->lastFilledOutCellY, $totals['MTCS-RBM']);
@@ -246,8 +249,6 @@ class TCIA1 implements Form
         $spreadsheet->getActiveSheet()->setCellValue("W" . $this->lastFilledOutCellY, $frequencies['total']);
         $spreadsheet->getActiveSheet()->setCellValue("X" . $this->lastFilledOutCellY, $frequencies['petitioners']);
         $spreadsheet->getActiveSheet()->setCellValue("Y" . $this->lastFilledOutCellY, $frequencies['terminated']);
-
-        $this->data['footer'] = $footer;
 
         return $spreadsheet;
     }

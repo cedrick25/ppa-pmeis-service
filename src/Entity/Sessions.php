@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Entity;
 
 use App\Enum\LiLo;
-use App\Enum\SessionRole;
 use App\Repository\SessionsRepository;
 use DateTimeImmutable;
 use DateTimeInterface;
@@ -79,6 +78,26 @@ class Sessions
      * @ORM\Column(type="integer", nullable=true)
      */
     private ?int $fsgNumber;
+    
+    /**
+     * @ORM\Column(type="boolean")
+     */
+    private bool $isCommunityService = false;
+
+    /**
+     * @ORM\Column(type="boolean")
+     */
+    private bool $isTreePlanting = false;
+
+    /**
+     * @ORM\Column(type="boolean")
+     */
+    private bool $isCooperativeSelfHelp = false;
+
+    /**
+     * @ORM\Column(type="boolean")
+     */
+    private bool $isCooperativeSelfHelpActivities = false;
 
     /**
      * @ORM\Column(type="integer")
@@ -264,6 +283,70 @@ class Sessions
     public function setFsgNumber(?int $fsgNumber): void
     {
         $this->fsgNumber = $fsgNumber;
+    }
+    
+    /**
+     * @return bool
+     */
+    public function isCommunityService(): bool
+    {
+        return $this->isCommunityService;
+    }
+
+    /**
+     * @param bool $isCommunityService
+     */
+    public function setIsCommunityService(bool $isCommunityService): void
+    {
+        $this->isCommunityService = $isCommunityService;
+    }
+
+    /**
+     * @return bool
+     */
+    public function isTreePlanting(): bool
+    {
+        return $this->isTreePlanting;
+    }
+
+    /**
+     * @param bool $isTreePlanting
+     */
+    public function setIsTreePlanting(bool $isTreePlanting): void
+    {
+        $this->isTreePlanting = $isTreePlanting;
+    }
+
+    /**
+     * @return bool
+     */
+    public function isCooperativeSelfHelp(): bool
+    {
+        return $this->isCooperativeSelfHelp;
+    }
+
+    /**
+     * @param bool $isCooperativeSelfHelp
+     */
+    public function setIsCooperativeSelfHelp(bool $isCooperativeSelfHelp): void
+    {
+        $this->isCooperativeSelfHelp = $isCooperativeSelfHelp;
+    }
+
+    /**
+     * @return bool
+     */
+    public function isCooperativeSelfHelpActivities(): bool
+    {
+        return $this->isCooperativeSelfHelpActivities;
+    }
+
+    /**
+     * @param bool $isCooperativeSelfHelpActivities
+     */
+    public function setIsCooperativeSelfHelpActivities(bool $isCooperativeSelfHelpActivities): void
+    {
+        $this->isCooperativeSelfHelpActivities = $isCooperativeSelfHelpActivities;
     }
 
     public function getCreatedBy(): ?int

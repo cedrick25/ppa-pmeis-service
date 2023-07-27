@@ -306,10 +306,7 @@ class TherapeuticCommunityController extends AbstractController
         return $this->json($this->sessionActivitiesService->create(
             $data['name'],
             $data['phaseId'],
-            $data['isCommunityService'],
-            $data['isTreePlanting'],
-            $data['isCooperativeSelfHelp'],
-            $data['isCooperativeSelfHelpActivities'],
+            $data['treatmentCategoryId'],
         ));
     }
 
@@ -332,10 +329,7 @@ class TherapeuticCommunityController extends AbstractController
             $data['id'],
             $data['name'],
             $data['phaseId'],
-            $data['isCommunityService'],
-            $data['isTreePlanting'],
-            $data['isCooperativeSelfHelp'],
-            $data['isCooperativeSelfHelpActivities'],
+            $data['treatmentCategoryId'],
         ));
     }
 

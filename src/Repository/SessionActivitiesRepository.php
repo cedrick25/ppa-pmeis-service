@@ -10,14 +10,10 @@ use App\Entity\Phases;
 use App\Entity\SessionActivities;
 use App\Enum\Response as ResponseEnum;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
-use Doctrine\ORM\NonUniqueResultException;
-use Doctrine\ORM\OptimisticLockException;
-use Doctrine\ORM\ORMException;
 use Doctrine\Persistence\ManagerRegistry;
 use Exception;
 use Psr\Cache\CacheException;
 use Psr\Cache\InvalidArgumentException;
-use Symfony\Contracts\Cache\ItemInterface;
 use Symfony\Contracts\Cache\TagAwareCacheInterface;
 
 /**
@@ -68,10 +64,7 @@ class SessionActivitiesRepository extends ServiceEntityRepository
     public function create(
         string $name,
         ?int $phaseId,
-        bool $isCommunityService,
-        bool $isTreePlanting,
-        bool $isCooperativeSelfHelp,
-        bool $isCooperativeSelfHelpActivities,
+        int $treatmentCategoryId,
     ): int|null {
         $isExist = $this->isExistByName($name);
 
@@ -84,10 +77,7 @@ class SessionActivitiesRepository extends ServiceEntityRepository
         $sessionActivity = new SessionActivities();
         $sessionActivity->setName($name);
         $sessionActivity->setPhaseId($phaseId);
-        $sessionActivity->setIsCommunityService($isCommunityService);
-        $sessionActivity->setIsTreePlanting($isTreePlanting);
-        $sessionActivity->setIsCooperativeSelfHelp($isCooperativeSelfHelp);
-        $sessionActivity->setIsCooperativeSelfHelpActivities($isCooperativeSelfHelpActivities);
+        $sessionActivity->setTreatmentCategoryId($treatmentCategoryId);
         $sessionActivity->setCreatedAt($this->appDateHelper->getCurrentImmutableDate());
 
         $this->getEntityManager()->persist($sessionActivity);
@@ -147,10 +137,7 @@ class SessionActivitiesRepository extends ServiceEntityRepository
         int $id,
         string $name,
         ?int $phaseId,
-        bool $isCommunityService,
-        bool $isTreePlanting,
-        bool $isCooperativeSelfHelp,
-        bool $isCooperativeSelfHelpActivities,
+        int $treatmentCategoryId,
     ): string {
         $sessionActivity = $this->getById($id);
 
@@ -166,10 +153,7 @@ class SessionActivitiesRepository extends ServiceEntityRepository
 
         $sessionActivity->setName($name);
         $sessionActivity->setPhaseId($phaseId);
-        $sessionActivity->setIsCommunityService($isCommunityService);
-        $sessionActivity->setIsTreePlanting($isTreePlanting);
-        $sessionActivity->setIsCooperativeSelfHelp($isCooperativeSelfHelp);
-        $sessionActivity->setIsCooperativeSelfHelpActivities($isCooperativeSelfHelpActivities);
+        $sessionActivity->setTreatmentCategoryId($treatmentCategoryId);
         $sessionActivity->setUpdatedAt($this->appDateHelper->getCurrentImmutableDate());
 
         $this->getEntityManager()->flush();

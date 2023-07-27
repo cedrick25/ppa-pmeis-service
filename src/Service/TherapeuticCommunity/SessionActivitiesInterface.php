@@ -9,10 +9,7 @@ interface SessionActivitiesInterface
     public function create(
         string $name,
         ?int $phaseId,
-        bool $isCommunityService,
-        bool $isTreePlanting,
-        bool $isCooperativeSelfHelp,
-        bool $isCooperativeSelfHelpActivities,
+        int $treatmentCategoryId,
     ): array;
 
     public function deleteById(int $id): array;
@@ -21,10 +18,7 @@ interface SessionActivitiesInterface
         int $id,
         string $name,
         ?int $phaseId,
-        bool $isCommunityService,
-        bool $isTreePlanting,
-        bool $isCooperativeSelfHelp,
-        bool $isCooperativeSelfHelpActivities,
+        int $treatmentCategoryId,
     ): array;
 
     public function getById(int $id): array;

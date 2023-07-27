@@ -46,10 +46,7 @@ class SessionActivities implements SessionActivitiesInterface
     public function create(
         string $name,
         ?int $phaseId,
-        bool $isCommunityService,
-        bool $isTreePlanting,
-        bool $isCooperativeSelfHelp,
-        bool $isCooperativeSelfHelpActivities,
+        int $treatmentCategoryId,
     ): array {
         try {
             if ($name === "") {
@@ -59,10 +56,7 @@ class SessionActivities implements SessionActivitiesInterface
             $sessionActivityId = $this->repository->create(
                 $name,
                 $phaseId,
-                $isCommunityService,
-                $isTreePlanting,
-                $isCooperativeSelfHelp,
-                $isCooperativeSelfHelpActivities
+                $treatmentCategoryId,
             );
 
             if ($sessionActivityId == null) {
@@ -102,20 +96,14 @@ class SessionActivities implements SessionActivitiesInterface
         int $id,
         string $name,
         ?int $phaseId,
-        bool $isCommunityService,
-        bool $isTreePlanting,
-        bool $isCooperativeSelfHelp,
-        bool $isCooperativeSelfHelpActivities,
+        int $treatmentCategoryId,
     ): array {
         try {
             $isUpdated = $this->repository->update(
                 $id,
                 $name,
                 $phaseId,
-                $isCommunityService,
-                $isTreePlanting,
-                $isCooperativeSelfHelp,
-                $isCooperativeSelfHelpActivities
+                $treatmentCategoryId,
         );
 
             if ($isUpdated !== ResponseEnum::OK) {
