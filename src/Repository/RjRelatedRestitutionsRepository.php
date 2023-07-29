@@ -88,6 +88,7 @@ class RjRelatedRestitutionsRepository extends ServiceEntityRepository
         $newRjRelatedRestitution->setRemittedTo($data->getRemittedTo());
         $newRjRelatedRestitution->setRemittedAmount($data->getRemittedAmount());
         $newRjRelatedRestitution->setRemarks($data->getRemarks());
+        $newRjRelatedRestitution->setCreatedBy($data->getCreatedBy());
         $newRjRelatedRestitution->setCreatedAt($this->appDateHelper->getCurrentImmutableDate());
 
         $this->getEntityManager()->persist($newRjRelatedRestitution);

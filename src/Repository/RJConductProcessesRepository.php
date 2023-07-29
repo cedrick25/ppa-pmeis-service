@@ -11,8 +11,6 @@ use App\Model\RJConductProcesses as RJConductProcessesModel;
 use App\Entity\RJConductProcesses;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\DBAL\Connection;
-use Doctrine\ORM\OptimisticLockException;
-use Doctrine\ORM\ORMException;
 use Doctrine\Persistence\ManagerRegistry;
 use Exception;
 use Psr\Cache\CacheException;
@@ -86,6 +84,7 @@ class RJConductProcessesRepository extends ServiceEntityRepository
         $newRJConductProcesses->setRjoId($data->getRjoId());
         $newRJConductProcesses->setRjGroup($data->getRjGroup());
         $newRJConductProcesses->setPlannerId($data->getPlannerId());
+        $newRJConductProcesses->setCreatedBy($data->getCreatedBy());
         $newRJConductProcesses->setCreatedAt($this->appDateHelper->getCurrentImmutableDate());
 
         $this->getEntityManager()->persist($newRJConductProcesses);

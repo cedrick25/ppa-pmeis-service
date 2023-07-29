@@ -67,4 +67,20 @@ class UserDetailsRepository extends ServiceEntityRepository
 
         $this->getEntityManager()->flush();
     }
+
+    /**
+     * @param int[] $userAccountIds
+     * @return array<int, string>
+     */
+    public function getCreatedBys(array $userAccountIds): array
+    {
+        $createdBys = [];
+        $userAccounts = $this->findBy(['userAccountId' => $userAccountIds]);
+
+        foreach($userAccounts as $userAccount) {
+            $createdBys[$userAccount->getUserAccountId()] = $userAccount->getFirstName() . ' ' . $userAccount->getMiddleName() . ' ' . $userAccount->getLastName();
+        }
+
+        return $createdBys;
+    }
 }

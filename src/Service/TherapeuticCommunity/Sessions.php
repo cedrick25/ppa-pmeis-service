@@ -17,6 +17,7 @@ use App\Repository\FieldOfficesRepository;
 use App\Repository\QuartersRepository;
 use App\Repository\ResourceFacilitatorSessionRepository;
 use App\Repository\SessionsRepository;
+use App\Repository\UserDetailsRepository;
 use App\Service\FieldOfficeService;
 use App\Service\RegionService;
 use App\Service\System\AuditTrail;
@@ -41,9 +42,10 @@ class Sessions implements SessionsInterface
         private ClientTypesRepository                $clientTypesRepository,
         private ResourceFacilitatorSessionRepository $resourceFacilitatorSessionRepository,
         private AuditTrail                           $auditTrail,
-        private FieldOfficesRepository                $fieldOfficesRepository,
+        private FieldOfficesRepository               $fieldOfficesRepository,
         private RegionService                        $regionService,
-        private FieldOfficeService                    $fieldOfficeService,
+        private FieldOfficeService                   $fieldOfficeService,
+        private UserDetailsRepository                $userDetailsRepository,
     )
     {
         $class = new ReflectionClass($this);
@@ -144,8 +146,15 @@ class Sessions implements SessionsInterface
         try {
             $sessions = $this->repository->listWithClientsAndFacilitators();
 
-            if ($sessions == null) {
+            if ($sessions == null) { 
                 return $this->appFormatter->formatResponse(ResponseEnum::NO_DATA, null);
+            }
+
+            $sessionsCreatedByIds = array_unique(array_map(fn($session) => intval($session['created_by']), $sessions));
+            $createdBys = $this->userDetailsRepository->getCreatedBys($sessionsCreatedByIds);
+            
+            foreach($sessions as $index=>$session) {
+                $sessions[$index]['created_by'] = $createdBys[intval($session['created_by'])];
             }
 
             return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_SUCCESS, $sessions);

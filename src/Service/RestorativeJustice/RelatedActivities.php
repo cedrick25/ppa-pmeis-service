@@ -13,6 +13,7 @@ use App\Repository\QuartersRepository;
 use App\Repository\RjRelatedActivitiesPersonsInvolvedRepository;
 use App\Repository\RJRelatedActivitiesRepository;
 use App\Model\RJRelatedActivities as RelatedActivitiesModel;
+use App\Repository\UserDetailsRepository;
 use App\Service\System\AuditTrail;
 use Doctrine\ORM\Exception\ORMException;
 use Exception;
@@ -31,8 +32,9 @@ class RelatedActivities implements RelatedActivitiesInterface
         private AuditTrail                                   $auditTrail,
         private RjRelatedActivitiesPersonsInvolvedRepository $relatedActivitiesPersonsInvolvedRepository,
         private AppHydrator                                  $hydrator,
-        private FieldOfficesRepository                        $fieldOfficesRepository,
+        private FieldOfficesRepository                       $fieldOfficesRepository,
         private QuartersRepository                           $quartersRepository,
+        private UserDetailsRepository                        $userDetailsRepository,
     )
     {
         $class = new \ReflectionClass($this);
@@ -83,10 +85,14 @@ class RelatedActivities implements RelatedActivitiesInterface
             $return = [];
             $conductProcessesId = array_map(fn($relatedActivity) => $relatedActivity['rj_related_activity_id'], $relatedActivities);
             $personsInvolved = $this->relatedActivitiesPersonsInvolvedRepository->findByConductedProcessIds($conductProcessesId);
+            $userIds = array_unique(array_map(fn($relatedActivity) => $relatedActivity['created_by'], $relatedActivities));
+
+            $createdBys = $this->userDetailsRepository->getCreatedBys($userIds);
 
             foreach ($relatedActivities as $relatedActivity) {
                 $relatedActivityId = $relatedActivity['rj_related_activity_id'];
                 $relatedActivity['personsInvolved'] = $personsInvolved[$relatedActivityId] ?? [];
+                $relatedActivity['createdBy'] = $createdBys[$relatedActivity['created_by']];
 
                 $return[] = $relatedActivity;
             }
@@ -107,6 +113,8 @@ class RelatedActivities implements RelatedActivitiesInterface
 
         $quarter = $this->quartersRepository->find($relatedActivity->getQuarterId());
         $region = $this->fieldOfficesRepository->getRegionByFieldOfficeId($relatedActivity->getFieldOfficeId());
+        
+        $createdBys = $this->userDetailsRepository->getCreatedBys([$relatedActivity->getCreatedBy()]);
 
         $arrayVersion = $this->hydrator->convertObjectToArray($relatedActivity);
         $arrayVersion['venueDate'] = $relatedActivity->getVenueDate()->format('Y-m-d');
@@ -115,6 +123,7 @@ class RelatedActivities implements RelatedActivitiesInterface
         $arrayVersion['regionId'] = $region['region_id'];
         $arrayVersion['year'] = $quarter->getYear();
         $arrayVersion['personsInvolved'] = $this->relatedActivitiesPersonsInvolvedRepository->findByRelatedActivityId($id);
+        $arrayVersion['createdBy'] = $createdBys[$relatedActivity->getCreatedBy()];
 
         return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_SUCCESS, $arrayVersion);
     }

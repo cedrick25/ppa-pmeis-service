@@ -25,6 +25,7 @@ class RJRelatedActivities implements \JsonSerializable
         private int $rjoId,
         private string $rjGroup,
         private ?array $personsInvolved = [],
+        private int $createdBy,
         private ?DateTimeImmutable $createdAt = null,
         private ?DateTimeImmutable $updatedAt = null,
         private ?DateTimeImmutable $deletedAt = null,
@@ -133,6 +134,11 @@ class RJRelatedActivities implements \JsonSerializable
     public function getPersonsInvolved(): ?array
     {
         return $this->personsInvolved;
+    }
+
+    public function getCreatedBy(): int
+    {
+        return $this->createdBy;
     }
 
     /**

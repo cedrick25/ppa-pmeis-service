@@ -94,6 +94,11 @@ class RJConductProcesses
     private int $plannerId;
 
     /**
+     * @ORM\Column(type="integer")
+     */
+    private int $createdBy;
+
+    /**
      * @ORM\Column(type="datetime_immutable")
      */
     private DateTimeImmutable $createdAt;
@@ -295,6 +300,18 @@ class RJConductProcesses
     public function setPlannerId(int $plannerId): self
     {
         $this->plannerId = $plannerId;
+
+        return $this;
+    }
+
+    public function getCreatedBy(): ?int
+    {
+        return $this->createdBy;
+    }
+
+    public function setCreatedBy(int $createdBy): self
+    {
+        $this->createdBy = $createdBy;
 
         return $this;
     }

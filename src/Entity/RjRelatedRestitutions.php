@@ -107,6 +107,11 @@ class RjRelatedRestitutions
     private ?string $remarks;
 
     /**
+     * @ORM\Column(type="integer")
+     */
+    private int $createdBy;
+
+    /**
      * @ORM\Column(type="datetime_immutable")
      */
     private \DateTimeImmutable $createdAt;
@@ -345,6 +350,18 @@ class RjRelatedRestitutions
     public function setRemarks(?string $remarks): RjRelatedRestitutions
     {
         $this->remarks = $remarks;
+        return $this;
+    }
+    
+    public function getCreatedBy(): ?int
+    {
+        return $this->createdBy;
+    }
+
+    public function setCreatedBy(int $createdBy): self
+    {
+        $this->createdBy = $createdBy;
+
         return $this;
     }
 

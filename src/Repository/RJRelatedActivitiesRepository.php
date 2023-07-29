@@ -11,8 +11,6 @@ use App\Enum\Response as ResponseEnum;
 use App\Model\RJRelatedActivities as RJRelatedActivitiesModel;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\DBAL\Connection;
-use Doctrine\ORM\OptimisticLockException;
-use Doctrine\ORM\ORMException;
 use Doctrine\Persistence\ManagerRegistry;
 use Exception;
 use Psr\Cache\CacheException;
@@ -92,6 +90,7 @@ class RJRelatedActivitiesRepository extends ServiceEntityRepository
         $newRjRelatedActivity->setRjpId($data->getRjpId());
         $newRjRelatedActivity->setRjoId($data->getRjoId());
         $newRjRelatedActivity->setRjGroup($data->getRjGroup());
+        $newRjRelatedActivity->setCreatedBy($data->getCreatedBy());
         $newRjRelatedActivity->setCreatedAt($this->appDateHelper->getCurrentImmutableDate());
 
         $this->getEntityManager()->persist($newRjRelatedActivity);

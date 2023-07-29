@@ -74,6 +74,11 @@ class RJRelatedActivities
     private string $rjGroup;
 
     /**
+     * @ORM\Column(type="integer")
+     */
+    private int $createdBy;
+
+    /**
      * @ORM\Column(type="datetime_immutable")
      */
     private DateTimeImmutable $createdAt;
@@ -244,6 +249,18 @@ class RJRelatedActivities
             throw new InvalidArgumentException("Invalid RJ Group");
         }
         $this->rjGroup = $rjGroup;
+
+        return $this;
+    }
+    
+    public function getCreatedBy(): ?int
+    {
+        return $this->createdBy;
+    }
+
+    public function setCreatedBy(int $createdBy): self
+    {
+        $this->createdBy = $createdBy;
 
         return $this;
     }

@@ -13,6 +13,7 @@ use App\Repository\FieldOfficesRepository;
 use App\Repository\QuartersRepository;
 use App\Repository\RjConductedProcessPersonsInvolvedRepository;
 use App\Repository\RJConductProcessesRepository;
+use App\Repository\UserDetailsRepository;
 use App\Service\System\AuditTrail;
 use Doctrine\ORM\Exception\ORMException;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
@@ -31,8 +32,9 @@ class ConductProcesses implements ConductProcessesInterface
         private RjConductedProcessPersonsInvolvedRepository $conductedProcessPersonsInvolvedRepository,
         private AuditTrail                                  $auditTrail,
         private AppHydrator                                 $hydrator,
-        private FieldOfficesRepository                       $fieldOfficesRepository,
+        private FieldOfficesRepository                      $fieldOfficesRepository,
         private QuartersRepository                          $quartersRepository,
+        private UserDetailsRepository                       $userDetailsRepository,
     ) {
         $class = new \ReflectionClass($this);
         $this->shortName = $class->getShortName();
@@ -93,6 +95,8 @@ class ConductProcesses implements ConductProcessesInterface
             $return = [];
             $conductProcessesId =  array_map(fn($conductProcess) => $conductProcess->getRJConductProcessId(), $conductProcesses);
             $personsInvolved = $this->conductedProcessPersonsInvolvedRepository->findByConductedProcessIds($conductProcessesId);
+            $userIds = array_unique(array_map(fn($process) => intval($process->getCreatedBy()), $conductProcesses));
+            $createdBys = $this->userDetailsRepository->getCreatedBys($userIds);
 
             foreach ($conductProcesses as $conductProcess) {
                 $conductProcessId = $conductProcess->getRJConductProcessId();
@@ -101,6 +105,7 @@ class ConductProcesses implements ConductProcessesInterface
                 $arrayVersion['rjpDate'] = $conductProcess->getRjpDate()->format('Y-m-d');
 
                 $arrayVersion['personsInvolved'] = $personsInvolved[$conductProcessId] ?? [];
+                $arrayVersion['createdBy'] = $createdBys[$conductProcess->getCreatedBy()];
 
                 $return[] = $arrayVersion;
             }
@@ -122,6 +127,7 @@ class ConductProcesses implements ConductProcessesInterface
         $quarter = $this->quartersRepository->find($conductProcess->getQuarterId());
         $region = $this->fieldOfficesRepository->getRegionByFieldOfficeId($conductProcess->getFieldOfficeId());
         $personInvolved = $this->conductedProcessPersonsInvolvedRepository->findByConductedProcessId($conductProcess->getRJConductProcessId());
+        $createdBys = $this->userDetailsRepository->getCreatedBys([$conductProcess->getCreatedBy()]);
 
         $arrayVersion = $this->hydrator->convertObjectToArray($conductProcess);
         $arrayVersion['peDate'] = $conductProcess->getPeDate()->format('Y-m-d');
@@ -130,6 +136,7 @@ class ConductProcesses implements ConductProcessesInterface
         $arrayVersion['regionId'] = $region['region_id'];
         $arrayVersion['year'] = $quarter->getYear();
         $arrayVersion['personsInvolved'] = $personInvolved;
+        $arrayVersion['createdBy'] = $createdBys[$conductProcess->getCreatedBy()];
 
         return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_SUCCESS, $arrayVersion);
     }

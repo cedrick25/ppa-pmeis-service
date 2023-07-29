@@ -26,6 +26,7 @@ class RJConductProcesses implements \JsonSerializable
         private string $rjGroup,
         private int $plannerId,
         private array $personsInvolved = [],
+        private int $createdBy,
         private ?DateTimeImmutable $createdAt = null,
         private ?DateTimeImmutable $updatedAt = null,
         private ?DateTimeImmutable $deletedAt = null,
@@ -203,5 +204,10 @@ class RJConductProcesses implements \JsonSerializable
         $hydrate = new AppHydrator();
 
         return $hydrate->convertObjectToArray($this);
+    }
+
+    public function getCreatedBy(): int
+    {
+        return $this->createdBy;
     }
 }

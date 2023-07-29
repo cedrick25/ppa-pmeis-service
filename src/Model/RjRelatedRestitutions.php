@@ -26,6 +26,7 @@ class RjRelatedRestitutions implements \JsonSerializable
         private float $remittedAmount,
         private ?string $remarks = null,
         private ?string $paymentDate = null,
+        private int $createdBy,
         private ?\DateTimeImmutable $createdAt = null,
         private ?\DateTimeImmutable $updatedAt = null,
         private ?\DateTimeImmutable $deletedAt = null,
@@ -183,6 +184,11 @@ class RjRelatedRestitutions implements \JsonSerializable
     public function getRemarks(): ?string
     {
         return $this->remarks;
+    }
+
+    public function getCreatedBy(): int
+    {
+        return $this->createdBy;
     }
 
     /**
