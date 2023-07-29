@@ -186,10 +186,30 @@ class SessionActivitiesRepository extends ServiceEntityRepository
             'page' => $page
         ];
 
-        return $this->helper->createPaginatedResponse($params, function() {
-            return $this->createQueryBuilder('sa')
-                ->where('sa.deletedAt IS NULL')
-                ->orderBy('sa.sessionActivityId');
+        // return $this->helper->createPaginatedResponse($params, function() {
+            // return $this->createQueryBuilder('sa')
+            //     ->where('sa.deletedAt IS NULL')
+            //     ->orderBy('sa.sessionActivityId');
+        // });
+
+        return $this->helper->createPaginatedResponseCustomQuery($params, function() use ($pageSize, $page) {
+            $conn = $this->getEntityManager()->getConnection();
+            $startOffset = $pageSize * ($page-1);
+            $result = [];
+
+            $sql = "SELECT sa.*, tc.name as treatment_category_name FROM session_activities as sa " .
+                    "LEFT JOIN treatment_categories as tc ON sa.treatment_category_id = tc.treatment_category_id " .
+                    "WHERE sa.deleted_at IS NULL ORDER BY sa.session_activity_id DESC ";
+
+            $result['totalItems'] = $this->helper->getCustomQueryPaginatedTotalItems($conn, $sql);
+
+            $sql .= "LIMIT $pageSize OFFSET $startOffset";
+
+            $stmt = $conn->prepare($sql);
+            $query = $stmt->executeQuery();
+            $result['data'] = $query->fetchAllAssociative();
+
+            return $result;
         });
     }
 
