@@ -6,6 +6,7 @@ namespace App\Service\TherapeuticCommunity;
 
 use App\Common\AppDateHelper;
 use App\Common\AppFormatter;
+use App\Common\AppHydrator;
 use App\Enum\AuditTrailActions;
 use App\Enum\Response as ResponseEnum;
 use App\Model\ClientSessions as ClientSessionModel;
@@ -47,6 +48,7 @@ class Sessions implements SessionsInterface
         private RegionService                        $regionService,
         private FieldOfficeService                   $fieldOfficeService,
         private UserDetailsRepository                $userDetailsRepository,
+        private AppHydrator                          $hydrator,
     )
     {
         $class = new ReflectionClass($this);
@@ -258,6 +260,18 @@ class Sessions implements SessionsInterface
             if ($sessions == null) {
                 return $this->appFormatter->formatResponse(ResponseEnum::NO_DATA, null);
             }
+
+            $return = [];
+            $userIds = array_unique(array_map(fn($session) => intval($session['created_by']), $sessions['items']));
+            $createdBys = $this->userDetailsRepository->getCreatedBys($userIds);
+
+            foreach ($sessions['items'] as $session) {
+                $session['createdBy'] = $createdBys[$session['created_by']];
+
+                $return[] = $session;
+            }
+
+            $sessions['items'] = $return;
 
             return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_SUCCESS, $sessions);
         } catch (CacheException|\Psr\Cache\InvalidArgumentException $exception) {
