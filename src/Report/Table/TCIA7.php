@@ -6,6 +6,7 @@ namespace App\Report\Table;
 
 use App\Enum\SystemSettingNames;
 use App\Repository\QuartersRepository;
+use App\Repository\TclpComputationFormRepository;
 use App\Service\TherapeuticCommunity\Sessions;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
@@ -18,9 +19,10 @@ class TCIA7 implements Form
     private const TABLE_NAME = "TCIA7";
 
     public function __construct(
-        private QuartersRepository  $quartersRepository,
-        private int                 $lastFilledOutCellY = 5,
-        private array               $data = [],
+        private QuartersRepository              $quartersRepository,
+        private int                             $lastFilledOutCellY = 5,
+        private array                           $data = [],
+        private TclpComputationFormRepository   $tclpComputationFormRepository
     ){}
 
     public function supports(string $tableName): bool
@@ -33,6 +35,13 @@ class TCIA7 implements Form
      */
     public function generate(array $data): BinaryFileResponse
     {
+        $this->tclpComputationFormRepository->add(
+            (string) $data['quarter_id'],
+            (string) $data['field_office_id'],
+            json_encode($data['rows']),
+            $data['created_by'] ?? 1,
+        );
+        
         $quarter = $this->quartersRepository->find($data['quarter_id']);
         $this->data['rows'] = $data['rows'];
         $this->data['quarter'] = $quarter->getName();

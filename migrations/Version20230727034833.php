@@ -13,7 +13,7 @@ final class Version20230727034833 extends AbstractMigration
     {
         $currentDate = date("Y-m-d H:m:s");
 
-        $this->addSql("INSERT INTO session_activities (name, created_at, phase_id, treatment_category_id) VALUES ('Special Activity', '$currentDate', 1, 0)"
+        $this->addSql("INSERT INTO session_activities (name, created_at, phase_id, treatment_category_id) VALUES ('Special Activity', '$currentDate', null, 0)"
         );
     }
 
