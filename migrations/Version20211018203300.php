@@ -19,7 +19,8 @@ final class Version20211018203300 extends AbstractMigration
         // password: 1234567890
         // $password = '$2y$13$XECx8Q7xtXFtJ7KvEbNYyO28m7YmUSiz0NhBNzgUtRI7Bt5dM2t5G';
         // password: 123
-        $password = '$2y$13$2N7Gd8k0P44.5iMj3/eDgeHn3Tg0DhvitLXirTmALisOEDV.ZAyXy';
+        // $password = '$2y$13$2N7Gd8k0P44.5iMj3/eDgeHn3Tg0DhvitLXirTmALisOEDV.ZAyXy';
+        $password = '$2y$13$GuIVpwexdgUd5eFkwoFNcOoGx2oPCc.fsR2GlwMqOnsXWjv9zLyLy';
         $this->addSql(
             "INSERT INTO user_account "
                 . "(email_address, contact_number, password, user_type, field_office_id, region_id, status)"
