@@ -100,6 +100,7 @@ class ConductProcesses implements ConductProcessesInterface
             $return = [];
             $conductProcessesId =  array_map(fn($conductProcess) => $conductProcess->getRJConductProcessId(), $conductProcesses);
             $personsInvolved = $this->conductedProcessPersonsInvolvedRepository->findByConductedProcessIds($conductProcessesId);
+            $clients = $this->rjConductedProcessClientsRepository->findClientsWithDetailsByConductProcessId($conductProcessesId);
             $userIds = array_unique(array_map(fn($process) => intval($process->getCreatedBy()), $conductProcesses));
             $createdBys = $this->userDetailsRepository->getCreatedBys($userIds);
 
@@ -110,6 +111,7 @@ class ConductProcesses implements ConductProcessesInterface
                 $arrayVersion['rjpDate'] = $conductProcess->getRjpDate()->format('Y-m-d');
 
                 $arrayVersion['personsInvolved'] = $personsInvolved[$conductProcessId] ?? [];
+                $arrayVersion['clients'] = $clients[$conductProcessId] ?? [];
                 $arrayVersion['createdBy'] = $createdBys[$conductProcess->getCreatedBy()];
 
                 $return[] = $arrayVersion;
@@ -132,6 +134,7 @@ class ConductProcesses implements ConductProcessesInterface
         $quarter = $this->quartersRepository->find($conductProcess->getQuarterId());
         $region = $this->fieldOfficesRepository->getRegionByFieldOfficeId($conductProcess->getFieldOfficeId());
         $personInvolved = $this->conductedProcessPersonsInvolvedRepository->findByConductedProcessId($conductProcess->getRJConductProcessId());
+        $clients = $this->rjConductedProcessClientsRepository->findClientsWithDetailsByConductProcessId([$id]);
         $createdBys = $this->userDetailsRepository->getCreatedBys([$conductProcess->getCreatedBy()]);
 
         $arrayVersion = $this->hydrator->convertObjectToArray($conductProcess);
@@ -141,6 +144,7 @@ class ConductProcesses implements ConductProcessesInterface
         $arrayVersion['regionId'] = $region['region_id'];
         $arrayVersion['year'] = $quarter->getYear();
         $arrayVersion['personsInvolved'] = $personInvolved;
+        $arrayVersion['clients'] = $clients[$id];
         $arrayVersion['createdBy'] = $createdBys[$conductProcess->getCreatedBy()];
 
         return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_SUCCESS, $arrayVersion);
