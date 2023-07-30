@@ -7,7 +7,6 @@ namespace App\Report\Table;
 use App\Enum\SystemSettingNames;
 use App\Repository\QuartersRepository;
 use App\Repository\TclpComputationFormRepository;
-use App\Service\TherapeuticCommunity\Sessions;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Style\Border;
@@ -20,9 +19,9 @@ class TCIA7 implements Form
 
     public function __construct(
         private QuartersRepository              $quartersRepository,
+        private TclpComputationFormRepository   $tclpComputationFormRepository,
         private int                             $lastFilledOutCellY = 5,
         private array                           $data = [],
-        private TclpComputationFormRepository   $tclpComputationFormRepository
     ){}
 
     public function supports(string $tableName): bool
