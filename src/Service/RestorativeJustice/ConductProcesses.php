@@ -11,6 +11,7 @@ use App\Enum\Response as ResponseEnum;
 use App\Model\RJConductProcesses as ConductProcessesModel;
 use App\Repository\FieldOfficesRepository;
 use App\Repository\QuartersRepository;
+use App\Repository\RjConductedProcessClientsRepository;
 use App\Repository\RjConductedProcessPersonsInvolvedRepository;
 use App\Repository\RJConductProcessesRepository;
 use App\Repository\UserDetailsRepository;
@@ -35,6 +36,7 @@ class ConductProcesses implements ConductProcessesInterface
         private FieldOfficesRepository                      $fieldOfficesRepository,
         private QuartersRepository                          $quartersRepository,
         private UserDetailsRepository                       $userDetailsRepository,
+        private RjConductedProcessClientsRepository         $rjConductedProcessClientsRepository,
     ) {
         $class = new \ReflectionClass($this);
         $this->shortName = $class->getShortName();
@@ -65,6 +67,9 @@ class ConductProcesses implements ConductProcessesInterface
 
             $this->conductedProcessPersonsInvolvedRepository
                 ->batchCreate($id, $conductProcessData->getPersonsInvolved());
+
+            $this->rjConductedProcessClientsRepository
+                ->bulkCreate($id, $conductProcessData->getClientIds());
 
             $this->auditTrail->log(
                 AuditTrailActions::CREATE,
@@ -214,6 +219,10 @@ class ConductProcesses implements ConductProcessesInterface
 
             $this->conductedProcessPersonsInvolvedRepository->deleteByConductedProcessId($id);
             $this->conductedProcessPersonsInvolvedRepository->batchCreate($id, $conductProcessData->getPersonsInvolved());
+
+            $this->rjConductedProcessClientsRepository->deleteByConductedProcessId($id);
+            $this->rjConductedProcessClientsRepository
+                ->bulkCreate($id, $conductProcessData->getClientIds());
 
             return $this->appFormatter->formatResponse(ResponseEnum::UPDATING_SUCCESS, null);
         } catch (Exception $exception) {

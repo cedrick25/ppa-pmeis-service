@@ -70,7 +70,6 @@ class RJConductProcessesRepository extends ServiceEntityRepository
 
         $newRJConductProcesses = new RJConductProcesses();
 
-        $newRJConductProcesses->setClientId($data->getClientId());
         $newRJConductProcesses->setQuarterId($data->getQuarterId());
         $newRJConductProcesses->setFieldOfficeId($data->getFieldOfficeId());
         $newRJConductProcesses->setOffenseId($data->getOffenseId());
@@ -188,7 +187,6 @@ class RJConductProcessesRepository extends ServiceEntityRepository
 
         $this->cache->invalidateTags([self::CACHE_TAG]);
 
-        $entity->setClientId($data->getClientId());
         $entity->setQuarterId($data->getQuarterId());
         $entity->setFieldOfficeId($data->getFieldOfficeId());
         $entity->setOffenseId($data->getOffenseId());

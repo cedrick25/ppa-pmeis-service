@@ -26,11 +26,6 @@ class RJConductProcesses
     /**
      * @ORM\Column(type="integer")
      */
-    private int $clientId;
-
-    /**
-     * @ORM\Column(type="integer")
-     */
     private int $quarterId;
 
     /**
@@ -116,18 +111,6 @@ class RJConductProcesses
     public function getRJConductProcessId(): ?int
     {
         return $this->rjConductProcessId;
-    }
-
-    public function getClientId(): ?int
-    {
-        return $this->clientId;
-    }
-
-    public function setClientId(int $clientId): self
-    {
-        $this->clientId = $clientId;
-
-        return $this;
     }
 
     public function getQuarterId(): ?int

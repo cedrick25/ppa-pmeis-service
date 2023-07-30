@@ -212,11 +212,11 @@ class UserAccount implements UserInterface, PasswordAuthenticatedUserInterface
     }
 
     /**
-     * @return string[]
+     * @return mixed[]
      */
     public function getRoles(): array
     {
-        $userRoles = ['FIELD_OFFICER'];
+        $userRoles = [$this->userAccountId, 'FIELD_OFFICER'];
 
         if ($this->getFieldOfficeId() !== null) {
             $userRoles['field_office_id'] = $this->getFieldOfficeId();

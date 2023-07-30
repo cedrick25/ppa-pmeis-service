@@ -4,6 +4,7 @@ namespace App\Repository;
 
 use App\Entity\RjConductedProcessClients;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
+use Doctrine\DBAL\Connection;
 use Doctrine\ORM\OptimisticLockException;
 use Doctrine\ORM\ORMException;
 use Doctrine\Persistence\ManagerRegistry;
@@ -27,52 +28,37 @@ class RjConductedProcessClientsRepository extends ServiceEntityRepository
      * @throws ORMException
      * @throws OptimisticLockException
      */
-    public function add(RjConductedProcessClients $entity, bool $flush = true): void
+    public function bulkCreate(int $rjConductProcessId, array $clientIds): void
     {
-        $this->_em->persist($entity);
-        if ($flush) {
-            $this->_em->flush();
+        foreach ($clientIds as $clientId) {
+            $entity = new RjConductedProcessClients();
+            $entity->setClientId($clientId);
+            $entity->setRjConductProcessId($rjConductProcessId);
+
+            $this->getEntityManager()->persist($entity);
         }
+
+        $this->getEntityManager()->flush();
+        $this->getEntityManager()->clear();
     }
 
-    /**
-     * @throws ORMException
-     * @throws OptimisticLockException
-     */
-    public function remove(RjConductedProcessClients $entity, bool $flush = true): void
+    public function deleteByConductedProcessId(int $id): void
     {
-        $this->_em->remove($entity);
-        if ($flush) {
-            $this->_em->flush();
-        }
+        $this->getEntityManager()->getConnection()->executeQuery(
+            "DELETE FROM rj_conducted_process_clients as rcpc WHERE rcpc.rj_conducted_process_id = :id",
+            ['id' => $id]
+        );
     }
 
-    // /**
-    //  * @return RjConductedProcessClients[] Returns an array of RjConductedProcessClients objects
-    //  */
-    /*
-    public function findByExampleField($value)
+    public function findByConductedProcessIds(array $ids): array
     {
-        return $this->createQueryBuilder('r')
-            ->andWhere('r.exampleField = :val')
-            ->setParameter('val', $value)
-            ->orderBy('r.id', 'ASC')
-            ->setMaxResults(10)
-            ->getQuery()
-            ->getResult()
-        ;
-    }
-    */
+        $query = $this->getEntityManager()->getConnection()->executeQuery(
+            "SELECT rcppi.rj_conducted_process_id, rcppi.persons_involved_id, rcppi.type, rcppi.others_name
+                 FROM rj_conducted_process_clients as rcpc WHERE rcppi.rj_conducted_process_id IN (:ids)",
+            ['ids' => $ids],
+            ['ids' => Connection::PARAM_INT_ARRAY]
+        );
 
-    /*
-    public function findOneBySomeField($value): ?RjConductedProcessClients
-    {
-        return $this->createQueryBuilder('r')
-            ->andWhere('r.exampleField = :val')
-            ->setParameter('val', $value)
-            ->getQuery()
-            ->getOneOrNullResult()
-        ;
+        return $query->fetchAllAssociative();
     }
-    */
 }

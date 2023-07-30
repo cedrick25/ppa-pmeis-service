@@ -11,7 +11,7 @@ use Symfony\Component\Validator\Constraints as Assert;
 class RJConductProcesses implements \JsonSerializable
 {
     public function __construct(
-        private int $clientId,
+        private array $clientIds,
         private int $quarterId,
         private int $fieldOfficeId,
         private int $offenseId,
@@ -34,12 +34,11 @@ class RJConductProcesses implements \JsonSerializable
 
     /**
      * @Assert\NotBlank
-     * @Assert\GreaterThan(0)
-     * @return int
+     * @return int[]
      */
-    public function getClientId(): int
+    public function getClientIds(): array
     {
-        return $this->clientId;
+        return $this->clientIds;
     }
 
     /**
