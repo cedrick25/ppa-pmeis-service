@@ -3,6 +3,7 @@
 namespace App\Service\RestorativeJustice;
 
 use App\Common\AppFormatter;
+use App\Common\AppHydrator;
 use App\Enum\AuditTrailActions;
 use App\Enum\Response as ResponseEnum;
 use App\Model\RjRelatedRestitutions as RjRelatedRestitutionsModel;
@@ -12,6 +13,7 @@ use Doctrine\ORM\Exception\ORMException;
 use Psr\Cache\CacheException;
 use Psr\Cache\InvalidArgumentException;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
+use App\Repository\UserDetailsRepository;
 
 class RelatedRestitutions implements RelatedRestitutionsInterface
 {
@@ -22,6 +24,8 @@ class RelatedRestitutions implements RelatedRestitutionsInterface
         private AppFormatter                    $appFormatter,
         private RjRelatedRestitutionsRepository $repository,
         private AuditTrail                      $auditTrail,
+        private UserDetailsRepository           $userDetailsRepository,
+        private AppHydrator                     $hydrator,
     ){
         $class = new \ReflectionClass($this);
         $this->shortName = $class->getShortName();
@@ -78,7 +82,18 @@ class RelatedRestitutions implements RelatedRestitutionsInterface
                 return $this->appFormatter->formatResponse(ResponseEnum::NO_DATA, null);
             }
 
-            return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_SUCCESS, $relatedRestitutions);
+            $return = [];
+            $userIds = array_unique(array_map(fn($process) => intval($process->getCreatedBy()), $relatedRestitutions));
+            $createdBys = $this->userDetailsRepository->getCreatedBys($userIds);
+
+            foreach ($relatedRestitutions as $relatedRestitution) {
+                $arrayVersion = $this->hydrator->convertObjectToArray($relatedRestitution);
+                $arrayVersion['createdBy'] = $createdBys[$relatedRestitution->getCreatedBy()];
+
+                $return[] = $arrayVersion;
+            }
+
+            return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_SUCCESS, $return);
         } catch (CacheException|InvalidArgumentException $exception) {
             return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_FAILED, null, ['cache' => $exception->getMessage()]);
         }
