@@ -11,6 +11,8 @@ interface VolunteerInterface
 
     public function getAll(): array;
 
+    public function getByFieldOffice(int $fieldOfficeId): array;
+
     public function deleteById(int $id): array;
 
     public function updateById(int $id, Volunteer $volunteerData):array;

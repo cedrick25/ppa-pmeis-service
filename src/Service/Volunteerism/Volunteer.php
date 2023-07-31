@@ -154,6 +154,17 @@ class Volunteer implements VolunteerInterface
         }
     }
 
+    public function getByFieldOffice(int $fieldOfficeId): array
+    {
+        $volunteers = $this->repository->findByFieldOffice($fieldOfficeId);
+
+        if ($volunteers == null) {
+            return $this->appFormatter->formatResponse(ResponseEnum::NO_DATA, null);
+        }
+
+        return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_SUCCESS, $volunteers);
+    }
+
     public function deleteById(int $id): array
     {
         try {

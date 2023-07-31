@@ -216,7 +216,9 @@ class UserAccount implements UserInterface, PasswordAuthenticatedUserInterface
      */
     public function getRoles(): array
     {
-        $userRoles = [$this->userAccountId, 'FIELD_OFFICER'];
+        $userRoles = [
+            'user_id' => $this->userAccountId
+        ];
 
         if ($this->getFieldOfficeId() !== null) {
             $userRoles['field_office_id'] = $this->getFieldOfficeId();
@@ -226,17 +228,10 @@ class UserAccount implements UserInterface, PasswordAuthenticatedUserInterface
             $userRoles['region_id'] = $this->getRegionId();
         }
 
-        if ($this->getUserType() == UserType::CSD) {
-            $userRoles[] = 'CSD';
-        }
+        $roles = UserType::toArray();
 
-        if ($this->getUserType() == UserType::RD) {
-            $userRoles[] = 'REGIONAL_DIRECTOR';
-        }
-
-        if ($this->getUserType() == UserType::ND) {
-            $userRoles[] = 'REGIONAL_DIRECTOR';
-            $userRoles[] = 'NATIONAL_DIRECTOR';
+        if (null !== $this->getUserType()) {
+            $userRoles['role'] = $roles[$this->getUserType()];
         }
 
         return $userRoles;

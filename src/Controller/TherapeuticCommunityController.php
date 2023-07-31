@@ -876,6 +876,16 @@ class TherapeuticCommunityController extends AbstractController
     }
 
     /**
+     * @Route("/volunteer/list/by/field-office", methods={"POST"})
+     */
+    public function getVolunteersByFieldOfficeId(Request $request): Response
+    {
+        $data = json_decode($request->getContent(), true);
+
+        return $this->json($this->volunteerService->getByFieldOffice((int) $data['fieldOfficeId']));
+    }
+
+    /**
      * @Route("/volunteer/delete/{id}", methods={"GET"})
      */
     public function deleteVolunteerById(Request $request): Response
