@@ -7,6 +7,7 @@ use App\Common\AppHydrator;
 use App\Enum\AuditTrailActions;
 use App\Enum\Response as ResponseEnum;
 use App\Model\RjRelatedRestitutions as RjRelatedRestitutionsModel;
+use App\Repository\QuartersRepository;
 use App\Repository\RjRelatedRestitutionsRepository;
 use App\Service\System\AuditTrail;
 use Doctrine\ORM\Exception\ORMException;
@@ -26,6 +27,7 @@ class RelatedRestitutions implements RelatedRestitutionsInterface
         private AuditTrail                      $auditTrail,
         private UserDetailsRepository           $userDetailsRepository,
         private AppHydrator                     $hydrator,
+        private QuartersRepository              $quartersRepository,
     ){
         $class = new \ReflectionClass($this);
         $this->shortName = $class->getShortName();
@@ -132,7 +134,15 @@ class RelatedRestitutions implements RelatedRestitutionsInterface
     public function getRJIB3Data(int $quarterId, int $fieldOfficeId): array
     {
         try {
-            $relatedRestitutions = $this->repository->getRJIB3Data($quarterId, $fieldOfficeId);
+            $currentQuarter = $this->quartersRepository->find($quarterId);
+            $quarterIds = [$currentQuarter->getQuarterId()];
+            $previousQuarters = $this->quartersRepository->fetchPreviousQuartersByNameAndYear($currentQuarter->getQuarterId(), $currentQuarter->getYear());
+
+            foreach($previousQuarters as $previousQuarter) {
+                $quarterIds[] = $previousQuarter->getQuarterId();
+            } 
+
+            $relatedRestitutions = $this->repository->getRJIB3Data(array_unique($quarterIds), $fieldOfficeId);
 
             if ($relatedRestitutions == null) {
                 return $this->appFormatter->formatResponse(ResponseEnum::NO_DATA, null);
