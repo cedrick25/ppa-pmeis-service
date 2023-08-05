@@ -621,7 +621,7 @@ class Volunteer implements VolunteerInterface
         $pdf->startPage();
         $logo = dirname(__DIR__) . '/../../assets/ppa.png';
         $heading = <<<EOD
-            <h3 style="text-align: right;">$code</h3>
+            <h5 style="text-align: right;">$code</h5>
             <h3 style="text-align: center;line-height: 5px;">Republic of the Philippines</h3>
             <h3 style="text-align: center;line-height: 5px;">Department of Justice</h3>
             <h2 style="text-align: center;line-height: 5px;">PAROLE AND PROBATION ADMINISTRATION</h2>
@@ -631,33 +631,41 @@ class Volunteer implements VolunteerInterface
         EOD;
 
         $pdf->writeHTMLCell(0, 0, '', '', $heading);
-        $pdf->Image($logo,  85, 75, 40, 40, '', '', 'T', false, 300, '', false, false, 1);
+        $pdf->Image($logo,  85, 55, 40, 40, '', '', 'T', false, 300, '', false, false, 1);
         $body = <<<EOD
             <div>
-                <h2 style="text-align: center;"><i>Certificate of Appointment</i></h2>
-                <h2 style="text-align: center;font-size: 15px;font-weight: normal">$fullName</h2>
-                <h2 style="text-align: center"><i>of</i></h2>
-                <h2 style="text-align: center;font-size: 15px;font-weight: normal">$address</div>
-                <h4 style="text-align: center">is hereby appointed as <span style="font-size: 13px">VOLUNTEER PROBATION ASSISTANT</span> of the</h4>
-                <h3 style="text-align: center;line-height: 5px;"><i>$fieldOfficeName</i></h3>
-                <h3 style="text-align: center;line-height: 5px;"><i>$regionName</i></h3>
+                <h1 style="text-align: center;"><i>Certificate of Appointment</i></h1>
+                <h1 style="text-align: center;font-size: 40px;font-weight: bold">$fullName</h1>
+                <h2 style="text-align: center;font-weight: normal;"><i>of</i></h2>
+                <h2 style="text-align: center;font-size: 20px;font-weight: normal">$address</div>
+                <h3 style="text-align: center;font-weight: normal;">
+                    is hereby appointed as
+                    <span style="font-size: 13px;font-weight: bold;">VOLUNTEER PROBATION ASSISTANT</span> of the
+                </h3>
+                <h2 style="text-align: center;font-weight: normal;line-height: 5px;"><i>$fieldOfficeName</i></h2>
+                <h2 style="text-align: center;font-weight: normal;line-height: 5px;"><i>$regionName</i></h2>
                 <div></div>
-                <h2 style="text-align: center">$dateOfAppointment</h2>
+                <div style="text-align: center;">
+                    <span style="text-align: center;font-weight: bold;font-size: 18px;">$dateOfAppointment</span>
+                    <br/>
+                    <span style="font-weight: bold;font-size: 18px;">Date of Appointment</span>
+                </div>
                 <div></div>
                 <div></div>
-                <h2 style="text-align: center;line-height: 5px;">$administrator</h2>
-                <h2 style="text-align: center;line-height: 5px;">OIC Administrator</h2>
+                <h1 style="text-align: center;font-size: 20px;line-height: 5px;">$administrator</h1>
+                <h2 style="text-align: center;font-weight:normal;line-height: 5px;">OIC Administrator</h2>
             </div>
         EOD;
 
         $pdf->SetXY(110, 200);
-        $pdf->setMargins(50, 0, 0);
-        $pdf->writeHTMLCell(0, 0, 0, 130, $body);
+        $pdf->setMargins(20, 0, 0);
+        $pdf->writeHTMLCell(0, 0, 0, 95, $body);
         $pdf->endPage();
 
         $this->auditTrail->log(AuditTrailActions::DOWNLOAD, $data, $this->shortName, $data['volunteer_id']);
 
         return $pdf->Output('mark.pdf', 'E');
+        // return $pdf->Output('mark.pdf', 'D');
     }
 
     public function getId(array $data): string
