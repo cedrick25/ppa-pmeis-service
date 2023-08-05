@@ -691,36 +691,43 @@ class Volunteer implements VolunteerInterface
         foreach ($volunteersId as $key => $id) {
             switch ($key) {
                 case 0:
-                    $pdf->Image($logo, 2.5, 12.5, 15, 15, '', '', 'T', false, 300, '', false, false, 1);
-                    $pdf->Image($picture, 37.5, 40, 25.4, 25.4, '', '', 'T', false, 300, '', false, false, 1);
+                    $pdf->Image($logo, 2.5, 7.5, 15, 15, '', '', 'T', false, 300, '', false, false, 1);
+                    $pdf->Image($picture, 41, 30, 25.4, 25.4, '', '', 'T', false, 300, '', false, false, 1);
                     break;
                 case 1:
-                    $pdf->Image($logo, 102.5, 12.5, 15, 15, '', '', 'T', false, 300, '', false, false, 1);
-                    $pdf->Image($picture, 135.5, 40, 25.4, 25.4, '', '', 'T', false, 300, '', false, false, 1);
+                    $pdf->Image($logo, 107.5, 7.5, 15, 15, '', '', 'T', false, 300, '', false, false, 1);
+                    $pdf->Image($picture, 148, 30, 25.4, 25.4, '', '', 'T', false, 300, '', false, false, 1);
                     break;
                 case 2:
-                    $pdf->Image($logo, 2.5, 162.5, 15, 15, '', '', 'T', false, 300, '', false, false, 1);
-                    $pdf->Image($picture, 37.5, 190, 25.4, 25.4, '', '', 'T', false, 300, '', false, false, 1);
+                    $pdf->Image($logo, 2.5, 151.5, 15, 15, '', '', 'T', false, 300, '', false, false, 1);
+                    $pdf->Image($picture, 41, 173, 25.4, 25.4, '', '', 'T', false, 300, '', false, false, 1);
                     break;
                 default:
-                    $pdf->Image($logo, 102.5, 162.5, 15, 15, '', '', 'T', false, 300, '', false, false, 1);
-                    $pdf->Image($picture, 135.5, 190, 25.4, 25.4, '', '', 'T', false, 300, '', false, false, 1);
+                    $pdf->Image($logo, 107.5, 151.5, 15, 15, '', '', 'T', false, 300, '', false, false, 1);
+                    $pdf->Image($picture, 148, 173, 25.4, 25.4, '', '', 'T', false, 300, '', false, false, 1);
                     break;
             }
         }
         $front = <<<EOD
             <style>
+                .full-name-container {
+                    background-color: #f7ef4d;
+                    height: 20px;
+                }
                 .full-name {
                     text-align: center;
-                    font-size: 15px;
-                    font-weight: normal;
-                    background-color: #f7ef4d;
+                    font-size: 25px;
+                    font-weight: bold;
+                }
+                .title-container {
+                    background-color: #e9ad63;
+                    height: 20px;
                 }
                 .title {
                     text-align: center;
                     font-weight: bold;
-                    background-color: #e9ad63;
                     color: #fff;
+                    font-size: 15px;
                 }
                 .admin-name {
                     text-align: center;
@@ -732,6 +739,7 @@ class Volunteer implements VolunteerInterface
                 }
             </style>
             <table width="100%" cellpadding="0" border="0">
+                <tr><td></td></tr>
 
         EOD;
 
@@ -762,10 +770,6 @@ class Volunteer implements VolunteerInterface
 
         $back = <<<EOD
             <style>
-                table.back-page {
-                    border-collapse: collapse;
-                }
-                table.back-page > tr {}
                 table.back-page > tr > td {
                     border: 1px solid #000000;
                     text-align: center;
@@ -786,6 +790,9 @@ class Volunteer implements VolunteerInterface
                 }
             </style>
             <table>
+                <tr>
+                    <td style="width: 6%"></td>
+                    <td style="width: 94%"><table>
         EOD;
 
         foreach ($volunteers as $index => $volunteer) {
@@ -806,6 +813,7 @@ class Volunteer implements VolunteerInterface
         }
 
         $back .= <<<EOD
+                </table></td></tr>
             </table>
         EOD;
 
@@ -1086,26 +1094,36 @@ class Volunteer implements VolunteerInterface
         int $index,
     ): string {
         $body = <<<EOD
-                    <td width="50%" style="border: 1px solid #000000;">
-                        <h4 style="text-align: center">Republic of the Philippines</h4>
-                        <h4 style="text-align: center;line-height: 1px">Department of Justice</h4>
-                        <h3 style="text-align: center">PAROLE AND PROBATION ADMINISTRATION</h3>
+                    <td width="52%" style="border: 1px dashed #000000;text-align:center;">
+                        <span style="text-align: center;font-weight: 400;margin-top: 0;">Republic of the Philippines</span>
+                        <br/>
+                        <span style="text-align: center;line-height: 1px;font-weight: 400;">Department of Justice</span>
+                        <br/>
+                        <span style="font-weight: bold;font-size: 10px;">
+                            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                            &nbsp;&nbsp;&nbsp;
+                            PAROLE AND PROBATION ADMINISTRATION
+                        </span>
                         <div></div>
                         <div></div>
                         <div></div>
                         <div></div>
                         <div></div>
-                        <div></div>
-                        <div></div>
-                        <h3>
+                        <h3 style="text-align: left;">
                             &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
                             &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-                            ID No.: $idNo
+                            ID No. $idNo
                         </h3>
-                        <h2 class="full-name">$fullName</h2>
-                        <h2 class="title">Volunteer Probation Assistant</h2>
-                        <h3 style="text-align: center;"><i>$fieldOfficeName</i></h3>
-                        <h3 style="text-align: center"><i>$regionName</i></h3>
+                        <table>
+                            <tr>
+                                <td class="full-name-container" ><span class="full-name">$fullName</span></td>
+                            </tr>
+                            <tr>
+                                <td class="title-container"><span class="title">Volunteer Probation Assistant</span></td>
+                            </tr>
+                        </table>
+                        <h3 style="text-align: center;">$fieldOfficeName</h3>
+                        <h3 style="text-align: center">$regionName</h3>
                         <div></div>
                         <h2 class="admin-name">$administrator</h2>
                         <h3 class="admin-title">OIC Administrator</h3>
@@ -1138,10 +1156,14 @@ class Volunteer implements VolunteerInterface
         int $index,
     ): string {
         $body = <<<EOD
-            <td width="50%" style="border: 1px solid #000000;">
-                <table class="back-page">
+            <td width="52.5%">
+                <table class="back-page" style="width: 95%;">
                     <tr>
-                        <td colspan="3" style="text-align: right;border: none;">$code</td>
+                        <td colspan="3" style="text-align: right;border: none;">
+                            &nbsp;
+                            <br/>
+                            $code
+                        </td>
                     </tr>
                     <tr>
                         <td colspan="3" class="back-page-title">&nbsp;ADDRESS: </td>
@@ -1155,9 +1177,9 @@ class Volunteer implements VolunteerInterface
                         <td class="back-page-title force-center">WEIGHT</td>
                     </tr>
                     <tr>
-                        <td style="height: 50px;">$bloodType</td>
-                        <td style="height: 50px;">$weight</td>
-                        <td style="height: 50px;">$height</td>
+                        <td style="height: 40px;">$bloodType</td>
+                        <td style="height: 40px;">$weight</td>
+                        <td style="height: 40px;">$height</td>
                     </tr>
                     <tr><td colspan="3"></td></tr>
                     <tr><td colspan="3" class="back-page-title">&nbsp;IN CASE OF EMERGENCY, NOTIFY:</td></tr>
@@ -1186,10 +1208,13 @@ class Volunteer implements VolunteerInterface
                         <td colspan="3" class="no-border">Signature</td>
                     </tr>
                     <tr>
-                        <td colspan="3" class="no-border force-left" style="font-weight: bold;">This ID valid from: $validFrom</td>
+                        <td colspan="3" class="no-border" style="font-weight: bold;">This ID valid from: $validFrom</td>
                     </tr>
                     <tr>
-                        <td colspan="3" class="no-border force-left" style="font-weight: bold;">until: $validUntil</td>
+                        <td colspan="3" class="no-border" style="font-weight: bold;">
+                            until: $validUntil
+                            <div></div>
+                        </td>
                     </tr>
                 </table>
             </td>
