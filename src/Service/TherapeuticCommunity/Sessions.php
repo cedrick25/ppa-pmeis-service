@@ -49,6 +49,7 @@ class Sessions implements SessionsInterface
         private FieldOfficeService                   $fieldOfficeService,
         private UserDetailsRepository                $userDetailsRepository,
         private AppHydrator                          $hydrator,
+        private TclpComputationFormRepository        $tclpComputationFormRepository,
     )
     {
         $class = new ReflectionClass($this);
@@ -412,6 +413,31 @@ class Sessions implements SessionsInterface
             );
         }
     }
+
+    public function getSavedTC7(int $quarterId, int $fieldOfficeId): array
+    {
+        try {
+            $saved = $this->tclpComputationFormRepository->findBy([
+                'quarter' => $quarterId,
+                'fieldOffice' => $fieldOfficeId,
+            ]);
+
+            if (null == $saved) {
+                return $this->appFormatter->formatResponse(ResponseEnum::NO_DATA, null);
+            }
+
+            return $this->appFormatter->formatResponse(
+                ResponseEnum::FETCHING_SUCCESS,
+                $saved
+            );
+        } catch (Exception $e) {
+            return $this->appFormatter->formatResponse(
+                ResponseEnum::FETCHING_FAILED,
+                null,
+                ['app' => $e->getMessage()]
+            );
+        }
+    }    
 
     public function duplicateWithSessionAndFacilitator(int $id): array
     {

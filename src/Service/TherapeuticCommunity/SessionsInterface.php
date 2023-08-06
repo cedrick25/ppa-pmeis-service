@@ -37,4 +37,6 @@ interface SessionsInterface
     public function duplicateWithSessionAndFacilitator(int $id): array;
 
     public function getNationalTC7(int $quarterId):array;
+
+    public function getSavedTC7(int $quarterId, int $fieldOfficeId): array;
 }
