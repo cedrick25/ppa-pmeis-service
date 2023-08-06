@@ -36,4 +36,6 @@ interface VolunteerInterface
     public function getCertificate(array $data): string;
 
     public function getId(array $data): string;
+
+    public function updateDateAppointedById(int $id): array;
 }

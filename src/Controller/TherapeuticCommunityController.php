@@ -960,6 +960,19 @@ class TherapeuticCommunityController extends AbstractController
     }
 
     /**
+     * @Route("/volunteer/update-date-appointed/{id}", methods={"POST"})
+     */
+    public function updateVolunteerAppointedDateById(Request $request): Response
+    {
+        try {
+
+            return $this->json($this->volunteerService->updateDateAppointedById((int) $request->get("id")));
+        } catch (ReflectionException $exception) {
+            return $this->json($this->appFormatter->formatResponse('Updating volunteer appointed date', null, ['reflection' => $exception->getMessage()]));
+        }
+    }
+
+    /**
      * @Route("/applicants/list", methods={"GET"})
      */
     public function getAllApplicants(): Response

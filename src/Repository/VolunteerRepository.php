@@ -639,4 +639,25 @@ class VolunteerRepository extends ServiceEntityRepository
 
         return false;
     }
+
+    /**
+     * @throws InvalidArgumentException
+     * @throws Exception
+     */
+    public function updateDateAppointedToNow(int $id): string
+    {
+        $volunteer =$this->isExistingById($id);
+
+        if ($volunteer == null) {
+            return ResponseEnum::NO_RECORD;
+        }
+
+        $this->cache->invalidateTags([self::CACHE_TAG]);
+        $volunteer->setDateAppointed($this->appDateHelper->getCurrentImmutableDate());
+        $volunteer->setUpdatedAt($this->appDateHelper->getCurrentImmutableDate());
+
+        $this->getEntityManager()->flush();
+
+        return ResponseEnum::OK;
+    }
 }

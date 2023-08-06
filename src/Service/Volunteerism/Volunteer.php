@@ -836,6 +836,33 @@ class Volunteer implements VolunteerInterface
         // return $pdf->Output('mark.pdf', 'D');
     }
 
+    public function updateDateAppointedById(int $id): array
+    {
+        try {
+            $isUpdated = $this->repository->updateDateAppointedToNow($id);
+
+            if ($isUpdated !== ResponseEnum::OK) {
+                return $this->appFormatter->formatResponse(ResponseEnum::UPDATING_FAILED, null, ['app' => $isUpdated]);
+            }
+
+            $this->auditTrail->log(AuditTrailActions::UPDATE, [], $this->shortName, $id);
+
+            return $this->appFormatter->formatResponse(ResponseEnum::UPDATING_SUCCESS, null);
+        } catch (Exception $e) {
+            return $this->appFormatter->formatResponse(
+                ResponseEnum::UPDATING_FAILED,
+                null,
+                ['app' => $e->getMessage()]
+            );
+        } catch (InvalidArgumentException $e) {
+            return $this->appFormatter->formatResponse(
+                ResponseEnum::UPDATING_FAILED,
+                null,
+                ['cache' => $e->getMessage()]
+            );
+        }
+    }
+
     private function getCivilStatuses(): array
     {
         $civilStatuses = [];
