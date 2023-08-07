@@ -97,10 +97,10 @@ class TechnicalAssistance implements TechnicalAssistanceInterface
         }
     }
 
-    public function getPaginated(int $page, int $pageSize): array
+    public function getPaginated(int $page, int $pageSize, int $fieldOfficeId): array
     {
         try {
-            $results = $this->repository->paginated($page, $pageSize);
+            $results = $this->repository->paginated($page, $pageSize, $fieldOfficeId);
 
             if (empty($results)) {
                 return $this->appFormatter->formatResponse(ResponseEnum::NO_DATA, null);
