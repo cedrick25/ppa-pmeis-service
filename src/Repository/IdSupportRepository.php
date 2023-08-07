@@ -229,4 +229,44 @@ class IdSupportRepository extends ServiceEntityRepository
                 ['volunteerIds' => Connection::PARAM_INT_ARRAY],
             )->fetchAllAssociative();
     }
+
+    /**
+     * @param int $page
+     * @param int $pageSize
+     * @param int $fieldOfficeId
+     * @return array<string, mixed>|null
+     * @throws InvalidArgumentException
+     * @throws CacheException
+     */
+    public function paginated(int $page = 1, int $pageSize = 10, int $filedOfficeId): ?array
+    {
+        $params = [
+            'cacheKey' => $this->cacheHelper->getClientsPaginatedKey($page, $pageSize),
+            'cacheTag' => self::CACHE_TAG,
+            'pageSize' => $pageSize,
+            'page' => $page
+        ];
+
+        return $this->helper->createPaginatedResponseCustomQuery($params, function() use ($pageSize, $page, $filedOfficeId) {
+            $conn = $this->getEntityManager()->getConnection();
+            $startOffset = $pageSize * ($page-1);
+            $result = [];
+
+            $sql = "SELECT * FROM id_support AS ids WHERE ids.deleted_at IS NULL ";
+            
+            if ($filedOfficeId > 0) {
+                $sql .= "AND ids.field_office_id = $filedOfficeId ";
+            }
+
+            $result['totalItems'] = $this->helper->getCustomQueryPaginatedTotalItems($conn, $sql);
+
+            $sql .= "ORDER BY ids.id DESC LIMIT $pageSize OFFSET $startOffset";
+
+            $stmt = $conn->prepare($sql);
+            $query = $stmt->executeQuery();
+            $result['data'] = $query->fetchAllAssociative();
+
+            return $result;
+        });
+    }
 }

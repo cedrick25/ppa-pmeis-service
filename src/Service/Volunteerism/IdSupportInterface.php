@@ -17,4 +17,6 @@ interface IdSupportInterface
     public function getIdSupportReport(int $quarterId, int $fieldOfficeId): array;
 
     public function update(int $id, IdSupportModel $idSupportData): array;
+
+    public function getPaginated(int $page, int $pageSize, int $filedOfficeId): array;
 }

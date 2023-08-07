@@ -237,6 +237,18 @@ class VolunteerismController extends AbstractController
     }
 
     /**
+     * @Route("/id-support/{page}/{pageSize}", methods={"GET"})
+     */
+    public function getPaginatedIdSupport(Request $request): Response
+    {
+        return $this->json($this->idSupportService->getPaginated(
+            (int) $request->get("page"),
+            (int) $request->get("pageSize"),
+            (int) $request->query->get('field_office_id')
+        ));
+    }
+
+    /**
      * @Route("/technical-assistance/create", methods={"POST"})
      */
     public function createTechnicalAssistance(Request $request): Response
