@@ -197,4 +197,19 @@ class RelatedActivities implements RelatedActivitiesInterface
             );
         }
     }
+
+    public function getPaginated(int $page, int $pageSize, int $filedOfficeId): array
+    {
+        try {
+            $clients = $this->repository->paginated($page, $pageSize, $filedOfficeId);
+
+            if ($clients == null) {
+                return $this->appFormatter->formatResponse(ResponseEnum::NO_DATA, null);
+            }
+
+            return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_SUCCESS, $clients);
+        } catch (CacheException | InvalidArgumentException $exception) {
+            return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_FAILED, null, ['cache' => $exception->getMessage()]);
+        }
+    }
 }

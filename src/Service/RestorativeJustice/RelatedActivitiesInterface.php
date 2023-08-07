@@ -17,4 +17,6 @@ interface RelatedActivitiesInterface
     public function getRJIB2Data(int $quarterId, int $fieldOfficeId): array;
 
     public function update(int $id, RJRelatedActivitiesModel $activities): array;
+
+    public function getPaginated(int $page, int $pageSize, int $filedOfficeId): array;
 }

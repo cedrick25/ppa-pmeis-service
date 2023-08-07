@@ -111,7 +111,7 @@ class RestorativeJusticeController extends AbstractController
     /**
      * @Route("/conduct-process/{page}/{pageSize}", methods={"GET"})
      */
-    public function getPaginatedSessionActivities(Request $request): Response
+    public function getPaginatedConductedProcess(Request $request): Response
     {
         return $this->json($this->conductProcessesService->getPaginated(
             (int) $request->get("page"),
@@ -278,6 +278,18 @@ class RestorativeJusticeController extends AbstractController
         $relatedActivities = $this->appHydrator->convertArrayToObject($data, RelatedActivitiesModel::class);
 
         return $this->json($this->relatedActivitiesService->update((int) $request->get("id"), $relatedActivities));
+    }
+
+    /**
+     * @Route("/related-activities/{page}/{pageSize}", methods={"GET"})
+     */
+    public function getPaginatedRelatedActivities(Request $request): Response
+    {
+        return $this->json($this->relatedActivitiesService->getPaginated(
+            (int) $request->get("page"),
+            (int) $request->get("pageSize"),
+            (int) $request->query->get('field_office_id')
+        ));
     }
 
     /**
