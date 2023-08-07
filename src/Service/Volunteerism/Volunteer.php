@@ -242,13 +242,13 @@ class Volunteer implements VolunteerInterface
         }
     }
 
-    public function getPaginated(string $status, int $page, int $pageSize): array
+    public function getPaginated(string $status, int $page, int $pageSize, int $fieldOfficeId): array
     {
         try {
             $status = strtoupper($status);
             $volunteers = (VolunteerStatus::EXPIRING == $status) ?
-                $this->repository->paginatedExpiring($page, $pageSize) :
-                $this->repository->paginated($status, $page, $pageSize);
+                $this->repository->paginatedExpiring($page, $pageSize, $fieldOfficeId) :
+                $this->repository->paginated($status, $page, $pageSize, $fieldOfficeId);
 
             if ($volunteers == null) {
                 return $this->appFormatter->formatResponse(ResponseEnum::NO_DATA, null);

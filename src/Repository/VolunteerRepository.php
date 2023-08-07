@@ -264,7 +264,7 @@ class VolunteerRepository extends ServiceEntityRepository
      * @throws InvalidArgumentException
      * @throws CacheException
      */
-    public function paginated(string $status, int $page = 1, int $pageSize = 10): ?array
+    public function paginated(string $status, int $page = 1, int $pageSize = 10, int $fieldOfficeId): ?array
     {
         $params = [
             'cacheKey' => $this->cacheHelper->getVolunteersPaginatedKey($page, $pageSize),
@@ -274,7 +274,7 @@ class VolunteerRepository extends ServiceEntityRepository
             'page' => $page
         ];
 
-        return $this->helper->createPaginatedResponseCustomQuery($params, function () use ($status, $pageSize, $page) {
+        return $this->helper->createPaginatedResponseCustomQuery($params, function () use ($status, $pageSize, $page, $fieldOfficeId) {
             $conn = $this->getEntityManager()->getConnection();
             $startOffset = $pageSize * ($page-1);
             $result = [];
@@ -290,11 +290,15 @@ class VolunteerRepository extends ServiceEntityRepository
                 LEFT JOIN religion as r ON v.religion = r.religion_id
                 LEFT JOIN occupation as o ON v.occupation = o.occupation_id
                 LEFT JOIN education_background as eb ON v.education_attainment = eb.education_background_id
-                WHERE v.deleted_at IS NULL AND v.vpa_status = '$status' ORDER BY v.volunteer_id DESC ";
+                WHERE v.deleted_at IS NULL AND v.vpa_status = '$status' ";
+            
+            if ($fieldOfficeId > 0) {
+                $sql .= "AND v.field_office_id = $fieldOfficeId ";
+            }
 
             $result['totalItems'] = $this->helper->getCustomQueryPaginatedTotalItems($conn, $sql);
 
-            $sql .= "LIMIT $pageSize OFFSET $startOffset";
+            $sql .= "ORDER BY v.volunteer_id DESC LIMIT $pageSize OFFSET $startOffset";
 
             $stmt = $conn->prepare($sql);
             $query = $stmt->executeQuery();
@@ -309,7 +313,7 @@ class VolunteerRepository extends ServiceEntityRepository
      * @throws InvalidArgumentException
      * @throws CacheException
      */
-    public function paginatedExpiring(int $page = 1, int $pageSize = 10): ?array
+    public function paginatedExpiring(int $page = 1, int $pageSize = 10, int $fieldOfficeId): ?array
     {
         $params = [
             'cacheKey' => $this->cacheHelper->getVolunteersPaginatedKey($page, $pageSize),
@@ -319,7 +323,7 @@ class VolunteerRepository extends ServiceEntityRepository
             'page' => $page
         ];
 
-        return $this->helper->createPaginatedResponseCustomQuery($params, function () use ($pageSize, $page) {
+        return $this->helper->createPaginatedResponseCustomQuery($params, function () use ($pageSize, $page, $fieldOfficeId) {
             $conn = $this->getEntityManager()->getConnection();
             $startOffset = $pageSize * ($page-1);
             $result = [];
@@ -336,12 +340,15 @@ class VolunteerRepository extends ServiceEntityRepository
                 LEFT JOIN religion as r ON v.religion = r.religion_id
                 LEFT JOIN occupation as o ON v.occupation = o.occupation_id
                 LEFT JOIN education_background as eb ON v.education_attainment = eb.education_background_id
-                WHERE v.deleted_at IS NULL AND NOW() >= DATE_ADD(v.date_appointed, INTERVAL $monthsInterval MONTH)
-                ORDER BY v.volunteer_id DESC ";
+                WHERE v.deleted_at IS NULL AND NOW() >= DATE_ADD(v.date_appointed, INTERVAL $monthsInterval MONTH) ";
+            
+            if ($fieldOfficeId > 0) {
+                $sql .= "AND v.field_office_id = $fieldOfficeId ";
+            }
 
             $result['totalItems'] = $this->helper->getCustomQueryPaginatedTotalItems($conn, $sql);
 
-            $sql .= "LIMIT $pageSize OFFSET $startOffset";
+            $sql .= "ORDER BY v.volunteer_id DESC LIMIT $pageSize OFFSET $startOffset";
 
             $stmt = $conn->prepare($sql);
             $query = $stmt->executeQuery();

@@ -938,7 +938,8 @@ class TherapeuticCommunityController extends AbstractController
         return $this->json($this->volunteerService->getPaginated(
             $request->get('status'),
             (int) $request->get('page'),
-            (int) $request->get('pageSize')
+            (int) $request->get('pageSize'),
+            (int) $request->query->get('field_office_id')
         ));
     }
 
