@@ -58,11 +58,12 @@ class ResourceMobilizationRepository extends ServiceEntityRepository
     /**
      * @param int $page
      * @param int $pageSize
+     * @param int $fieldOfficeId
      * @return array<string, mixed>
      * @throws InvalidArgumentException
      * @throws CacheException
      */
-    public function paginated(int $page = 1, int $pageSize = 10): array
+    public function paginated(int $page = 1, int $pageSize = 10, int $fieldOfficeId): array
     {
         $params = [
             'cacheKey' => 'res_mob_' . $page . '_' . $pageSize,
@@ -72,7 +73,7 @@ class ResourceMobilizationRepository extends ServiceEntityRepository
             'page' => $page
         ];
 
-        return $this->helper->createPaginatedResponseCustomQuery($params, function () use ($pageSize, $page) {
+        return $this->helper->createPaginatedResponseCustomQuery($params, function () use ($pageSize, $page, $fieldOfficeId) {
             $startOffset = $pageSize * ($page-1);
             $result = [];
 
@@ -82,6 +83,10 @@ class ResourceMobilizationRepository extends ServiceEntityRepository
                     LEFT JOIN field_offices fo on rm.field_office_id = fo.field_office_id
                     LEFT JOIN regions r on fo.region_id = r.region_id
                     WHERE rm.deleted_at IS NULL ";
+
+                if ($fieldOfficeId > 0) {
+                    $sql .= "AND rm.field_office_id = $fieldOfficeId ";
+                }
 
             $result['totalItems'] = $this->helper->getCustomQueryPaginatedTotalItems($conn, $sql);
 
