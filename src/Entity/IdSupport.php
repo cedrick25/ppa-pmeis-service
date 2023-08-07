@@ -42,6 +42,11 @@ class IdSupport
     private int $fieldOfficeId;
 
     /**
+     * @ORM\Column(type="integer")
+     */
+    private int $assistedFieldOfficeId;
+
+    /**
      * @ORM\Column(type="string", length=255)
      */
     private string $activity;
@@ -131,6 +136,18 @@ class IdSupport
     public function setFieldOfficeId(int $fieldOfficeId): self
     {
         $this->fieldOfficeId = $fieldOfficeId;
+
+        return $this;
+    }
+
+    public function getAssistedFieldOfficeId(): ?int
+    {
+        return $this->assistedFieldOfficeId;
+    }
+
+    public function setAssistedFieldOfficeId(int $assistedFieldOfficeId): self
+    {
+        $this->assistedFieldOfficeId = $assistedFieldOfficeId;
 
         return $this;
     }

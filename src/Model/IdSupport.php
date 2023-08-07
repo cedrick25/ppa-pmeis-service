@@ -13,6 +13,7 @@ class IdSupport implements \JsonSerializable
         private int $vpaPersonnelId,
         private string $program,
         private int $fieldOfficeId,
+        private int $assistedFieldOfficeId,
         private string $activity,
         private string $date,
         private string $venue,
@@ -57,6 +58,15 @@ class IdSupport implements \JsonSerializable
     public function getFieldOfficeId(): int
     {
         return $this->fieldOfficeId;
+    }
+
+    /**
+     * @Assert\NotBlank
+     * @return int
+     */
+    public function getAssistedFieldOfficeId(): int
+    {
+        return $this->assistedFieldOfficeId;
     }
 
     /**

@@ -72,6 +72,7 @@ class IdSupportRepository extends ServiceEntityRepository
         $newIdSupport->setVpaPersonnelId($data->getVpaPersonnelId());
         $newIdSupport->setProgram($data->getProgram());
         $newIdSupport->setFieldOfficeId($data->getFieldOfficeId());
+        $newIdSupport->setAssistedFieldOfficeId($data->getAssistedFieldOfficeId());
         $newIdSupport->setActivity($data->getActivity());
         $newIdSupport->setDate($this->appDateHelper->convertStringToImmutableDate($data->getDate()));
         $newIdSupport->setVenue($data->getVenue());
@@ -185,6 +186,7 @@ class IdSupportRepository extends ServiceEntityRepository
         $entity->setVpaPersonnelId($data->getVpaPersonnelId());
         $entity->setProgram($data->getProgram());
         $entity->setFieldOfficeId($data->getFieldOfficeId());
+        $entity->setAssistedFieldOfficeId($data->getAssistedFieldOfficeId());
         $entity->setActivity($data->getActivity());
         $entity->setDate($this->appDateHelper->convertStringToImmutableDate($data->getDate()));
         $entity->setVenue($data->getVenue());
