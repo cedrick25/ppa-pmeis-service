@@ -284,10 +284,10 @@ class User implements UserInterface
         }
     }
 
-    public function getPaginated(int $page, int $pageSize): array
+    public function getPaginated(int $page, int $pageSize, int $filedOfficeId): array
     {
         try {
-            $users = $this->repository->paginated($page, $pageSize);
+            $users = $this->repository->paginated($page, $pageSize, $filedOfficeId);
 
             if (sizeof($users) == 0) {
                 return $this->appFormatter->formatResponse(ResponseEnum::NO_DATA, null);

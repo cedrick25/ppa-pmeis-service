@@ -25,5 +25,5 @@ interface UserInterface
 
     public function updateById(int $id, UserAccountWithDetails $userAccountWithDetails): array;
 
-    public function getPaginated(int $page, int $pageSize): array;
+    public function getPaginated(int $page, int $pageSize, int $filedOfficeId): array;
 }

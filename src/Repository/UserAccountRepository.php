@@ -184,11 +184,12 @@ class UserAccountRepository extends ServiceEntityRepository
     /**
      * @param int $page
      * @param int $pageSize
+     * @param int $filedOfficeId
      * @return array<string, mixed>
      * @throws InvalidArgumentException
      * @throws CacheException
      */
-    public function paginated(int $page = 1, int $pageSize = 10): array
+    public function paginated(int $page = 1, int $pageSize = 10, int $filedOfficeId): array
     {
         $params = [
             'cacheKey' => $this->cacheHelper->getUsersPaginatedKey($page, $pageSize),
@@ -196,7 +197,7 @@ class UserAccountRepository extends ServiceEntityRepository
             'pageSize' => $pageSize
         ];
 
-        return $this->helper->createPaginatedResponseCustomQuery($params, function() use ($pageSize, $page) {
+        return $this->helper->createPaginatedResponseCustomQuery($params, function() use ($pageSize, $page, $filedOfficeId) {
             $startOffset = $pageSize * ($page-1);
             $result = [];
 
@@ -206,6 +207,10 @@ class UserAccountRepository extends ServiceEntityRepository
                     LEFT JOIN field_offices fe ON fe.field_office_id = ua.field_office_id
                     LEFT JOIN regions rg ON rg.region_id = ua.region_id
                     WHERE ua.deleted_at IS NULL ";
+
+            if ($filedOfficeId > 0) {
+                $sql .= "AND ua.field_office_id = $filedOfficeId ";
+            }
 
             $result['totalItems'] = $this->helper->getCustomQueryPaginatedTotalItems($conn, $sql);
 
