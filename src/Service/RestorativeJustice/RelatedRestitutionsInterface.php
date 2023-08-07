@@ -17,4 +17,6 @@ interface RelatedRestitutionsInterface
     public function getRJIB3Data(int $quarterId, int $fieldOfficeId): array;
 
     public function loadForm(int $fieldOfficeId, int $clientId): array;
+
+    public function getPaginated(int $page, int $pageSize, int $filedOfficeId): array;
 }

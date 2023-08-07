@@ -203,4 +203,44 @@ class RjRelatedRestitutionsRepository extends ServiceEntityRepository
 
         return $response;
     }
+
+    /**
+     * @param int $page
+     * @param int $pageSize
+     * @param int $fieldOfficeId
+     * @return array<string, mixed>|null
+     * @throws InvalidArgumentException
+     * @throws CacheException
+     */
+    public function paginated(int $page = 1, int $pageSize = 10, int $filedOfficeId): ?array
+    {
+        $params = [
+            'cacheKey' => $this->cacheHelper->getClientsPaginatedKey($page, $pageSize),
+            'cacheTag' => self::CACHE_TAG,
+            'pageSize' => $pageSize,
+            'page' => $page
+        ];
+
+        return $this->helper->createPaginatedResponseCustomQuery($params, function() use ($pageSize, $page, $filedOfficeId) {
+            $conn = $this->getEntityManager()->getConnection();
+            $startOffset = $pageSize * ($page-1);
+            $result = [];
+
+            $sql = "SELECT * FROM rj_related_restitutions rrr ";
+            
+            if ($filedOfficeId > 0) {
+                $sql .= "WHERE rrr.field_office_id = $filedOfficeId ";
+            }
+
+            $result['totalItems'] = $this->helper->getCustomQueryPaginatedTotalItems($conn, $sql);
+
+            $sql .= "ORDER BY rrr.rj_related_restitution_id DESC LIMIT $pageSize OFFSET $startOffset";
+
+            $stmt = $conn->prepare($sql);
+            $query = $stmt->executeQuery();
+            $result['data'] = $query->fetchAllAssociative();
+
+            return $result;
+        });
+    }
 }

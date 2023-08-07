@@ -386,4 +386,16 @@ class RestorativeJusticeController extends AbstractController
             (int) $request->get("clientId"),
         ));
     }
+
+    /**
+     * @Route("/related-restitutions/{page}/{pageSize}", methods={"GET"})
+     */
+    public function getPaginatedRelatedRestitutions(Request $request): Response
+    {
+        return $this->json($this->relatedRestitutionsService->getPaginated(
+            (int) $request->get("page"),
+            (int) $request->get("pageSize"),
+            (int) $request->query->get('field_office_id')
+        ));
+    }
 }
