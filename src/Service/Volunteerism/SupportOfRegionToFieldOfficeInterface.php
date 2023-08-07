@@ -10,7 +10,7 @@ interface SupportOfRegionToFieldOfficeInterface
 
     public function getAll(): array;
 
-    public function getPaginated(int $page, int $pageSize): array;
+    public function getPaginated(int $page, int $pageSize, int $fieldOfficeId): array;
 
     public function getById(int $id): array;
 
