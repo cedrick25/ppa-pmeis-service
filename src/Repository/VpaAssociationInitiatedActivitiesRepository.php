@@ -157,11 +157,12 @@ class VpaAssociationInitiatedActivitiesRepository extends ServiceEntityRepositor
     /**
      * @param int $page
      * @param int $pageSize
+     * @param int $fieldOfficeId
      * @return array<string, mixed>
      * @throws InvalidArgumentException
      * @throws CacheException
      */
-    public function paginated(int $page = 1, int $pageSize = 10): array
+    public function paginated(int $page = 1, int $pageSize = 10, int $fieldOfficeId): array
     {
         $params = [
             'cacheKey' => 'volunteer_association_' . $page . '_' . $pageSize,
@@ -171,7 +172,7 @@ class VpaAssociationInitiatedActivitiesRepository extends ServiceEntityRepositor
             'page' => $page
         ];
 
-        return $this->helper->createPaginatedResponseCustomQuery($params, function () use ($pageSize, $page) {
+        return $this->helper->createPaginatedResponseCustomQuery($params, function () use ($pageSize, $page, $fieldOfficeId) {
             $startOffset = $pageSize * ($page-1);
             $result = [];
 
@@ -187,6 +188,10 @@ class VpaAssociationInitiatedActivitiesRepository extends ServiceEntityRepositor
                     WHERE vaia.deleted_at IS NULL ";
 
             $result['totalItems'] = $this->helper->getCustomQueryPaginatedTotalItems($conn, $sql);
+
+            if ($fieldOfficeId > 0) {
+                $sql .= "AND vaia.field_office_id = $fieldOfficeId ";
+            }
 
             $sql .="LIMIT $pageSize OFFSET $startOffset";
 

@@ -16,7 +16,7 @@ interface VpaAssociationInitiatedActivitiesInterface
 
     public function getReport(int $quarterId, int $fieldOfficeId): array;
 
-    public function getPaginated(int $page, int $pageSize): array;
+    public function getPaginated(int $page, int $pageSize, int $fieldOfficeId): array;
 
     public function update(int $id, VpaAssociationInitiatedActivitiesModel $data): array;
 }
