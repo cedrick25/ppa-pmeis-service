@@ -404,7 +404,8 @@ class VolunteerismController extends AbstractController
         return $this->json($this->socialMarketingService->getPaginated(
             $request->query->get('type'),
             (int) $request->get("page"),
-            (int) $request->get("pageSize")
+            (int) $request->get("pageSize"),
+            (int) $request->query->get('field_office_id')
         ));
     }
 

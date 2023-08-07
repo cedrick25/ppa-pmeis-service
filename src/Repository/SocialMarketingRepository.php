@@ -58,11 +58,12 @@ class SocialMarketingRepository extends ServiceEntityRepository
      * @param string $type
      * @param int $page
      * @param int $pageSize
+     * @param int $fieldOfficeId
      * @return array<string, mixed>
      * @throws CacheException
      * @throws InvalidArgumentException
      */
-    public function paginated(string $type, int $page = 1, int $pageSize = 10): array
+    public function paginated(string $type, int $page = 1, int $pageSize = 10, int $fieldOfficeId): array
     {
         $params = [
             'cacheKey' => 'social_marketing_' . $type . '_' . $page . '_' . $pageSize,
@@ -72,7 +73,7 @@ class SocialMarketingRepository extends ServiceEntityRepository
             'page' => $page
         ];
 
-        return $this->helper->createPaginatedResponseCustomQuery($params, function () use ($type, $pageSize, $page) {
+        return $this->helper->createPaginatedResponseCustomQuery($params, function () use ($type, $pageSize, $page, $fieldOfficeId) {
             $startOffset = $pageSize * ($page-1);
             $result = [];
 
@@ -81,6 +82,10 @@ class SocialMarketingRepository extends ServiceEntityRepository
                     LEFT JOIN field_offices fo on sm.field_office_id = fo.field_office_id
                     LEFT JOIN regions r on fo.region_id = r.region_id
                     WHERE sm.type = '$type' AND sm.deleted_at IS NULL ";
+
+            if ($fieldOfficeId > 0) {
+                $sql .= "AND sm.field_office_id = $fieldOfficeId ";
+            }
 
             $result['totalItems'] = $this->helper->getCustomQueryPaginatedTotalItems($conn, $sql);
 

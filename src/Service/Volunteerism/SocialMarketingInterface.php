@@ -12,7 +12,7 @@ interface SocialMarketingInterface
 
     public function getAll(): array;
 
-    public function getPaginated(string $type, int $page, int $pageSize): array;
+    public function getPaginated(string $type, int $page, int $pageSize, int $fieldOfficeId): array;
 
     public function getById(int $id): array;
 
