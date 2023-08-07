@@ -17,4 +17,6 @@ interface ConductProcessesInterface
     public function getRJIB1(int $quarterId, int $fieldOfficeId): array;
 
     public function update(int $id, RJConductProcessesModel $conductProcessData): array;
+
+    public function getPaginated(int $page, int $pageSize, int $filedOfficeId): array;
 }

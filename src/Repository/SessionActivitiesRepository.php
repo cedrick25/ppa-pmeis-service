@@ -186,12 +186,6 @@ class SessionActivitiesRepository extends ServiceEntityRepository
             'page' => $page
         ];
 
-        // return $this->helper->createPaginatedResponse($params, function() {
-            // return $this->createQueryBuilder('sa')
-            //     ->where('sa.deletedAt IS NULL')
-            //     ->orderBy('sa.sessionActivityId');
-        // });
-
         return $this->helper->createPaginatedResponseCustomQuery($params, function() use ($pageSize, $page) {
             $conn = $this->getEntityManager()->getConnection();
             $startOffset = $pageSize * ($page-1);

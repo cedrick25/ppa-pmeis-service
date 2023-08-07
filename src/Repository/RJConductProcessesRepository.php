@@ -284,4 +284,46 @@ class RJConductProcessesRepository extends ServiceEntityRepository
 
         return $query->fetchAllAssociative();
     }
+
+    /**
+     * @param int $page
+     * @param int $pageSize
+     * @param int $fieldOfficeId
+     * @return array<string, mixed>|null
+     * @throws InvalidArgumentException
+     * @throws CacheException
+     */
+    public function paginated(int $page = 1, int $pageSize = 10, int $filedOfficeId): ?array
+    {
+        $params = [
+            'cacheKey' => $this->cacheHelper->getClientsPaginatedKey($page, $pageSize),
+            'cacheTag' => self::CACHE_TAG,
+            'pageSize' => $pageSize,
+            'page' => $page
+        ];
+
+        return $this->helper->createPaginatedResponseCustomQuery($params, function() use ($pageSize, $page, $filedOfficeId) {
+            $conn = $this->getEntityManager()->getConnection();
+            $startOffset = $pageSize * ($page-1);
+            $result = [];
+
+            $sql = "SELECT rp.*, rs.name as status, ro.name as outcome FROM rjconduct_processes as rp
+                        LEFT JOIN rjprocess_status as rs ON rp.rjps_id = rs.id_rjprocess_status
+                        LEFT JOIN rjoutcomes as ro ON rp.rjo_id = ro.rj_outcome_id ";
+            
+            if ($filedOfficeId > 0) {
+                $sql .= "WHERE rp.field_office_id = $filedOfficeId ";
+            }
+
+            $result['totalItems'] = $this->helper->getCustomQueryPaginatedTotalItems($conn, $sql);
+
+            $sql .= "ORDER BY rp.rj_conduct_process_id DESC LIMIT $pageSize OFFSET $startOffset";
+
+            $stmt = $conn->prepare($sql);
+            $query = $stmt->executeQuery();
+            $result['data'] = $query->fetchAllAssociative();
+
+            return $result;
+        });
+    }
 }

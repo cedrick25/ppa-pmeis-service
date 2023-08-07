@@ -109,6 +109,18 @@ class RestorativeJusticeController extends AbstractController
     }
 
     /**
+     * @Route("/conduct-process/{page}/{pageSize}", methods={"GET"})
+     */
+    public function getPaginatedSessionActivities(Request $request): Response
+    {
+        return $this->json($this->conductProcessesService->getPaginated(
+            (int) $request->get("page"),
+            (int) $request->get("pageSize"),
+            (int) $request->query->get('field_office_id')
+        ));
+    }
+
+    /**
      * @Route("/offense/create/{name}/{type}", methods={"GET"})
      */
     public function createOffense(Request $request): Response
