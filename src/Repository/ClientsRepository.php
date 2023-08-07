@@ -257,11 +257,12 @@ class ClientsRepository extends ServiceEntityRepository
     /**
      * @param int $page
      * @param int $pageSize
+     * @param int $fieldOfficeId
      * @return array<string, mixed>|null
      * @throws InvalidArgumentException
      * @throws CacheException
      */
-    public function paginated(int $page = 1, int $pageSize = 10): ?array
+    public function paginated(int $page = 1, int $pageSize = 10, int $filedOfficeId): ?array
     {
         $params = [
             'cacheKey' => $this->cacheHelper->getClientsPaginatedKey($page, $pageSize),
@@ -270,7 +271,7 @@ class ClientsRepository extends ServiceEntityRepository
             'page' => $page
         ];
 
-        return $this->helper->createPaginatedResponseCustomQuery($params, function() use ($pageSize, $page) {
+        return $this->helper->createPaginatedResponseCustomQuery($params, function() use ($pageSize, $page, $filedOfficeId) {
             $conn = $this->getEntityManager()->getConnection();
             $startOffset = $pageSize * ($page-1);
             $result = [];
@@ -280,11 +281,15 @@ class ClientsRepository extends ServiceEntityRepository
                     LEFT JOIN client_types as ct ON c.client_type_id = ct.client_type_id
                     LEFT JOIN field_offices as fo ON c.field_office_id = fo.field_office_id
                     LEFT JOIN regions as rg ON fo.region_id = rg.region_id
-                    WHERE c.deleted_at IS NULL ORDER BY c.client_id DESC ";
+                    WHERE c.deleted_at IS NULL ";
+            
+            if ($filedOfficeId > 0) {
+                $sql .= "AND c.field_office_id = $filedOfficeId ";
+            }
 
             $result['totalItems'] = $this->helper->getCustomQueryPaginatedTotalItems($conn, $sql);
 
-            $sql .= "LIMIT $pageSize OFFSET $startOffset";
+            $sql .= "ORDER BY c.client_id DESC LIMIT $pageSize OFFSET $startOffset";
 
             $stmt = $conn->prepare($sql);
             $query = $stmt->executeQuery();

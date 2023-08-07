@@ -128,10 +128,10 @@ class Clients implements ClientsInterface
         }
     }
 
-    public function getPaginated(int $page, int $pageSize): array
+    public function getPaginated(int $page, int $pageSize, int $filedOfficeId): array
     {
         try {
-            $clients = $this->repository->paginated($page, $pageSize);
+            $clients = $this->repository->paginated($page, $pageSize, $filedOfficeId);
 
             if ($clients == null) {
                 return $this->appFormatter->formatResponse(ResponseEnum::NO_DATA, null);

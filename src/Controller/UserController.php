@@ -143,7 +143,6 @@ class UserController extends AbstractController
         return $this->json($this->userService->getPaginated(
             (int) $request->get("page"),
             (int) $request->get("pageSize"),
-            
             (int) $request->query->get('field_office_id')
         ));
     }
