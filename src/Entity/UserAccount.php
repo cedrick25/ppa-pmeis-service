@@ -42,7 +42,7 @@ class UserAccount implements UserInterface, PasswordAuthenticatedUserInterface
     private string $password;
 
     /**
-     * @ORM\Column(type="string", length=2)
+     * @ORM\Column(type="string", length=255)
      */
     private string $userType;
 
@@ -231,7 +231,7 @@ class UserAccount implements UserInterface, PasswordAuthenticatedUserInterface
         $roles = UserType::toArray();
 
         if (null !== $this->getUserType()) {
-            $userRoles['role'] = $roles[$this->getUserType()];
+            $userRoles['role'] = strlen($this->getUserType()) > 3 ? $this->getUserType() : $roles[$this->getUserType()];
         }
 
         return $userRoles;
