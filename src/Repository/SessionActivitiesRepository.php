@@ -66,11 +66,11 @@ class SessionActivitiesRepository extends ServiceEntityRepository
         ?int $phaseId,
         int $treatmentCategoryId,
     ): int|null {
-        $isExist = $this->isExistByName($name);
+        // $isExist = $this->isExistByName($name);
 
-        if ($isExist) {
-            return null;
-        }
+        // if ($isExist) {
+        //     return null;
+        // }
 
         $this->cache->invalidateTags([self::CACHE_TAG]);
 
@@ -145,9 +145,9 @@ class SessionActivitiesRepository extends ServiceEntityRepository
             return ResponseEnum::NO_RECORD;
         }
 
-        if ($this->isExistByName($name) && $sessionActivity->getName() !== $name) {
-            return ResponseEnum::CONFLICTED_INPUT;
-        }
+        // if ($this->isExistByName($name) && $sessionActivity->getName() !== $name) {
+        //     return ResponseEnum::CONFLICTED_INPUT;
+        // }
 
         $this->cache->invalidateTags([self::CACHE_TAG]);
 
