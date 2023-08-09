@@ -843,8 +843,8 @@ class SessionsRepository extends ServiceEntityRepository
     {
         return $this->getEntityManager()->getConnection()
             ->executeQuery(
-                "SELECT s.*, sa.name, sa.phase_id, sa.is_tree_planting, sa.is_cooperative_self_help_activities,
-                        sa.is_cooperative_self_help, sa.is_community_service FROM sessions s
+                "SELECT s.*, sa.name, sa.phase_id, s.is_tree_planting, s.is_cooperative_self_help_activities,
+                        s.is_cooperative_self_help, s.is_community_service FROM sessions s
                     LEFT JOIN session_activities sa on s.session_activity_id = sa.session_activity_id
                     WHERE s.session_id IN (:sessionIds)",
                 ['sessionIds' => $ids],

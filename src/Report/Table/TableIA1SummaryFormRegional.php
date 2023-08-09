@@ -247,9 +247,9 @@ class TableIA1SummaryFormRegional implements Form
         $activities = $this->activities();
 
         foreach ($fieldOffices as $fieldOffice) {
-            $treatmentCategoryTotal = $treatmentCategoryTotals[$fieldOffice->getFieldOfficeId()] ?? [];
-            $clientFrequency = $clientSessionsData['client_frequency'][$fieldOffice->getFieldOfficeId()] ?? [];
-            $fsgFrequency = $clientSessionsData['fsg_frequency'][$fieldOffice->getFieldOfficeId()] ?? [];
+            $treatmentCategoryTotal = $treatmentCategoryTotals[$fieldOffice->getFieldOfficeId()] ?? 0;
+            $clientFrequency = $clientSessionsData['client_frequency'][$fieldOffice->getFieldOfficeId()] ?? 0;
+            $fsgFrequency = $clientSessionsData['fsg_frequency'][$fieldOffice->getFieldOfficeId()] ?? 0;
             if (!isset($vpas[$fieldOffice->getFieldOfficeId()])) {
                 continue;
             }
