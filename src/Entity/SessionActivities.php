@@ -31,11 +31,6 @@ class SessionActivities
     private string $name;
 
     /**
-     * @ORM\Column(type="string", length=255)
-     */
-    private string $activityDetail;
-
-    /**
      * @ORM\Column(type="integer", nullable=true)
      */
     private ?int $phaseId;
@@ -68,18 +63,6 @@ class SessionActivities
     public function setTreatmentCategoryId(int $treatmentCategoryId): self
     {
         $this->treatmentCategoryId = $treatmentCategoryId;
-
-        return $this;
-    }
-
-    public function getActivityDetail(): ?string
-    {
-        return $this->activityDetail;
-    }
-
-    public function setActivityDetail(string $activityDetail): self
-    {
-        $this->activityDetail = $activityDetail;
 
         return $this;
     }

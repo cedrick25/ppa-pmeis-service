@@ -53,6 +53,11 @@ class Sessions
      * @ORM\Column(type="integer")
      */
     private int $treatmentCategoryId;
+    
+    /**
+     * @ORM\Column(type="string", length=255)
+     */
+    private string $activityDetail;
 
     /**
      * @ORM\Column(type="date")
@@ -202,6 +207,18 @@ class Sessions
     public function setTreatmentCategoryId(int $treatmentCategoryId): self
     {
         $this->treatmentCategoryId = $treatmentCategoryId;
+
+        return $this;
+    }
+    
+    public function getActivityDetail(): ?string
+    {
+        return $this->activityDetail;
+    }
+
+    public function setActivityDetail(string $activityDetail): self
+    {
+        $this->activityDetail = $activityDetail;
 
         return $this;
     }

@@ -107,6 +107,7 @@ class SessionsRepository extends ServiceEntityRepository
         $session->setLiLo($sessionData->getLiLo());
         $session->setFsgNumber($sessionData->getFsgNumber());
         $session->setIsCommunityService($sessionData->isCommunityService());
+        $session->setActivityDetail($sessionData->getActivityDetail());
         $session->setIsTreePlanting($sessionData->isTreePlanting());
         $session->setIsCooperativeSelfHelp($sessionData->isCooperativeSelfHelp());
         $session->setIsCooperativeSelfHelpActivities($sessionData->isCooperativeSelfHelpActivities());
@@ -323,6 +324,7 @@ class SessionsRepository extends ServiceEntityRepository
         $session->setLiLo($sessionData->getLiLo());
         $session->setFsgNumber($sessionData->getFsgNumber());
         $session->setIsCommunityService($sessionData->isCommunityService());
+        $session->setActivityDetail($sessionData->getActivityDetail());
         $session->setIsTreePlanting($sessionData->isTreePlanting());
         $session->setIsCooperativeSelfHelp($sessionData->isCooperativeSelfHelp());
         $session->setIsCooperativeSelfHelpActivities($sessionData->isCooperativeSelfHelpActivities());

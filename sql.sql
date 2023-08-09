@@ -1,0 +1,1 @@
+ALTER TABLE session_activities DROP activity_detail

@@ -29,6 +29,7 @@ class Sessions implements \JsonSerializable
         private ?array $facilitators = null,
         private ?array $absentees = null,
         private ?int $fsgNumber = null,
+        private string $activityDetail = '',
         private bool $isCommunityService = false,
         private bool $isTreePlanting = false,
         private bool $isCooperativeSelfHelp = false,
@@ -129,6 +130,15 @@ class Sessions implements \JsonSerializable
     public function getLiLo(): string
     {
         return $this->liLo;
+    }
+
+    /**
+     * @Assert\NotBlank
+     * @return string
+     */
+    public function getActivityDetail(): string
+    {
+        return $this->activityDetail;
     }
 
     /**
