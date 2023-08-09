@@ -357,11 +357,12 @@ class SessionsRepository extends ServiceEntityRepository
     /**
      * @param int $page
      * @param int $pageSize
+     * @param int $fieldOfficeId
      * @return array<string, mixed>|null
      * @throws \Psr\Cache\InvalidArgumentException
      * @throws CacheException
      */
-    public function paginated(int $page = 1, int $pageSize = 10): ?array
+    public function paginated(int $page = 1, int $pageSize = 10, int $fieldOfficeId): ?array
     {
         $params = [
             'cacheKey' => $this->cacheHelper->getSessionsPaginatedKey($page, $pageSize),
@@ -371,7 +372,7 @@ class SessionsRepository extends ServiceEntityRepository
             'page' => $page
         ];
 
-        return $this->helper->createPaginatedResponseCustomQuery($params, function () use ($pageSize, $page) {
+        return $this->helper->createPaginatedResponseCustomQuery($params, function () use ($pageSize, $page, $fieldOfficeId) {
             $startOffset = $pageSize * ($page - 1);
             $result = [];
 
@@ -385,6 +386,11 @@ class SessionsRepository extends ServiceEntityRepository
                     LEFT JOIN treatment_categories as tc ON se.treatment_category_id = tc.treatment_category_id
                     LEFT JOIN venues as v ON se.venue_id = v.venue_id
                     WHERE se.deleted_at IS NULL ";
+
+            if ($fieldOfficeId > 0) {
+                $sql .= "AND se.field_office_id = $fieldOfficeId ";
+                
+            }
 
             $result['totalItems'] = $this->helper->getCustomQueryPaginatedTotalItems($conn, $sql);
 

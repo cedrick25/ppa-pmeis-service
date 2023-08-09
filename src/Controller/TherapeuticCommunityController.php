@@ -305,6 +305,7 @@ class TherapeuticCommunityController extends AbstractController
 
         return $this->json($this->sessionActivitiesService->create(
             $data['name'],
+            $data['name'],
             $data['phaseId'],
             $data['treatmentCategoryId'],
         ));
@@ -510,7 +511,8 @@ class TherapeuticCommunityController extends AbstractController
     {
         return $this->json($this->sessionService->getPaginated(
             (int) $request->get("page"),
-            (int) $request->get("pageSize")
+            (int) $request->get("pageSize"),
+            (int) $request->query->get('field_office_id')
         ));
     }
 
