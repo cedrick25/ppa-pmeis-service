@@ -63,6 +63,7 @@ class SessionActivitiesRepository extends ServiceEntityRepository
      */
     public function create(
         string $name,
+        string $activityDetail,
         ?int $phaseId,
         int $treatmentCategoryId,
     ): int|null {
@@ -76,6 +77,7 @@ class SessionActivitiesRepository extends ServiceEntityRepository
 
         $sessionActivity = new SessionActivities();
         $sessionActivity->setName($name);
+        $sessionActivity->setActivityDetail($activityDetail);
         $sessionActivity->setPhaseId($phaseId);
         $sessionActivity->setTreatmentCategoryId($treatmentCategoryId);
         $sessionActivity->setCreatedAt($this->appDateHelper->getCurrentImmutableDate());
@@ -136,6 +138,7 @@ class SessionActivitiesRepository extends ServiceEntityRepository
     public function update(
         int $id,
         string $name,
+        string $activityDetail,
         ?int $phaseId,
         int $treatmentCategoryId,
     ): string {
@@ -152,6 +155,7 @@ class SessionActivitiesRepository extends ServiceEntityRepository
         $this->cache->invalidateTags([self::CACHE_TAG]);
 
         $sessionActivity->setName($name);
+        $sessionActivity->setActivityDetail($activityDetail);
         $sessionActivity->setPhaseId($phaseId);
         $sessionActivity->setTreatmentCategoryId($treatmentCategoryId);
         $sessionActivity->setUpdatedAt($this->appDateHelper->getCurrentImmutableDate());

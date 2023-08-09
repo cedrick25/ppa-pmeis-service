@@ -45,6 +45,7 @@ class SessionActivities implements SessionActivitiesInterface
 
     public function create(
         string $name,
+        string $activityDetail,
         ?int $phaseId,
         int $treatmentCategoryId,
     ): array {
@@ -55,6 +56,7 @@ class SessionActivities implements SessionActivitiesInterface
 
             $sessionActivityId = $this->repository->create(
                 $name,
+                $activityDetail,
                 $phaseId,
                 $treatmentCategoryId,
             );
@@ -95,6 +97,7 @@ class SessionActivities implements SessionActivitiesInterface
     public function updateById(
         int $id,
         string $name,
+        string $activityDetail,
         ?int $phaseId,
         int $treatmentCategoryId,
     ): array {
@@ -102,6 +105,7 @@ class SessionActivities implements SessionActivitiesInterface
             $isUpdated = $this->repository->update(
                 $id,
                 $name,
+                $activityDetail,
                 $phaseId,
                 $treatmentCategoryId,
         );

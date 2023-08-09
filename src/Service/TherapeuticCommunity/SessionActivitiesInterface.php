@@ -8,6 +8,7 @@ interface SessionActivitiesInterface
 
     public function create(
         string $name,
+        string $activityDetail,
         ?int $phaseId,
         int $treatmentCategoryId,
     ): array;
@@ -17,6 +18,7 @@ interface SessionActivitiesInterface
     public function updateById(
         int $id,
         string $name,
+        string $activityDetail,
         ?int $phaseId,
         int $treatmentCategoryId,
     ): array;
