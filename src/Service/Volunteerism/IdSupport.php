@@ -6,6 +6,7 @@ use App\Common\AppFormatter;
 use App\Enum\AuditTrailActions;
 use App\Enum\Response as ResponseEnum;
 use App\Model\IdSupport as IdSupportModel;
+use App\Repository\FieldOfficesRepository;
 use App\Repository\IdSupportRepository;
 use App\Repository\QuartersRepository;
 use App\Service\System\AuditTrail;
@@ -25,6 +26,7 @@ class IdSupport implements IdSupportInterface
         private IdSupportRepository          $repository,
         private QuartersRepository           $quartersRepository,
         private AuditTrail                   $auditTrail,
+        private FieldOfficesRepository       $fieldOfficesRepository,
     ) {
         $class = new \ReflectionClass($this);
         $this->shortName = $class->getShortName();
@@ -126,6 +128,12 @@ class IdSupport implements IdSupportInterface
 
             $minMaxDate = $this->quartersRepository->getQuarterMinMaxDate($quarter);
             $idSupports = $this->repository->findByDateRange($minMaxDate, $fieldOfficeId);
+            $assistedFieldOfficeIds = array_map(fn ($idSupport) => (int) $idSupport['assisted_field_office_id'] , $idSupports);
+            $assistedFieldOfficeNames = $this->fieldOfficesRepository->findNamesByFieldOfficeIds($assistedFieldOfficeIds);
+
+            foreach($idSupports as $index=>$idSupport) {
+                $idSupports[$index]['assisted_field_office'] = $assistedFieldOfficeNames[(int) $idSupport['assisted_field_office_id']] ?? '';
+            }
 
             return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_SUCCESS, $idSupports);
         } catch (Exception | \Exception $e) {

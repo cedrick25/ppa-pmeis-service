@@ -63,7 +63,7 @@ class ID implements Form
             $this->lastFilledOutCellY++;
             $spreadsheet->getActiveSheet()->setCellValue("A" . $this->lastFilledOutCellY, $row['name']);
             $spreadsheet->getActiveSheet()->setCellValue("b" . $this->lastFilledOutCellY, $row['program']);
-            $spreadsheet->getActiveSheet()->setCellValue("c" . $this->lastFilledOutCellY, $row['assisted_field_office_id']);
+            $spreadsheet->getActiveSheet()->setCellValue("c" . $this->lastFilledOutCellY, $row['assisted_field_office']);
             $spreadsheet->getActiveSheet()->setCellValue("d" . $this->lastFilledOutCellY, $row['activity']);
             $spreadsheet->getActiveSheet()->setCellValue("e" . $this->lastFilledOutCellY, $row['date'] . ' ' . $row['venue']);
             $spreadsheet->getActiveSheet()->setCellValue("f" . $this->lastFilledOutCellY, $row['assistance_rendered']);
