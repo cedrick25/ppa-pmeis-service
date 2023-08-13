@@ -256,7 +256,7 @@ class Sessions implements SessionsInterface
     public function getPaginated(int $page, int $pageSize, int $fieldOfficeId): array
     {
         try {
-            $sessions = $this->repository->paginated($page, $pageSize, $fieldOfficeId);
+            $sessions = $this->repository->paginaed($page, $pageSize, $fieldOfficeId);
 
             if ($sessions == null) {
                 return $this->appFormatter->formatResponse(ResponseEnum::NO_DATA, null);

@@ -389,7 +389,6 @@ class SessionsRepository extends ServiceEntityRepository
 
             if ($fieldOfficeId > 0) {
                 $sql .= "AND se.field_office_id = $fieldOfficeId ";
-                
             }
 
             $result['totalItems'] = $this->helper->getCustomQueryPaginatedTotalItems($conn, $sql);
