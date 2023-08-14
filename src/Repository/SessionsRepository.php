@@ -763,9 +763,9 @@ class SessionsRepository extends ServiceEntityRepository
         $conn = $this->getEntityManager()->getConnection();
         $sql = "INSERT INTO sessions 
                     (trees_planted, field_office_id, phase_id, batch, session_activity_id, treatment_category_id, date, 
-                     venue_id, period, li_lo, created_by, created_at, updated_at, deleted_at)
+                     venue_id, period, li_lo, is_community_service, is_tree_planting, is_cooperative_self_help, is_cooperative_self_help_activities, created_by, created_at, updated_at, deleted_at)
                 SELECT trees_planted, field_office_id, phase_id, batch, session_activity_id, treatment_category_id, date, 
-                       venue_id, period, li_lo, created_by, created_at, updated_at, deleted_at 
+                       venue_id, period, li_lo, is_tree_planting, is_cooperative_self_help, is_cooperative_self_help_activities, created_by, created_at, updated_at, deleted_at 
                 FROM sessions WHERE session_id = $id";
         $stmt = $conn->prepare($sql);
         $stmt->executeQuery();
