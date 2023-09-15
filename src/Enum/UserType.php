@@ -20,6 +20,7 @@ use MyCLabs\Enum\Enum;
  * @method static self CLERK()
  * @method static self ARD()
  * @method static self SA()
+ * @method static self CMRU()
  */
 class UserType extends Enum implements Hashable
 {
@@ -34,6 +35,7 @@ class UserType extends Enum implements Hashable
     public const CLERK = "CLERK";
     public const ARD = "ASSISTANT_REGIONAL_DIRECTOR";
     public const SA = "SPECIAL_ASSISTANT";
+    public const CMRU = "CMRU";
 
     public function hash()
     {
