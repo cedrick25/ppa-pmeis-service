@@ -142,7 +142,7 @@ class User implements UserInterface
             $password = base64_decode($password);
         }
 
-        $user = $this->repository->findOneBy((['emailAddress' => $email]));
+        $user = $this->repository->findOneBy((['emailAddress' => $email, 'deletedAt' => null]));
 
         if (null == $user) {
             return ['message' => 'User account not found for email: ' . $email];
