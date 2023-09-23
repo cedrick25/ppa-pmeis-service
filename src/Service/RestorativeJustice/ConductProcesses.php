@@ -191,11 +191,13 @@ class ConductProcesses implements ConductProcessesInterface
                 fn($conductProcess) => $conductProcess['rj_conduct_process_id'],
                 $conductProcesses
             );
+            $clients = $this->rjConductedProcessClientsRepository->findClientsWithDetailsByConductProcessId($conductProcessesId);
             $personsInvolved = $this->conductedProcessPersonsInvolvedRepository
                 ->findByConductedProcessIds($conductProcessesId);
 
             foreach ($conductProcesses as $conductProcess) {
                 $conductProcess['personsInvolved'] = $personsInvolved[$conductProcess['rj_conduct_process_id']];
+                $conductProcess['clients'] = $clients[$conductProcess['rj_conduct_process_id']];
 
                 $return[] = $conductProcess;
             }

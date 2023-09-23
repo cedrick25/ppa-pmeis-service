@@ -156,13 +156,11 @@ class RJConductProcessesRepository extends ServiceEntityRepository
 
         return $this->helper->createCachedResponseCustomQuery($params, function() use($quarterId, $fieldOfficeId) {
             $conn = $this->getEntityManager()->getConnection();
-            $sql = "SELECT rjcp.*, c.first_name, c.middle_name, c.last_name, c.gender, c.is_pwd, c.is_senior_citizen,
-                    o.name as offense, rjcp.pe_date, (SELECT name FROM venues WHERE venues.venue_id = rjcp.pe_venue_id) as pe_venue,
+            $sql = "SELECT rjcp.*, o.name as offense, rjcp.pe_date, (SELECT name FROM venues WHERE venues.venue_id = rjcp.pe_venue_id) as pe_venue,
                     rjcp.pe_activity, rjcp.pe_date, (SELECT name FROM venues WHERE venues.venue_id = rjcp.rjp_venue_id) as rjp_venue,
                     rjp.name as rjp_type, ud.first_name as planner_fn, ud.middle_name as planner_mn, ud.last_name as planner_ln,
                     rjps.name as rjp_status, ro.name as rj_outcome_name, ro.code as rj_outcome_code
                     FROM rjconduct_processes as rjcp 
-                LEFT JOIN clients as c ON rjcp.client_id = c.client_id
                 LEFT JOIN offenses as o ON rjcp.offense_id = o.offenses_id
                 LEFT JOIN rjprocesses as rjp ON rjcp.rjp_id = rjp.id_rjprocesses
                 LEFT JOIN user_details as ud ON rjcp.planner_id = ud.user_account_id

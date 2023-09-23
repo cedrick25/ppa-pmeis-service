@@ -48,6 +48,7 @@ class TableIAB1SummaryForm implements Form
         $this->data['activities'] = $this->getActivities($quarterId, $fieldOfficeId);
         $rjb1 = $this->conductProcessesService->getRJIB1($quarterId, $fieldOfficeId);
         $this->data['process_conducted'] = $rjb1['data'] ?? [];
+
         $this->data[SystemSettingNames::GENERATED_REPORTS_CODE] = $data[SystemSettingNames::GENERATED_REPORTS_CODE];
 
         $spreadsheet = $this->footer();
@@ -269,7 +270,6 @@ class TableIAB1SummaryForm implements Form
         foreach ($RJIB2Data['data'] as $item) {
             $rjGroup = $item['rj_group'];
             $rjProcess = $item['rj_process'];
-            $gender = $item['gender'];
 
             if (!isset($response[$rjGroup][$rjProcess])) {
                 $response[$rjGroup][$rjProcess] = [];
@@ -280,23 +280,27 @@ class TableIAB1SummaryForm implements Form
             }
             $response[$rjGroup][$rjProcess]['Conducted']++;
 
-            if (!isset($response[$rjGroup][$rjProcess][$gender])) {
-                $response[$rjGroup][$rjProcess][$gender] = 0;
-            }
-            $response[$rjGroup][$rjProcess][$gender]++;
-
-            if (intval($item['is_pwd'])) {
-                if (!isset($response[$rjGroup][$rjProcess]['isPwd'])) {
-                    $response[$rjGroup][$rjProcess]['isPwd'] = 0;
+            foreach($item['clients'] as $client) {
+                $gender = $client['gender'];
+    
+                if (!isset($response[$rjGroup][$rjProcess][$gender])) {
+                    $response[$rjGroup][$rjProcess][$gender] = 0;
                 }
-                $response[$rjGroup][$rjProcess]['isPwd']++;
-            }
-
-            if (intval($item['is_senior_citizen'])) {
-                if (!isset($response[$rjGroup][$rjProcess]['isSC'])) {
-                    $response[$rjGroup][$rjProcess]['isSC'] = 0;
+                $response[$rjGroup][$rjProcess][$gender]++;
+    
+                if (intval($client['is_pwd'])) {
+                    if (!isset($response[$rjGroup][$rjProcess]['isPwd'])) {
+                        $response[$rjGroup][$rjProcess]['isPwd'] = 0;
+                    }
+                    $response[$rjGroup][$rjProcess]['isPwd']++;
                 }
-                $response[$rjGroup][$rjProcess]['isSC']++;
+    
+                if (intval($client['is_senior_citizen'])) {
+                    if (!isset($response[$rjGroup][$rjProcess]['isSC'])) {
+                        $response[$rjGroup][$rjProcess]['isSC'] = 0;
+                    }
+                    $response[$rjGroup][$rjProcess]['isSC']++;
+                }
             }
         }
 

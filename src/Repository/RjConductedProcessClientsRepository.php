@@ -68,8 +68,8 @@ class RjConductedProcessClientsRepository extends ServiceEntityRepository
 
         $results = $this->getEntityManager()->getConnection()
             ->executeQuery(
-                "SELECT rcpc.rj_conduct_process_id, c.client_id, c.first_name, c.middle_name, c.last_name, c.gender
-                    FROM rj_conducted_process_clients rcpc
+                "SELECT rcpc.rj_conduct_process_id, c.client_id, c.first_name, c.middle_name, c.last_name, c.gender,
+                    c.is_pwd, c.is_senior_citizen FROM rj_conducted_process_clients rcpc
                     LEFT JOIN clients c on rcpc.client_id = c.client_id
                     WHERE rcpc.rj_conduct_process_id IN (:ids)",
                 ['ids' => $ids],

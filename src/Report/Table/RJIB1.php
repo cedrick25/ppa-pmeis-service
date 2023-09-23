@@ -48,7 +48,6 @@ class RJIB1 implements Form
     public function footer(): Spreadsheet
     {
         $spreadsheet = $this->body();
-        dd($this->data);
 
         $this->lastFilledOutCellY++;
         $footerHeadRowNumber = $this->lastFilledOutCellY;
@@ -288,37 +287,12 @@ class RJIB1 implements Form
         $this->data['footer']['clients_undergone_rj_process'] += $rowCount;
         
 
+        $this->lastFilledOutCellY++;
         foreach ($rows as $row) {
-            $this->lastFilledOutCellY++;
-            $fullName = $row['first_name'] . ' ' . $row['middle_name'] . ' ' . $row['last_name'];
-
             if ($groupType === 'ACTIVE_SUPERVISION') {
                 $this->data['footer']['active_supervision']++;
             } else {
                 $this->data['footer']['petitioners']++;
-            }
-
-            $spreadsheet->getActiveSheet()->getRowDimension($this->lastFilledOutCellY)->setRowHeight(70);
-
-            $spreadsheet->getActiveSheet()->setCellValue("A" . $this->lastFilledOutCellY, $fullName);
-            $spreadsheet->getActiveSheet()->mergeCells("A" . $this->lastFilledOutCellY . ':B' . $this->lastFilledOutCellY);
-
-            if ($row['gender'] === 'F') {
-                $spreadsheet->getActiveSheet()->setCellValue("C" . $this->lastFilledOutCellY, '∕');
-                $totalData[$row['rj_group']]['female']++;
-            } else {
-                $spreadsheet->getActiveSheet()->setCellValue('D' . $this->lastFilledOutCellY, '∕');
-                $totalData[$row['rj_group']]['male']++;
-            }
-
-            if ($row['is_pwd'] !== '0') {
-                $spreadsheet->getActiveSheet()->setCellValue('E' . $this->lastFilledOutCellY, '∕');
-                $totalData[$row['rj_group']]['pwd']++;
-            }
-
-            if ($row['is_senior_citizen'] !== '0') {
-                $spreadsheet->getActiveSheet()->setCellValue('F' . $this->lastFilledOutCellY, '∕');
-                $totalData[$row['rj_group']]['senior_citizen']++;
             }
 
             $spreadsheet->getActiveSheet()->setCellValue('G' . $this->lastFilledOutCellY, $row['offense']);
@@ -342,6 +316,34 @@ class RJIB1 implements Form
 
             $spreadsheet->getActiveSheet()->setCellValue('Q' . $this->lastFilledOutCellY, $row['rj_outcome_name']);
             $totalData[$row['rj_group']]['rj_outcome'][$row['rj_outcome_code']]++;
+
+            foreach($row['clients'] as $client) {
+                $fullName = $client['first_name'] . ' ' . $client['middle_name'] . ' ' . $client['last_name'];
+    
+                $spreadsheet->getActiveSheet()->getRowDimension($this->lastFilledOutCellY)->setRowHeight(70);
+    
+                $spreadsheet->getActiveSheet()->setCellValue("A" . $this->lastFilledOutCellY, $fullName);
+                $spreadsheet->getActiveSheet()->mergeCells("A" . $this->lastFilledOutCellY . ':B' . $this->lastFilledOutCellY);
+    
+                if ($client['gender'] === 'F') {
+                    $spreadsheet->getActiveSheet()->setCellValue("C" . $this->lastFilledOutCellY, '∕');
+                    $totalData[$row['rj_group']]['female']++;
+                } else {
+                    $spreadsheet->getActiveSheet()->setCellValue('D' . $this->lastFilledOutCellY, '∕');
+                    $totalData[$row['rj_group']]['male']++;
+                }
+    
+                if ($client['is_pwd'] !== '0') {
+                    $spreadsheet->getActiveSheet()->setCellValue('E' . $this->lastFilledOutCellY, '∕');
+                    $totalData[$row['rj_group']]['pwd']++;
+                }
+    
+                if ($client['is_senior_citizen'] !== '0') {
+                    $spreadsheet->getActiveSheet()->setCellValue('F' . $this->lastFilledOutCellY, '∕');
+                    $totalData[$row['rj_group']]['senior_citizen']++;
+                }
+                $this->lastFilledOutCellY++;
+            }
 
             $spreadsheet->getActiveSheet()
                 ->getStyle("A" . $this->lastFilledOutCellY . ":Q" . $this->lastFilledOutCellY)

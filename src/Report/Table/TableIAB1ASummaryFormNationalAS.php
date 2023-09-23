@@ -77,21 +77,26 @@ class TableIAB1ASummaryFormNationalAS implements Form
                         }
 
                         $rjpType = $conductedProcessData['rjp_type'];
-                        $gender = $conductedProcessData['gender'];
-                        $build[$rjpType]['total_clients']++;
                         $build[self::PRE_ENCOUNTER_ACT]['acts_conducted']++;
-                        $build[self::PRE_ENCOUNTER_ACT]['total_clients']++;
-                        $build[$rjpType]['gender'][$gender]++;
-                        $build[self::PRE_ENCOUNTER_ACT]['gender'][$gender]++;
+                        
+                        $build[$rjpType]['total_clients'] += count($conductedProcessData['clients']);
+                        $build[self::PRE_ENCOUNTER_ACT]['total_clients'] += count($conductedProcessData['clients']);
 
-                        if (intval($conductedProcessData['is_pwd'])) {
-                            $build[$rjpType]['is_pwd']++;
-                            $build[self::PRE_ENCOUNTER_ACT]['is_pwd']++;
-                        }
-
-                        if (intval($conductedProcessData['is_senior_citizen'])) {
-                            $build[$rjpType]['is_sc']++;
-                            $build[self::PRE_ENCOUNTER_ACT]['is_sc']++;
+                        foreach($conductedProcessData['clients'] as $client) {
+                            $gender = $client['gender'];
+                            
+                            $build[$rjpType]['gender'][$gender]++;
+                            $build[self::PRE_ENCOUNTER_ACT]['gender'][$gender]++;
+    
+                            if (intval($client['is_pwd'])) {
+                                $build[$rjpType]['is_pwd']++;
+                                $build[self::PRE_ENCOUNTER_ACT]['is_pwd']++;
+                            }
+    
+                            if (intval($client['is_senior_citizen'])) {
+                                $build[$rjpType]['is_sc']++;
+                                $build[self::PRE_ENCOUNTER_ACT]['is_sc']++;
+                            }
                         }
                     }
                 }
