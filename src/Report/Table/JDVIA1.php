@@ -82,7 +82,7 @@ class JDVIA1 implements Form
                 $spreadsheet->getActiveSheet()->setCellValue("D" . $this->lastFilledOutCellY, '/');
             }
             $spreadsheet->getActiveSheet()->setCellValue("e" . $this->lastFilledOutCellY, $row['probation']);
-            $spreadsheet->getActiveSheet()->setCellValue("f" . $this->lastFilledOutCellY, $row['clemency']);
+            $spreadsheet->getActiveSheet()->setCellValue("f" . $this->lastFilledOutCellY, intval($row['clemency']) < 0 ? 0 : $row['clemency']);
             $spreadsheet->getActiveSheet()->setCellValue("g" . $this->lastFilledOutCellY, $row['referral_pao']);
             $spreadsheet->getActiveSheet()->setCellValue("h" . $this->lastFilledOutCellY, $row['referral_prosecution']);
             $spreadsheet->getActiveSheet()->setCellValue("i" . $this->lastFilledOutCellY, $row['referral_others']);
