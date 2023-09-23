@@ -131,8 +131,14 @@ class SMIIIA1And2 implements Form
     private function prepare(): Spreadsheet
     {
         $spreadsheet = new Spreadsheet();
+        if (isset($this->data['rows'][0])) {
+            $tableNumber = $this->data['rows'][0]['type'] === 'MEETINGS_PARTICIPATIONS' ? 2 : 1;
+        } else {
+            $tableNumber = 1;
+        }
+
         $textAndCoordinates = [
-            'a1' => 'Table  III.A.2  -  MEETINGS /PARTICIPATIONS IN PEACE & ORDER COUNCIL (POC)/ ANTI-DRUG ABUSE COUNCIL (CADAC)/ MANAGEMENT SCREENING & EVALUATION COMMITTEE (MSEC), DDB AUTHORIZED REPRESENTATIVE, ETC.',
+            'a1' => "Table  III.A.$tableNumber  -  MEETINGS /PARTICIPATIONS IN PEACE & ORDER COUNCIL (POC)/ ANTI-DRUG ABUSE COUNCIL (CADAC)/ MANAGEMENT SCREENING & EVALUATION COMMITTEE (MSEC), DDB AUTHORIZED REPRESENTATIVE, ETC.",
             'g1' => $this->data[SystemSettingNames::GENERATED_REPORTS_CODE],
             'a2' => 'Activity',
             'a3' => '(1)',
