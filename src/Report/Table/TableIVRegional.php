@@ -2,8 +2,8 @@
 
 namespace App\Report\Table;
 
-use App\Entity\FieldOffices;
 use App\Entity\Quarters;
+use App\Entity\Regions;
 use App\Repository\ClientSessionsRepository;
 use App\Repository\ClientsRepository;
 use App\Repository\RegionsRepository;
@@ -33,6 +33,7 @@ class TableIVRegional implements Form
         private array                       $data = [],
         private array                       $sessionIds = [],
         private array                       $fieldOffices = [],
+        private ?Regions                    $region = null,
         private ?Quarters                   $quarters = null,
     ){}
 
@@ -76,15 +77,12 @@ class TableIVRegional implements Form
     {
         $spreadsheet = $this->header();
 
-        $count = 0;
-
         $result = $this->data;
 
         if ($this->fieldOffices) {
             $ctr = 9;
 
             $resources     = ['cash', 'materials', 'technicalAssistance'];
-            $sourceTypes   = ['GO', 'NGO', 'IND'];
 
             $total = [
                 'cash' => [
@@ -128,6 +126,7 @@ class TableIVRegional implements Form
                 ];
 
                 if ($result['rows']) {
+                    dd($result['rows'][$v->getFieldOfficeId()]);
                     if ($result['rows'][$v->getFieldOfficeId()][$this->type]) {
                         foreach ($result['rows'][$v->getFieldOfficeId()][$this->type] as $v1) {
                             foreach ($resources as $resource) {

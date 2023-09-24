@@ -227,7 +227,7 @@ class ResourceMobilization implements ResourceMobilizationInterface
                 return $this->appFormatter->formatResponse(ResponseEnum::NO_DATA, null);
             }
 
-            $result = ['TC' => [], 'RJ' => [], 'VPA' => [], 'PWDSC' => [], 'GAD' => [], 'OTHERS' => [],];
+            $result = ['TC' => [], 'RJ' => [], 'VPA' => [], 'PWDSC' => [], 'GAD' => [], 'OTHERS' => []];
 
             $minMaxDate = $this->quartersRepository->getQuarterMinMaxDate($quarter);
             $resourceMobilizations = $this->repository->findByDateRange($minMaxDate, $fieldOfficeId);
