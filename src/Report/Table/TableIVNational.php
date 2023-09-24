@@ -130,15 +130,17 @@ class TableIVNational implements Form
                 if ($result['rows']) {
                     if ($result['rows'][$v->getRegionId()]) {
                         foreach ($result['rows'][$v->getRegionId()] as $fieldOffice) {
-                            foreach ($fieldOffice[$this->type] as $v1) {
-                                foreach ($resources as $resource) {
-                                    // Resources
-                                    foreach($v1[$resource] as $x) {
-                                        $resMob[$resource][$x['source_type']['value']] += $x[$resource == 'cash' ? 'amount' : 'estimated_amount'];
-                                        $resMob['donors'] += 1;
-            
-                                        $total[$resource][$x['source_type']['value']] += $x[$resource == 'cash' ? 'amount' : 'estimated_amount'];
-                                        $total['donors'] += 1;
+                            if (isset($fieldOffice[$this->type])) {
+                                foreach ($fieldOffice[$this->type] as $v1) {
+                                    foreach ($resources as $resource) {
+                                        // Resources
+                                        foreach($v1[$resource] as $x) {
+                                            $resMob[$resource][$x['source_type']['value']] += $x[$resource == 'cash' ? 'amount' : 'estimated_amount'];
+                                            $resMob['donors'] += 1;
+                
+                                            $total[$resource][$x['source_type']['value']] += $x[$resource == 'cash' ? 'amount' : 'estimated_amount'];
+                                            $total['donors'] += 1;
+                                        }
                                     }
                                 }
                             }
