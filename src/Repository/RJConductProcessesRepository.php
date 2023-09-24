@@ -305,9 +305,10 @@ class RJConductProcessesRepository extends ServiceEntityRepository
             $startOffset = $pageSize * ($page-1);
             $result = [];
 
-            $sql = "SELECT rp.*, rs.name as status, ro.name as outcome FROM rjconduct_processes as rp
+            $sql = "SELECT rp.*, rs.name as status, ro.name as outcome, CONCAT(ud.first_name, ' ', ud.last_name) as created_by FROM rjconduct_processes as rp
                         LEFT JOIN rjprocess_status as rs ON rp.rjps_id = rs.id_rjprocess_status
-                        LEFT JOIN rjoutcomes as ro ON rp.rjo_id = ro.rj_outcome_id ";
+                        LEFT JOIN rjoutcomes as ro ON rp.rjo_id = ro.rj_outcome_id
+                        LEFT JOIN user_details as ud ON rp.created_by = ud.user_account_id ";
             
             if ($filedOfficeId > 0) {
                 $sql .= "WHERE rp.field_office_id = $filedOfficeId ";
