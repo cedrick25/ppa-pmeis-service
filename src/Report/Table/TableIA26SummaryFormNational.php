@@ -84,13 +84,13 @@ class TableIA26SummaryFormNational implements Form
             );
             $spreadsheet->getActiveSheet()->setCellValue('H' . $this->lastFilledOutCellY, $data['is_pwd']);
             $spreadsheet->getActiveSheet()->setCellValue('I' . $this->lastFilledOutCellY, $data['is_senior_citizen']);
-            $spreadsheet->getActiveSheet()->setCellValue('J' . $this->lastFilledOutCellY, 0);
-            $spreadsheet->getActiveSheet()->setCellValue('K' . $this->lastFilledOutCellY, 0);
-            $spreadsheet->getActiveSheet()->setCellValue('L' . $this->lastFilledOutCellY, 0);
-            $spreadsheet->getActiveSheet()->setCellValue('M' . $this->lastFilledOutCellY, 0);
-            $spreadsheet->getActiveSheet()->setCellValue('N' . $this->lastFilledOutCellY, 0);
-            $spreadsheet->getActiveSheet()->setCellValue('O' . $this->lastFilledOutCellY, 0);
-            $spreadsheet->getActiveSheet()->setCellValue('P' . $this->lastFilledOutCellY, 0);
+            $spreadsheet->getActiveSheet()->setCellValue('J' . $this->lastFilledOutCellY, $data['Prep']['probationers']);
+            $spreadsheet->getActiveSheet()->setCellValue('K' . $this->lastFilledOutCellY, $data['Prep']['parolees']);
+            $spreadsheet->getActiveSheet()->setCellValue('L' . $this->lastFilledOutCellY, $data['Prep']['pardonees']);
+            $spreadsheet->getActiveSheet()->setCellValue('M' . $this->lastFilledOutCellY, $data['Prep']['jicl']);
+            $spreadsheet->getActiveSheet()->setCellValue('N' . $this->lastFilledOutCellY, $data['Prep']['ftmdo']);
+            $spreadsheet->getActiveSheet()->setCellValue('O' . $this->lastFilledOutCellY, $data['Prep']['total']);
+            $spreadsheet->getActiveSheet()->setCellValue('P' . $this->lastFilledOutCellY, $data['Prep']['fsi']);
             $spreadsheet->getActiveSheet()->setCellValue('Q' . $this->lastFilledOutCellY, $data['I']['probationers']);
             $spreadsheet->getActiveSheet()->setCellValue('R' . $this->lastFilledOutCellY, $data['I']['parolees']);
             $spreadsheet->getActiveSheet()->setCellValue('S' . $this->lastFilledOutCellY, $data['I']['pardonees']);
@@ -228,6 +228,7 @@ class TableIA26SummaryFormNational implements Form
                 ],
                 'is_pwd' => 0,
                 'is_senior_citizen' => 0,
+                'Prep' => $treatmentCategoryInitialValues,
                 'I' => $treatmentCategoryInitialValues,
                 'II' => $treatmentCategoryInitialValues,
                 'III' => $treatmentCategoryInitialValues,
