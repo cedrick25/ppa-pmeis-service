@@ -43,20 +43,12 @@ final class Version20211103175853 extends AbstractMigration
             ('Manila City Parole And Probation Office No. 4', 1, '{$currentDate}'),
             ('Manila City Parole And Probation Office No. 5', 1, '{$currentDate}'),
             ('Manila City Parole And Probation Office No. 6', 1, '{$currentDate}'),
-            ('Marikina City Parole And Probation Office', 1, '{$currentDate}'),
-            ('Muntinlupa City Parole And Probation Office', 1, '{$currentDate}'),
-            ('Paranaque City Parole And Probation Office',1, '{$currentDate}'),
             ('Pasig City Parole And Probation Office', 1, '{$currentDate}'),
-            ('Quezon City Parole And Probation Office No. 1', 1, '{$currentDate}'),
-            ('Quezon City Parole And Probation Office No. 2', 1, '{$currentDate}'),
-            ('Quezon City Parole And Probation Office No. 3', 1, '{$currentDate}'),
-            ('Taguig City/Pateros City Parole And Probation Office', 1, '{$currentDate}'),
-            ('Valenzuela City Parole And Probation Office', 1, '{$currentDate}'),
-            ('Taguig/Pateros City Parole And Probation Office', 1, '{$currentDate}'),
             ('Technical Services Division', 1, '{$currentDate}'),
             ('Office of the Administrator', 1, '{$currentDate}'),
             ('Office of the Deputy Administrator', 1, '{$currentDate}'),
             ('Case Management and Records Division(CMRD)', 1, '{$currentDate}'),
+
             ('San Carlos City Parole And Probation Office', 2, '{$currentDate}'),
             ('Regional Office - Region I', 2, '{$currentDate}'),
             ('Alaminos City Parole And Probation Office', 2, '{$currentDate}'),
@@ -70,6 +62,7 @@ final class Version20211103175853 extends AbstractMigration
             ('La Union Province Parole And Probation Office', 2, '{$currentDate}'),
             ('Pangasinan Parole And Probation Office No. 1', 2, '{$currentDate}'),
             ('Pangasinan Parole And Probation Office No. 2', 2, '{$currentDate}'),
+
             ('Regional Office - CAR', 3, '{$currentDate}'),
             ('Baguio City Parole And Probation Office', 3, '{$currentDate}'),
             ('Abra Parole And Probation Office', 3, '{$currentDate}'),
@@ -78,6 +71,7 @@ final class Version20211103175853 extends AbstractMigration
             ('Ifugao Parole And Probation Office', 3, '{$currentDate}'),
             ('Kalinga Parole And Probation Office', 3, '{$currentDate}'),
             ('Mt. Province Parole And Probation Office', 3, '{$currentDate}'),
+
             ('Regional Office - Region II', 4, '{$currentDate}'),
             ('Cauayan City Parole And Probation Office', 4, '{$currentDate}'),
             ('Isabela Province/City of Ilagan Parole and Probation Office', 4, '{$currentDate}'),
@@ -88,6 +82,7 @@ final class Version20211103175853 extends AbstractMigration
             ('Isabela Parole And Probation Office', 4, '{$currentDate}'),
             ('Nueva Vizcaya Parole And Probation Office', 4, '{$currentDate}'),
             ('Quirino Parole And Probation Office', 4, '{$currentDate}'),
+
             ('Regional Office - Region III', 5, '{$currentDate}'),
             ('Angeles City Parole And Probation Office', 5, '{$currentDate}'),
             ('Cabanatuan City Parole And Probation Office', 5, '{$currentDate}'),
@@ -103,6 +98,7 @@ final class Version20211103175853 extends AbstractMigration
             ('Pampanga Parole And Probation Office', 5, '{$currentDate}'),
             ('Tarlac Province Parole And Probation Office', 5, '{$currentDate}'),
             ('Zambales Province Parole And Probation Office', 5, '{$currentDate}'),
+
             ('Regional Office - Region IV-A', 6, '{$currentDate}'),
             ('Antipolo City Parole And Probation Office', 6, '{$currentDate}'),
             ('Batangas City Parole And Probation Office', 6, '{$currentDate}'),
@@ -123,6 +119,7 @@ final class Version20211103175853 extends AbstractMigration
             ('Quezon Province Parole And Probation Office No. 3', 6, '{$currentDate}'),
             ('Rizal Parole And Probation Office No. 1', 6, '{$currentDate}'),
             ('Rizal Parole And Probation Office No. 2', 6, '{$currentDate}'),
+
             ('Regional Office - Region IV-B', 7, '{$currentDate}'),
             ('Calapan City Parole And Probation Office', 7, '{$currentDate}'),
             ('Puerto Princesa City Parole And Probation Office', 7, '{$currentDate}'),
@@ -132,6 +129,7 @@ final class Version20211103175853 extends AbstractMigration
             ('Palawan Parole And Probation Office No. 1', 7, '{$currentDate}'),
             ('Palawan Parole And Probation Office No. 2', 7, '{$currentDate}'),
             ('Romblon Parole And Probation Office', 7, '{$currentDate}'),
+
             ('Regional Office - Region V', 8, '{$currentDate}'),
             ('Iriga City Parole And Probation Office', 8, '{$currentDate}'),
             ('Legaspi City Parole And Probation Office', 8, '{$currentDate}'),
@@ -147,6 +145,7 @@ final class Version20211103175853 extends AbstractMigration
             ('Catanduanes Parole And Probation Office', 8, '{$currentDate}'),
             ('Masbate Province Parole And Probation Office', 8, '{$currentDate}'),
             ('Sorsogon City Parole and Probation Officer', 8, '{$currentDate}'),
+
             ('Regional Office - Region VI', 9, '{$currentDate}'),
             ('Bacolod City Parole And Probation Office No. 1', 9, '{$currentDate}'),
             ('Bacolod City Parole And Probation Office No. 2', 9, '{$currentDate}'),
