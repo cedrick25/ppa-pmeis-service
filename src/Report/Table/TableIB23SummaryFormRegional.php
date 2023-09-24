@@ -34,6 +34,7 @@ class TableIB23SummaryFormRegional implements Form
         private ?Regions            $region = null,
         private ?Quarters           $quarter = null,
         private int                 $lastFilledOutCellY = 10,
+        private array                       $data = [],
     ) {}
 
     public function supports(string $tableName): bool
@@ -95,20 +96,20 @@ class TableIB23SummaryFormRegional implements Form
             $responses[] = [
                 'name' => $fieldOffice->getName(),
                 'process_client_active' => $process['ACTIVE_SUPERVISION'] ?? 0,
-                'process_client_petitioner' => $process['PETITIONERS'] ?? 0,
+                'process_client_petitioner' => $process['PETITIONER'] ?? 0,
                 'activity_client_active' => $relatedActivity['ACTIVE_SUPERVISION'] ?? 0,
-                'activity_client_petitioner' => $relatedActivity['PETITIONERS'] ?? 0,
+                'activity_client_petitioner' => $relatedActivity['PETITIONER'] ?? 0,
                 'restitution_client_active' => $restitution['ACTIVE_SUPERVISION'] ?? 0,
-                'restitution_client_petitioner' => $restitution['PETITIONERS'] ?? 0,
+                'restitution_client_petitioner' => $restitution['PETITIONER'] ?? 0,
                 'original_amount' => $restitution['originalAmount'] ?? 0,
                 'start_of_quarter' => $restitution['startOfQuarter'] ?? 0,
                 'balance' => $restitution['balance'] ?? 0,
                 'paid_client_active' => $restitution['ACTIVE_SUPERVISION'] ?? 0,
-                'paid_client_petitioner' => $restitution['PETITIONERS'] ?? 0,
+                'paid_client_petitioner' => $restitution['PETITIONER'] ?? 0,
                 'amount_paid_active' => $restitution['group']['ACTIVE_SUPERVISION']['paymentAmount'] ?? 0,
-                'amount_paid_petitioner' => $restitution['group']['PETITIONERS']['paymentAmount'] ?? 0,
+                'amount_paid_petitioner' => $restitution['group']['PETITIONER']['paymentAmount'] ?? 0,
                 'amount_remitted_active' => $restitution['group']['ACTIVE_SUPERVISION']['remittedAmount'] ?? 0,
-                'amount_remitted_petitioner' => $restitution['group']['PETITIONERS']['remittedAmount'] ?? 0,
+                'amount_remitted_petitioner' => $restitution['group']['PETITIONER']['remittedAmount'] ?? 0,
             ];
         }
 
@@ -196,7 +197,7 @@ class TableIB23SummaryFormRegional implements Form
             'D5' => 'NO. OF RJ RELATED  ACTS./INTERVENTIONS FOR VICTIMS',
             'F5' => 'C   I   V   I   L   L   I   A   B   I   L   I   T   Y',
             'F6' => 'TOTAL NO. OF CLIENTS W/  CL (SUPERVISION)',
-            'G6' => 'TOTAL NO. OF CLIENTS W/ CL (PETITIONERS)',
+            'G6' => 'TOTAL NO. OF CLIENTS W/ CL (PETITIONER)',
             'H6' => 'ORIGINAL AMOUNT',
             'I6' => 'START OF QTR.',
             'J6' => 'TOTAL NO. OF CLIENTS WHO PAID',
@@ -204,15 +205,15 @@ class TableIB23SummaryFormRegional implements Form
             'N6' => 'BALANCE END OF QTR.',
             'O6' => 'TOTAL AMT. REMITTED RECEIVED BY VICTIMS/ BENEFICIARIES',
             'B6' => 'FOR CLIENTS UNDER ACTIVE SUPV.',
-            'C6' => 'Petitioners',
+            'C6' => 'Petitioner',
             'D7' => 'ACTIVE SUPV.',
-            'E7' => 'Petitioners',
+            'E7' => 'Petitioner',
             'J7' => 'ACTIVE SUPV.',
-            'K7' => 'Petitioners',
+            'K7' => 'Petitioner',
             'L7' => 'ACTIVE SUPV.',
-            'M7' => 'Petitioners',
+            'M7' => 'Petitioner',
             'O7' => 'ACTIVE SUPV.',
-            'P7' => 'Petitioners',
+            'P7' => 'Petitioner',
             'A9' => 'Total',
         ];
 
@@ -267,11 +268,11 @@ class TableIB23SummaryFormRegional implements Form
         foreach ($processes as $fieldOfficeId => $process) {
             $results[$fieldOfficeId] = [
                 'ACTIVE_SUPERVISION' => 0,
-                'PETITIONERS' => 0,
+                'PETITIONER' => 0,
             ];
             $processIdsPerGroup = [
                 'ACTIVE_SUPERVISION' => [],
-                'PETITIONERS' => [],
+                'PETITIONER' => [],
             ];
             foreach ($process as $item) {
                 $group = $item['rj_group'];
@@ -317,7 +318,7 @@ class TableIB23SummaryFormRegional implements Form
             $clientData = [];
             $resultValues = [
                 'ACTIVE_SUPERVISION' => 0,
-                'PETITIONERS' => 0,
+                'PETITIONER' => 0,
                 'originalAmount' => 0,
                 'startOfQuarter' => 0,
                 'balance' => 0,
@@ -326,7 +327,7 @@ class TableIB23SummaryFormRegional implements Form
                         'paymentAmount' => 0,
                         'remittedAmount' => 0,
                     ],
-                    'PETITIONERS' => [
+                    'PETITIONER' => [
                         'paymentAmount' => 0,
                         'remittedAmount' => 0,
                     ]
