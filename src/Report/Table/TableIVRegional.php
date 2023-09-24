@@ -126,7 +126,6 @@ class TableIVRegional implements Form
                 ];
 
                 if ($result['rows']) {
-                    dd($result['rows'][$v->getFieldOfficeId()]);
                     if ($result['rows'][$v->getFieldOfficeId()][$this->type]) {
                         foreach ($result['rows'][$v->getFieldOfficeId()][$this->type] as $v1) {
                             foreach ($resources as $resource) {
