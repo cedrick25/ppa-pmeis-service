@@ -232,6 +232,7 @@ class TableIA26SummaryFormNational implements Form
                 'II' => $treatmentCategoryInitialValues,
                 'III' => $treatmentCategoryInitialValues,
                 'IV' => $treatmentCategoryInitialValues,
+                'IV-Ongoing' => $treatmentCategoryInitialValues,
             ];
 
             foreach ($fieldOffices as $fieldOffice) {

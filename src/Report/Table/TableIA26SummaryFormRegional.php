@@ -246,6 +246,7 @@ class TableIA26SummaryFormRegional implements Form
                 'II' => $treatmentCategoryInitialValues,
                 'III' => $treatmentCategoryInitialValues,
                 'IV' => $treatmentCategoryInitialValues,
+                'IV-Ongoing' => $treatmentCategoryInitialValues,
             ];
 
             $sessionIds = [];
