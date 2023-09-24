@@ -334,7 +334,7 @@ class TableIB23SummaryFormNational implements Form
             $clientData = [];
             $resultValues = [
                 'ACTIVE_SUPERVISION' => 0,
-                'PETITIONERS' => 0,
+                'PETITIONER' => 0,
                 'originalAmount' => 0,
                 'startOfQuarter' => 0,
                 'balance' => 0,
@@ -343,7 +343,7 @@ class TableIB23SummaryFormNational implements Form
                         'paymentAmount' => 0,
                         'remittedAmount' => 0,
                     ],
-                    'PETITIONERS' => [
+                    'PETITIONER' => [
                         'paymentAmount' => 0,
                         'remittedAmount' => 0,
                     ]
