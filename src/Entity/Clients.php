@@ -54,6 +54,11 @@ class Clients
     private ?string $suffix;
 
     /**
+     * @ORM\Column(type="string", length=255, nullable=true)
+     */
+    private ?string $alias;
+
+    /**
      * @ORM\Column(type="string", length=1)
      */
     private string $gender;
@@ -186,6 +191,18 @@ class Clients
     public function setSuffix(?string $suffix): self
     {
         $this->suffix = $suffix;
+
+        return $this;
+    }
+
+    public function getAlias(): ?string
+    {
+        return $this->alias;
+    }
+
+    public function setAlias(?string $alias): self
+    {
+        $this->alias = $alias;
 
         return $this;
     }

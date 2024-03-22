@@ -23,6 +23,7 @@ class Clients implements \JsonSerializable
         private int $fieldOfficeId,
         private ?string $middleName = null,
         private ?string $suffix = null,
+        private ?string $alias = null,
         private ?int $clientRemarksId = null,
         private ?DateTimeInterface $createdAt = null,
         private ?DateTimeInterface $updatedAt = null,
@@ -141,6 +142,14 @@ class Clients implements \JsonSerializable
     public function getSuffix(): ?string
     {
         return $this->suffix;
+    }
+
+    /**
+     * @return string|null
+     */
+    public function getAlias(): ?string
+    {
+        return $this->alias;
     }
 
     /**

@@ -52,7 +52,6 @@ class ClientsRepository extends ServiceEntityRepository
         }
 
         $this->cache->invalidateTags([self::CACHE_TAG]);
-
         $newClient = new Clients();
         $newClient->setCmisId($clientData->getCmisId());
         $newClient->setClientTypeId($clientData->getClientTypeId());
@@ -60,6 +59,7 @@ class ClientsRepository extends ServiceEntityRepository
         $newClient->setMiddleName($clientData->getMiddleName());
         $newClient->setLastName($clientData->getLastName());
         $newClient->setSuffix($clientData->getSuffix());
+        $newClient->setAlias($clientData->getAlias());
         $newClient->setGender($clientData->getGender());
         $newClient->setDateOfBirth($clientData->getDateOfBirth());
         $newClient->setOffenseCategory($clientData->getOffenseCategory());
@@ -71,7 +71,6 @@ class ClientsRepository extends ServiceEntityRepository
         $newClient->setClientRemarksId($clientData->getClientRemarksId());
         $newClient->setCreatedAt($this->appDateHelper->getCurrentImmutableDate());
         $newClient->setUpdatedAt($this->appDateHelper->getCurrentImmutableDate());
-
         $this->getEntityManager()->persist($newClient);
         $this->getEntityManager()->flush();
 
@@ -206,6 +205,7 @@ class ClientsRepository extends ServiceEntityRepository
         $client->setMiddleName($clientData->getMiddleName());
         $client->setLastName($clientData->getLastName());
         $client->setSuffix($clientData->getSuffix());
+        $client->setAlias($clientData->getAlias());
         $client->setGender($clientData->getGender());
         $client->setDateOfBirth($clientData->getDateOfBirth());
         $client->setOffenseCategory($clientData->getOffenseCategory());
