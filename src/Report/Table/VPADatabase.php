@@ -67,10 +67,11 @@ class VPADatabase implements Form
             $fullName = $volunteer['first_name'] . ' ' . $middleInitial . ' ' . $volunteer['last_name'];
             $dateAppointed = $this->appDateHelper->convertStringToImmutableDate($volunteer['date_appointed']);
             $dateOfBirth = $this->appDateHelper->convertStringToImmutableDate($volunteer['date_of_birth']);
+            $volunteerId = 'RO-' . date('ym') . '-' . str_pad($volunteer['volunteer_id'], 4, '0', STR_PAD_LEFT);
 
             $spreadsheet->getActiveSheet()->setCellValue("A" . $this->lastFilledOutCellY, $fullName);
             // TODO: replaced with volunteer_id -> id_no
-            $spreadsheet->getActiveSheet()->setCellValue("B" . $this->lastFilledOutCellY, $volunteer['volunteer_id']);
+            $spreadsheet->getActiveSheet()->setCellValue("B" . $this->lastFilledOutCellY, $volunteerId);
             if ($dateAppointed != null) {
                 $spreadsheet->getActiveSheet()->setCellValue("C" . $this->lastFilledOutCellY, $dateAppointed->format('F j, Y'));
             }
