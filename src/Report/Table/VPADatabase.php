@@ -64,7 +64,7 @@ class VPADatabase implements Form
             $this->lastFilledOutCellY++;
 
             $middleInitial = $volunteer['middle_name'] != null ? substr($volunteer['middle_name'], 0, 1) . '.' : '';
-            $fullName = $volunteer['last_name'] . ', ' . $volunteer['last_name'] . ' ' . $middleInitial;
+            $fullName = $volunteer['first_name'] . ' ' . $middleInitial . ' ' . $volunteer['last_name'];
             $dateAppointed = $this->appDateHelper->convertStringToImmutableDate($volunteer['date_appointed']);
             $dateOfBirth = $this->appDateHelper->convertStringToImmutableDate($volunteer['date_of_birth']);
 
@@ -72,13 +72,13 @@ class VPADatabase implements Form
             // TODO: replaced with volunteer_id -> id_no
             $spreadsheet->getActiveSheet()->setCellValue("B" . $this->lastFilledOutCellY, $volunteer['volunteer_id']);
             if ($dateAppointed != null) {
-                $spreadsheet->getActiveSheet()->setCellValue("C" . $this->lastFilledOutCellY, $dateAppointed->format('y-M-d'));
+                $spreadsheet->getActiveSheet()->setCellValue("C" . $this->lastFilledOutCellY, $dateAppointed->format('F j, Y'));
             }
             $spreadsheet->getActiveSheet()->setCellValue("D" . $this->lastFilledOutCellY, $volunteer['present_address']);
             $spreadsheet->getActiveSheet()->setCellValue("E" . $this->lastFilledOutCellY, $volunteer['height']);
             $spreadsheet->getActiveSheet()->setCellValue("F" . $this->lastFilledOutCellY, $volunteer['weight']);
             $spreadsheet->getActiveSheet()->setCellValue("G" . $this->lastFilledOutCellY, $volunteer['gender']);
-            $spreadsheet->getActiveSheet()->setCellValue("H" . $this->lastFilledOutCellY, $dateOfBirth->format('y-M-d'));
+            $spreadsheet->getActiveSheet()->setCellValue("H" . $this->lastFilledOutCellY, $dateOfBirth->format('F j, Y'));
             $spreadsheet->getActiveSheet()->setCellValue("I" . $this->lastFilledOutCellY, $volunteer['age']);
             $spreadsheet->getActiveSheet()->setCellValue("J" . $this->lastFilledOutCellY, $volunteer['civil_status']);
             $spreadsheet->getActiveSheet()->setCellValue("K" . $this->lastFilledOutCellY, $volunteer['religion']);
@@ -108,7 +108,7 @@ class VPADatabase implements Form
         $spreadsheet = new Spreadsheet();
 
         $textAndCoordinates = [
-            'L1' => 'PPA-CSD-FR-009-01', 'A2' => 'VPA DATABASE', 'A3' => 'REGION: ' . $this->data['header']['region'] ?? 'NCR',
+            'L1' => 'CSD-FOR-009-01', 'A2' => 'VPA DATABASE', 'A3' => 'REGION: ' . $this->data['header']['region'] ?? 'NCR', 'A4' => 'FIELD OFFICE: ' . $this->data['header']['field_office'] ?? '',
             'A5' => 'NAME', 'B5' => 'ID Number', 'C5' => 'Date of Appointment', 'D5' => 'Address', 'E5' => 'Ht.',
             'F5' => 'Wt.', 'G5' => 'Gender', 'H5' => 'Date of Birth', 'I5' => 'Age', 'J5' => 'Civil Status',
             'K5' => 'Religion', 'L5' => 'Education', 'M5' => 'Occupation'

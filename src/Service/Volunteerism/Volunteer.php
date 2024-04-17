@@ -459,8 +459,13 @@ class Volunteer implements VolunteerInterface
                 'header' => [],
                 'volunteers' => []
             ];
+            
             $region = $this->regionsRepository->find($regionId);
             $data['header']['region'] = $region->getName();
+            if (null !== $fieldOfficeId) {
+                $fieldOffice = $this->fieldOfficesRepository->find($fieldOfficeId);
+                $data['header']['field_office'] = $fieldOffice->getName();
+            }
             $volunteers = (null != $fieldOfficeId) ? $this->repository->findByFieldOffice($fieldOfficeId)
                 : $this->repository->findByRegionId($regionId);
 
