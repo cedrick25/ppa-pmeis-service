@@ -63,8 +63,8 @@ class VPADatabase implements Form
         foreach ($volunteers as $volunteer) {
             $this->lastFilledOutCellY++;
 
-            $middleInitial = $volunteer['middle_name'] != null ? substr($volunteer['middle_name'], 0, 1) . '.' : '';
-            $fullName = $volunteer['first_name'] . ' ' . $middleInitial . ' ' . $volunteer['last_name'];
+            $middleInitial = $volunteer['middle_name'] != null ? $volunteer['middle_name'] : '';
+            $fullName = strtoupper($volunteer['first_name']) . ' ' . strtoupper($middleInitial) . ' ' . strtoupper($volunteer['last_name']);
             $dateAppointed = $this->appDateHelper->convertStringToImmutableDate($volunteer['date_appointed']);
             $dateOfBirth = $this->appDateHelper->convertStringToImmutableDate($volunteer['date_of_birth']);
             $volunteerId = 'RO-' . date('ym') . '-' . str_pad($volunteer['volunteer_id'], 4, '0', STR_PAD_LEFT);

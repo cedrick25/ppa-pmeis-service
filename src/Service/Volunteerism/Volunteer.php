@@ -608,7 +608,8 @@ class Volunteer implements VolunteerInterface
     {
         $volunteer = $this->repository->find($data['volunteer_id']);
         $address = $volunteer->getPresentAddress();
-        $fullName = $volunteer->getFirstName() . ' ' . $volunteer->getMiddleName() . ' ' . $volunteer->getLastName();
+        $middleInitial = $volunteer->getMiddleName() != null ? substr($volunteer->getMiddleName(), 0, 1) : '';
+        $fullName = strtoupper($volunteer->getFirstName()) . ' ' . strtoupper($middleInitial) . ', ' . strtoupper($volunteer->getLastName());
         $fieldOffice = $this->fieldOfficesRepository->find($volunteer->getFieldOfficeId());
         $fieldOfficeName = $fieldOffice->getName();
         $dateOfAppointment = $volunteer->getDateAppointed()->format('F d, Y');
@@ -632,7 +633,7 @@ class Volunteer implements VolunteerInterface
             <h2 style="text-align: center;line-height: 5px;">PAROLE AND PROBATION ADMINISTRATION</h2>
             <h5 style="text-align: center;line-height: 5px;">DOJ Agencies Building</h5>
             <h5 style="text-align: center;line-height: 5px;">NIA Road corner East Avenue, Diliman</h5>
-            <h5 style="text-align: center;line-height: 5px;">110 Quezon City</h5>
+            <h5 style="text-align: center;line-height: 5px;">1110 Quezon City</h5>
         EOD;
 
         $pdf->writeHTMLCell(0, 0, '', '', $heading);
@@ -658,7 +659,7 @@ class Volunteer implements VolunteerInterface
                 <div></div>
                 <div></div>
                 <h1 style="text-align: center;font-size: 20px;line-height: 5px;">$administrator</h1>
-                <h2 style="text-align: center;font-weight:normal;line-height: 5px;">OIC Administrator</h2>
+                <h2 style="text-align: center;font-weight:normal;line-height: 5px;">Administrator</h2>
             </div>
         EOD;
 
