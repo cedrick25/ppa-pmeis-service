@@ -609,7 +609,7 @@ class Volunteer implements VolunteerInterface
         $volunteer = $this->repository->find($data['volunteer_id']);
         $address = $volunteer->getPresentAddress();
         $middleInitial = $volunteer->getMiddleName() != null ? substr($volunteer->getMiddleName(), 0, 1) : '';
-        $fullName = strtoupper($volunteer->getFirstName()) . ' ' . strtoupper($middleInitial) . ', ' . strtoupper($volunteer->getLastName());
+        $fullName = strtoupper($volunteer->getFirstName()) . ' ' . strtoupper($middleInitial) . '. ' . strtoupper($volunteer->getLastName());
         $fieldOffice = $this->fieldOfficesRepository->find($volunteer->getFieldOfficeId());
         $fieldOfficeName = $fieldOffice->getName();
         $dateOfAppointment = $volunteer->getDateAppointed()->format('F d, Y');
