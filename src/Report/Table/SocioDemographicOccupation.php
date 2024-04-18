@@ -33,6 +33,22 @@ class SocioDemographicOccupation implements Form
     public function generate(array $data): BinaryFileResponse
     {
         $this->data = $this->getData($data);
+        unset($this->data['rows']['Regional Office - Region I']);
+        unset($this->data['rows']['Regional Office - Region II']);
+        unset($this->data['rows']['Regional Office - Region III']);
+        unset($this->data['rows']['Regional Office - Region IV-A']);
+        unset($this->data['rows']['Regional Office - Region IV-B']);
+        unset($this->data['rows']['Regional Office - Region V']);
+        unset($this->data['rows']['Regional Office - Region VI']);
+        unset($this->data['rows']['Regional Office - Region VII']);
+        unset($this->data['rows']['Regional Office - Region VIII']);
+        unset($this->data['rows']['Regional Office - Region IX']);
+        unset($this->data['rows']['Regional Office - Region X']);
+        unset($this->data['rows']['Regional Office - Region XI']);
+        unset($this->data['rows']['Regional Office - Region XII']);
+        unset($this->data['rows']['Regional Office - Region XIII']);
+        unset($this->data['rows']['Regional Office - CAR']);
+        unset($this->data['rows']['Regional Office - NCR']);
 
         $spreadsheet = $this->footer();
         $writer = IOFactory::createWriter($spreadsheet, "Xlsx");
@@ -107,7 +123,7 @@ class SocioDemographicOccupation implements Form
         }
 
         $this->lastFilledOutCellY++;
-        $spreadsheet->getActiveSheet()->setCellValue('A' . $this->lastFilledOutCellY, 'GRAND TOTALS');
+        $spreadsheet->getActiveSheet()->setCellValue('A' . $this->lastFilledOutCellY, 'GRAND TOTAL');
         $spreadsheet->getActiveSheet()->getStyle('A' . $this->lastFilledOutCellY)->getFont()->setBold(true);
         $spreadsheet->getActiveSheet()
             ->setCellValue('B' . $this->lastFilledOutCellY, $total[OccupationType::ARMED_FORCES_OCCUPATION]);
@@ -162,10 +178,10 @@ class SocioDemographicOccupation implements Form
     {
         $spreadsheet = new Spreadsheet();
         $textAndCoordinates = [
-            'M1' => 'PPA-CSD-FR-011-00',
+            'M1' => 'CSD-FR-011-00',
             'A2' => 'VPA SOCIO-DEMOGRAPHIC REPORT',
             'A3' => 'As of________20__',
-            'A5' => 'Field Office',
+            'A5' => 'Regional Office',
             'B5' => 'OCCUPATION',
             'B6' => OccupationType::ARMED_FORCES_OCCUPATION,
             'C6' => OccupationType::MANAGERS,

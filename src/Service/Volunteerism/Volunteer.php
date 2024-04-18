@@ -342,7 +342,8 @@ class Volunteer implements VolunteerInterface
     {
         try {
             $volunteers = $this->repository->findByRegionId($regionId);
-
+            $region = $this->regionsRepository->find($regionId);
+            $regionsName = $region->getName();
             if (sizeof($volunteers) <= 0) {
                 return $this->appFormatter->formatResponse(ResponseEnum::NO_DATA, null);
             }
@@ -758,11 +759,13 @@ class Volunteer implements VolunteerInterface
         EOD;
 
         foreach ($volunteers as $index => $volunteer) {
-            $fullName = $volunteer->getFirstName() . ' ' . $volunteer->getMiddleName() . ' ' . $volunteer->getLastName();
-
+        $middleInitial = $volunteer->getMiddleName() != null ? substr($volunteer->getMiddleName(), 0, 1) : '';
+        $fullName = strtoupper($volunteer->getFirstName()) . ' ' . strtoupper($middleInitial) . '. ' . strtoupper($volunteer->getLastName());
+        $volunteerId = 'RO-' . date('ym') . '-' . str_pad($volunteer->getVolunteerId(), 4, '0', STR_PAD_LEFT);
+        
             $front .= $this->createFrontId(
                 $index % 2 == 0 ? 'start' : 'end',
-                (string) $volunteer->getVolunteerId(),
+                (string) $volunteerId,
                 $fullName,
                 $fieldOffice->getName(),
                 $region->getName(),
@@ -1167,7 +1170,7 @@ class Volunteer implements VolunteerInterface
                         <h3 style="text-align: center">$regionName</h3>
                         <div></div>
                         <h2 class="admin-name">$administrator</h2>
-                        <h3 class="admin-title">OIC Administrator</h3>
+                        <h3 class="admin-title">Administrator</h3>
                     </td>
         EOD;
 
@@ -1219,8 +1222,8 @@ class Volunteer implements VolunteerInterface
                     </tr>
                     <tr>
                         <td style="height: 40px;">$bloodType</td>
-                        <td style="height: 40px;">$weight</td>
-                        <td style="height: 40px;">$height</td>
+                        <td style="height: 40px;">$weight kg</td>
+                        <td style="height: 40px;">$height cm</td>
                     </tr>
                     <tr><td colspan="3"></td></tr>
                     <tr><td colspan="3" class="back-page-title">&nbsp;IN CASE OF EMERGENCY, NOTIFY:</td></tr>

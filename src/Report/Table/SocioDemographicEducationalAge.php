@@ -10,6 +10,7 @@ use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Style\Border;
 use PhpOffice\PhpSpreadsheet\Writer\Exception;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
+use App\Repository\RegionsRepository;
 
 class SocioDemographicEducationalAge implements Form
 {
@@ -19,6 +20,7 @@ class SocioDemographicEducationalAge implements Form
         private Volunteer   $service,
         private int         $lastFilledOutCellY = 10,
         private array       $data = [],
+        private RegionsRepository  $regionsRepository,
     ) {}
 
     public function supports(string $tableName): bool
@@ -32,6 +34,22 @@ class SocioDemographicEducationalAge implements Form
     public function generate(array $data): BinaryFileResponse
     {
         $this->data = $this->getData($data);
+        unset($this->data['rows']['Regional Office - Region I']);
+        unset($this->data['rows']['Regional Office - Region II']);
+        unset($this->data['rows']['Regional Office - Region III']);
+        unset($this->data['rows']['Regional Office - Region IV-A']);
+        unset($this->data['rows']['Regional Office - Region IV-B']);
+        unset($this->data['rows']['Regional Office - Region V']);
+        unset($this->data['rows']['Regional Office - Region VI']);
+        unset($this->data['rows']['Regional Office - Region VII']);
+        unset($this->data['rows']['Regional Office - Region VIII']);
+        unset($this->data['rows']['Regional Office - Region IX']);
+        unset($this->data['rows']['Regional Office - Region X']);
+        unset($this->data['rows']['Regional Office - Region XI']);
+        unset($this->data['rows']['Regional Office - Region XII']);
+        unset($this->data['rows']['Regional Office - Region XIII']);
+        unset($this->data['rows']['Regional Office - CAR']);
+        unset($this->data['rows']['Regional Office - NCR']);
 
         $spreadsheet = $this->footer();
         $writer = IOFactory::createWriter($spreadsheet, "Xlsx");
@@ -129,7 +147,7 @@ class SocioDemographicEducationalAge implements Form
             $spreadsheet->getActiveSheet()->setCellValue('R' . $this->lastFilledOutCellY, $agesTotal);
         }
         $this->lastFilledOutCellY++;
-        $spreadsheet->getActiveSheet()->setCellValue('A' . $this->lastFilledOutCellY, 'GRAND TOTALS');
+        $spreadsheet->getActiveSheet()->setCellValue('A' . $this->lastFilledOutCellY, 'GRAND TOTAL');
         $spreadsheet->getActiveSheet()->getStyle('A' . $this->lastFilledOutCellY)->getFont()->setBold(true);
         $spreadsheet->getActiveSheet()->setCellValue('B' . $this->lastFilledOutCellY, $total['Post Graduate']);
         $spreadsheet->getActiveSheet()->setCellValue('C' . $this->lastFilledOutCellY, $total['College Graduate']);
@@ -171,10 +189,10 @@ class SocioDemographicEducationalAge implements Form
     {
         $spreadsheet = new Spreadsheet();
         $textAndCoordinates = [
-            'N1' => 'PPA-CSD-FR-011-00',
+            'N1' => 'CSD-FR-011-00',
             'A2' => 'VPA SOCIO-DEMOGRAPHIC REPORT',
             'A3' => 'As of________20__',
-            'A5' => 'Field Office',
+            'A5' => 'Regional Office',
             'B5' => 'EDUCATIONAL BACKGROUND',
             'K5' => 'AGE',
             'B6' => 'Post Graduate',
