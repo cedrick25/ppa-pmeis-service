@@ -822,8 +822,8 @@ class Volunteer implements VolunteerInterface
                 $volunteer->getHeight(),
                 $volunteer->getEmergencyName(),
                 $volunteer->getEmergencyNumber(),
-                $volunteer->getDateAppointed()->format('Y-m-d'),
-                date('Y-m-d', strtotime($volunteer->getDateAppointed()->format('Y-m-d') . ' +2 years')),
+                $volunteer->getDateAppointed()->format('F d, Y'),
+                date('F d, Y', strtotime($volunteer->getDateAppointed()->format('Y-m-d') . ' +2 years')),
                 count($volunteersId),
                 $index
             );

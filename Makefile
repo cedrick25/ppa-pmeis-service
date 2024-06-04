@@ -19,6 +19,9 @@ ssh:
 ssh-mysql:
 	docker exec -it ${MYSQL_CONTAINER} /bin/bash
 
+install-composer:
+	curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
+
 composer-install:
 	docker exec ${CONTAINER} bash -c "composer require $(package)"
 
