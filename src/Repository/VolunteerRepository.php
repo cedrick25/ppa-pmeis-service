@@ -404,7 +404,8 @@ class VolunteerRepository extends ServiceEntityRepository
         $query = $this->getEntityManager()->getConnection()->executeQuery(
             "SELECT volunteer.*, fo.name as field_office FROM volunteer
                 LEFT JOIN field_offices as fo ON volunteer.field_office_id = fo.field_office_id
-                WHERE fo.field_office_id = :fieldOfficeId AND volunteer.deleted_at IS NULL",
+              WHERE fo.field_office_id = :fieldOfficeId AND volunteer.deleted_at IS NULL 
+              AND volunteer.vpaStatus = 'APPOINTED' AND volunteer.dateAppointed IS NOT NULL",
             ['fieldOfficeId' => $fieldOfficeId]
         );
 
