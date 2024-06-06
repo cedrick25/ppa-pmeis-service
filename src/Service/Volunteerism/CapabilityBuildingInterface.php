@@ -19,5 +19,5 @@ interface CapabilityBuildingInterface
 
     public function update(int $id, array $data): array;
 
-    public function getById(int $id): array;
+    public function getById(int $id, string $type): array;
 }

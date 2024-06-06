@@ -9,7 +9,6 @@ use App\Repository\CapabilityBuildingParticipantsRepository;
 use App\Repository\CapabilityBuildingRepository;
 use App\Repository\QuartersRepository;
 use App\Service\System\AuditTrail;
-use Doctrine\DBAL\Driver\Exception;
 use Doctrine\ORM\Exception\ORMException;
 use Psr\Cache\CacheException;
 use Psr\Cache\InvalidArgumentException;
@@ -199,7 +198,7 @@ class CapabilityBuilding implements CapabilityBuildingInterface
         }
     }
 
-    public function getById(int $id): array
+    public function getById(int $id, string $type): array
     {
         $result = $this->repository->getById($id);
 
@@ -208,7 +207,7 @@ class CapabilityBuilding implements CapabilityBuildingInterface
         }
 
         $result['participants'] = $this->transformParticipants($this->capabilityBuildingParticipantsRepository
-            ->findParticipantsByCapabilityBuildingsId([$id])[$id] ?? []);
+            ->findParticipantsByCapabilityBuildingsId([$id], $type)[$id] ?? []);
 
         return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_SUCCESS, $result);
     }
