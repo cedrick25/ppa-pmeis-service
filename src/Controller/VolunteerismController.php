@@ -863,7 +863,7 @@ class VolunteerismController extends AbstractController
     }
 
     /**
-     * @Route("/support-of-region/delete/{id}", methods={"GET"})
+     * @Route("/support-of-region/delete/by/id/{id}", methods={"GET"})
      */
     public function deleteSupportOfRegionById(Request $request): Response
     {

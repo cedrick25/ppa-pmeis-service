@@ -10,7 +10,6 @@ use App\Repository\FieldOfficesRepository;
 use App\Repository\QuartersRepository;
 use App\Repository\SupportOfRegionToFieldOfficeRepository;
 use App\Service\System\AuditTrail;
-use Doctrine\DBAL\Driver\Exception;
 use Doctrine\ORM\Exception\ORMException;
 use Psr\Cache\CacheException;
 use Psr\Cache\InvalidArgumentException;
