@@ -121,9 +121,9 @@ class RjRelatedRestitutionsRepository extends ServiceEntityRepository
      */
     public function softDelete(int $id): bool
     {
-        $entity =$this->isExistingById($id);
+        $entity = $this->isExistingById($id);
 
-        if ($entity == null) {
+        if ($entity == false) {
             return false;
         }
 
@@ -183,7 +183,7 @@ class RjRelatedRestitutionsRepository extends ServiceEntityRepository
         $results = $this->getEntityManager()->getConnection()
             ->executeQuery(
                 "SELECT * FROM rj_related_restitutions rrr WHERE rrr.field_office_id IN (:fieldOfficesId)
-                        AND rrr.quarter_id = :quarterId",
+                        AND rrr.quarter_id = :quarterId AND rrr.deleted_at IS NULL",
                 [
                     'fieldOfficesId' => $fieldOfficesId,
                     'quarterId' => $quarterId,
@@ -226,10 +226,13 @@ class RjRelatedRestitutionsRepository extends ServiceEntityRepository
             $startOffset = $pageSize * ($page-1);
             $result = [];
 
-            $sql = "SELECT * FROM rj_related_restitutions rrr ";
+            // $sql = "SELECT * FROM rj_related_restitutions rrr WHERE rrr.deleted_at IS NULL ";
+            $sql = "SELECT rrr.*, CONCAT(ud.first_name, ' ', COALESCE(ud.middle_name, ''), ' ', ud.last_name) AS created_by
+                    FROM rj_related_restitutions rrr LEFT JOIN user_details as ud ON rrr.created_by = ud.user_account_id
+                    WHERE rrr.deleted_at IS NULL ";
             
             if ($filedOfficeId > 0) {
-                $sql .= "WHERE rrr.field_office_id = $filedOfficeId ";
+                $sql .= "AND rrr.field_office_id = $filedOfficeId ";
             }
 
             $result['totalItems'] = $this->helper->getCustomQueryPaginatedTotalItems($conn, $sql);
