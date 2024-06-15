@@ -184,14 +184,19 @@ class VolunteerSupervisions implements VolunteerSupervisionsInterface
 
     public function update(int $id, VolunteerSupervisionsModel $data): array
     {
-        $this->deleteById($id);
+        $isUpdated = $this->repository->update($id, $data);
 
-        $response = $this->create($data);
-
-        if (ResponseEnum::CREATING_SUCCESS != $response['message']) {
+        if ($isUpdated !== ResponseEnum::OK) {
             return $this->appFormatter->formatResponse(ResponseEnum::UPDATING_FAILED, []);
         }
 
-        return $this->appFormatter->formatResponse(ResponseEnum::UPDATING_SUCCESS, []);
+        $this->auditTrail->log(
+            AuditTrailActions::UPDATE,
+            $data->jsonSerialize(),
+            $this->shortName,
+            $id
+        );
+
+        return $this->appFormatter->formatResponse(ResponseEnum::UPDATING_SUCCESS, ['id' => $id]);
     }
 }

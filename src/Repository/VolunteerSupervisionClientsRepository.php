@@ -63,6 +63,16 @@ class VolunteerSupervisionClientsRepository extends ServiceEntityRepository
         $this->getEntityManager()->clear();
     }
 
+    public function deleteByVolunteerSupervisionId(int $supervisionId): void
+    {
+        $this->getEntityManager()->getConnection()
+            ->executeQuery(
+                "DELETE FROM volunteer_supervision_clients
+                        WHERE volunteer_supervision_id = :volunteer_supervision_id",
+                ['volunteer_supervision_id' => $supervisionId],
+            );
+    }
+  
     public function findClientsWithDetailsBySupervisionId(array $ids): array
     {
         $return = [];

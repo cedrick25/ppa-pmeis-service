@@ -4,7 +4,6 @@ namespace App\Repository;
 
 use App\Common\AppDateHelper;
 use App\Common\CacheHelper;
-use App\Entity\VolunteerOperations;
 use App\Entity\VolunteerSupervisions;
 use App\Model\VolunteerSupervisions as VolunteerSupervisionsModel;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
@@ -15,6 +14,7 @@ use Doctrine\Persistence\ManagerRegistry;
 use Psr\Cache\CacheException;
 use Psr\Cache\InvalidArgumentException;
 use Symfony\Contracts\Cache\TagAwareCacheInterface;
+use App\Enum\Response as ResponseEnum;
 
 /**
  * @method VolunteerSupervisions|null find($id, $lockMode = null, $lockVersion = null)
@@ -83,6 +83,39 @@ class VolunteerSupervisionsRepository extends ServiceEntityRepository
         $this->supervisionClientsRepository->bulkCreate($id, $data->getClientIds());
 
         return $id;
+    }
+    
+    /**
+     * @throws InvalidArgumentException
+     * @throws \Exception
+     */
+    public function update(int $id, VolunteerSupervisionsModel $data): string
+    {
+        $entity = $this->isExistingById($id);
+
+        if (null == $entity) {
+            return ResponseEnum::NO_RECORD;
+        }
+
+        $this->cache->invalidateTags([self::CACHE_TAG]);
+
+        $entity->setVolunteerId($data->getVolunteerId());
+        $entity->setServicesRenderedId($data->getServicesRenderedId());
+        $entity->setCommunityResourcesTapped($data->getCommunityResourcesTapped());
+        $entity->setAssistanceReceived($data->getAssistanceReceived());
+        $entity->setRemarks($data->getRemarks());
+        $entity->setFieldOfficeId($data->getFieldOfficeId());
+        $entity->setQuarterId($data->getQuarterId());
+        $entity->setUpdatedAt($this->appDateHelper->getCurrentImmutableDate());
+        $this->getEntityManager()->persist($entity);
+        $this->getEntityManager()->flush();
+
+        $id = $entity->getVolunteerSupervisionsId();
+
+        $this->supervisionClientsRepository->deleteByVolunteerSupervisionId($id);
+        $this->supervisionClientsRepository->bulkCreate($id, $data->getClientIds());
+
+        return ResponseEnum::OK;
     }
 
     /**
