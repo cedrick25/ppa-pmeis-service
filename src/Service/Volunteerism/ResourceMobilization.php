@@ -237,7 +237,6 @@ class ResourceMobilization implements ResourceMobilizationInterface
                 $resourceMobilizations
             );
 
-
             $cash = $this->cashRepository->findByResMobsId($resMobsId);
             $materials = $this->materialsRepository->findByResMobsId($resMobsId);
             $technicalAssistance = $this->technicalAssistanceRepository->findByResMobsId($resMobsId);
@@ -247,9 +246,9 @@ class ResourceMobilization implements ResourceMobilizationInterface
                 $resMobId = $resourceMobilization['resource_mobilization_id'];
 
                 $resourceMobilization['cash'] = $cash[$resMobId];
-                $resourceMobilization['materials'] = $materials[$resMobId];
-                $resourceMobilization['technicalAssistance'] = $technicalAssistance[$resMobId];
-                $resourceMobilization['securedBy'] = $securedBy[$resMobId];
+                $resourceMobilization['materials'] = $materials[$resMobId] ?? [];
+                $resourceMobilization['technicalAssistance'] = $technicalAssistance[$resMobId] ?? [];
+                $resourceMobilization['securedBy'] = $securedBy[$resMobId] ?? [];
 
                 $result[$resourceMobilization['category']][] = $resourceMobilization;
             }
