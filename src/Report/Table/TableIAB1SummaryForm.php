@@ -63,9 +63,9 @@ class TableIAB1SummaryForm implements Form
     public function header(): Spreadsheet
     {
         $spreadsheet = $this->prepare();
-        $spreadsheet->getActiveSheet()->getStyle('A7:Y10')->getBorders()
+        $spreadsheet->getActiveSheet()->getStyle('A7:T10')->getBorders()
             ->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
-        $spreadsheet->getActiveSheet()->getStyle('A13:Y16')->getBorders()
+        $spreadsheet->getActiveSheet()->getStyle('A13:T16')->getBorders()
             ->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
         $spreadsheet->getActiveSheet()->getStyle('A18:D24')->getBorders()
             ->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
@@ -123,21 +123,65 @@ class TableIAB1SummaryForm implements Form
 
         ];
 
-        foreach ($this->data['process_conducted'] as $processConducted) {
-            $rjGroup = $processConducted['rj_group'];
+        $clients = [];
 
-            if (in_array($processConducted['rjp_status'], $positiveParticulars)) {
-                $particulars['positive'][$rjGroup]++;
-            } else {
-                $particulars['negative'][$rjGroup]++;
+        foreach ($this->data['process_conducted'] as $processConducted) {
+          $rjGroup = $processConducted['rj_group'];
+          $rjType = str_contains($processConducted['rjp_type'], 'Others') ? 'Others' : $processConducted['rjp_type'];
+
+          if (in_array($processConducted['rjp_status'], $positiveParticulars)) {
+            $particulars['positive'][$rjGroup]++;
+          } else {
+            $particulars['negative'][$rjGroup]++;
+          }
+
+          $outcomes[$processConducted['rj_outcome_name']][$rjGroup]++;
+          $rjProcess[$processConducted['rjp_type']][$processConducted['rj_group']]++;
+
+          if (! isset($clients[$rjGroup][$rjType])) {
+            $clients[$rjGroup][$rjType] = [];
+          }
+
+          foreach($processConducted['clients'] as $client) {
+            if (! isset($clients[$rjGroup][$rjType]['conductedProcess'])) {
+              $clients[$rjGroup][$rjType]['conductedProcess'] = [];
             }
 
-            $outcomes[$processConducted['rj_outcome_name']][$rjGroup]++;
-            $rjProcess[$processConducted['rjp_type']][$processConducted['rj_group']]++;
+            $clients[$rjGroup][$rjType]['conductedProcess'][] = $client['rj_conduct_process_id'];
+
+            if (! isset($clients[$rjGroup][$rjType]['gender']['M'])) {
+              $clients[$rjGroup][$rjType]['gender']['M'] = 0;
+            }
+
+            if (! isset($clients[$rjGroup][$rjType]['gender']['F'])) {
+              $clients[$rjGroup][$rjType]['gender']['F'] = 0;
+            }
+
+            $clients[$rjGroup][$rjType]['gender'][$client['gender']]++;
+
+            if (! isset($clients[$rjGroup][$rjType]['is_pwd'])) {
+              $clients[$rjGroup][$rjType]['is_pwd'] = 0;
+            }
+            
+            if (boolval($client['is_pwd'])) {
+              $clients[$rjGroup][$rjType]['is_pwd'] += 1;
+            }
+
+            if (! isset($clients[$rjGroup][$rjType]['is_senior_citizen'])) {
+              $clients[$rjGroup][$rjType]['is_senior_citizen'] = 0;
+            }
+            
+            if (boolval($client['is_senior_citizen'])) {
+              $clients[$rjGroup][$rjType]['is_senior_citizen'] += 1;
+            }
+          }
+
+          $clients[$rjGroup][$rjType]['conductedProcess'] = array_unique($clients[$rjGroup][$rjType]['conductedProcess']);
         }
 
         $spreadsheet = $this->plotParticulars($particulars, $spreadsheet);
         $spreadsheet = $this->plotOutcomes($outcomes, $spreadsheet);
+        $spreadsheet = $this->plotTotalNumberPerRjType($clients, $spreadsheet);
 
         return $this->plotProcess($rjProcess, $spreadsheet);
     }
@@ -161,31 +205,25 @@ class TableIAB1SummaryForm implements Form
             'A4' => 'I.B.1   RESTORATIVE JUSTICE',
             'A5' => "Table I.B.1   Number of RJ Processes Conducted/ Clients' Involvement",
             'A6' => "TOTAL NUMBER (". self::ACTIVE_SUPERVISION .")",
-            'A7' => self::PRE_ENCOUNTER_ACT, 'F7' => 'Mediation', 'K7' => 'Conferencing', 'P7' => 'COS',
-            'U7' => 'Others',
+            'A7' => self::PRE_ENCOUNTER_ACT, 'F7' => 'Mediation', 'K7' => 'COS', 'P7' => 'Others',
             'A8' => '# of Acts', 'B8' => 'SEX', 'D8' => 'PWD', 'E8' => 'SC',
             'F8' => 'Sessions', 'G8' => 'Sex', 'I8' => 'PWD', 'J8' => 'SC',
             'K8' => 'Sessions', 'L8' => 'Sex', 'N8' => 'PWD', 'O8' => 'SC',
             'P8' => 'Sessions', 'Q8' => 'Sex', 'S8' => 'PWD', 'T8' => 'SC',
-            'U8' => 'Sessions', 'V8' => 'Sex', 'X8' => 'PWD', 'Y8' => 'SC',
             'A9' => 'Conducted', 'B9' => 'F', 'C9' => 'M',
             'F9' => 'Conducted', 'G9' => 'F', 'H9' => 'M',
-            'K9' => 'Conducted', 'L9' => 'F', 'M9' => 'M',
+            'K9' => 'Conducted', 'K9' => 'F', 'L9' => 'M',
             'P9' => 'Conducted', 'Q9' => 'F', 'R9' => 'M',
-            'U9' => 'Conducted', 'V9' => 'F', 'W9' => 'M',
             'A12' => "TOTAL NUMBER (PETITIONERS)",
-            'A13' => self::PRE_ENCOUNTER_ACT, 'F13' => 'Mediation', 'K13' => 'Conferencing', 'P13' => 'COS',
-            'U13' => 'Others',
+            'A13' => self::PRE_ENCOUNTER_ACT, 'F13' => 'Mediation', 'K13' => 'COS', 'P13' => 'Others',
             'A14' => '# of Acts', 'B14' => 'SEX', 'D14' => 'PWD', 'E14' => 'SC',
             'F14' => 'Sessions', 'G14' => 'Sex', 'I14' => 'PWD', 'J14' => 'SC',
             'K14' => 'Sessions', 'L14' => 'Sex', 'N14' => 'PWD', 'O14' => 'SC',
             'P14' => 'Sessions', 'Q14' => 'Sex', 'S14' => 'PWD', 'T14' => 'SC',
-            'U14' => 'Sessions', 'V14' => 'Sex', 'X14' => 'PWD', 'Y14' => 'SC',
             'A15' => 'Conducted', 'B15' => 'F', 'C15' => 'M',
             'F15' => 'Conducted', 'G15' => 'F', 'H15' => 'M',
             'K15' => 'Conducted', 'L15' => 'F', 'M15' => 'M',
             'P15' => 'Conducted', 'Q15' => 'F', 'R15' => 'M',
-            'U15' => 'Conducted', 'V15' => 'F', 'W15' => 'M',
             'A18' => 'Table I.B.1(Columns 1 & 10)',
             'A19' => 'PARTICULARS (RJ STATUS)', 'B19' => 'Number', 'D19' => 'Total', 'B20' => self::ACTIVE_SUPERVISION,
             'C20' => 'Petitioner',
@@ -210,25 +248,25 @@ class TableIAB1SummaryForm implements Form
         ];
 
         $mergesCoordinates = [
-            'A7:E7', 'F7:O7', 'P7:T7', 'U7:Y7', 'A13:E13', 'F13:O13', 'P13:T13', 'U13:Y13',
+            'A7:E7', 'F7:J7', 'K7:O7', 'P7:T7', 'A13:E13', 'F13:J13', 'K13:O13', 'P13:T13',
             'A19:A20', 'B18:C18', 'B21:B22', 'C21:C22', 'B23:B24', 'C23:C24', 'D19:D20', 'D21:D22', 'D23:D24',
             'A27:A28', 'B27:C27', 'D27:D28', 'A35:A36', 'B35:C35'
         ];
 
         $boldCoordinates = [
-            'A1:Y7', 'A12:Y13',
+            'A1:T7', 'A12:T13',
         ];
 
         $verticalAlignedCoordinates = [
-            'A1:Y15' => 'center', 'A18:D24' => 'center', 'A35:C42' => 'center'
+            'A1:T15' => 'center', 'A18:D24' => 'center', 'A35:C42' => 'center'
         ];
 
         $horizontalAlignedCoordinates = [
-            'A1:Y15' => 'center', 'A18:D24' => 'center', 'A35:C42' => 'center'
+            'A1:T15' => 'center', 'A18:D24' => 'center', 'A35:C42' => 'center'
         ];
 
         $adjustedColumnWidthCoordinates = [
-            'A' => 25, 'F' => 25, 'K' => 25, 'P' => 25,  'U' => 25,
+            'A' => 25, 'F' => 25, 'K' => 25, 'P' => 25,
         ];
 
         foreach ($textAndCoordinates as $coordinate => $text) {
@@ -403,4 +441,65 @@ class TableIAB1SummaryForm implements Form
 
         return $spreadsheet;
     }
+
+  /**
+  * @param array<string, mixed> $clients
+  */
+  private function plotTotalNumberPerRjType(array $clients, $spreadsheet): Spreadsheet
+  {
+    foreach ($clients as $rjGroup => $rjTypeClients) {
+      $cellRow = $rjGroup === 'ACTIVE_SUPERVISION' ? 10 : 16;
+
+      foreach ($rjTypeClients as $rjType => $client) {
+        $cellColumnConducted = '';
+        $cellColumnSexF = '';
+        $cellColumnSexM = '';
+        $cellColumnPwd = '';
+        $cellColumnSC = '';
+
+        switch ($rjType) {
+          case 'Pre-Encounter Activities':
+            $cellColumnConducted = 'A';
+            $cellColumnSexF = 'B';
+            $cellColumnSexM = 'C';
+            $cellColumnPwd = 'D';
+            $cellColumnSC = 'E';
+
+            break;
+          case 'Mediation':
+            $cellColumnConducted = 'F';
+            $cellColumnSexF = 'G';
+            $cellColumnSexM = 'H';
+            $cellColumnPwd = 'I';
+            $cellColumnSC = 'J';
+
+            break;
+          case 'Circle of Support':
+            $cellColumnConducted = 'K';
+            $cellColumnSexF = 'L';
+            $cellColumnSexM = 'M';
+            $cellColumnPwd = 'N';
+            $cellColumnSC = 'O';
+
+            break;
+          default:
+            $cellColumnConducted = 'P';
+            $cellColumnSexF = 'Q';
+            $cellColumnSexM = 'R';
+            $cellColumnPwd = 'S';
+            $cellColumnSC = 'T';
+
+            break;
+        } 
+
+        $spreadsheet->getActiveSheet()->setCellValue($cellColumnConducted . $cellRow, count($client['conductedProcess']));
+        $spreadsheet->getActiveSheet()->setCellValue($cellColumnSexF . $cellRow, $client['gender']['F']);
+        $spreadsheet->getActiveSheet()->setCellValue($cellColumnSexM . $cellRow, $client['gender']['M']);
+        $spreadsheet->getActiveSheet()->setCellValue($cellColumnPwd . $cellRow, $client['is_pwd']);
+        $spreadsheet->getActiveSheet()->setCellValue($cellColumnSC . $cellRow, $client['is_senior_citizen']);
+      }
+    }
+
+    return $spreadsheet;
+  }
 }
