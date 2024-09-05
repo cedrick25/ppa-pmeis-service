@@ -773,7 +773,7 @@ class Volunteer implements VolunteerInterface
         
             $front .= $this->createFrontId(
                 $index % 2 == 0 ? 'start' : 'end',
-                (string) $volunteerId,
+                $volunteer->getIdNumber() ?? $volunteerId,
                 $fullName,
                 $fieldOffice->getName(),
                 $region->getName(),

@@ -575,10 +575,6 @@ class VolunteerRepository extends ServiceEntityRepository
             return ResponseEnum::NO_RECORD;
         }
 
-        if (isset($data['dateAppointed'])) {
-            $volunteer->setDateAppointed($this->appDateHelper->convertStringToImmutableDate($data['dateAppointed']));
-        }
-
         if ($data['status'] == 'REAPPOINTED') {
             $data['status'] = 'APPOINTED';
         }
@@ -588,6 +584,14 @@ class VolunteerRepository extends ServiceEntityRepository
 
         if ('APPOINTED' == $data['status']) {
             $volunteer->setDateAppointed($this->appDateHelper->getCurrentImmutableDate());
+        }
+
+        if (isset($data['dateAppointed'])) {
+            $volunteer->setDateAppointed($this->appDateHelper->convertStringToImmutableDate($data['dateAppointed']));
+        }
+
+        if (isset($data['idNumber'])) {
+            $volunteer->setIdNumber($data['idNumber']);
         }
 
         $this->getEntityManager()->flush();

@@ -180,6 +180,11 @@ class Volunteer
      * @ORM\Column(type="string", length=255)
      */
     private string $vpaStatus;
+  
+    /**
+     * @ORM\Column(type="string", length=255, nullable=true)
+     */
+    private ?string $idNumber;
 
     /**
      * @ORM\Column(type="datetime_immutable")
@@ -719,6 +724,25 @@ class Volunteer
     {
         $this->vpaStatus = $vpaStatus;
         return $this;
+    }
+
+    /**
+      * @return string|null
+      */
+    public function getIdNumber(): ?string
+    {
+      return $this->idNumber;
+    }
+
+    /**
+     * @param string|null $idNumber
+     * @return Volunteer
+     */
+    public function setIdNumber(?string $idNumber): Volunteer
+    {
+      $this->idNumber = $idNumber;
+
+      return $this;
     }
 
     public function getCreatedAt(): ?DateTimeImmutable
