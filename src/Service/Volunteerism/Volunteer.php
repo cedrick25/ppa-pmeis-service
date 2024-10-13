@@ -699,7 +699,7 @@ class Volunteer implements VolunteerInterface
         $code = $this->systemCodeSettings->getByName(SystemSettingNames::VPA_CERTIFICATE_REPORT_CODE);
         $administrator = $this->systemCodeSettings->getByName(SystemSettingNames::OIC_ADMINISTRATOR);
 
-        $pdf = new TCPDF('P', "mm", array(350, 215), true, 'UTF-8', false);
+        $pdf = new TCPDF('P', 'mm', 'A4', true, 'UTF-8', false);
         $pdf->setAutoPageBreak(true);
         $pdf->setCreator(PDF_CREATOR);
         $pdf->setAuthor('PPA');
@@ -739,8 +739,13 @@ class Volunteer implements VolunteerInterface
                 }
                 .full-name {
                     text-align: center;
-                    font-size: 25px;
                     font-weight: bold;
+                }
+                .full-name-small {
+                    font-size: 10;
+                }
+                .full-name-large {
+                    font-size: 20;
                 }
                 .title-container {
                     background-color: #e9ad63;
@@ -767,9 +772,9 @@ class Volunteer implements VolunteerInterface
         EOD;
 
         foreach ($volunteers as $index => $volunteer) {
-        $middleInitial = $volunteer->getMiddleName() != null ? substr($volunteer->getMiddleName(), 0, 1) : '';
-        $fullName = strtoupper($volunteer->getFirstName()) . ' ' . strtoupper($middleInitial) . '. ' . strtoupper($volunteer->getLastName());
-        $volunteerId = 'RO-' . date('ym') . '-' . str_pad($volunteer->getVolunteerId(), 4, '0', STR_PAD_LEFT);
+            $middleInitial = $volunteer->getMiddleName() != null ? substr($volunteer->getMiddleName(), 0, 1) : '';
+            $fullName = strtoupper($volunteer->getFirstName()) . ' ' . strtoupper($middleInitial) . '. ' . strtoupper($volunteer->getLastName());
+            $volunteerId = 'RO-' . date('ym') . '-' . str_pad($volunteer->getVolunteerId(), 4, '0', STR_PAD_LEFT);
         
             $front .= $this->createFrontId(
                 $index % 2 == 0 ? 'start' : 'end',
@@ -798,10 +803,11 @@ class Volunteer implements VolunteerInterface
                 table.back-page > tr > td {
                     border: 1px solid #000000;
                     text-align: center;
+                    font-size: 10px;
                 }
                 table.back-page > tr > td.back-page-title {
                     text-align: left !important;
-                    font-size: 12px;
+                    font-size: 11px;
                     font-weight: bold;
                 }
                 table.back-page > tr > td.force-center {
@@ -1145,6 +1151,7 @@ class Volunteer implements VolunteerInterface
         int $volunteerCount,
         int $index,
     ): string {
+        $nameStyleClass = strlen($fullName) > 40 ? 'full-name-small' : 'full-name-large';
         $body = <<<EOD
                     <td width="52%" style="border: 1px dashed #000000;text-align:center;">
                         <span style="text-align: center;font-weight: 400;margin-top: 0;">Republic of the Philippines</span>
@@ -1168,7 +1175,7 @@ class Volunteer implements VolunteerInterface
                         </h3>
                         <table>
                             <tr>
-                                <td class="full-name-container" ><span class="full-name">$fullName</span></td>
+                                <td class="full-name-container" ><span class="$nameStyleClass">$fullName</span></td>
                             </tr>
                             <tr>
                                 <td class="title-container"><span class="title">Volunteer Probation Assistant</span></td>
@@ -1176,7 +1183,6 @@ class Volunteer implements VolunteerInterface
                         </table>
                         <h3 style="text-align: center;">$fieldOfficeName</h3>
                         <h3 style="text-align: center">$regionName</h3>
-                        <div></div>
                         <h2 class="admin-name">$administrator</h2>
                         <h3 class="admin-title">Administrator</h3>
                     </td>
@@ -1207,12 +1213,18 @@ class Volunteer implements VolunteerInterface
         int $volunteerCount,
         int $index,
     ): string {
+        $isEven = $index % 2 == 0;
+        $startFiller = $isEven ? '<td width="5%">&nbsp;</td>' : '';
+        $endFiller = !$isEven ? '<td width="2%">&nbsp;</td>' : '';
         $body = <<<EOD
-            <td width="52.5%">
-                <table class="back-page" style="width: 95%;">
+            {$endFiller}
+            <td width="50%">
+                <table class="back-page">
                     <tr>
-                        <td colspan="3" style="text-align: right;border: none;">
+                        <td width="90%" colspan="3" style="text-align: right;border: none;">
                             &nbsp;
+                            <br/>
+                            <br/>
                             <br/>
                             $code
                         </td>
@@ -1270,6 +1282,7 @@ class Volunteer implements VolunteerInterface
                     </tr>
                 </table>
             </td>
+            {$startFiller}
         EOD;
 
         if ('start' == $trPosition) {
