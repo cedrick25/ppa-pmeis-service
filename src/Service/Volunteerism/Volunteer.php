@@ -1224,8 +1224,6 @@ class Volunteer implements VolunteerInterface
                         <td width="90%" colspan="3" style="text-align: right;border: none;">
                             &nbsp;
                             <br/>
-                            <br/>
-                            <br/>
                             $code
                         </td>
                     </tr>
