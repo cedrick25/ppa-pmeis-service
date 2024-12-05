@@ -1226,7 +1226,6 @@ class Volunteer implements VolunteerInterface
                             <br/>
                             <br/>
                             <br/>
-                            <br/>
                             $code
                         </td>
                     </tr>
