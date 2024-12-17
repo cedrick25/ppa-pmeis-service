@@ -822,11 +822,11 @@ class Volunteer implements VolunteerInterface
             </style>
             <table>
                 <tr>
-                    <td style="width: 6%"></td>
-                    <td style="width: 94%"><table>
+                    <td style="width: 1%"></td>
+                    <td style="width: 99%"><table>
         EOD;
 
-        foreach ($volunteers as $index => $volunteer) {
+        foreach (array_reverse($volunteers) as $index => $volunteer) {
             $back .= $this->createBackId(
                 $index % 2 == 0 ? 'start' : 'end',
                 $code,
@@ -1214,8 +1214,8 @@ class Volunteer implements VolunteerInterface
         int $index,
     ): string {
         $isEven = $index % 2 == 0;
-        $endFiller = !$isEven ? '<td width="0%">&nbsp;</td>' : '<td width="0%">&nbsp;</td>';
-        $startFiller = $isEven ? '<td width="0%">&nbsp;</td>' : '<td width="0%">&nbsp;</td>';
+        $endFiller = !$isEven ? '<td width="2.5%" >&nbsp;</td>' : '<td width="2.5%">&nbsp;</td>';
+        $startFiller = $isEven ? '<td width="1px">&nbsp;</td>' : '<td width="1px">&nbsp;</td>';
         $body = <<<EOD
             {$endFiller}
             <td width="50%" style="border: 1px solid black">
