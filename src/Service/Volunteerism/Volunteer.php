@@ -857,7 +857,7 @@ class Volunteer implements VolunteerInterface
           $back .= <<<EOD
                 <tr>
                   <td>&nbsp;</td>
-                  <td width="50%"></td>
+                  <td width="50%">&nbsp;</td>
                   <td>&nbsp;</td>
                 </tr>
             EOD;
@@ -867,7 +867,7 @@ class Volunteer implements VolunteerInterface
               $back .= <<<EOD
                     <tr>
                       <td>&nbsp;</td>
-                      <td width="50%"></td>
+                      <td width="50%">&nbsp;</td>
                       <td>&nbsp;</td>
                     </tr>
                 EOD;
