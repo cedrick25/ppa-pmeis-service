@@ -830,7 +830,7 @@ class Volunteer implements VolunteerInterface
         $backData = [];
         $vSize = sizeof($volunteers) - 1;
 
-        for($i = $vSize-1; $i >= 0; $i--){
+        for($i = $vSize; $i >= 0; $i--){
           $backData[] = $volunteers[$i];
         }
 
