@@ -833,7 +833,7 @@ class Volunteer implements VolunteerInterface
 
         foreach($volunteers as $index => $volunteer) {
           if ($counter == 2) {
-            $backData = array_combine($backData, array_reverse($build));
+            $backData = array_merge($backData, array_reverse($build));
             $build = [];
 
             continue;
