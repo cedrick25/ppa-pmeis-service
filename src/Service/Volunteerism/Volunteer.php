@@ -838,12 +838,18 @@ class Volunteer implements VolunteerInterface
             $counter = 0;
           }
 
-          if ($index === count($volunteers) - 1 && $counter == 1) {
+          if ($index === count($volunteers) - 1 && $counter == 0) {
             $backData[] = $volunteer;
 
             continue;
           }
-          
+
+          if ($index === count($volunteers) - 1 && $counter == 1) {
+            $backData = array_merge($backData, array_reverse($build));
+
+            continue;
+          }
+
           $build[] = $volunteer;
           $counter++;
         }
