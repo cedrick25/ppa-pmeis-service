@@ -828,10 +828,25 @@ class Volunteer implements VolunteerInterface
 
 
         $backData = [];
-        $vSize = sizeof($volunteers) - 1;
+        $counter = 0;
+        $build = [];
 
-        for($i = $vSize; $i >= 0; $i--){
-          $backData[] = $volunteers[$i];
+        foreach($volunteers as $index => $volunteer) {
+          if ($counter == 2) {
+            $backData = array_combine($backData, array_reverse($build));
+            $build = [];
+
+            continue;
+          }
+
+          if ($index === count($volunteers) - 1 && $counter != 2) {
+            $backData[] = $volunteer;
+
+            continue;
+          }
+          
+          $build[] = $volunteer;
+          $counter++;
         }
 
         foreach ($backData as $index => $volunteer) {
