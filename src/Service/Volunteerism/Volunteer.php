@@ -853,7 +853,14 @@ class Volunteer implements VolunteerInterface
           break;
         }
 
+        if (count($volunteers) === 1) {
+          $back .= '<td colspan="3">&nbsp;</td>';
+        }
+
         foreach ($backData as $index => $volunteer) {
+            if (count($volunteers) === 3 && $index == 2) {
+              $back .= '<td colspan="3">&nbsp;</td>';
+            }
             $back .= $this->createBackId(
                 $index % 2 == 0 ? 'start' : 'end',
                 $code,
@@ -1241,8 +1248,9 @@ class Volunteer implements VolunteerInterface
         int $index,
     ): string {
         $isEven = $index % 2 == 0;
-        $endFiller = !$isEven ? '<td width="2.5%" >&nbsp;</td>' : '<td width="2.5%">&nbsp;</td>';
+        $endFiller = !$isEven ? '<td width="2.5%" >&nbsp;</td>' : '<td width="2%">&nbsp;</td>';
         $startFiller = $isEven ? '<td width="1px">&nbsp;</td>' : '<td width="1px">&nbsp;</td>';
+        $br = $index < 2 ? '<br/><br/>' : '';
         $body = <<<EOD
             {$endFiller}
             <td width="50%">
@@ -1250,8 +1258,7 @@ class Volunteer implements VolunteerInterface
                     <tr>
                         <td width="90%" colspan="3" style="text-align: right;border: none;">
                             &nbsp;
-                            <br/>
-                            <br/>
+                            {$br}
                             $code
                         </td>
                     </tr>
