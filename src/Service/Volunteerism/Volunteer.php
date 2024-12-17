@@ -854,12 +854,11 @@ class Volunteer implements VolunteerInterface
         }
 
         if (count($volunteers) === 1) {
-          $back .= '<td colspan="3">&nbsp;</td>';
+          $back .= '<td>&nbsp;</td><td width="50%"></td><td>&nbsp;</td>';
         }
-
         foreach ($backData as $index => $volunteer) {
             if (count($volunteers) === 3 && $index == 2) {
-              $back .= '<td colspan="3">&nbsp;</td>';
+              $back .= '<td>&nbsp;</td><td width="50%"></td><td>&nbsp;</td>';
             }
             $back .= $this->createBackId(
                 $index % 2 == 0 ? 'start' : 'end',
