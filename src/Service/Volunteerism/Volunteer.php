@@ -1214,11 +1214,11 @@ class Volunteer implements VolunteerInterface
         int $index,
     ): string {
         $isEven = $index % 2 == 0;
-        $startFiller = $isEven ? '<td width="3%">&nbsp;</td>' : '<td width="3%">&nbsp;</td>';
         $endFiller = !$isEven ? '<td width="1%">&nbsp;</td>' : '';
+        $startFiller = $isEven ? '<td width="3%">&nbsp;</td>' : '<td width="3%">&nbsp;</td>';
         $body = <<<EOD
             {$endFiller}
-            <td width="50%">
+            <td width="50%" style="border: 1px solid black">
                 <table class="back-page">
                     <tr>
                         <td width="90%" colspan="3" style="text-align: right;border: none;">
