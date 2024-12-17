@@ -1214,8 +1214,8 @@ class Volunteer implements VolunteerInterface
         int $index,
     ): string {
         $isEven = $index % 2 == 0;
-        $startFiller = $isEven ? '<td width="1%">&nbsp;</td>' : '';
-        $endFiller = !$isEven ? '<td width="-1%">&nbsp;</td>' : '';
+        $startFiller = $isEven ? '<td width="1%">&nbsp;</td>' : '<td width="3%">&nbsp;</td>';
+        $endFiller = !$isEven ? '<td width="1%">&nbsp;</td>' : '';
         $body = <<<EOD
             {$endFiller}
             <td width="50%">
