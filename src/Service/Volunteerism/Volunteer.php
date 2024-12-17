@@ -826,7 +826,15 @@ class Volunteer implements VolunteerInterface
                     <td style="width: 99%"><table>
         EOD;
 
-        foreach (array_reverse($volunteers) as $index => $volunteer) {
+
+        $backData = [];
+        $vSize = sizeof($volunteers) - 1;
+
+        for($i = $vSize-1; $i >= 0; $i--){
+          $backData[] = $volunteers[$i];
+        }
+
+        foreach ($backData as $index => $volunteer) {
             $back .= $this->createBackId(
                 $index % 2 == 0 ? 'start' : 'end',
                 $code,
