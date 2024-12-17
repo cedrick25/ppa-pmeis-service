@@ -1218,7 +1218,7 @@ class Volunteer implements VolunteerInterface
         $startFiller = $isEven ? '<td width="1px">&nbsp;</td>' : '<td width="1px">&nbsp;</td>';
         $body = <<<EOD
             {$endFiller}
-            <td width="50%" style="border: 1px solid black">
+            <td width="50%">
                 <table class="back-page">
                     <tr>
                         <td width="90%" colspan="3" style="text-align: right;border: none;">
