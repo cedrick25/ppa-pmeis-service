@@ -70,8 +70,7 @@ class VPADatabase implements Form
             $volunteerId = 'RO-' . date('ym') . '-' . str_pad($volunteer['volunteer_id'], 4, '0', STR_PAD_LEFT);
 
             $spreadsheet->getActiveSheet()->setCellValue("A" . $this->lastFilledOutCellY, $fullName);
-            // TODO: replaced with volunteer_id -> id_no
-            $spreadsheet->getActiveSheet()->setCellValue("B" . $this->lastFilledOutCellY, $volunteerId);
+            $spreadsheet->getActiveSheet()->setCellValue("B" . $this->lastFilledOutCellY, $volunteer['id_number'] ?? $volunteerId);
             if ($dateAppointed != null) {
                 $spreadsheet->getActiveSheet()->setCellValue("C" . $this->lastFilledOutCellY, $dateAppointed->format('F j, Y'));
             }
