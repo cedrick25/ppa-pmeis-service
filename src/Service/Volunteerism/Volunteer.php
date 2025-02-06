@@ -882,8 +882,8 @@ class Volunteer implements VolunteerInterface
             $this->auditTrail->log(AuditTrailActions::DOWNLOAD, $data, $this->shortName, $id);
         }
 
-        // return $pdf->Output('mark.pdf', 'E');
-        return $pdf->Output('mark.pdf', 'D');
+        return $pdf->Output('mark.pdf', 'E');
+        // return $pdf->Output('mark.pdf', 'D');
     }
 
     public function updateDateAppointedById(int $id): array
