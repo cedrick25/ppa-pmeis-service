@@ -853,25 +853,7 @@ class Volunteer implements VolunteerInterface
           break;
         }
 
-        if (count($volunteers) === 1) {
-          $back .= <<<EOD
-                <tr>
-                  <td>&nbsp;</td>
-                  <td width="50%">&nbsp;</td>
-                  <td>&nbsp;</td>
-                </tr>
-            EOD;
-        }
         foreach ($backData as $index => $volunteer) {
-            if (count($volunteers) === 3 && $index == 2) {
-              $back .= <<<EOD
-                    <tr>
-                      <td>&nbsp;</td>
-                      <td width="50%">&nbsp;</td>
-                      <td>&nbsp;</td>
-                    </tr>
-                EOD;
-            }
             $back .= $this->createBackId(
                 $index % 2 == 0 ? 'start' : 'end',
                 $code,
@@ -900,8 +882,8 @@ class Volunteer implements VolunteerInterface
             $this->auditTrail->log(AuditTrailActions::DOWNLOAD, $data, $this->shortName, $id);
         }
 
-        return $pdf->Output('mark.pdf', 'E');
-        // return $pdf->Output('mark.pdf', 'D');
+        // return $pdf->Output('mark.pdf', 'E');
+        return $pdf->Output('mark.pdf', 'D');
     }
 
     public function updateDateAppointedById(int $id): array
@@ -1262,7 +1244,25 @@ class Volunteer implements VolunteerInterface
         $endFiller = !$isEven ? '<td width="2.5%" >&nbsp;</td>' : '<td width="2%">&nbsp;</td>';
         $startFiller = $isEven ? '<td width="1px">&nbsp;</td>' : '<td width="1px">&nbsp;</td>';
         $br = $index < 2 ? '<br/><br/>' : '<br/>';
-        $body = <<<EOD
+        $body = '';
+  
+        if ($volunteerCount === 1) {
+          $body .= <<<EOD
+                <td width="2%">&nbsp;</td>
+                <td width="50%"></td>
+                <td width="1px">&nbsp;</td>
+            EOD;
+        }
+
+        if ($volunteerCount === 3 && $index === 2) {
+         $body .= <<<EOD
+                <td width="2%">&nbsp;</td>
+                <td width="50%"></td>
+                <td width="1px">&nbsp;</td>
+            EOD; 
+        }
+
+        $body .= <<<EOD
             {$endFiller}
             <td width="50%">
                 <table class="back-page">
