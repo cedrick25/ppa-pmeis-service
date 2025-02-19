@@ -854,20 +854,23 @@ class Volunteer implements VolunteerInterface
         }
 
         foreach ($backData as $index => $volunteer) {
-            $back .= $this->createBackId(
-                $index % 2 == 0 ? 'start' : 'end',
-                $code,
-                $volunteer->getPresentAddress(),
-                $volunteer->getBloodType(),
-                $volunteer->getWeight(),
-                $volunteer->getHeight(),
-                $volunteer->getEmergencyName(),
-                $volunteer->getEmergencyNumber(),
-                $volunteer->getDateAppointed()->format('F d, Y'),
-                date('F d, Y', strtotime($volunteer->getDateAppointed()->format('Y-m-d') . ' +2 years')),
-                count($volunteersId),
-                $index
-            );
+          $validUntil = date('Y-m-d', strtotime($volunteer->getDateAppointed()->format('Y-m-d') . ' +2 years'));
+          $validUntil = date('F d, Y', strtotime($validUntil . ' -1 day'));
+
+          $back .= $this->createBackId(
+              $index % 2 == 0 ? 'start' : 'end',
+              $code,
+              $volunteer->getPresentAddress(),
+              $volunteer->getBloodType(),
+              $volunteer->getWeight(),
+              $volunteer->getHeight(),
+              $volunteer->getEmergencyName(),
+              $volunteer->getEmergencyNumber(),
+              $volunteer->getDateAppointed()->format('F d, Y'),
+              $validUntil,
+              count($volunteersId),
+              $index
+          );
         }
 
         $back .= <<<EOD
@@ -1286,8 +1289,8 @@ class Volunteer implements VolunteerInterface
                     </tr>
                     <tr>
                         <td style="height: 40px;">$bloodType</td>
-                        <td style="height: 40px;">$weight kg</td>
                         <td style="height: 40px;">$height cm</td>
+                        <td style="height: 40px;">$weight kg</td>
                     </tr>
                     <tr><td colspan="3"></td></tr>
                     <tr><td colspan="3" class="back-page-title">&nbsp;IN CASE OF EMERGENCY, NOTIFY:</td></tr>
