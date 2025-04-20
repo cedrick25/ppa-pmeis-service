@@ -72,24 +72,29 @@ class VPAIC4 implements Form
             $venue = $this->appDateHelper->convertStringToImmutableDate($row['venue_date']);
             $spreadsheet->getActiveSheet()->setCellValue("A" . $this->lastFilledOutCellY, $row['service_rendered']);
             $spreadsheet->getActiveSheet()->setCellValue("D" . $this->lastFilledOutCellY, $venue->format('y-M-d') . ' ' . $row['venue']);
-            $spreadsheet->getActiveSheet()->setCellValue("E" . $this->lastFilledOutCellY, $row['first_name'] . ' ' . $row['middle_name'] . ' ' . $row['last_name']);
-            if ($row['gender'] === 'F') {
-                $spreadsheet->getActiveSheet()->setCellValue("H" . $this->lastFilledOutCellY, '/');
-            } else {
-                $spreadsheet->getActiveSheet()->setCellValue("I" . $this->lastFilledOutCellY, '/');
-            }
-            $genderTotal[$row['gender']]++;
 
-            $spreadsheet->getActiveSheet()->setCellValue("J" . $this->lastFilledOutCellY, $row['role']);
             $spreadsheet->getActiveSheet()->setCellValue("L" . $this->lastFilledOutCellY, $row['crd_resources_tapped']);
             $spreadsheet->getActiveSheet()->setCellValue("N" . $this->lastFilledOutCellY, $row['crd_assistance_received']);
             $spreadsheet->getActiveSheet()->setCellValue("P" . $this->lastFilledOutCellY, $row['remarks']);
 
             $spreadsheet->getActiveSheet()->mergeCells('A' . $this->lastFilledOutCellY . ':C' . $this->lastFilledOutCellY);
-            $spreadsheet->getActiveSheet()->mergeCells('E' . $this->lastFilledOutCellY . ':G' . $this->lastFilledOutCellY);
-            $spreadsheet->getActiveSheet()->mergeCells('J' . $this->lastFilledOutCellY . ':K' . $this->lastFilledOutCellY);
             $spreadsheet->getActiveSheet()->mergeCells('l' . $this->lastFilledOutCellY . ':m' . $this->lastFilledOutCellY);
             $spreadsheet->getActiveSheet()->mergeCells('n' . $this->lastFilledOutCellY . ':o' . $this->lastFilledOutCellY);
+
+            foreach($row["volunteers"] as $volunteer) {
+              $spreadsheet->getActiveSheet()->mergeCells('E' . $this->lastFilledOutCellY . ':G' . $this->lastFilledOutCellY);
+              $spreadsheet->getActiveSheet()->mergeCells('J' . $this->lastFilledOutCellY . ':K' . $this->lastFilledOutCellY);
+              $spreadsheet->getActiveSheet()->setCellValue("E" . $this->lastFilledOutCellY, $volunteer['first_name'] . ' ' . $volunteer['middle_name'] . ' ' . $volunteer['last_name']);
+        
+              if ($volunteer['gender'] === 'F') {
+                  $spreadsheet->getActiveSheet()->setCellValue("H" . $this->lastFilledOutCellY, '/');
+              } else {
+                  $spreadsheet->getActiveSheet()->setCellValue("I" . $this->lastFilledOutCellY, '/');
+              }
+              $genderTotal[$volunteer['gender']]++;
+              $spreadsheet->getActiveSheet()->setCellValue("J" . $this->lastFilledOutCellY, $volunteer['role']);
+              $this->lastFilledOutCellY++;
+            }
 
         }
         $this->lastFilledOutCellY++;

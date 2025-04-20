@@ -305,7 +305,6 @@ class TherapeuticCommunityController extends AbstractController
 
         return $this->json($this->sessionActivitiesService->create(
             $data['name'],
-            // $data['name'],
             $data['phaseId'],
             $data['treatmentCategoryId'],
         ));

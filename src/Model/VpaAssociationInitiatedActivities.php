@@ -12,8 +12,7 @@ class VpaAssociationInitiatedActivities implements \JsonSerializable
         private int $servicesRenderedId,
         private string $venueDate,
         private int $venueId,
-        private int $volunteerId,
-        private string $role,
+        private array $volunteers,
         private ?string $crdResourcesTapped,
         private ?string $crdAssistanceReceived,
         private string $remarks,
@@ -54,22 +53,11 @@ class VpaAssociationInitiatedActivities implements \JsonSerializable
     }
 
     /**
-     * @Assert\NotBlank
-     * @Assert\GreaterThan(0)
-     * @return int
+     * @return array<mixed>
      */
-    public function getVolunteerId(): int
+    public function getVolunteers(): array
     {
-        return $this->volunteerId;
-    }
-
-    /**
-     * @Assert\NotBlank
-     * @return string
-     */
-    public function getRole(): string
-    {
-        return $this->role;
+        return $this->volunteers;
     }
 
     /**

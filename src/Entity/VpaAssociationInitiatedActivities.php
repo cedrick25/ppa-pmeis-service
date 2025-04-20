@@ -33,16 +33,6 @@ class  VpaAssociationInitiatedActivities
     private int $venueId;
 
     /**
-     * @ORM\Column(type="integer")
-     */
-    private int $volunteerId;
-
-    /**
-     * @ORM\Column(type="string", length=255)
-     */
-    private string $role;
-
-    /**
      * @ORM\Column(type="string", length=255)
      */
     private ?string $crdResourcesTapped;
@@ -138,42 +128,6 @@ class  VpaAssociationInitiatedActivities
     public function setVenueId(int $venueId): VpaAssociationInitiatedActivities
     {
         $this->venueId = $venueId;
-        return $this;
-    }
-
-    /**
-     * @return int
-     */
-    public function getVolunteerId(): int
-    {
-        return $this->volunteerId;
-    }
-
-    /**
-     * @param int $volunteerId
-     * @return VpaAssociationInitiatedActivities
-     */
-    public function setVolunteerId(int $volunteerId): VpaAssociationInitiatedActivities
-    {
-        $this->volunteerId = $volunteerId;
-        return $this;
-    }
-
-    /**
-     * @return string
-     */
-    public function getRole(): string
-    {
-        return $this->role;
-    }
-
-    /**
-     * @param string $role
-     * @return VpaAssociationInitiatedActivities
-     */
-    public function setRole(string $role): VpaAssociationInitiatedActivities
-    {
-        $this->role = $role;
         return $this;
     }
 

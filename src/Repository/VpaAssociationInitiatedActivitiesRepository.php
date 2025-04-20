@@ -9,7 +9,6 @@ use App\Enum\Response as ResponseEnum;
 use App\Model\VpaAssociationInitiatedActivities as VpaAssociationInitiatedActivitiesModel;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\DBAL\Connection;
-use Doctrine\ORM\ORMException;
 use Doctrine\Persistence\ManagerRegistry;
 use Psr\Cache\CacheException;
 use Psr\Cache\InvalidArgumentException;
@@ -70,8 +69,6 @@ class VpaAssociationInitiatedActivitiesRepository extends ServiceEntityRepositor
             $this->appDateHelper->convertStringToImmutableDate($data->getVenueDate())
         );
         $newVpaAssociationInitiatedActivities->setVenueId($data->getVenueId());
-        $newVpaAssociationInitiatedActivities->setVolunteerId($data->getVolunteerId());
-        $newVpaAssociationInitiatedActivities->setRole($data->getRole());
         $newVpaAssociationInitiatedActivities->setCrdResourcesTapped($data->getCrdResourcesTapped());
         $newVpaAssociationInitiatedActivities->setCrdAssistanceReceived($data->getCrdAssistanceReceived());
         $newVpaAssociationInitiatedActivities->setRemarks($data->getRemarks());
@@ -122,13 +119,11 @@ class VpaAssociationInitiatedActivitiesRepository extends ServiceEntityRepositor
     public function getReport(int $quarterId, int $fieldOfficeId): array
     {
         $conn = $this->getEntityManager()->getConnection();
-        $sql = "SELECT sr.name service_rendered, vaia.venue_date, v.name as venue, v2.first_name,
-                v2.middle_name, v2.last_name, v2.gender, vaia.role, vaia.crd_resources_tapped,
+        $sql = "SELECT vaia.vpa_association_initiated_activity_id, sr.name service_rendered, vaia.venue_date, v.name as venue, vaia.crd_resources_tapped,
                 vaia.crd_assistance_received, vaia.remarks
                 FROM vpa_association_initiated_activities vaia
                 LEFT JOIN services_rendered sr on vaia.service_rendered_id = sr.services_rendered_id
                 LEFT JOIN venues v on vaia.venue_id = v.venue_id
-                LEFT JOIN volunteer v2 on vaia.volunteer_id = v2.volunteer_id
                 WHERE vaia.field_office_id = $fieldOfficeId
                 AND vaia.quarter_id = $quarterId
                 AND vaia.deleted_at IS NULL";
@@ -177,10 +172,9 @@ class VpaAssociationInitiatedActivitiesRepository extends ServiceEntityRepositor
             $result = [];
 
             $conn = $this->getEntityManager()->getConnection();
-            $sql = "SELECT vaia.*, v.last_name, v.first_name, v.middle_name, fo.name field_office, r.name region,
+            $sql = "SELECT vaia.*, fo.name field_office, r.name region,
                         r.region_id as region_id, sr.name service_rendered, ve.name venue
                     FROM vpa_association_initiated_activities as vaia
-                    LEFT JOIN volunteer v on vaia.volunteer_id = v.volunteer_id
                     LEFT JOIN services_rendered sr on vaia.service_rendered_id = sr.services_rendered_id
                     LEFT JOIN venues ve on vaia.venue_id = ve.venue_id
                     LEFT JOIN field_offices fo on vaia.field_office_id = fo.field_office_id
@@ -207,10 +201,9 @@ class VpaAssociationInitiatedActivitiesRepository extends ServiceEntityRepositor
     {
         return $this->getEntityManager()->getConnection()
             ->executeQuery(
-                "SELECT vaia.*, v.last_name, v.first_name, v.middle_name, fo.name field_office, r.name region,
+                "SELECT vaia.*, fo.name field_office, r.name region,
                         r.region_id as region_id, sr.name service_rendered, ve.name venue
                     FROM vpa_association_initiated_activities as vaia
-                    LEFT JOIN volunteer v on vaia.volunteer_id = v.volunteer_id
                     LEFT JOIN services_rendered sr on vaia.service_rendered_id = sr.services_rendered_id
                     LEFT JOIN venues ve on vaia.venue_id = ve.venue_id
                     LEFT JOIN field_offices fo on vaia.field_office_id = fo.field_office_id
@@ -238,8 +231,6 @@ class VpaAssociationInitiatedActivitiesRepository extends ServiceEntityRepositor
             $this->appDateHelper->convertStringToImmutableDate($data->getVenueDate())
         );
         $entity->setVenueId($data->getVenueId());
-        $entity->setVolunteerId($data->getVolunteerId());
-        $entity->setRole($data->getRole());
         $entity->setCrdResourcesTapped($data->getCrdResourcesTapped());
         $entity->setCrdAssistanceReceived($data->getCrdAssistanceReceived());
         $entity->setRemarks($data->getRemarks());
@@ -259,7 +250,8 @@ class VpaAssociationInitiatedActivitiesRepository extends ServiceEntityRepositor
         return $this->getEntityManager()->getConnection()
             ->executeQuery(
                 "SELECT vaia.service_rendered_id FROM vpa_association_initiated_activities vaia
-                    WHERE vaia.volunteer_id IN (:volunteerIds)
+                    LEFT JOIN vpa_association_activity_volunteers as vaav ON vaia.vpa_association_initiated_activity_id = vaav.vpa_activity_vounteer_id
+                    WHERE vaav.volunteer_id IN (:volunteerIds)
                     AND vaia.quarter_id = :quarterId",
                 [
                     'quarterId' => $quarterId,

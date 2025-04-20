@@ -6,6 +6,7 @@ use App\Common\AppFormatter;
 use App\Enum\AuditTrailActions;
 use App\Enum\Response as ResponseEnum;
 use App\Model\VpaAssociationInitiatedActivities as VpaAssociationInitiatedActivitiesModel;
+use App\Repository\VpaAssociationActivityVolunteersRepository;
 use App\Repository\VpaAssociationInitiatedActivitiesRepository;
 use App\Service\System\AuditTrail;
 use Doctrine\DBAL\Driver\Exception;
@@ -23,6 +24,7 @@ class VpaAssociationInitiatedActivities implements VpaAssociationInitiatedActivi
         private AppFormatter                                $appFormatter,
         private VpaAssociationInitiatedActivitiesRepository $repository,
         private AuditTrail                                  $auditTrail,
+        private VpaAssociationActivityVolunteersRepository  $vpaAssociationActivityVolunteersRepository,
     ) {
         $class = new \ReflectionClass($this);
         $this->shortName = $class->getShortName();
@@ -50,6 +52,8 @@ class VpaAssociationInitiatedActivities implements VpaAssociationInitiatedActivi
                     ['app' => 'Vpa association initiated activities already exist']
                 );
             }
+
+            $this->vpaAssociationActivityVolunteersRepository->batchCreate($id, $data->getVolunteers());
 
             $this->auditTrail->log(AuditTrailActions::CREATE, $data->jsonSerialize(), $this->shortName, $id);
 
@@ -93,6 +97,8 @@ class VpaAssociationInitiatedActivities implements VpaAssociationInitiatedActivi
             return $this->appFormatter->formatResponse(ResponseEnum::NO_DATA, null);
         }
 
+        $vpaAssociationInitiatedActivity['volunteers'] = $this->vpaAssociationActivityVolunteersRepository->fetchByVpaAssociationId($id);
+
         return $this->appFormatter->formatResponse(ResponseEnum::FETCHING_SUCCESS, $vpaAssociationInitiatedActivity);
     }
 
@@ -109,6 +115,8 @@ class VpaAssociationInitiatedActivities implements VpaAssociationInitiatedActivi
                 );
             }
 
+            $this->vpaAssociationActivityVolunteersRepository->deleteByVpaAssociationId($id);
+
             $this->auditTrail->log(AuditTrailActions::DELETE, [], $this->shortName, $id);
 
             return $this->appFormatter->formatResponse(ResponseEnum::DELETING_SUCCESS, null);
@@ -123,24 +131,30 @@ class VpaAssociationInitiatedActivities implements VpaAssociationInitiatedActivi
 
     public function getReport(int $quarterId, int $fieldOfficeId): array
     {
-        try {
-            $vpaAssociationInitiatedActivities = $this->repository->getReport($quarterId, $fieldOfficeId);
+      try {
+          $activities = [];
+          $vpaAssociationInitiatedActivities = $this->repository->getReport($quarterId, $fieldOfficeId);
 
-            if ($vpaAssociationInitiatedActivities == null) {
-                return $this->appFormatter->formatResponse(ResponseEnum::NO_DATA, null);
-            }
+          if ($vpaAssociationInitiatedActivities == null) {
+              return $this->appFormatter->formatResponse(ResponseEnum::NO_DATA, null);
+          }
 
-            return $this->appFormatter->formatResponse(
-                ResponseEnum::FETCHING_SUCCESS,
-                $vpaAssociationInitiatedActivities
-            );
-        } catch (\Doctrine\DBAL\Exception | Exception  $e) {
-            return $this->appFormatter->formatResponse(
-                ResponseEnum::UPDATING_FAILED,
-                null,
-                ['cache' => $e->getMessage()]
-            );
-        }
+          foreach($vpaAssociationInitiatedActivities as $activity) {
+            $activity["volunteers"] = $this->vpaAssociationActivityVolunteersRepository->fetchForReportByVpaAssociationId($activity["vpa_association_initiated_activity_id"]);
+            $activities[] = $activity;
+          }
+
+          return $this->appFormatter->formatResponse(
+              ResponseEnum::FETCHING_SUCCESS,
+              $activities
+          );
+      } catch (\Doctrine\DBAL\Exception | Exception  $e) {
+          return $this->appFormatter->formatResponse(
+              ResponseEnum::FETCHING_FAILED,
+              null,
+              ['cache' => $e->getMessage()]
+          );
+      }
     }
 
     public function getPaginated(int $page, int $pageSize, int $fieldOfficeId): array
@@ -182,7 +196,10 @@ class VpaAssociationInitiatedActivities implements VpaAssociationInitiatedActivi
                     ResponseEnum::UPDATING_FAILED,
                     null
                 );
-            }
+            }       
+  
+            $this->vpaAssociationActivityVolunteersRepository->deleteByVpaAssociationId($id);
+            $this->vpaAssociationActivityVolunteersRepository->batchCreate($id, $data->getVolunteers());
 
             $this->auditTrail->log(AuditTrailActions::UPDATE, $data->jsonSerialize(), $this->shortName, $id);
 
