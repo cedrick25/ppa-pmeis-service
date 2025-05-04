@@ -1050,7 +1050,7 @@ class TherapeuticCommunityController extends AbstractController
     {
         $data = json_decode($request->getContent(), true);
 
-        return $this->json($this->volunteerService->getId($data));
+        return $this->json($this->volunteerService->getIdData($data));
     }
 
     /**

@@ -676,6 +676,101 @@ class Volunteer implements VolunteerInterface
         // return $pdf->Output('mark.pdf', 'D');
     }
 
+    public function getIdData(array $data): array {
+      if (\count($data['volunteer_ids']) > 4) {
+        return 'Invalid ID count';
+      }
+
+      $volunteersId = $data['volunteer_ids'];
+      $volunteers = $this->repository->findByIds($volunteersId);
+
+      if (count($volunteers) == 0) {
+        return "No volunteers found.";
+      }
+
+      $fieldOffice = $this->fieldOfficesRepository->find($volunteers[0]->getFieldOfficeId());
+
+      if ($fieldOffice == null) {
+          return 'No field office id';
+      }
+
+      $region = $this->regionsRepository->find($fieldOffice->getRegionId());
+
+      $code = $this->systemCodeSettings->getByName(SystemSettingNames::VPA_CERTIFICATE_REPORT_CODE);
+      $administrator = $this->systemCodeSettings->getByName(SystemSettingNames::OIC_ADMINISTRATOR);
+
+      $front = [];
+
+      foreach ($volunteers as $index => $volunteer) {
+        $middleInitial = $volunteer->getMiddleName() != null ? substr($volunteer->getMiddleName(), 0, 1) : '';
+        $fullName = strtoupper($volunteer->getFirstName()) . ' ' . strtoupper($middleInitial) . '. ' . strtoupper($volunteer->getLastName());
+        $volunteerId = 'RO-' . date('ym') . '-' . str_pad($volunteer->getVolunteerId(), 4, '0', STR_PAD_LEFT);
+    
+        $front[] = [
+          'position' => $index % 2 == 0 ? 'start' : 'end',
+          'id' => $volunteer->getIdNumber() ?? $volunteerId,
+          'fullName' => $fullName,
+          'fieldOfficeName' => $fieldOffice->getName(),
+          'regionName' => $region->getName(),
+          'administrator' => $administrator,
+          'volunteersCount' => count($volunteersId),
+          'currentIndex' => $index
+        ];
+      }
+
+      $back = [];
+      $backData = [];
+
+        switch (count($volunteers)) {
+          case 1:
+            $backData = $volunteers;
+            break;
+          case 2:
+            $backData = array_reverse($volunteers);
+            break;
+          case 3:
+            $backData = [
+              $volunteers[1],
+              $volunteers[0],
+              $volunteers[2]
+            ];
+            break;
+          case 4:
+            $backData = [
+              $volunteers[1],
+              $volunteers[0],
+              $volunteers[3],
+              $volunteers[2]
+            ];
+          break;
+        }
+
+        foreach ($backData as $index => $volunteer) {
+          $validUntil = date('Y-m-d', strtotime($volunteer->getDateAppointed()->format('Y-m-d') . ' +2 years'));
+          $validUntil = date('F d, Y', strtotime($validUntil . ' -1 day'));
+
+          $back[] = [
+              'position' => $index % 2 == 0 ? 'start' : 'end',
+              'code' => $code,
+              'presentAddress' => $volunteer->getPresentAddress(),
+              'bloodType' => $volunteer->getBloodType(),
+              'weight' => $volunteer->getWeight(),
+              'height' => $volunteer->getHeight(),
+              'emergencyName' => $volunteer->getEmergencyName(),
+              'emergencyNumber' => $volunteer->getEmergencyNumber(),
+              'appointedDate' => $volunteer->getDateAppointed()->format('F d, Y'),
+              'validUntil' => $validUntil,
+              'volunteersCount' => count($volunteersId),
+              'currentIndex' => $index
+          ];
+        }
+
+      return [
+        'front' => $front,
+        'back' => $back
+      ];
+    }
+
     public function getId(array $data): string
     {
         if (\count($data['volunteer_ids']) > 4) {
@@ -830,26 +925,26 @@ class Volunteer implements VolunteerInterface
         $backData = [];
 
         switch (count($volunteers)) {
-        case 1:
-          $backData = $volunteers;
-          break;
-        case 2:
-          $backData = array_reverse($volunteers);
-          break;
-        case 3:
-          $backData = [
-            $volunteers[1],
-            $volunteers[0],
-            $volunteers[2]
-          ];
-          break;
-        case 4:
-          $backData = [
-            $volunteers[1],
-            $volunteers[0],
-            $volunteers[3],
-            $volunteers[2]
-          ];
+          case 1:
+            $backData = $volunteers;
+            break;
+          case 2:
+            $backData = array_reverse($volunteers);
+            break;
+          case 3:
+            $backData = [
+              $volunteers[1],
+              $volunteers[0],
+              $volunteers[2]
+            ];
+            break;
+          case 4:
+            $backData = [
+              $volunteers[1],
+              $volunteers[0],
+              $volunteers[3],
+              $volunteers[2]
+            ];
           break;
         }
 
@@ -885,8 +980,8 @@ class Volunteer implements VolunteerInterface
             $this->auditTrail->log(AuditTrailActions::DOWNLOAD, $data, $this->shortName, $id);
         }
 
-        return $pdf->Output('mark.pdf', 'E');
-        // return $pdf->Output('mark.pdf', 'D');
+        // return $pdf->Output('mark.pdf', 'E');
+        return $pdf->Output('mark.pdf', 'D');
     }
 
     public function updateDateAppointedById(int $id): array
