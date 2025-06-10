@@ -143,6 +143,7 @@ class User implements UserInterface
         }
 
         $user = $this->repository->findOneBy((['emailAddress' => $email, 'deletedAt' => null]));
+        dd($user);
 
         if (null == $user) {
             return ['message' => 'User account not found for email: ' . $email];
@@ -192,7 +193,7 @@ class User implements UserInterface
 
     public function verifyOtp(string $email, string $otp): array
     {
-        $user = $this->repository->findOneBy((['emailAddress' => $email]));
+        $user = $this->repository->findOneBy((['emailAddress' => $email, 'deletedAt' => null]));
         
         if (null == $user) {
             return ['message' => 'User not found for email: ' . $email];
