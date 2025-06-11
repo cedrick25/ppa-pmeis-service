@@ -143,7 +143,6 @@ class User implements UserInterface
         }
 
         $user = $this->repository->findOneBy((['emailAddress' => $email, 'deletedAt' => null]));
-        dd($user);
 
         if (null == $user) {
             return ['message' => 'User account not found for email: ' . $email];
