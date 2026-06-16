@@ -191,7 +191,7 @@ class SessionActivitiesRepository extends ServiceEntityRepository
             $startOffset = $pageSize * ($page-1);
             $result = [];
 
-            $sql = "SELECT sa.*, tc.name as treatment_category_name FROM session_activities as sa " .
+            $sql = "SELECT sa.*, tc.name as treatment_category_name, 'test' as testColumn FROM session_activities as sa " .
                     "LEFT JOIN treatment_categories as tc ON sa.treatment_category_id = tc.treatment_category_id " .
                     "WHERE sa.deleted_at IS NULL ORDER BY sa.session_activity_id DESC ";
 

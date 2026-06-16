@@ -51,6 +51,20 @@ class VPADatabase implements Form
 
         return $spreadsheet;
     }
+    
+     public function titleCaseWithExceptions($text, $exceptions = ['and', 'or', 'the', 'of', 'in', 'on', 'at', 'for']) {
+    // Lowercase everything first
+    $text = strtolower($text);
+    
+    // Capitalize first letter of each word
+    $words = explode(' ', $text);
+    foreach ($words as &$word) {
+        if (!in_array($word, $exceptions)) {
+            $word = ucfirst($word);
+        }
+    }
+    return implode(' ', $words);
+    }
 
     /**
      * @throws \Exception
@@ -62,9 +76,29 @@ class VPADatabase implements Form
 
         foreach ($volunteers as $volunteer) {
             $this->lastFilledOutCellY++;
+            
+                 $address = ucwords(strtolower($volunteer['present_address']));
+          $address = preg_replace_callback(
+    '/\b[ivxlcdm]+\b/i',
+    function ($matches) {
+        return strtoupper($matches[0]);
+    },
+    $address
+);
+	     $suffixRaw = $volunteer['suffix'];
+$suffix = '';
 
-            $middleInitial = $volunteer['middle_name'] != null ? $volunteer['middle_name'] : '';
-            $fullName = strtoupper($volunteer['first_name']) . ' ' . strtoupper($middleInitial) . ' ' . strtoupper($volunteer['last_name']);
+if ($suffixRaw !== null) {
+    $cleanSuffix = strtolower(trim($suffixRaw));
+
+    if ($cleanSuffix !== 'n/a' && $cleanSuffix !== 'none' && $cleanSuffix !== '') {
+        $suffix = ' ' . strtoupper($suffixRaw);
+    }
+}
+ $middleInitial = $volunteer['middle_name'] != null ? $volunteer['middle_name'] : '';
+        $fullName = strtoupper($volunteer['first_name']) . ' ' .  ($middleInitial != '' ? strtoupper($middleInitial) . ' ' : '') . strtoupper($volunteer['last_name']) . $suffix;
+           
+            //$fullName = strtoupper($volunteer['first_name']) . ' ' . strtoupper($middleInitial) . ' ' . strtoupper($volunteer['last_name']);
             $dateAppointed = $this->appDateHelper->convertStringToImmutableDate($volunteer['date_appointed']);
             $dateOfBirth = $this->appDateHelper->convertStringToImmutableDate($volunteer['date_of_birth']);
             $volunteerId = 'RO-' . date('ym') . '-' . str_pad($volunteer['volunteer_id'], 4, '0', STR_PAD_LEFT);
@@ -74,9 +108,9 @@ class VPADatabase implements Form
             if ($dateAppointed != null) {
                 $spreadsheet->getActiveSheet()->setCellValue("C" . $this->lastFilledOutCellY, $dateAppointed->format('F j, Y'));
             }
-            $spreadsheet->getActiveSheet()->setCellValue("D" . $this->lastFilledOutCellY, $volunteer['present_address']);
-            $spreadsheet->getActiveSheet()->setCellValue("E" . $this->lastFilledOutCellY, $volunteer['height']);
-            $spreadsheet->getActiveSheet()->setCellValue("F" . $this->lastFilledOutCellY, $volunteer['weight']);
+            $spreadsheet->getActiveSheet()->setCellValue("D" . $this->lastFilledOutCellY, $address);
+            $spreadsheet->getActiveSheet()->setCellValue("E" . $this->lastFilledOutCellY, (float)$volunteer['height']);
+            $spreadsheet->getActiveSheet()->setCellValue("F" . $this->lastFilledOutCellY, (float)$volunteer['weight']);
             $spreadsheet->getActiveSheet()->setCellValue("G" . $this->lastFilledOutCellY, $volunteer['gender']);
             $spreadsheet->getActiveSheet()->setCellValue("H" . $this->lastFilledOutCellY, $dateOfBirth->format('F j, Y'));
             $spreadsheet->getActiveSheet()->setCellValue("I" . $this->lastFilledOutCellY, $volunteer['age']);
@@ -84,7 +118,11 @@ class VPADatabase implements Form
             $spreadsheet->getActiveSheet()->setCellValue("K" . $this->lastFilledOutCellY, $volunteer['religion']);
             $spreadsheet->getActiveSheet()->setCellValue("L" . $this->lastFilledOutCellY, $volunteer['education_attainment']);
             $spreadsheet->getActiveSheet()->setCellValue("M" . $this->lastFilledOutCellY, $volunteer['occupation']);
+            $spreadsheet->getActiveSheet()->getStyle("M" . $this->lastFilledOutCellY)
+    ->getAlignment()
+    ->setWrapText(true);
         }
+        
 
         $spreadsheet->getActiveSheet()->getStyle('A5:M' . $this->lastFilledOutCellY)->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
         $spreadsheet->getActiveSheet()->getStyle('A5:M' . $this->lastFilledOutCellY)->getAlignment()->setHorizontal('center');
@@ -108,7 +146,7 @@ class VPADatabase implements Form
         $spreadsheet = new Spreadsheet();
 
         $textAndCoordinates = [
-            'L1' => 'CSD-FOR-009-01', 'A2' => 'VPA DATABASE', 'A3' => 'REGION: ' . $this->data['header']['region'] ?? 'NCR', 'A4' => 'FIELD OFFICE: ' . $this->data['header']['field_office'] ?? '',
+            'L1' => 'CSD-FOR-009-01', 'A2' => 'VPA DATABASE', 'A3' => 'REGION: ' . $this->data['header']['region'] ?? 'NCR', 'A4' => 'FIELD OFFICE: ' . $this->titleCaseWithExceptions($this->data['header']['field_office']) ?? '',
             'A5' => 'NAME', 'B5' => 'ID Number', 'C5' => 'Date of Appointment', 'D5' => 'Address', 'E5' => 'Ht.',
             'F5' => 'Wt.', 'G5' => 'Gender', 'H5' => 'Date of Birth', 'I5' => 'Age', 'J5' => 'Civil Status',
             'K5' => 'Religion', 'L5' => 'Education', 'M5' => 'Occupation'
@@ -118,7 +156,7 @@ class VPADatabase implements Form
         $verticalAlignedCoordinates = ['A2:M2' => 'center', 'A5:M5' => 'center'];
         $horizontalAlignedCoordinates = ['A2:M2' => 'center', 'A5:M5' => 'center'];
         $adjustedColumnWidthCoordinates = [
-            'A' => 35, 'B' => 15, 'C' => 22, 'D' => 35, 'E' => 5, 'F' => 5, 'G' => 12, 'H' => 23, 'I' => 5, 'J' => 25,
+            'A' => 35, 'B' => 15, 'C' => 22, 'D' => 50, 'E' => 10, 'F' => 10, 'G' => 12, 'H' => 23, 'I' => 5, 'J' => 25,
             'K' => 25, 'L' => 25, 'M' => 25
         ];
 

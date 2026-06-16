@@ -170,9 +170,9 @@ class User implements UserInterface
         $middleName = $userDetails->getMiddleName() !== null ? ' ' . $userDetails->getMiddleName() : '';
         $fullName = $userDetails->getLastName() . ', ' . $userDetails->getFirstName() . $middleName;
         $message =  "Hi $fullName your PMEIS otp is: " . $otp;
-
-        $isEmailOtpSent = $this->ppaApiClient->sendEmail($email, $message, $user->getUserAccountId());
         
+        $isEmailOtpSent = $this->ppaApiClient->sendEmail($email, $message, $user->getUserAccountId());
+        //dd($isEmailOtpSent);
         if (!$isEmailOtpSent) {
             return ['message' => 'There is an error in sending OTP, please contact administrator.'];
         }

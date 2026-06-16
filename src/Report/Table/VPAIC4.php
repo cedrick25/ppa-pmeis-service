@@ -69,19 +69,21 @@ class VPAIC4 implements Form
         $genderTotal = ['M' => 0, 'F' => 0];
         foreach ($this->data['rows'] as $row) {
             $this->lastFilledOutCellY++;
-            $venue = $this->appDateHelper->convertStringToImmutableDate($row['venue_date']);
-            $spreadsheet->getActiveSheet()->setCellValue("A" . $this->lastFilledOutCellY, $row['service_rendered']);
-            $spreadsheet->getActiveSheet()->setCellValue("D" . $this->lastFilledOutCellY, $venue->format('y-M-d') . ' ' . $row['venue']);
-
-            $spreadsheet->getActiveSheet()->setCellValue("L" . $this->lastFilledOutCellY, $row['crd_resources_tapped']);
-            $spreadsheet->getActiveSheet()->setCellValue("N" . $this->lastFilledOutCellY, $row['crd_assistance_received']);
-            $spreadsheet->getActiveSheet()->setCellValue("P" . $this->lastFilledOutCellY, $row['remarks']);
-
-            $spreadsheet->getActiveSheet()->mergeCells('A' . $this->lastFilledOutCellY . ':C' . $this->lastFilledOutCellY);
-            $spreadsheet->getActiveSheet()->mergeCells('l' . $this->lastFilledOutCellY . ':m' . $this->lastFilledOutCellY);
-            $spreadsheet->getActiveSheet()->mergeCells('n' . $this->lastFilledOutCellY . ':o' . $this->lastFilledOutCellY);
+            
 
             foreach($row["volunteers"] as $volunteer) {
+                $venue = $this->appDateHelper->convertStringToImmutableDate($row['venue_date']);
+                $spreadsheet->getActiveSheet()->setCellValue("A" . $this->lastFilledOutCellY, $volunteer['service_rendered']);
+                $spreadsheet->getActiveSheet()->setCellValue("D" . $this->lastFilledOutCellY, $venue->format('y-M-d') . ' ' . $row['venue']);
+
+                $spreadsheet->getActiveSheet()->setCellValue("L" . $this->lastFilledOutCellY, $row['crd_resources_tapped']);
+                $spreadsheet->getActiveSheet()->setCellValue("N" . $this->lastFilledOutCellY, $row['crd_assistance_received']);
+                $spreadsheet->getActiveSheet()->setCellValue("P" . $this->lastFilledOutCellY, $row['remarks']);
+
+                $spreadsheet->getActiveSheet()->mergeCells('A' . $this->lastFilledOutCellY . ':C' . $this->lastFilledOutCellY);
+                $spreadsheet->getActiveSheet()->mergeCells('l' . $this->lastFilledOutCellY . ':m' . $this->lastFilledOutCellY);
+                $spreadsheet->getActiveSheet()->mergeCells('n' . $this->lastFilledOutCellY . ':o' . $this->lastFilledOutCellY);
+
               $spreadsheet->getActiveSheet()->mergeCells('E' . $this->lastFilledOutCellY . ':G' . $this->lastFilledOutCellY);
               $spreadsheet->getActiveSheet()->mergeCells('J' . $this->lastFilledOutCellY . ':K' . $this->lastFilledOutCellY);
               $spreadsheet->getActiveSheet()->setCellValue("E" . $this->lastFilledOutCellY, $volunteer['first_name'] . ' ' . $volunteer['middle_name'] . ' ' . $volunteer['last_name']);

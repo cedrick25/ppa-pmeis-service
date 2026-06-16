@@ -137,6 +137,12 @@ class CacheHelper
         return 'sessions_by_id_' . $id;
     }
 
+    
+    public function getAllActivitySessionsBySessionIdKey(int $id): string
+    {
+        return 'session_selected_activities_by_session_id' . $id;
+    }
+
     public function getAllClientTypesKey(): string
     {
         return 'client_types_all';

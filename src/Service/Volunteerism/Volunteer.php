@@ -337,12 +337,54 @@ class Volunteer implements VolunteerInterface
             );
         }
     }
+    
+     public function getRegionName(int $regionId): string
+    {
+        $region = $this->regionsRepository->find($regionId);
 
-    public function getConsolidatedSocioDemographic(int $regionId): array
+        return $region ? $region->getName() : 'Unknown Region';
+    }
+
+    public function getConsolidatedSocioDemographic(int $regionId, int $quarterId = 0): array
     {
         try {
             $volunteers = $this->repository->findByRegionId($regionId);
             // dd($volunteers, $regionId);
+             if ($quarterId > 0) {
+
+			    $quarter = $this->quartersRepository->find($quarterId);
+			    if ($quarter === null) {
+				return [];
+			    }
+
+			    $quarterEndMonthMap = [
+				'FIRST'  => 3,
+				'SECOND' => 6,
+				'THIRD'  => 9,
+				'FOURTH' => 12,
+			    ];
+
+			    $year = (int) $quarter->getYear();
+			    $endMonth = $quarterEndMonthMap[$quarter->getName()];
+
+			    $quarterEndDate = (new \DateTimeImmutable("{$year}-{$endMonth}-01"))
+				->modify('last day of this month')
+				->setTime(23, 59, 59);
+
+			    $filteredVolunteers = [];
+
+			    foreach ($volunteers as $volunteer) {
+				$createdAt = $this->appDateHelper
+				    ->convertStringToImmutableDate($volunteer['created_at']); // ⚠️ key name
+
+				if ($createdAt && $createdAt <= $quarterEndDate) {
+				    $filteredVolunteers[] = $volunteer;
+				}
+			    }
+
+			    //$volunteers = $filteredVolunteers;
+			}
+
             $region = $this->regionsRepository->find($regionId);
             $regionsName = $region->getName();
             if (sizeof($volunteers) <= 0) {
@@ -605,21 +647,76 @@ class Volunteer implements VolunteerInterface
                 ($noOfServicesRenderedByVpaDuringQuarter / $totalActiveVpa) : 0,
         ];
     }
+    
+    public function titleCaseWithExceptions($text, $exceptions = ['and', 'or', 'the', 'of', 'in', 'on', 'at', 'for']) {
+    // Lowercase everything first
+    $text = strtolower($text);
+    
+    // Capitalize first letter of each word
+    $words = explode(' ', $text);
+    foreach ($words as &$word) {
+        if (!in_array($word, $exceptions)) {
+            $word = ucfirst($word);
+        }
+    }
+    return implode(' ', $words);
+}
 
     public function getCertificate(array $data): string
     {
         $volunteer = $this->repository->find($data['volunteer_id']);
         $address = $volunteer->getPresentAddress();
-        $middleInitial = $volunteer->getMiddleName() != null ? substr($volunteer->getMiddleName(), 0, 1) : '';
-        $fullName = strtoupper($volunteer->getFirstName()) . ' ' . strtoupper($middleInitial) . '. ' . strtoupper($volunteer->getLastName());
+       $address = ucwords(strtolower($volunteer->getPresentAddress()), " -");
+          $address = preg_replace_callback(
+    '/\b[ivxlcdm]+\b/i',
+    function ($matches) {
+        return strtoupper($matches[0]);
+    },
+    $address
+);
+
+        $middleInitial = $volunteer->getMiddleName() != null && strtolower($volunteer->getMiddleName()) != "n/a"  ? substr($volunteer->getMiddleName(), 0, 1) : '';
+         
+       $suffixRaw = $volunteer->getSuffix();
+$suffix = '';
+
+if ($suffixRaw !== null) {
+    $cleanSuffix = strtolower(trim($suffixRaw));
+
+    if ($cleanSuffix !== 'n/a' && $cleanSuffix !== 'none' && $cleanSuffix !== '') {
+        $suffix = ', ' . strtoupper($suffixRaw);
+    }
+}
+        $fullName = strtoupper($volunteer->getFirstName()) . ' ' .  ($middleInitial != '' ? strtoupper($middleInitial) . '. ' : '') . strtoupper($volunteer->getLastName()) . $suffix;
         $fieldOffice = $this->fieldOfficesRepository->find($volunteer->getFieldOfficeId());
-        $fieldOfficeName = $fieldOffice->getName();
+        $fieldOfficeName = $this->titleCaseWithExceptions($fieldOffice->getName());
         $dateOfAppointment = $volunteer->getDateAppointed()->format('F d, Y');
         $region = $this->regionsRepository->find($fieldOffice->getRegionId());
         $regionName = $region->getName();
+     
+        if($regionName == "NCR"){
+        	$regionName = "NATIONAL CAPITAL REGION";
+        }
+        if($regionName == "CAR"){
+        	$regionName = "CORDILLERA ADMINISTRATIVE REGION";
+        }
+         if($regionName == "ARMM"){
+        	$regionName = "AUTONOMOUS REGION IN MUSLIM MINDANAO";
+        }
+       
+        
+               if (str_starts_with(strtolower($regionName), 'region')) {
+    $parts = explode(' ', $regionName, 2);
+    $parts[0] = ucfirst(strtolower($parts[0]));
+    $regionName = implode(' ', $parts);
+}else{
+ $regionName = ucwords(strtolower($regionName));
+}
+
+        
         $code = $this->systemCodeSettings->getByName(SystemSettingNames::VPA_CERTIFICATE_REPORT_CODE);
         $administrator = $this->systemCodeSettings->getByName(SystemSettingNames::OIC_ADMINISTRATOR);
-
+	
         $pdf = new TCPDF();
         $pdf->setCreator(PDF_CREATOR);
         $pdf->setAuthor('PPA');
@@ -628,44 +725,52 @@ class Volunteer implements VolunteerInterface
         $pdf->setPrintFooter(false);
         $pdf->startPage();
         $logo = dirname(__DIR__) . '/../../assets/ppa.png';
+        $pdf->AddFont('MonotypeCorsiva', '', 'monotypecorsiva.php');
+        $pdf->AddFont('MonotypeCorsiva', 'B', 'monotypecorsivab.php');  // Bold
+        $pdf->AddFont('Georgia', '', 'georgia.php');    // Regular
+	$pdf->AddFont('Georgia', 'B', 'georgiab.php');  // Bold
+	$pdf->AddFont('Georgia', 'I', 'georgiai.php');  // Italic
+	$pdf->AddFont('Georgia', 'BI', 'georgiaz.php'); // Bold Italic
+        
+        
         $heading = <<<EOD
             <h5 style="text-align: right;">$code</h5>
-            <h3 style="text-align: center;line-height: 5px;">Republic of the Philippines</h3>
-            <h3 style="text-align: center;line-height: 5px;">Department of Justice</h3>
-            <h2 style="text-align: center;line-height: 5px;">PAROLE AND PROBATION ADMINISTRATION</h2>
+            <h3 style="text-align: center;line-height: 5px;font-size: 12pt;font-weight: bold;font-family: Georgia, serif;">Republic of the Philippines</h3>
+            <h3 style="text-align: center;line-height: 5px;font-size: 12pt;font-weight: bold;font-family: Georgia, serif;">Department of Justice</h3>
+            <h2 style="text-align: center;line-height: 5px;font-size: 15pt;font-weight: bold;font-family: Georgia, serif;">PAROLE AND PROBATION ADMINISTRATION</h2>
             <h5 style="text-align: center;line-height: 5px;">DOJ Agencies Building</h5>
             <h5 style="text-align: center;line-height: 5px;">NIA Road corner East Avenue, Diliman</h5>
-            <h5 style="text-align: center;line-height: 5px;">1110 Quezon City</h5>
+            <h5 style="text-align: center;line-height: 5px;">1100 Quezon City</h5>
         EOD;
 
         $pdf->writeHTMLCell(0, 0, '', '', $heading);
         $pdf->Image($logo,  85, 55, 40, 40, '', '', 'T', false, 300, '', false, false, 1);
+        
         $body = <<<EOD
-            <div>
-                <h1 style="text-align: center;"><i>Certificate of Appointment</i></h1>
-                <h1 style="text-align: center;font-size: 40px;font-weight: bold">$fullName</h1>
-                <h2 style="text-align: center;font-weight: normal;"><i>of</i></h2>
-                <h2 style="text-align: center;font-size: 20px;font-weight: normal">$address</div>
-                <h3 style="text-align: center;font-weight: normal;">
-                    is hereby appointed as
-                    <span style="font-size: 13px;font-weight: bold;">VOLUNTEER PROBATION ASSISTANT</span> of the
-                </h3>
-                <h2 style="text-align: center;font-weight: normal;line-height: 5px;"><i>$fieldOfficeName</i></h2>
-                <h2 style="text-align: center;font-weight: normal;line-height: 5px;"><i>$regionName</i></h2>
-                <div></div>
-                <div style="text-align: center;">
-                    <span style="text-align: center;font-weight: bold;font-size: 18px;">$dateOfAppointment</span>
-                    <br/>
-                    <span style="font-weight: bold;font-size: 18px;">Date of Appointment</span>
-                </div>
-                <div></div>
-                <div></div>
-                <h1 style="text-align: center;font-size: 20px;line-height: 5px;">$administrator</h1>
-                <h2 style="text-align: center;font-weight:normal;line-height: 5px;">Administrator</h2>
-            </div>
-        EOD;
-
-        $pdf->SetXY(110, 200);
+    <div>
+        <h2 style="text-align: center;font-family:MonotypeCorsiva;font-size: 28pt;font-weight: bold">Certificate of Appointment</h2>
+        <h1 style="text-align: center;font-size: 36pt;font-weight: bold;font-family: Georgia, serif;">$fullName</h1>
+        <h2 style="text-align: center;font-weight: normal;font-family:MonotypeCorsiva;line-height: 20px;height: 20px;">of</h2>
+        <h2 style="text-align: center;font-size: 18pt;font-family:MonotypeCorsiva; font-weight: bold;line-height: 40px;height: 40px;">$address</h2>
+        <h3 style="text-align: center;font-size: 14pt;font-weight: normal;font-family: Georgia, serif">
+            is hereby appointed as
+            <span style="font-weight: bold;">VOLUNTEER PROBATION ASSISTANT</span> of the
+        </h3>
+        <h2 style="text-align: center;font-weight: bold;line-height: 5px;font-size: 18pt;font-family:MonotypeCorsiva;font-weight: bold"><b>$fieldOfficeName</b></h2>
+        <h2 style="text-align: center;line-height: 5px;font-size: 18pt;font-family:MonotypeCorsiva;font-weight: bold"><b>$regionName</b></h2>
+        <div></div>
+        <div style="text-align: center;">
+            <span style="text-align: center;font-weight: bold;font-size: 14pt;font-family: Georgia, serif;">$dateOfAppointment</span>
+            <br/>
+            <span style="font-weight: bold;font-size: 14pt;font-family: Georgia, serif">Date of Appointment</span>
+        </div>
+        <div></div>
+        <div></div>
+        <h1 style="text-align: center;font-size: 14pt;line-height: 5px;font-family: Georgia, serif;font-weight:bold">$administrator</h1>
+        <h2 style="text-align: center;line-height: 5px;font-family:MonotypeCorsiva;font-size: 14pt">Administrator</h2>
+    </div>
+EOD;
+	$pdf->SetXY(110, 200);
         $pdf->setMargins(20, 0, 0);
         $pdf->writeHTMLCell(0, 0, 0, 95, $body);
         $pdf->endPage();
@@ -688,29 +793,45 @@ class Volunteer implements VolunteerInterface
         return "No volunteers found.";
       }
 
-      $fieldOffice = $this->fieldOfficesRepository->find($volunteers[0]->getFieldOfficeId());
+      //$fieldOffice = $this->fieldOfficesRepository->find($volunteers[0]->getFieldOfficeId());
+
+      //if ($fieldOffice == null) {
+       //   return 'No field office id';}
+
+      //$region = $this->regionsRepository->find($fieldOffice->getRegionId());
+
+      //$code = $this->systemCodeSettings->getByName(SystemSettingNames::VPA_CERTIFICATE_REPORT_CODE);
+      $code = "CSD-FOR-005-002";
+      $administrator = $this->systemCodeSettings->getByName(SystemSettingNames::OIC_ADMINISTRATOR);
+
+      $front = [];
+
+      foreach ($volunteers as $index => $volunteer) {
+        $middleInitial = $volunteer->getMiddleName() != null && strtolower($volunteer->getMiddleName()) != 'n/a'  && strtolower($volunteer->getMiddleName()) != 'none'  ? substr($volunteer->getMiddleName(), 0, 1) : '';
+              $suffixRaw = $volunteer->getSuffix();
+$suffix = '';
+
+if ($suffixRaw !== null) {
+    $cleanSuffix = strtolower(trim($suffixRaw));
+
+    if ($cleanSuffix !== 'n/a' && $cleanSuffix !== 'none' && $cleanSuffix !== '') {
+        $suffix = ', ' . strtoupper($suffixRaw);
+    }
+}
+        $fullName = strtoupper($volunteer->getFirstName()) . ' ' .  ($middleInitial != '' ? strtoupper($middleInitial) . '. ' : '') . strtoupper($volunteer->getLastName()) . $suffix;
+        $volunteerId = 'RO-' . date('ym') . '-' . str_pad($volunteer->getVolunteerId(), 4, '0', STR_PAD_LEFT);
+     $fieldOffice = $this->fieldOfficesRepository->find($volunteer->getFieldOfficeId());
 
       if ($fieldOffice == null) {
           return 'No field office id';
       }
 
       $region = $this->regionsRepository->find($fieldOffice->getRegionId());
-
-      $code = $this->systemCodeSettings->getByName(SystemSettingNames::VPA_CERTIFICATE_REPORT_CODE);
-      $administrator = $this->systemCodeSettings->getByName(SystemSettingNames::OIC_ADMINISTRATOR);
-
-      $front = [];
-
-      foreach ($volunteers as $index => $volunteer) {
-        $middleInitial = $volunteer->getMiddleName() != null ? substr($volunteer->getMiddleName(), 0, 1) : '';
-        $fullName = strtoupper($volunteer->getFirstName()) . ' ' . strtoupper($middleInitial) . '. ' . strtoupper($volunteer->getLastName());
-        $volunteerId = 'RO-' . date('ym') . '-' . str_pad($volunteer->getVolunteerId(), 4, '0', STR_PAD_LEFT);
-    
         $front[] = [
           'position' => $index % 2 == 0 ? 'start' : 'end',
           'id' => $volunteer->getIdNumber() ?? $volunteerId,
           'fullName' => $fullName,
-          'fieldOfficeName' => $fieldOffice->getName(),
+          'fieldOfficeName' => $this->titleCaseWithExceptions($fieldOffice->getName()),
           'regionName' => $region->getName(),
           'administrator' => $administrator,
           'volunteersCount' => count($volunteersId),
@@ -748,16 +869,32 @@ class Volunteer implements VolunteerInterface
         foreach ($backData as $index => $volunteer) {
           $validUntil = date('Y-m-d', strtotime($volunteer->getDateAppointed()->format('Y-m-d') . ' +2 years'));
           $validUntil = date('F d, Y', strtotime($validUntil . ' -1 day'));
-
+          
+          $address = ucwords(strtolower($volunteer->getPresentAddress()), " -");
+          $address = preg_replace_callback(
+    '/\b[ivxlcdm]+\b/i',
+    function ($matches) {
+        return strtoupper($matches[0]);
+    },
+    $address
+);
+	$emergencyName = "";
+	$emergencyNumber = "";
+	$rawName = $volunteer->getEmergencyName();
+	if (!in_array(strtolower($rawName), ['n/a', 'none', '0'])) {
+    $emergencyName = ucwords(strtolower($rawName));
+    $emergencyNumber = $volunteer->getEmergencyNumber();
+}
+	
           $back[] = [
               'position' => $index % 2 == 0 ? 'start' : 'end',
               'code' => $code,
-              'presentAddress' => $volunteer->getPresentAddress(),
-              'bloodType' => $volunteer->getBloodType(),
+              'presentAddress' => $address,
+              'bloodType' => strtoupper($volunteer->getBloodType()),
               'weight' => $volunteer->getWeight(),
               'height' => $volunteer->getHeight(),
-              'emergencyName' => $volunteer->getEmergencyName(),
-              'emergencyNumber' => $volunteer->getEmergencyNumber(),
+              'emergencyName' => $emergencyName,
+              'emergencyNumber' => $emergencyNumber,
               'appointedDate' => $volunteer->getDateAppointed()->format('F d, Y'),
               'validUntil' => $validUntil,
               'volunteersCount' => count($volunteersId),
@@ -1300,14 +1437,14 @@ class Volunteer implements VolunteerInterface
                         </h3>
                         <table>
                             <tr>
-                                <td class="full-name-container" ><span class="$nameStyleClass">$fullName</span></td>
+                                <td class="full-name-container" style="font-family: Georgia, serif;"><span class="$nameStyleClass">$fullName</span></td>
                             </tr>
                             <tr>
                                 <td class="title-container"><span class="title">Volunteer Probation Assistant</span></td>
                             </tr>
                         </table>
-                        <h3 style="text-align: center;">$fieldOfficeName</h3>
-                        <h3 style="text-align: center">$regionName</h3>
+                        <h3 style="text-align: center; font-family: "Liberation Sans", Arial, sans-serif;">$fieldOfficeName</h3>
+                        <h3 style="text-align: center;font-family: Liberation, serif;">$regionName</h3>
                         <h2 class="admin-name">$administrator</h2>
                         <h3 class="admin-title">Administrator</h3>
                     </td>
@@ -1368,7 +1505,7 @@ class Volunteer implements VolunteerInterface
                         <td width="90%" colspan="3" style="text-align: right;border: none;">
                             &nbsp;
                             {$br}
-                            $code
+                            CSD-FOR-005-002
                         </td>
                     </tr>
                     <tr>
@@ -1414,11 +1551,11 @@ class Volunteer implements VolunteerInterface
                         <td colspan="3" class="no-border">Signature</td>
                     </tr>
                     <tr>
-                        <td colspan="3" class="no-border" style="font-weight: bold;">This ID valid from: $validFrom</td>
+                        <td colspan="3" class="no-border" style="font-weight: bold;">This ID valid until $validUntil /td>
                     </tr>
                     <tr>
                         <td colspan="3" class="no-border" style="font-weight: bold;">
-                            until: $validUntil
+                          This ID must be surrendered upon expiration
                             <div></div>
                         </td>
                     </tr>

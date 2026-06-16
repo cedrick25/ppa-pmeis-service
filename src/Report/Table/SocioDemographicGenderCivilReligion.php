@@ -14,11 +14,12 @@ use Symfony\Component\HttpFoundation\BinaryFileResponse;
 class SocioDemographicGenderCivilReligion implements Form
 {
     private const TABLE_NAME = "SocioDemographicGenderCivilReligion";
-    
+     private string $regionName = "";
     public function __construct(
         private Volunteer   $service,
         private int         $lastFilledOutCellY = 10,
         private array       $data = [],
+       
     ){}
 
     public function supports(string $tableName): bool
@@ -152,6 +153,8 @@ class SocioDemographicGenderCivilReligion implements Form
             $total['genderTotal'] += $genderTotal;
             $total['civilStatusTotal'] += $civilStatusTotal;
             $total['religionTotal'] += $religionTotal;
+            $spreadsheet->getActiveSheet()->setCellValue('D' . $this->lastFilledOutCellY, $genderTotal);
+            $spreadsheet->getActiveSheet()->setCellValue('J' . $this->lastFilledOutCellY, $civilStatusTotal);
             $spreadsheet->getActiveSheet()->setCellValue('P' . $this->lastFilledOutCellY, $religionTotal);
         }
 
@@ -177,6 +180,7 @@ class SocioDemographicGenderCivilReligion implements Form
         $spreadsheet->getActiveSheet()->getStyle('A10:P' . $this->lastFilledOutCellY)->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
         $spreadsheet->getActiveSheet()->getStyle('A10:P' . $this->lastFilledOutCellY)->getAlignment()->setHorizontal('center');
         $spreadsheet->getActiveSheet()->getStyle('A10:P' . $this->lastFilledOutCellY)->getAlignment()->setVertical('center');
+        $spreadsheet->getActiveSheet()->getColumnDimension('A')->setAutoSize(true);
 
         return $spreadsheet;
     }
@@ -195,10 +199,11 @@ class SocioDemographicGenderCivilReligion implements Form
     {
         $spreadsheet = new Spreadsheet();
         $textAndCoordinates = [
-            'N1' => 'CSD-FR-011-00',
+            'N1' => 'CSD-FOR-011-002',
             'A2' => 'VPA SOCIO-DEMOGRAPHIC REPORT',
-            'A3' => 'As of________20__',
-            'A5' => 'Regional Office',
+            'A3' =>  $this->regionName,
+            'A4' => $this->getCurrentQuarterAndYear(),
+            'A5' => "Regional Office\n" . $this->regionName,
             'B5' => 'GENDER',
             'E5' => 'CIVIL STATUS',
             'K5' => 'RELIGION',
@@ -219,7 +224,7 @@ class SocioDemographicGenderCivilReligion implements Form
             'P6' => 'Total'
         ];
         $mergesCoordinates = [
-            'A2:P2', 'A3:P3', 'A5:A10', 'B5:D5', 'E5:J5', 'K5:P5', 'B6:B10', 'C6:C10', 'D6:D10', 'E6:E10', 'F6:F10', 'G6:G10',
+            'A2:P2',  'A4:P4','A3:P3', 'A5:A10', 'B5:D5', 'E5:J5', 'K5:P5', 'B6:B10', 'C6:C10', 'D6:D10', 'E6:E10', 'F6:F10', 'G6:G10',
             'H6:H10', 'I6:I10', 'J6:J10', 'K6:K10', 'L6:L10', 'M6:M10', 'N6:N10', 'O6:O10', 'P6:P10'
         ];
         $boldCoordinates = ['A1:P10'];
@@ -276,7 +281,13 @@ class SocioDemographicGenderCivilReligion implements Form
     private function getData(array $data): array
     {
         $result = $this->service->getConsolidatedSocioDemographic($data['region_id']);
-
+ 	$this->regionName = $this->service->getRegionName($data['region_id']);
         return ['rows' => $result['data'] ?? []];
+    }
+    
+    private function getCurrentQuarterAndYear(): string {
+	    $year = date('Y');
+	    $quarter = ceil(date('n') / 3);
+	    return "As of Q{$quarter} {$year}";
     }
 }

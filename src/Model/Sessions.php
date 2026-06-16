@@ -25,6 +25,7 @@ class Sessions implements \JsonSerializable
         private ?DateTimeInterface $createdAt = null,
         private ?DateTimeInterface $updatedAt = null,
         private ?DateTimeInterface $deletedAt = null,
+        private ?array $activities = null,
         private ?array $attendees = null,
         private ?array $facilitators = null,
         private ?array $absentees = null,
@@ -34,6 +35,7 @@ class Sessions implements \JsonSerializable
         private bool $isTreePlanting = false,
         private bool $isCooperativeSelfHelp = false,
         private bool $isCooperativeSelfHelpActivities = false,
+        
     ){}
 
     /**
@@ -181,6 +183,14 @@ class Sessions implements \JsonSerializable
     public function getAttendees(): ?array
     {
         return $this->attendees;
+    }
+
+    /**
+     * @return array<string, int[]>|null
+     */
+    public function getActivities(): ?array
+    {
+        return $this->activities;
     }
 
     /**

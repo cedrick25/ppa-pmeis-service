@@ -173,13 +173,20 @@ class VpaAssociationInitiatedActivitiesRepository extends ServiceEntityRepositor
 
             $conn = $this->getEntityManager()->getConnection();
             $sql = "SELECT vaia.*, fo.name field_office, r.name region,
-                        r.region_id as region_id, sr.name service_rendered, ve.name venue
+                        r.region_id as region_id, 
+                            COALESCE((
+                                select Group_Concat(Distinct(ser.name)) from vpa_association_activity_volunteers_services vaavs
+                                left join vpa_association_activity_volunteers vaav on vaav.id = vaavs.vpa_activity_volunteer_id
+                                left join services_rendered ser on ser.services_rendered_id = vaavs.service_rendered_id
+                                where vaav.vpa_activity_vounteer_id = vaia.vpa_association_initiated_activity_id
+                                group by vpa_activity_vounteer_id
+                            ) ,sr.name)service_rendered, ve.name venue
                     FROM vpa_association_initiated_activities as vaia
                     LEFT JOIN services_rendered sr on vaia.service_rendered_id = sr.services_rendered_id
                     LEFT JOIN venues ve on vaia.venue_id = ve.venue_id
                     LEFT JOIN field_offices fo on vaia.field_office_id = fo.field_office_id
                     LEFT JOIN regions r on fo.region_id = r.region_id
-                    WHERE vaia.deleted_at IS NULL ";
+                    WHERE vaia.deleted_at IS NULL ; ";
 
             $result['totalItems'] = $this->helper->getCustomQueryPaginatedTotalItems($conn, $sql);
 

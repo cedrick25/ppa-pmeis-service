@@ -8,6 +8,7 @@ use App\Common\AppDateHelper;
 use App\Common\CacheHelper;
 use App\Entity\Quarters;
 use App\Entity\Sessions;
+use App\Entity\SessionSelectedActivities;
 use App\Enum\Response as ResponseEnum;
 use App\Model\Sessions as SessionsModel;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
@@ -36,6 +37,7 @@ class SessionsRepository extends ServiceEntityRepository
         private CacheHelper                          $cacheHelper,
         private Helper                               $helper,
         private ClientSessionsRepository             $clientSessionsRepository,
+        private SessionSelectedActivityRepository    $sessionSelectedActivityRepository,
         private ResourceFacilitatorSessionRepository $resourceFacilitatorSessionRepository,
         private QuartersRepository                   $quartersRepository,
         private ClientTypesRepository                $clientTypesRepository,
@@ -118,6 +120,7 @@ class SessionsRepository extends ServiceEntityRepository
         $this->getEntityManager()->flush();
 
         $this->clientSessionsRepository->batchCreate($session->getSessionId(), $sessionData->getAttendees());
+        $this->sessionSelectedActivityRepository->batchCreate($session->getSessionId(), $sessionData->getActivities()); //session - activities
         if ($sessionData->getAbsentees() !== null && count($sessionData->getAbsentees()) > 0) {
             $this->clientSessionsRepository->batchCreateAbsentees($session->getSessionId(), $sessionData->getAbsentees());
         }
@@ -143,6 +146,7 @@ class SessionsRepository extends ServiceEntityRepository
             $conn = $this->getEntityManager()->getConnection();
             $sql = "SELECT se.*, MONTH(se.date) as quarter_month, YEAR(se.date) as quarter_year, fe.name as field_office_name,
                     p.name as phase_name, sa.name as session_activity_name, tc.name as treatment_category_name, v.name as venue_name
+                    , 'test-list' as testColumn  
                  FROM sessions as se " .
                 "LEFT JOIN field_offices as fe ON se.field_office_id = fe.field_office_id " .
                 "LEFT JOIN phases as p ON se.field_office_id = p.phase_id " .
@@ -183,6 +187,7 @@ class SessionsRepository extends ServiceEntityRepository
 
             $sql = "SELECT se.*, MONTH(se.date) as quarter_month, YEAR(se.date) as quarter_year, fo.name as field_office_name,
                     p.name as phase_name, sa.name as session_activity_name, tc.name as treatment_category_name, v.name as venue_name
+                     , 'test-list-with-client' as testColumn  
                  FROM sessions as se
                 LEFT JOIN field_offices as fo ON se.field_office_id = fo.field_office_id
                 LEFT JOIN phases as p ON se.field_office_id = p.phase_id
@@ -333,13 +338,24 @@ class SessionsRepository extends ServiceEntityRepository
 
         $this->getEntityManager()->flush();
 
-        $this->clientSessionsRepository->deleteBySessionId($session->getSessionId());
-        $this->clientSessionsRepository->batchCreate($session->getSessionId(), $sessionData->getAttendees());
-        $this->clientSessionsRepository->batchCreateAbsentees($session->getSessionId(), $sessionData->getAbsentees());
+        //// changes here
+        if($sessionData->getAttendees() !== null && count($sessionData->getAttendees()) > 0) {
+            $this->clientSessionsRepository->deleteBySessionId($session->getSessionId());
+            $this->clientSessionsRepository->batchCreate($session->getSessionId(), $sessionData->getAttendees());
+        }
+        if($sessionData->getAbsentees() !== null && count($sessionData->getAbsentees()) > 0) {
+             $this->clientSessionsRepository->batchCreateAbsentees($session->getSessionId(), $sessionData->getAbsentees());
+        }
 
-        $this->resourceFacilitatorSessionRepository->deleteBySessionId($session->getSessionId());
-        $this->resourceFacilitatorSessionRepository
-            ->batchCreate($session->getSessionId(), $sessionData->getFacilitators());
+        if($sessionData->getFacilitators() !== null && count($sessionData->getFacilitators()) > 0) {
+             $this->resourceFacilitatorSessionRepository->deleteBySessionId($session->getSessionId());
+            $this->resourceFacilitatorSessionRepository->batchCreate($session->getSessionId(), $sessionData->getFacilitators());
+        }
+
+        $this->sessionSelectedActivityRepository->deleteBySessionId($session->getSessionId());
+        if ($sessionData->getActivities() !== null && count($sessionData->getActivities()) > 0) {
+            $this->sessionSelectedActivityRepository->batchCreate($session->getSessionId(), $sessionData->getActivities());
+        }
 
         return ResponseEnum::OK;
     }
@@ -379,6 +395,7 @@ class SessionsRepository extends ServiceEntityRepository
             $conn = $this->getEntityManager()->getConnection();
             $sql = "SELECT se.*, MONTH(se.date) as quarter_month, YEAR(se.date) as quarter_year, fe.name as field_office_name,
                          p.name as phase_name, sa.name as session_activity_name, tc.name as treatment_category_name, v.name as venue_name
+                         , (SELECT GROUP_CONCAT(CONCAT_WS(' ',first_name, last_name) SEPARATOR ', ') AS merged_names FROM clients where client_id in (select client_id from client_sessions where session_id = se.session_id)) as 'clients'
                     FROM sessions as se
                     LEFT JOIN field_offices as fe ON se.field_office_id = fe.field_office_id
                     LEFT JOIN phases as p ON se.field_office_id = p.phase_id
@@ -430,7 +447,7 @@ class SessionsRepository extends ServiceEntityRepository
 
             $sql = "SELECT se.*, MONTH(se.date) as quarter_month, YEAR(se.date) as quarter_year, fe.name as field_office_name,
                     p.name as phase_name, sa.name as session_activity_name, tc.name as treatment_category_name, v.name as venue_name,
-                    r.name, r.region_id
+                    r.name, r.region_id , 'test-fetch' as testColumn  
                  FROM sessions as se " .
                 "LEFT JOIN field_offices as fe ON se.field_office_id = fe.field_office_id " .
                 "LEFT JOIN phases as p ON se.field_office_id = p.phase_id " .
@@ -445,6 +462,7 @@ class SessionsRepository extends ServiceEntityRepository
 
             $session['quarter_name'] = $this->appDateHelper->getQuarterByMonth(intval($session['quarter_month']));
             $clients = $this->clientSessionsRepository->listBySessionId($id);
+            $session['activities'] = $this->sessionSelectedActivityRepository->listBySessionId($id);
 
             foreach ($clients as $client) {
                 if (null === $client->getClientRemarksId()) {
