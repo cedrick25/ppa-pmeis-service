@@ -24,9 +24,9 @@ class Clients
     private int $clientId;
 
     /**
-     * @ORM\Column(type="integer")
+     * @ORM\Column(type="integer", nullable=true)
      */
-    private int $cmisId;
+    private ?int $cmisId;
 
     /**
      * @ORM\Column(type="integer")
@@ -47,6 +47,11 @@ class Clients
      * @ORM\Column(type="string", length=255)
      */
     private string $lastName;
+
+    /**
+     * @ORM\Column(type="string", length=255, nullable=true)
+     */
+    private ?string $fullName;
 
     /**
      * @ORM\Column(type="string", length=255, nullable=true)
@@ -104,6 +109,36 @@ class Clients
     private ?int $clientRemarksId;
 
     /**
+     * @ORM\Column(type="string", length=50, nullable=true)
+     */
+    private ?string $cmisDocketNo;
+
+    /**
+     * @ORM\Column(type="string", length=50, nullable=true)
+     */
+    private ?string $cmisCaseClassification;
+
+    /**
+     * @ORM\Column(name="cmis_y_m", type="string", length=7, nullable=true)
+     */
+    private ?string $cmisYM;
+
+    /**
+     * @ORM\Column(type="string", length=30, nullable=true)
+     */
+    private ?string $cmisSource;
+
+    /**
+     * @ORM\Column(type="datetime_immutable", nullable=true)
+     */
+    private ?DateTimeImmutable $cmisSyncedAt;
+
+    /**
+     * @ORM\Column(type="datetime_immutable", nullable=true)
+     */
+    private ?DateTimeImmutable $cmisLastSeenAt;
+
+    /**
      * @ORM\Column(type="datetime_immutable")
      */
     private DateTimeImmutable $createdAt;
@@ -128,7 +163,7 @@ class Clients
         return $this->cmisId;
     }
 
-    public function setCmisId(int $cmisId): self
+    public function setCmisId(?int $cmisId): self
     {
         $this->cmisId = $cmisId;
 
@@ -179,6 +214,18 @@ class Clients
     public function setLastName(string $lastName): self
     {
         $this->lastName = $lastName;
+
+        return $this;
+    }
+
+    public function getFullName(): ?string
+    {
+        return $this->fullName;
+    }
+
+    public function setFullName(?string $fullName): self
+    {
+        $this->fullName = $fullName;
 
         return $this;
     }
@@ -324,6 +371,78 @@ class Clients
     public function setClientRemarksId(?int $clientRemarksId): Clients
     {
         $this->clientRemarksId = $clientRemarksId;
+        return $this;
+    }
+
+    public function getCmisDocketNo(): ?string
+    {
+        return $this->cmisDocketNo;
+    }
+
+    public function setCmisDocketNo(?string $cmisDocketNo): self
+    {
+        $this->cmisDocketNo = $cmisDocketNo;
+
+        return $this;
+    }
+
+    public function getCmisCaseClassification(): ?string
+    {
+        return $this->cmisCaseClassification;
+    }
+
+    public function setCmisCaseClassification(?string $cmisCaseClassification): self
+    {
+        $this->cmisCaseClassification = $cmisCaseClassification;
+
+        return $this;
+    }
+
+    public function getCmisYM(): ?string
+    {
+        return $this->cmisYM;
+    }
+
+    public function setCmisYM(?string $cmisYM): self
+    {
+        $this->cmisYM = $cmisYM;
+
+        return $this;
+    }
+
+    public function getCmisSource(): ?string
+    {
+        return $this->cmisSource;
+    }
+
+    public function setCmisSource(?string $cmisSource): self
+    {
+        $this->cmisSource = $cmisSource;
+
+        return $this;
+    }
+
+    public function getCmisSyncedAt(): ?DateTimeImmutable
+    {
+        return $this->cmisSyncedAt;
+    }
+
+    public function setCmisSyncedAt(?DateTimeImmutable $cmisSyncedAt): self
+    {
+        $this->cmisSyncedAt = $cmisSyncedAt;
+
+        return $this;
+    }
+
+    public function getCmisLastSeenAt(): ?DateTimeImmutable
+    {
+        return $this->cmisLastSeenAt;
+    }
+
+    public function setCmisLastSeenAt(?DateTimeImmutable $cmisLastSeenAt): self
+    {
+        $this->cmisLastSeenAt = $cmisLastSeenAt;
+
         return $this;
     }
 

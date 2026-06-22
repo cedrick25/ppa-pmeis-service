@@ -15,6 +15,7 @@ use Doctrine\ORM\OptimisticLockException;
 use Doctrine\ORM\ORMException;
 use Doctrine\Persistence\ManagerRegistry;
 use App\Model\Clients as ClientModel;
+use App\Service\Cmis\CmisSource;
 use Exception;
 use Psr\Cache\CacheException;
 use Psr\Cache\InvalidArgumentException;
@@ -58,6 +59,7 @@ class ClientsRepository extends ServiceEntityRepository
         $newClient->setFirstName($clientData->getFirstName());
         $newClient->setMiddleName($clientData->getMiddleName());
         $newClient->setLastName($clientData->getLastName());
+        $newClient->setFullName($clientData->getFullName());
         $newClient->setSuffix($clientData->getSuffix());
         $newClient->setAlias($clientData->getAlias());
         $newClient->setGender($clientData->getGender());
@@ -69,6 +71,10 @@ class ClientsRepository extends ServiceEntityRepository
         $newClient->setSupervisionStart($this->appDateHelper->convertStringToImmutableDate($clientData->getSupervisionStart()));
         $newClient->setSupervisionEnd($this->appDateHelper->convertStringToImmutableDate($clientData->getSupervisionEnd()));
         $newClient->setClientRemarksId($clientData->getClientRemarksId());
+        $newClient->setCmisDocketNo($clientData->getCmisDocketNo());
+        $newClient->setCmisCaseClassification($clientData->getCmisCaseClassification());
+        $newClient->setCmisYM($clientData->getCmisYM());
+        $newClient->setCmisSource($clientData->getCmisSource());
         $newClient->setCreatedAt($this->appDateHelper->getCurrentImmutableDate());
         $newClient->setUpdatedAt($this->appDateHelper->getCurrentImmutableDate());
         $this->getEntityManager()->persist($newClient);
@@ -204,6 +210,7 @@ class ClientsRepository extends ServiceEntityRepository
         $client->setFirstName($clientData->getFirstName());
         $client->setMiddleName($clientData->getMiddleName());
         $client->setLastName($clientData->getLastName());
+        $client->setFullName($clientData->getFullName());
         $client->setSuffix($clientData->getSuffix());
         $client->setAlias($clientData->getAlias());
         $client->setGender($clientData->getGender());
@@ -215,11 +222,86 @@ class ClientsRepository extends ServiceEntityRepository
         $client->setSupervisionStart($this->appDateHelper->convertStringToImmutableDate($clientData->getSupervisionStart()));
         $client->setSupervisionEnd($this->appDateHelper->convertStringToImmutableDate($clientData->getSupervisionEnd()));
         $client->setClientRemarksId($clientData->getClientRemarksId());
+        $client->setCmisDocketNo($clientData->getCmisDocketNo());
+        $client->setCmisCaseClassification($clientData->getCmisCaseClassification());
+        $client->setCmisYM($clientData->getCmisYM());
+        $client->setCmisSource($clientData->getCmisSource());
         $client->setUpdatedAt($this->appDateHelper->getCurrentImmutableDate());
 
         $this->getEntityManager()->flush();
 
         return ResponseEnum::OK;
+    }
+
+    /**
+     * @throws Exception
+     */
+    public function createFromCmis(ClientModel $clientData): int | null
+    {
+        $this->cache->invalidateTags([self::CACHE_TAG]);
+        $now = $this->appDateHelper->getCurrentImmutableDate();
+
+        $newClient = new Clients();
+        $newClient->setCmisId($clientData->getCmisId());
+        $newClient->setClientTypeId($clientData->getClientTypeId());
+        $newClient->setFirstName($clientData->getFirstName());
+        $newClient->setMiddleName($clientData->getMiddleName());
+        $newClient->setLastName($clientData->getLastName());
+        $newClient->setFullName($clientData->getFullName());
+        $newClient->setSuffix($clientData->getSuffix());
+        $newClient->setAlias($clientData->getAlias());
+        $newClient->setGender($clientData->getGender());
+        $newClient->setDateOfBirth($clientData->getDateOfBirth());
+        $newClient->setOffenseCategory($clientData->getOffenseCategory());
+        $newClient->setFieldOfficeId($clientData->getFieldOfficeId());
+        $newClient->setIsSeniorCitizen($clientData->isSeniorCitizen());
+        $newClient->setIsPwd($clientData->isPwd());
+        $newClient->setSupervisionStart($this->appDateHelper->convertStringToImmutableDate($clientData->getSupervisionStart()));
+        $newClient->setSupervisionEnd($this->appDateHelper->convertStringToImmutableDate($clientData->getSupervisionEnd()));
+        $newClient->setClientRemarksId($clientData->getClientRemarksId());
+        $newClient->setCmisDocketNo($clientData->getCmisDocketNo());
+        $newClient->setCmisCaseClassification($clientData->getCmisCaseClassification());
+        $newClient->setCmisYM($clientData->getCmisYM());
+        $newClient->setCmisSource($clientData->getCmisSource());
+        $newClient->setCmisSyncedAt($now);
+        $newClient->setCmisLastSeenAt($now);
+        $newClient->setCreatedAt($now);
+        $newClient->setUpdatedAt($now);
+
+        $this->getEntityManager()->persist($newClient);
+        $this->getEntityManager()->flush();
+
+        return $newClient->getClientId();
+    }
+
+    /**
+     * @throws Exception
+     */
+    public function updateFromCmis(Clients $client, ClientModel $clientData): void
+    {
+        $this->cache->invalidateTags([self::CACHE_TAG]);
+        $now = $this->appDateHelper->getCurrentImmutableDate();
+
+        $client->setCmisId($clientData->getCmisId());
+        $client->setClientTypeId($clientData->getClientTypeId());
+        $client->setFirstName($clientData->getFirstName());
+        $client->setMiddleName($clientData->getMiddleName());
+        $client->setLastName($clientData->getLastName());
+        $client->setFullName($clientData->getFullName());
+        $client->setSuffix($clientData->getSuffix());
+        $client->setAlias($clientData->getAlias());
+        $client->setFieldOfficeId($clientData->getFieldOfficeId());
+        $client->setSupervisionStart($this->appDateHelper->convertStringToImmutableDate($clientData->getSupervisionStart()));
+        $client->setSupervisionEnd($this->appDateHelper->convertStringToImmutableDate($clientData->getSupervisionEnd()));
+        $client->setCmisDocketNo($clientData->getCmisDocketNo());
+        $client->setCmisCaseClassification($clientData->getCmisCaseClassification());
+        $client->setCmisYM($clientData->getCmisYM());
+        $client->setCmisSource($clientData->getCmisSource());
+        $client->setCmisSyncedAt($now);
+        $client->setCmisLastSeenAt($now);
+        $client->setUpdatedAt($now);
+
+        $this->getEntityManager()->flush();
     }
 
     /**
@@ -254,6 +336,71 @@ class ClientsRepository extends ServiceEntityRepository
         return ($client == null) ? false : $client;
     }
 
+    public function findOneActiveByCmisId(int $cmisId): ?Clients
+    {
+        return $this->findOneActiveByCmisSourceAndId(CmisSource::F5T7, $cmisId);
+    }
+
+    public function findOneActiveByCmisSourceAndId(string $cmisSource, int $cmisId): ?Clients
+    {
+        return $this->findOneBy([
+            'cmisSource' => $cmisSource,
+            'cmisId' => $cmisId,
+            'deletedAt' => null,
+        ]);
+    }
+
+    public function findOneActiveByCmisDocketNo(string $docketNo): ?Clients
+    {
+        return $this->findOneBy([
+            'cmisDocketNo' => $docketNo,
+            'deletedAt' => null,
+        ]);
+    }
+
+    /**
+     * @return Clients[]
+     * @throws \Doctrine\DBAL\Exception
+     */
+    public function findActiveDuplicateCandidates(ClientModel $clientData): array
+    {
+        if (!$this->isValidSqlDate($clientData->getSupervisionStart())
+            || !$this->isValidSqlDate($clientData->getSupervisionEnd())) {
+            return [];
+        }
+
+        $conn = $this->getEntityManager()->getConnection();
+        $sql = "SELECT * FROM clients
+                WHERE deleted_at IS NULL
+                  AND cmis_id IS NULL
+                  AND LOWER(TRIM(first_name)) = LOWER(TRIM(:first_name))
+                  AND LOWER(TRIM(last_name)) = LOWER(TRIM(:last_name))
+                  AND field_office_id = :field_office_id
+                  AND supervision_start = :supervision_start
+                  AND supervision_end = :supervision_end";
+
+        return $conn->executeQuery($sql, [
+            'first_name' => $clientData->getFirstName(),
+            'last_name' => $clientData->getLastName(),
+            'field_office_id' => $clientData->getFieldOfficeId(),
+            'supervision_start' => $clientData->getSupervisionStart(),
+            'supervision_end' => $clientData->getSupervisionEnd(),
+        ])->fetchAllAssociative();
+    }
+
+    private function isValidSqlDate(string $value): bool
+    {
+        if ($value === '' || str_starts_with($value, '0000-00-00')) {
+            return false;
+        }
+
+        $date = \DateTimeImmutable::createFromFormat('Y-m-d', $value);
+
+        return $date !== false
+            && $date->format('Y-m-d') === $value
+            && (int) $date->format('Y') >= 1900;
+    }
+
     /**
      * @param int $page
      * @param int $pageSize
@@ -282,7 +429,7 @@ class ClientsRepository extends ServiceEntityRepository
                     LEFT JOIN field_offices as fo ON c.field_office_id = fo.field_office_id
                     LEFT JOIN regions as rg ON fo.region_id = rg.region_id
                     WHERE c.deleted_at IS NULL ";
-            
+
             if ($filedOfficeId > 0) {
                 $sql .= "AND c.field_office_id = $filedOfficeId ";
             }
@@ -332,12 +479,12 @@ class ClientsRepository extends ServiceEntityRepository
     {
         $predicate = 's.date BETWEEN CAST("'.$minMaxDate['min'].'" AS DATE) AND CAST("'.$minMaxDate['max'].'" AS DATE)';
         $conn = $this->getEntityManager()->getConnection();
-        $sql = "SELECT 
-                    c.client_id, 
-                    c.client_type_id, 
-                    cs.client_remarks_id, 
-                    c.supervision_start, 
-                    c.supervision_end 
+        $sql = "SELECT
+                    c.client_id,
+                    c.client_type_id,
+                    cs.client_remarks_id,
+                    c.supervision_start,
+                    c.supervision_end
                 FROM client_sessions as cs
                 LEFT JOIN clients c on cs.client_id = c.client_id
                 LEFT JOIN sessions s on cs.session_id = s.session_id

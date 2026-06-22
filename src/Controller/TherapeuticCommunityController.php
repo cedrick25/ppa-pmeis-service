@@ -14,6 +14,7 @@ use App\Model\ResourceFacilitatorSession as ResourceFacilitatorSessionModel;
 use App\Model\Sessions as SessionsModel;
 use App\Model\Volunteer as VolunteerModel;
 use App\Service\CivilStatusInterface;
+use App\Service\Cmis\CmisClientSyncService;
 use App\Service\EducationBackgroundInterface;
 use App\Service\OccupationInterface;
 use App\Service\ReligionInterface;
@@ -67,6 +68,7 @@ class TherapeuticCommunityController extends AbstractController
         private OccupationInterface $occupationService,
         private ReligionInterface $religionService,
         private ClientRemarksInterface $clientRemarksService,
+        private CmisClientSyncService $cmisClientSyncService,
     ){}
 
     /**
@@ -782,6 +784,106 @@ class TherapeuticCommunityController extends AbstractController
     public function getClientByClientTypeId(Request $request): Response
     {
         return $this->json($this->clientService->getByClientId((int) $request->get("id")));
+    }
+
+    /**
+     * @Route("/cmis/{source}/clients", methods={"GET"}, requirements={"source"="f5t7|f5t11|f21t8_parol|f21t8_pardon"})
+     */
+    public function getCmisClients(Request $request): Response
+    {
+        $result = $this->cmisClientSyncService->preview(
+            (string) $request->get('source'),
+            max(1, (int) $request->query->get('page_size', 10)),
+            $request->query->get('field_office_id') ? (int) $request->query->get('field_office_id') : null,
+            $request->query->get('year_month') ? (string) $request->query->get('year_month') : null,
+            $request->query->get('search') ? (string) $request->query->get('search') : null,
+            $request->query->get('cursor') ? (int) $request->query->get('cursor') : null,
+        );
+
+        $status = ($result['message'] ?? '') === \App\Enum\Response::VALIDATING_FAILED
+            ? Response::HTTP_BAD_REQUEST
+            : Response::HTTP_OK;
+
+        return $this->json($result, $status, [], ['json_encode_options' => JSON_INVALID_UTF8_SUBSTITUTE]);
+    }
+
+    /**
+     * @Route("/cmis/f5t7/clients", methods={"GET"})
+     */
+    public function getCmisF5T7Clients(Request $request): Response
+    {
+        $request->attributes->set('source', 'f5t7');
+
+        return $this->getCmisClients($request);
+    }
+
+    /**
+     * @Route("/cmis/{source}/sync", methods={"POST"}, requirements={"source"="f5t7|f5t11|f21t8_parol|f21t8_pardon"})
+     */
+    public function syncCmisClients(Request $request): Response
+    {
+        $data = json_decode($request->getContent(), true) ?: [];
+
+        return $this->json($this->cmisClientSyncService->sync(
+            (string) $request->get('source'),
+            isset($data['fieldOfficeId']) && $data['fieldOfficeId'] ? (int) $data['fieldOfficeId'] : null,
+            isset($data['yearMonth']) && $data['yearMonth'] ? (string) $data['yearMonth'] : null,
+            isset($data['cmisIds']) && is_array($data['cmisIds']) ? array_map('intval', $data['cmisIds']) : null,
+            isset($data['limit']) ? max(1, (int) $data['limit']) : 500,
+        ));
+    }
+
+    /**
+     * @Route("/cmis/f5t7/sync", methods={"POST"})
+     */
+    public function syncCmisF5T7Clients(Request $request): Response
+    {
+        $request->attributes->set('source', 'f5t7');
+
+        return $this->syncCmisClients($request);
+    }
+
+    /**
+     * @Route("/cmis/{source}/sync/{cmisId}", methods={"POST"}, requirements={"source"="f5t7|f5t11|f21t8_parol|f21t8_pardon", "cmisId"="\d+"})
+     */
+    public function syncCmisClient(Request $request): Response
+    {
+        return $this->json($this->cmisClientSyncService->syncOne(
+            (string) $request->get('source'),
+            (int) $request->get('cmisId')
+        ));
+    }
+
+    /**
+     * @Route("/cmis/f5t7/sync/{cmisId}", methods={"POST"})
+     */
+    public function syncCmisF5T7Client(Request $request): Response
+    {
+        $request->attributes->set('source', 'f5t7');
+
+        return $this->syncCmisClient($request);
+    }
+
+    /**
+     * @Route("/client/by/cmis/{source}/{cmisId}", methods={"GET"}, requirements={"source"="f5t7|f5t11|f21t8_parol|f21t8_pardon", "cmisId"="\d+"})
+     */
+    public function getClientByCmisSourceAndId(Request $request): Response
+    {
+        return $this->json($this->cmisClientSyncService->getByCmisId(
+            (string) $request->get('source'),
+            (int) $request->get('cmisId')
+        ));
+    }
+
+    /**
+     * @Route("/client/by/cmis/{cmisId}", methods={"GET"})
+     */
+    public function getClientByCmisId(Request $request): Response
+    {
+        return $this->json($this->cmisClientSyncService->getByCmisId(
+            'f5t7',
+            (int) $request->get('cmisId')
+        ));
     }
 
     /**

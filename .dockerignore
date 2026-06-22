@@ -1,0 +1,14 @@
+.git
+.idea
+.vscode
+
+mysql
+var/cache
+var/log
+var/sessions
+
+vendor
+node_modules
+
+.env.local
+docker-compose.override.yml

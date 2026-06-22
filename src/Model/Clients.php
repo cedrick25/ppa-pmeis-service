@@ -9,7 +9,7 @@ use Symfony\Component\Validator\Constraints as Assert;
 class Clients implements \JsonSerializable
 {
     public function __construct(
-        private int $cmisId,
+        private ?int $cmisId,
         private int $clientTypeId,
         private string $firstName,
         private string $lastName,
@@ -22,20 +22,23 @@ class Clients implements \JsonSerializable
         private string $supervisionEnd,
         private int $fieldOfficeId,
         private ?string $middleName = null,
+        private ?string $fullName = null,
         private ?string $suffix = null,
         private ?string $alias = null,
         private ?int $clientRemarksId = null,
+        private ?string $cmisDocketNo = null,
+        private ?string $cmisCaseClassification = null,
+        private ?string $cmisYM = null,
+        private ?string $cmisSource = null,
         private ?DateTimeInterface $createdAt = null,
         private ?DateTimeInterface $updatedAt = null,
         private ?DateTimeInterface $deletedAt = null
     ){}
 
     /**
-     * @Assert\NotBlank
-     * @Assert\GreaterThan(0)
-     * @return int
+     * @return int|null
      */
-    public function getCmisId(): int
+    public function getCmisId(): ?int
     {
         return $this->cmisId;
     }
@@ -161,11 +164,39 @@ class Clients implements \JsonSerializable
     }
 
     /**
+     * @return string|null
+     */
+    public function getFullName(): ?string
+    {
+        return $this->fullName;
+    }
+
+    /**
      * @return int|null
      */
     public function getClientRemarksId(): ?int
     {
         return $this->clientRemarksId;
+    }
+
+    public function getCmisDocketNo(): ?string
+    {
+        return $this->cmisDocketNo;
+    }
+
+    public function getCmisCaseClassification(): ?string
+    {
+        return $this->cmisCaseClassification;
+    }
+
+    public function getCmisYM(): ?string
+    {
+        return $this->cmisYM;
+    }
+
+    public function getCmisSource(): ?string
+    {
+        return $this->cmisSource;
     }
 
     /**

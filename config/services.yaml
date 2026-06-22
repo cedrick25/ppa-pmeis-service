@@ -30,3 +30,23 @@ services:
     App\Report\Report:
         arguments:
              $reports: !tagged_iterator { tag: app.report.form }
+
+    App\Repository\CmisF5T7Repository:
+        arguments:
+            $cmisConnection: '@doctrine.dbal.cmis_connection'
+
+    App\Repository\CmisF5T11Repository:
+        arguments:
+            $cmisConnection: '@doctrine.dbal.cmis_connection'
+
+    App\Repository\CmisF21T8ParolRepository:
+        arguments:
+            $cmisConnection: '@doctrine.dbal.cmis_connection'
+
+    App\Repository\CmisF21T8PardonRepository:
+        arguments:
+            $cmisConnection: '@doctrine.dbal.cmis_connection'
+
+    App\Service\Cmis\CmisClientSyncService:
+        arguments:
+            $appEnvironment: '%kernel.environment%'

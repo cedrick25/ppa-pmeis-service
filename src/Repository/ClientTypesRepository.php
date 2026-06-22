@@ -127,4 +127,9 @@ class ClientTypesRepository extends ServiceEntityRepository
 
         return ($clientType == null) ? false : $clientType;
     }
+
+    public function findOneByCode(string $code): ?ClientTypes
+    {
+        return $this->findOneBy(['code' => $code]);
+    }
 }
